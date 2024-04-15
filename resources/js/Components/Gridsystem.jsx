@@ -1,22 +1,22 @@
 import React from 'react';
 
-
 function Gridsystem() {
 
     return (
 
-        <div className="flex">
-            <div className="flex-none w-14 h-14">
-                01
-            </div>
-            <div className="grow h-14">
-                02
-            </div>
-            <div className="flex-none w-14 h-14">
-                03
-            </div>
-        </div>
+        <div class="container">
+        <div class="row">
+          <div class="col">
+              
+            <div class="row">row1</div>
+            <div class="row">row2</div>
 
+          </div>
+          <div class="col">
+            Column
+          </div>
+        </div>
+      </div>
 
     );
 

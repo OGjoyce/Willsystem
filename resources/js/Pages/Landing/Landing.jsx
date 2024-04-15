@@ -126,7 +126,7 @@ export default function Landing( auth ) {
           </div>
           <div className="text-center">
             <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
-              Your Wil, your memory, your legacy...
+              Your Will, your memory, your legacy...
             </h1>
             <p className="mt-6 text-lg leading-8 text-gray-600">
             Example test we need to define what should be here

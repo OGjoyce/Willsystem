@@ -1,59 +1,42 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
-import { useState } from 'react'
-import { Dialog } from '@headlessui/react'
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
-import logo from './../Landing/imglanding/logomain2.png'
-import Keynames from '@/Components/Keynames';
-import Navbar from '@/Components/Navbar';
-import Gridsystem from '@/Components/Gridsystem';
+
+export default function Create({ auth }) {
+    return (
+        <AuthenticatedLayout
+            user={auth.user}
+            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Home</h2>}
+        >
+            <Head title={"Welcome, "+user} />
+
+            <div className="py-12">
+                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg container">
 
 
-
-const navigation = [
-  { name: 'Home', href: '/landing' },
-  { name: 'Our Company', href: '#/aboutus' },
-  { name: 'CreateWill', href: '#' },
-  { name: 'Company', href: '#' },
-]
-
-export default function Create( auth ) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
-  return (
-    <div className="bg-white">
-
-    <Navbar/>
+                    <div className="columns-3 ...">
+                    <div className="w-full" ><p> I want to create my first will</p></div>
+                    <div className="w-full"><p>Tell us about more!</p></div>
+                    <div className="w-full"><p>contact an agent!</p></div>
+                    </div>
 
 
+                    <div className="columns-3 ...">
+                    <div className="w-full" ><p>Check my will status</p></div>
+                    <div className="w-full"><p>Check my wills</p></div>
+                    <div className="w-full"><p>Check my POAS</p></div>
+                    </div>
 
-    <div className="relative isolate px-6 pt-14 lg:px-8">
-      <div
-        className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
-        aria-hidden="true"
-      >
-        <div
-          className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
-          style={{
-            clipPath:
-              'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
-          }}
-        />
-      </div>
-      
-      <div
-        className="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]"
-        aria-hidden="true"
-      >
-        <div
-          className="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]"
-          style={{
-            clipPath:
-              'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
-          }}
-        />
-      </div>
-    </div>
-  </div>
-  )
+                    <div className="columns-3 ...">
+                    <div className="w-full" ><p>Pricing</p></div>
+                    <div className="w-full"><p>option</p></div>
+                    <div className="w-full"><p>option</p></div>
+                    </div>
+
+
+                    </div>
+                </div>
+            </div>
+        </AuthenticatedLayout>
+    );
 }
