@@ -19,7 +19,7 @@ export function getMarriedData() {
 
 }
 
-function Married({ auth, laravelVersion, phpVersion }) {
+function Married({ humanSelector }) {
     const [selected, setSelected] = useState(null);
     const [value, setValue] = useState();
     const onInput = ({ target: { value } }) => setValue(value);
@@ -31,34 +31,62 @@ function Married({ auth, laravelVersion, phpVersion }) {
 
     return (
         <>
-            <h1>Are you married?</h1>
-            <Form onChange={onFormSubmit}>
-                {['switch'].map((type) => (
-                    <div key={`default-${type}`} className="mb-3">
-                        <Form.Check // prettier-ignore
-                            type={type}
-                            id={`1`}
-                            label={`Yes I am Married`}
-                            value={"true"}
-                        />
+            {
+                humanSelector == "spouse"?
+                <><h1>Are you married?</h1><Form onChange={onFormSubmit}>
+                        {['switch'].map((type) => (
+                            <div key={`default-${type}`} className="mb-3">
+                                <Form.Check // prettier-ignore
 
-                        <Form.Check
+                                    type={type}
+                                    id={`1`}
+                                    label={`Yes I am Married`}
+                                    value={"true"} />
 
-                            type={type}
-                            label={`No I am not Married`}
-                            id={`2`}
-                            value={"false"}
-                        />
-                        <Form.Check
+                                <Form.Check
 
-                            type={type}
-                            label={`No, But I've lived with my spouse 3 or more years`}
-                            id={`3`}
-                            value={"soso"}
-                        />
-                    </div>
-                ))}
-            </Form>
+                                    type={type}
+                                    label={`No I am not Married`}
+                                    id={`2`}
+                                    value={"false"} />
+                                <Form.Check
+
+                                    type={type}
+                                    label={`No, But I've lived with my spouse 3 or more years`}
+                                    id={`3`}
+                                    value={"soso"} />
+                            </div>
+                        ))}
+                    </Form></>
+                :
+                null
+            }
+               {
+                humanSelector == "children"?
+                <><h1>Do you have childrens?</h1><Form onChange={onFormSubmit}>
+                        {['switch'].map((type) => (
+                            <div key={`default-${type}`} className="mb-3">
+                                <Form.Check // prettier-ignore
+
+                                    type={type}
+                                    id={`1`}
+                                    label={`I do have kids`}
+                                    value={"true"} />
+
+                                <Form.Check
+
+                                    type={type}
+                                    label={`I do not have kids`}
+                                    id={`2`}
+                                    value={"false"} />
+                                
+                            </div>
+                        ))}
+                    </Form></>
+                :
+                null
+            }
+            
 
         </>
 

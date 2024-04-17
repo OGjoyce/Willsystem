@@ -2,11 +2,24 @@ import { useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 
+
+export function openModal(){
+    handleClose();
+    return true;
+}
+export function closeModal(){
+    handleClose();
+    return true;
+}
+
+
+
 function ModalAddHuman() {
   const [show, setShow] = useState(false);
 
-  const handleClose = () => setShow(false);
-  const handleShow = () => setShow(true);
+ const handleClose = () => setShow(false);
+ const handleShow = () => setShow(true);
+ 
 
   return (
     <>
@@ -19,9 +32,9 @@ function ModalAddHuman() {
           <Modal.Title>Modal heading</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-            
+        <AddHuman married={false} />
 
-            
+
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleClose}>
@@ -38,3 +51,4 @@ function ModalAddHuman() {
 
 
 export default ModalAddHuman;
+

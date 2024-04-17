@@ -11,6 +11,11 @@ import Married from '@/Components/Married';
 import {getFormData} from '@/Components/FormCity';
 import {getMarriedData} from '@/Components/Married';
 import AddHuman from '@/Components/AddHuman';
+import ModalAddHuman from '@/Components/ModalAddHuman';
+
+import { openModal, closeModal } from '@/Components/ModalAddHuman';
+import { getHumanData } from '@/Components/AddHuman';
+
 
 var object_status = [];
 export default function Personal({ auth }) {
@@ -21,58 +26,70 @@ export default function Personal({ auth }) {
         },
         {
             "step": 1,
-            "title": "Married"
+            "title": "Married1"
         },
         {
             "step": 2,
-            "title": "Childs"
+            "title": "Married2"
         },
         {
             "step": 3,
-            "title": "Executor"
+            "title": "Childs1"
         },
         {
             "step": 4,
-            "title": "Guardians"
+            "title": "Childs2"
         },
         {
             "step": 5,
-            "title": "Personal"
+            "title": "Guardian for minors"
         },
         {
             "step": 6,
-            "title": "Personal"
+            "title": "Executors"
         },
         {
             "step": 7,
-            "title": "Personal"
+            "title": "Bequest"
         },
         {
             "step": 8,
-            "title": "Personal"
+            "title": "Residue"
         },
         {
             "step": 9,
-            "title": "Personal"
+            "title": "Wipeout"
+        },
+        {
+            "step": 10,
+            "title": "Testamentery Trust"
+        },
+        {
+            "step": 11,
+            "title": "Additional"
         },
 
 
 
     ]
 
-    
+
+
 
     let username = auth.user.name;
     var [pointer, setPointer] = useState(0);
     const pushInfo = function(step){
+        
         var object_to_push = {};
-        object_to_push.step = stepper[step];
         switch (step) {
             case 0:
-                object_to_push.personal = getFormData();
+                object_to_push.personal = {...stepper[step], ...getFormData()};
                 break;
             case 1:
-                object_to_push.married = getMarriedData();
+                object_to_push.marriedq = {...getMarriedData()};
+                break;
+            case 2:
+                object_to_push.married = {...getHumanData()};
                 break;
         
             default:
@@ -84,8 +101,21 @@ export default function Personal({ auth }) {
         return object_status;
 
     }
+
+    const popInfo = function(){
+        object_status.pop();
+        console.log(object_status);
+        return object_status;
+
+    }
     const nextStep = function(nextStep){
         pushInfo(pointer);
+        setPointer(nextStep);
+        return true;
+
+    }
+    const backStep = function(nextStep){
+        popInfo();
         setPointer(nextStep);
         return true;
 
@@ -110,7 +140,7 @@ export default function Personal({ auth }) {
                             null
                         }
                         {pointer == 1 ?
-                            <Married/>
+                            <Married humanSelector={"spouse"} />
                             :
                             null
                         }
@@ -120,12 +150,27 @@ export default function Personal({ auth }) {
                             :
                             null
                         }
+                        {
+                            pointer == 3?
+                            <Married humanSelector={"children"} />
+                            :
+                            null
+                        }
+                        {
+                            pointer == 4?
+                            <AddHuman married={false} childrens={true} />
+                            :
+                            null
+                            
+
+                        }
+                        
 
                         <div style={{position: "absolute", bottom:"15px"}}>
                             <Container>
                                 <Row>
                                     <Col>
-                                        <Button onClick={() => setPointer(pointer - 1)} variant="outline-dark" size="lg">Back1</Button>{' '}
+                                        <Button onClick={() => backStep(pointer - 1)} variant="outline-dark" size="lg">Back1</Button>{' '}
                                     </Col>
                                     <Col>
                                        
