@@ -32,11 +32,15 @@ export function getHumanData() {
   
     var phone = document.getElementById('phoneId').value;
 
-    obj = {
+    var obj = {
         "firstName": firstName,
         "middleName": middleName,
+        "lastName": lastName,
+        "relative": relative,
+        "email": control==0? email1: email2,
+        "phone": phone
     }
-    return true;
+    return obj;
 
 
 }
@@ -77,7 +81,10 @@ function AddHuman({ married, childrens, human }) {
                     }
                     {
                         childrens?
-                        <Form.Control  readOnly defaultValue="Children" />
+                        <><Form.Control readOnly defaultValue="Children" /><Form.Group className="mb-3" controlId="emailId1">
+                                <Form.Label>Email for notifications:</Form.Label>
+                                <Form.Control type="email" placeholder="example@dot.com" />
+                            </Form.Group></>
                         :
                         null
                     }

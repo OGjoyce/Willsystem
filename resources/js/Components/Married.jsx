@@ -79,7 +79,6 @@ function Married({ humanSelector }) {
                                     label={`I do not have kids`}
                                     id={`2`}
                                     value={"false"} />
-                                
                             </div>
                         ))}
                     </Form></>

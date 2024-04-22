@@ -15,7 +15,7 @@ import ModalAddHuman from '@/Components/ModalAddHuman';
 
 import { openModal, closeModal } from '@/Components/ModalAddHuman';
 import { getHumanData } from '@/Components/AddHuman';
-
+import HumanTable from '@/Components/HumanTable';
 
 var object_status = [];
 export default function Personal({ auth }) {
@@ -86,11 +86,18 @@ export default function Personal({ auth }) {
                 object_to_push.personal = {...stepper[step], ...getFormData()};
                 break;
             case 1:
-                object_to_push.marriedq = {...getMarriedData()};
+                object_to_push.marriedq = {"selection" : getMarriedData()};
                 break;
             case 2:
                 object_to_push.married = {...getHumanData()};
                 break;
+            case 3:
+                object_to_push.kidsq = {"selection" : getMarriedData()};
+                break;
+            case 4:
+                object_to_push.kids = {...getHumanData()};
+                break;
+
         
             default:
                 break;
@@ -126,7 +133,7 @@ export default function Personal({ auth }) {
     return (
         <AuthenticatedLayout
             user={auth.user}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Let us know more about you... Information</h2>}
+            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Creating will</h2>}
         >
             <Head title={"Welcome, " + username} />
 
@@ -164,17 +171,24 @@ export default function Personal({ auth }) {
                             
 
                         }
+                        {
+                            pointer == 5?
+
+                            <HumanTable datas={object_status} />
+                            :
+                            null
+                        }
                         
 
-                        <div style={{position: "absolute", bottom:"15px"}}>
-                            <Container>
+                        <div style={{position: "absolute", bottom:"1px", width:"80%"}}>
+                            <Container fluid="md">  
                                 <Row>
-                                    <Col>
-                                        <Button onClick={() => backStep(pointer - 1)} variant="outline-dark" size="lg">Back1</Button>{' '}
+                                    <Col xs={6} >
+                                        <Button onClick={() => backStep(pointer - 1)} variant="outline-dark" size="lg" style={{width: "100%"}}>Back</Button>{' '}
                                     </Col>
-                                    <Col>
+                                    <Col xs={6}>
                                        
-                                        <Button onClick={() => nextStep(pointer + 1)} variant="outline-success" size="lg">Continue</Button>{' '}
+                                        <Button onClick={() => nextStep(pointer + 1)} variant="outline-success" size="lg" style={{width: "100%"}}>Continue</Button>{' '}
                                     </Col>
                                 </Row>
                             </Container>
