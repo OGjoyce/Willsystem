@@ -12,6 +12,7 @@ import {getFormData} from '@/Components/FormCity';
 import {getMarriedData} from '@/Components/Married';
 import AddHuman from '@/Components/AddHuman';
 import ModalAddHuman from '@/Components/ModalAddHuman';
+import {getRelatives, getExecutors} from '@/Components/HumanTable';
 
 import { openModal, closeModal } from '@/Components/ModalAddHuman';
 import { getHumanData } from '@/Components/AddHuman';
@@ -97,6 +98,10 @@ export default function Personal({ auth }) {
             case 4:
                 object_to_push.kids = {...getHumanData()};
                 break;
+
+            case 5:
+                object_to_push.relatives = {...getRelatives()}
+                object_to_push.executors = {...getExecutors()}
 
         
             default:

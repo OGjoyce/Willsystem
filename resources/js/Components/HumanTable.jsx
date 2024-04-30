@@ -22,7 +22,17 @@ var selected_executor = "";
 var executorPriority = 1;
 var selectedExecutor = [];
 
+var relativesObj = [];
+var executorsObj = [];
 
+export function getRelatives() {
+    return relativesObj;
+
+}
+export function getExecutors(){
+    return executorsObj;
+
+}
 function HumanTable({ id, datas }) {
 
     // var table_data = [];
@@ -71,6 +81,8 @@ function HumanTable({ id, datas }) {
     const [show, setShow] = useState(false);
     const [showExecutor, setShowExecutor] = useState(false);
 
+
+       //saves data for relatives table 
     const handleClose = () => {
         setShow(false);
         const modalData = getHumanData();
@@ -83,6 +95,7 @@ function HumanTable({ id, datas }) {
         }
         table_data.push(obj);
         //  setDataTable(table_spoon);
+        relativesObj.push(modalData);
         ids +=1;
 
     }
@@ -120,7 +133,7 @@ function HumanTable({ id, datas }) {
     //function to get data from executor and place it in a table
 
     const handleCloseExecutor = () => {
-        debugger;
+
         setShowExecutor(false);
         const pointer = executorPriority;
 
@@ -130,7 +143,9 @@ function HumanTable({ id, datas }) {
             "lastName": selectedExecutor.lastName,
             "relative": selectedExecutor.relative
         }
+        
         table_dataExecutor.push(obj);
+        executorsObj = table_dataExecutor;
         //setDataTableExecutor(selectedExecutor)
         executorPriority += 1;
         console.log(executorPriority);
