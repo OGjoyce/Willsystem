@@ -17,29 +17,23 @@ import Modal from 'react-bootstrap/Modal';
 
 
 var render = 0;
-var ids = 0;
+var ids = 1;
 var selected_executor = "";
+var executorPriority = 1;
+var selectedExecutor = [];
+
 
 function HumanTable({ id, datas }) {
 
     // var table_data = [];
     var table_spoon = [];
-    const [table_data, setDataTable] = useState([]);
+    var [table_data, setDataTable] = useState([]);
+    var [table_dataExecutor, setDataTableExecutor] = useState([]);
     const [data, setData] = useState([]);
-    const [arrItem, setArrItem] = useState('');
-    const [itemToAdd, setItemToAdd] = useState([]);
+    const [dataExecutor, setDataExecutor] = useState(0);
+
     const [modalSelector, setModalSelector] = useState(0);
 
-
-    const [srNo, setSrNo] = useState(1);
-    const addToArrFunction = () => {
-        setItemToAdd([...itemToAdd, { id: srNo, value: arrItem }]);
-        setArrItem('');
-        setSrNo(srNo + 1);
-    };
-    const addToTable = (x) => {
-        // setData([...data, ...x]); 
-    };
 
     if (datas != null && render == 0) {
         const len = datas.length;
@@ -80,15 +74,16 @@ function HumanTable({ id, datas }) {
     const handleClose = () => {
         setShow(false);
         const modalData = getHumanData();
+        const idpointer = ids;
         var obj = {
-            "id": ids,
+            "id": idpointer,
             "firstName": modalData.firstName,
             "lastName": modalData.lastName,
             "relative": modalData.relative
         }
         table_data.push(obj);
         //  setDataTable(table_spoon);
-        ids++;
+        ids +=1;
 
     }
     const handleShow = () => {
@@ -96,14 +91,14 @@ function HumanTable({ id, datas }) {
 
     }
 
-    const addExecutor = () =>{
-        
+    const addExecutor = () => {
+
     }
-    const handleCloseNosave = () =>{
+    const handleCloseNosave = () => {
         setShow(false);
     }
 
-    const handleCloseNosaveE = () =>{
+    const handleCloseNosaveE = () => {
         setShowExecutor(false);
     }
     const handleCloseE = () => {
@@ -112,13 +107,51 @@ function HumanTable({ id, datas }) {
 
     const handleShowE = (exe) => {
 
+
+        selectedExecutor = exe;
         setShowExecutor(true);
+
         const names = exe.firstName + " " + exe.lastName + " -> " + exe.relative;
         selected_executor = names;
-       
-     
+
+
     }
-    
+
+    //function to get data from executor and place it in a table
+
+    const handleCloseExecutor = () => {
+        debugger;
+        setShowExecutor(false);
+        const pointer = executorPriority;
+
+        var obj = {
+            "id": pointer,
+            "firstName": selectedExecutor.firstName,
+            "lastName": selectedExecutor.lastName,
+            "relative": selectedExecutor.relative
+        }
+        table_dataExecutor.push(obj);
+        //setDataTableExecutor(selectedExecutor)
+        executorPriority += 1;
+        console.log(executorPriority);
+        setDataExecutor(1)
+
+
+    }
+
+
+    const handleDelete = (id) => {
+        //functiono should pop from table_dataExecutor and render again
+        console.log(table_dataExecutor);
+        table_dataExecutor = table_dataExecutor.filter(obj => obj.id !== id);
+
+        var obj = table_dataExecutor;
+        setDataTableExecutor(obj);
+        console.log(table_dataExecutor);
+        executorPriority -= 1;
+
+        console.log(executorPriority);
+    }
 
 
 
@@ -148,7 +181,7 @@ function HumanTable({ id, datas }) {
                                 <td>{item.firstName}</td>
                                 <td>{item.lastName}</td>
                                 <td>{item.relative}</td>
-                                <td><Button variant="secondary" size="sm" onClick={()=> handleShowE(item)}>Select Executor</Button></td>
+                                <td><Button variant="info" size="sm" onClick={() => handleShowE(item)}>Select Executor</Button></td>
                             </tr>
                         ))}
 
@@ -156,10 +189,39 @@ function HumanTable({ id, datas }) {
                 </tbody>
             </Table>
             <div className="d-grid gap-2">
-                <Button variant="primary" size="lg" onClick={handleShow}>
+                <Button variant="success" size="lg" onClick={handleShow}>
                     Add more relatives
                 </Button>
             </div>
+
+            <Table striped bordered hover responsive>
+                <thead>
+                    <tr>
+                        <th>Priority</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Relative</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    {
+
+                        table_dataExecutor.map((item, index) => (
+                            <tr key={index}>
+                                <td>{item.id}</td>
+                                <td>{item.firstName}</td>
+                                <td>{item.lastName}</td>
+                                <td>{item.relative}</td>
+                                <td><Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button></td>
+                            </tr>
+                        ))}
+
+
+                </tbody>
+            </Table>
+
 
 
 
@@ -168,16 +230,16 @@ function HumanTable({ id, datas }) {
                     <Modal.Title>Add New Person</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    
+
                     <AddHuman human={true} />
 
 
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary"  size="sm" onClick={handleCloseNosave}>
+                    <Button variant="secondary" size="sm" onClick={handleCloseNosave}>
                         Close
                     </Button>
-                    <Button variant="primary"  size="sm" onClick={handleClose}>
+                    <Button variant="primary" size="sm" onClick={handleClose}>
                         Save Changes
                     </Button>
                 </Modal.Footer>
@@ -188,17 +250,17 @@ function HumanTable({ id, datas }) {
                     <Modal.Title>Selecting Executor</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    
+
                     <p>are you sure do you want to add the following executor?</p>
                     <p>{selected_executor} </p>
 
 
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary"  size="sm" onClick={handleCloseE}>
+                    <Button variant="secondary" size="sm" onClick={handleCloseE}>
                         Close
                     </Button>
-                    <Button variant="primary"  size="sm" onClick={handleCloseE}>
+                    <Button variant="primary" size="sm" onClick={handleCloseExecutor}>
                         Save Changes
                     </Button>
                 </Modal.Footer>
