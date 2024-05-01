@@ -13,6 +13,7 @@ import {getMarriedData} from '@/Components/Married';
 import AddHuman from '@/Components/AddHuman';
 import ModalAddHuman from '@/Components/ModalAddHuman';
 import {getRelatives, getExecutors} from '@/Components/HumanTable';
+import Bequest from '@/Components/Bequest';
 
 import { openModal, closeModal } from '@/Components/ModalAddHuman';
 import { getHumanData } from '@/Components/AddHuman';
@@ -142,7 +143,7 @@ export default function Personal({ auth }) {
         >
             <Head title={"Welcome, " + username} />
 
-            <div className="py-12" style={{ height: "90vh", overflow:"hidden" }}>
+            <div className="py-12" style={{ height: "100%", overflow:"hidden" }}>
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8" style={{ height: "inherit" }} >
                     <div className="bg-white overflow-visible shadow-sm sm:rounded-lg container" style={{ height: "inherit" }}>
 
@@ -183,9 +184,15 @@ export default function Personal({ auth }) {
                             :
                             null
                         }
+                        {
+                            pointer == 6?
+                            <Bequest datas={object_status}/>
+                            :
+                            null
+                        }
                         
 
-                        <div style={{position: "absolute", bottom:"1px", width:"80%"}}>
+                        <div style={{position: "relative", bottom:"1px", width:"80%", margin: "100px"}}>
                             <Container fluid="md">  
                                 <Row>
                                     <Col xs={6} >
