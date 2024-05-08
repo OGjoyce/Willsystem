@@ -16,20 +16,149 @@ import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Dropdown from 'react-bootstrap/Dropdown';
 
 import DropdownButton from 'react-bootstrap/DropdownButton';
-import { DropdownToggle, DropdownMenu, DropdownItem } from 'react-bootstrap';
+import { Row, Col, DropdownToggle, DropdownMenu, DropdownItem } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
+import Collapse from 'react-bootstrap/Collapse';
 
 
 
 var all_data;
 var identifiers_names = [];
+var bequestArrObj = [];
+var bequestindex = 0;
+var globalCounter = 0;
+
+export function getBequestArrObj() {
+    return bequestArrObj;
+}
 
 function Bequest({ id, datas }) {
-   
+
+    const [show, setShow] = useState(false);
+    const [showExecutor, setShowExecutor] = useState(false);
+    const [open, setOpen] = useState(false);
+    const [firstRender, setFirstRender] = useState(true);
+    var [table_dataBequest, setTable_dataBequest] = useState([]);
+    var [selectedRecepient, setSelectedRecepient] = useState("Select a recepient to continue...");
+    const [readOnly, setReadOnly] = useState(false);
+
+    const reviewBequestSum = (index) =>
+    {
+        var counter = 0;
+        var obj = table_dataBequest[index];
+
+
+    }
+    const addRecepient = () =>
+    {
+        var bequest, selected, shares;
+        bequest = document.getElementById('bequestTextArea').value;
+        selected = selectedRecepient;
+        shares = document.getElementById('sharesID').value;
+        if (bequest != "" && selected != "false" && (shares != "") && (shares > 0 && shares <= 100)) 
+        {
+           //add to table ... set a hook
+           
+           var obj = 
+           {
+            "id": bequestindex,
+            "names": selected,
+            "shares": shares +"%",
+            "bequest": bequest
+           }
+           
+
+           document.getElementById('sharesID').value = "";
+           setSelectedRecepient("Select other Recepient...");
+           var globalSemaphore = 0;
+           globalSemaphore = globalCounter;
+           globalCounter += Number(shares);
+           const sum = reviewBequestSum(bequestindex);
+          console.log(globalCounter);
+           if(globalCounter > 100){
+            console.log("Amount of shares should be less or equal than 100");
+            globalCounter = globalSemaphore;
+
+           }
+           else if(globalCounter < 100){
+            setReadOnly(true);
+            if(!open){
+                setOpen(true);
+            }
+            
+            table_dataBequest.push(obj);
+           bequestArrObj.push(obj);
+               
+           }
+           else if(globalCounter == 100){
+            table_dataBequest.push(obj);
+            bequestArrObj.push(obj);
+            console.log("100");
+            setReadOnly(false);
+            globalCounter = 0;
+            bequestindex +=1;
+            document.getElementById('bequestTextArea').value = "";
+           }
+           
+
+          
+
+
+        
+        }
+
+
+
+
+
+    }
+    function addAnotherRelative() {
+
+    }
+    function finishBequest() {
+
+    }
+    const setCurrentRecepient = (eventKey) => {
+        setSelectedRecepient(eventKey);
+    };
+
+    //saves data for relatives table 
+    const handleClose = () => {
+        setShow(false);
+        const modalData = getHumanData();
+        const idpointer = ids;
+        var obj = {
+            "id": idpointer,
+            "firstName": modalData.firstName,
+            "lastName": modalData.lastName,
+            "relative": modalData.relative
+        }
+
+    }
+
+    const handleCloseNosave = () => {
+        setShow(false);
+    }
+
+    const handleShow = () => {
+        console.log("nice");
+        setShow(true);
+
+    }
+    const handleDelete = (itemId) =>
+    {
+        table_dataBequest = table_dataBequest.filter(obj => obj.id !== itemId);
+
+        var obj = table_dataBequest;
+        setTable_dataBequest(obj);
+        
+        bequestindex -= 1;
+    }
+
 
     all_data = datas;
 
-    if(all_data != null){
+    if (all_data != null && firstRender) {
         //get marrieds get kids and relatives firsnames + lastname then save the names in a listt
         /*
         you should add to the object a bequest keyname and add the names there  for example
@@ -40,21 +169,20 @@ function Bequest({ id, datas }) {
                     id: x,
                     shares: z,
                 },
-            {
-                id:y
-                shares: z
-            }
+                {
+                    id:y
+                    shares: z
+                }
             ]
 
 
         }]
         */
-       const married = all_data[2].married;
-       const kids = all_data[4].kids;
-       const relatives = all_data[5].relatives;
-       debugger;
+        const married = all_data[2].married;
+        const kids = all_data[4].kids;
+        const relatives = all_data[5].relatives;
 
-        var dataobj ={}
+        var dataobj = {}
         dataobj = {
             married, kids, relatives
         }
@@ -68,8 +196,8 @@ function Bequest({ id, datas }) {
             const names = relatives[key].firstName + " " + relatives[key].lastName;
             identifiers_names.push(names);
         }
-        
-        console.log(identifiers_names);
+
+        setFirstRender(false);
 
 
     }
@@ -87,37 +215,113 @@ function Bequest({ id, datas }) {
 
 
             <Form>
-                <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
+                <Form.Group className="mb-3" controlId="bequestTextArea">
                     <Form.Label>Bequest</Form.Label>
-                    <Form.Control as="textarea" rows={3} />
+                    <Form.Control as="textarea" rows={3} placeholder="(i.e... Gold chain...)" readOnly={readOnly} />
                 </Form.Group>
 
 
+                <Row >
+                    <Col md="auto">
 
-                <Dropdown style={{width:"100%"}} >
-                    <DropdownToggle  variants="success" caret id="size-dropdown">
-                        Select Recepient
-                    </DropdownToggle>
-                    <DropdownMenu>
-                        {identifiers_names.map(size => (
-                            <DropdownItem>{size}</DropdownItem>
-                        ))}
-                    </DropdownMenu>
-                </Dropdown>
+                        <Dropdown style={{ width: "100%" }} onSelect={setCurrentRecepient} >
+                            <DropdownToggle variants="success" caret id="size-dropdown">
+                                Select Recepient
+                            </DropdownToggle>
+                            <DropdownMenu>
+                                {identifiers_names.map(size => (
+                                    <DropdownItem eventKey={size}>{size}</DropdownItem>
+                                ))}
+                            </DropdownMenu>
+                        </Dropdown>
+                    </Col>
+                    <Col md="auto" style={{ border: "1px solid black" }}>
+                        {
+                            selectedRecepient == "false" ?
+                                null
+                                :
+                                <p>Selected Recepient:<b> {selectedRecepient} </b></p>
+                        }
+                    </Col>
+
+                </Row>
+
 
                 <Form.Group className="mb-3" controlId="sharesID">
-                    <Form.Label>Shares</Form.Label>
+                    <Form.Label>The total shares should be equal to 100% </Form.Label>
                     <Form.Control type="number" placeholder="100%" />
                 </Form.Group>
 
-                <Button variant="outline-dark">Add Recepient</Button>
-                <Button variant="outline-info">Add Another Relative</Button>
+                <Button variant="outline-success" onClick={() => addRecepient()} >Add Recepient</Button>
+                <Button variant="outline-info" onClick={() => handleShow()}>Add Another Relative</Button>
+                <Button variant="outline-warning">Finish Bequest</Button>
 
             </Form>
+            <Button
+                onClick={() => setOpen(!open)}
+                aria-controls="example-collapse-text"
+                aria-expanded={open}
+                style={{ width: "80%", margin: "5%" }}
+                variant="outline-dark"
+            >
+                See Bequest information
+            </Button>
+            <Collapse in={open}>
+                <div id="example-collapse-text">
+                    <Table striped bordered hover responsive>
+                        <thead>
+                            <tr>
+                                <th>id</th>
+                                <th>Names</th>
+                                <th>Bequest</th>
+                                <th>Shares</th>
+                                <th>Delete</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            {
+                                table_dataBequest.length == 0?
+                                <p>No information added yet, press "Add Recepient Button" to add.</p>
+                                :
+                                table_dataBequest.map((item, index) => (
+                                    <tr key={index}>
+                                        <td>{item.id}</td>
+                                        <td>{item.names}</td>
+                                        <td>{item.bequest}</td>
+                                        <td>{item.shares}</td>
+                                        <td><Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button></td>
+                                    </tr>
+                                ))
+                            }
+
+
+                        </tbody>
+                    </Table>
+                </div>
+            </Collapse>
 
 
 
+            <Modal show={show} onHide={handleCloseNosave}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Add New Person</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
 
+                    <AddHuman human={true} />
+
+
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" size="sm" onClick={handleCloseNosave}>
+                        Close
+                    </Button>
+                    <Button variant="primary" size="sm" onClick={handleClose}>
+                        Save Changes
+                    </Button>
+                </Modal.Footer>
+            </Modal>
 
 
 
