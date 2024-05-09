@@ -148,7 +148,7 @@ function HumanTable({ id, datas }) {
         executorsObj = table_dataExecutor;
         //setDataTableExecutor(selectedExecutor)
         executorPriority += 1;
-        console.log(executorPriority);
+      
         setDataExecutor(1)
 
 
@@ -157,15 +157,15 @@ function HumanTable({ id, datas }) {
 
     const handleDelete = (id) => {
         //functiono should pop from table_dataExecutor and render again
-        console.log(table_dataExecutor);
+       
         table_dataExecutor = table_dataExecutor.filter(obj => obj.id !== id);
 
         var obj = table_dataExecutor;
         setDataTableExecutor(obj);
-        console.log(table_dataExecutor);
+        
         executorPriority -= 1;
 
-        console.log(executorPriority);
+       
     }
 
 

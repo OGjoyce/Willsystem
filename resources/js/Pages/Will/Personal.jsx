@@ -14,7 +14,7 @@ import AddHuman from '@/Components/AddHuman';
 import ModalAddHuman from '@/Components/ModalAddHuman';
 import {getRelatives, getExecutors} from '@/Components/HumanTable';
 import Bequest from '@/Components/Bequest';
-
+import {getBequestArrObj } from '@/Components/Bequest';
 import { openModal, closeModal } from '@/Components/ModalAddHuman';
 import { getHumanData } from '@/Components/AddHuman';
 import HumanTable from '@/Components/HumanTable';
@@ -101,8 +101,11 @@ export default function Personal({ auth }) {
                 break;
 
             case 5:
-                object_to_push.relatives = {...getRelatives()}
-                object_to_push.executors = {...getExecutors()}
+                object_to_push.relatives = {...getRelatives()} ;
+                object_to_push.executors = {...getExecutors()};
+                break;
+            case 6:
+                object_to_push.bequests = { ...getBequestArrObj()};
 
         
             default:

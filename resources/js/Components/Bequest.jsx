@@ -63,7 +63,7 @@ function Bequest({ id, datas }) {
            {
             "id": bequestindex,
             "names": selected,
-            "shares": shares +"%",
+            "shares": shares,
             "bequest": bequest
            }
            
@@ -113,10 +113,57 @@ function Bequest({ id, datas }) {
 
     }
     function addAnotherRelative() {
+        const newrelative = getHumanData();
+        const names = newrelative.firstName + " " + newrelative.lastName;
+        identifiers_names.push(names);
+        
+        let len = Object.keys(datas[5].relatives).length;
+        datas[5].relatives[len] = newrelative;
+        console.log(datas);
+
 
     }
     function finishBequest() {
+       
+        var flag = false;
+        //sum by id
+        var sum = sumValuesBySameIds(table_dataBequest);
+        let len = Object.keys(sum).length;
+        for (let index = 0; index <len; index++) {
+            if(sum[index] != 100){
+                alert("Please fix the bequest with id: "+index);
+                flag = true;
 
+            }
+            
+        }
+        if(!flag){
+            bequestArrObj = table_dataBequest;
+
+        }
+        else{
+
+        }
+
+
+
+    }
+   
+    function sumValuesBySameIds(containerObject) {
+        let sums = {};
+        // Loop through each object in the containerObject
+        containerObject.forEach(obj => {
+            // If the id already exists in sums, add the value to the sum
+            if (sums.hasOwnProperty(obj.id)) {
+                sums[obj.id] += parseFloat(obj.shares);
+            } 
+            // Otherwise, initialize the sum for this id
+            else {
+                sums[obj.id] = parseFloat(obj.shares);
+            }
+        });
+    
+        return sums;
     }
     const setCurrentRecepient = (eventKey) => {
         setSelectedRecepient(eventKey);
@@ -125,14 +172,7 @@ function Bequest({ id, datas }) {
     //saves data for relatives table 
     const handleClose = () => {
         setShow(false);
-        const modalData = getHumanData();
-        const idpointer = ids;
-        var obj = {
-            "id": idpointer,
-            "firstName": modalData.firstName,
-            "lastName": modalData.lastName,
-            "relative": modalData.relative
-        }
+        addAnotherRelative();
 
     }
 
@@ -254,7 +294,7 @@ function Bequest({ id, datas }) {
 
                 <Button variant="outline-success" onClick={() => addRecepient()} >Add Recepient</Button>
                 <Button variant="outline-info" onClick={() => handleShow()}>Add Another Relative</Button>
-                <Button variant="outline-warning">Finish Bequest</Button>
+                <Button variant="outline-warning"  onClick={() => finishBequest()}>Finish Bequest</Button>
 
             </Form>
             <Button
