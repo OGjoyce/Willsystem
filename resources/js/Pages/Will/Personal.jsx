@@ -18,6 +18,8 @@ import {getBequestArrObj } from '@/Components/Bequest';
 import { openModal, closeModal } from '@/Components/ModalAddHuman';
 import { getHumanData } from '@/Components/AddHuman';
 import HumanTable from '@/Components/HumanTable';
+import Residue from '@/Components/Residue';
+import Wipeout from '@/Components/Wipeout';
 
 var object_status = [];
 export default function Personal({ auth }) {
@@ -44,15 +46,15 @@ export default function Personal({ auth }) {
         },
         {
             "step": 5,
-            "title": "Guardian for minors"
+            "title": "Executos"
         },
         {
             "step": 6,
-            "title": "Executors"
+            "title": "Bequest"
         },
         {
             "step": 7,
-            "title": "Bequest"
+            "title": "Residue"
         },
         {
             "step": 8,
@@ -190,6 +192,18 @@ export default function Personal({ auth }) {
                         {
                             pointer == 6?
                             <Bequest datas={object_status}/>
+                            :
+                            null
+                        }
+                        {
+                            pointer == 7?
+                            <Residue />
+                            :
+                            null
+                        }
+                        {
+                            pointer == 8?
+                            <Wipeout datas={object_status}/>
                             :
                             null
                         }
