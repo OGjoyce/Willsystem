@@ -19,10 +19,11 @@ import Form from 'react-bootstrap/Form';
 import Collapse from 'react-bootstrap/Collapse';
 
 
-
-export function getBequestArrObj() {
-    return bequestArrObj;
+var returndata;
+export function getWipeoutData() {
+    return returndata;
 }
+
 var bequestindex = 0;
 var identifiers_names = [];
 function Wipeout({ id, datas }) {
@@ -90,7 +91,7 @@ function Wipeout({ id, datas }) {
     
             var obj = table_dataBequest;
             setTable_dataBequest(obj);
-            
+            returndata = table_dataBequest;
             bequestindex -= 1;
         }
         
@@ -110,7 +111,8 @@ function Wipeout({ id, datas }) {
              "backup": backup
             }
             table_dataBequest.push(obj);
-            debugger;
+            returndata = table_dataBequest;
+      
 
         }
 
@@ -122,6 +124,7 @@ function Wipeout({ id, datas }) {
         }
         else {
             setCustom(false);
+            returndata = key;
         }
 
     }
@@ -197,6 +200,15 @@ function Wipeout({ id, datas }) {
                     :
                     null
             }
+            <Button
+                onClick={() => setOpen(!open)}
+                aria-controls="example-collapse-text"
+                aria-expanded={open}
+                style={{ width: "80%", margin: "5%" }}
+                variant="outline-dark"
+            >
+                See information
+            </Button>
             <Collapse in={open}>
                 <div id="example-collapse-text">
                     <Table striped bordered hover responsive>

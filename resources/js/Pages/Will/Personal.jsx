@@ -20,6 +20,12 @@ import { getHumanData } from '@/Components/AddHuman';
 import HumanTable from '@/Components/HumanTable';
 import Residue from '@/Components/Residue';
 import Wipeout from '@/Components/Wipeout';
+import { getWipeoutData } from '@/Components/Wipeout';
+
+import Trusting from '@/Components/Trusting';
+import { getTableData } from '@/Components/Trusting';
+
+
 
 var object_status = [];
 export default function Personal({ auth }) {
@@ -81,7 +87,7 @@ export default function Personal({ auth }) {
 
 
     let username = auth.user.name;
-    var [pointer, setPointer] = useState(0);
+    var [pointer, setPointer] = useState(9);
     const pushInfo = function(step){
         
         var object_to_push = {};
@@ -108,6 +114,12 @@ export default function Personal({ auth }) {
                 break;
             case 6:
                 object_to_push.bequests = { ...getBequestArrObj()};
+                break;
+            case 7:
+                break;
+            case 8:
+                object_to_push.wipeout = { ...getWipeoutData()};
+                break;
 
         
             default:
@@ -204,6 +216,12 @@ export default function Personal({ auth }) {
                         {
                             pointer == 8?
                             <Wipeout datas={object_status}/>
+                            :
+                            null
+                        }
+                        {
+                            pointer == 9?
+                            <Trusting datas={object_status}/>
                             :
                             null
                         }
