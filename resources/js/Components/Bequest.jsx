@@ -221,6 +221,7 @@ function Bequest({ id, datas }) {
         const married = all_data[2].married;
         const kids = all_data[4].kids;
         const relatives = all_data[5].relatives;
+        const kidsq = all_data[3].kidsq.selection;
 
         var dataobj = {}
         dataobj = {
@@ -228,9 +229,22 @@ function Bequest({ id, datas }) {
         }
 
         var married_names = married.firstName + " " + married.lastName;
-        var kids_names = kids.firstName + " " + kids.lastName;
-        identifiers_names.push(married_names, kids_names);
+        if(kidsq == "true"){
+            var kids_names = kids.firstName + " " + kids.lastName;
+            for (let child in kids){
+                const names = kids[child].firstName + " " + kids[child].lastName;
+                identifiers_names.push(names);
+            }
 
+
+        }
+        else{
+           
+
+        }
+        identifiers_names.push(married_names);
+        
+       
 
         for (let key in relatives) {
             const names = relatives[key].firstName + " " + relatives[key].lastName;

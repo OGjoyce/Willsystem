@@ -57,10 +57,10 @@ function Wipeout({ id, datas }) {
         }
 
 
-        var options = ['Have the residue go to parents and siblings per stirpes',
+        var options = [
             '50% to parents and siblings and 50% to parents and siblings of spouse',
             '50% to siblings and 50% to siblings of spouse',
-            'Wipeout Beneficiary'
+            'Specific Wipeout Beneficiary'
 
         ]
         var obj = {

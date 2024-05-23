@@ -21,9 +21,10 @@ import HumanTable from '@/Components/HumanTable';
 import Residue from '@/Components/Residue';
 import Wipeout from '@/Components/Wipeout';
 import { getWipeoutData } from '@/Components/Wipeout';
-
+import AddRelative from '@/Components/AddRelative';
 import Trusting from '@/Components/Trusting';
 import { getTableData } from '@/Components/Trusting';
+import {getChildRelatives } from '@/Components/AddRelative';
 
 
 
@@ -32,47 +33,47 @@ export default function Personal({ auth }) {
     var stepper = [
         {
             "step": 0,
-            "title": "Personal"
+            "title": "Please insert your personal information"
         },
         {
             "step": 1,
-            "title": "Married1"
+            "title": "Married Status"
         },
         {
             "step": 2,
-            "title": "Married2"
+            "title": "Marriage Information"
         },
         {
             "step": 3,
-            "title": "Childs1"
+            "title": "Child Status"
         },
         {
             "step": 4,
-            "title": "Childs2"
+            "title": "Children Information"
         },
         {
             "step": 5,
-            "title": "Executos"
+            "title": "Add Will Executors"
         },
         {
             "step": 6,
-            "title": "Bequest"
+            "title": "Bequest Information"
         },
         {
             "step": 7,
-            "title": "Residue"
+            "title": "Select Residue"
         },
         {
             "step": 8,
-            "title": "Residue"
+            "title": "Wipeout Information"
         },
         {
             "step": 9,
-            "title": "Wipeout"
+            "title": "Testamentary Trust"
         },
         {
             "step": 10,
-            "title": "Testamentery Trust"
+            "title": "Additional Information"
         },
         {
             "step": 11,
@@ -87,7 +88,7 @@ export default function Personal({ auth }) {
 
 
     let username = auth.user.name;
-    var [pointer, setPointer] = useState(9);
+    var [pointer, setPointer] = useState(0);
     const pushInfo = function(step){
         
         var object_to_push = {};
@@ -105,7 +106,7 @@ export default function Personal({ auth }) {
                 object_to_push.kidsq = {"selection" : getMarriedData()};
                 break;
             case 4:
-                object_to_push.kids = {...getHumanData()};
+                object_to_push.kids = {...getChildRelatives()};
                 break;
 
             case 5:
@@ -156,7 +157,7 @@ export default function Personal({ auth }) {
     return (
         <AuthenticatedLayout
             user={auth.user}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Creating will</h2>}
+            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">{stepper[pointer].title}</h2>}
         >
             <Head title={"Welcome, " + username} />
 
@@ -188,7 +189,7 @@ export default function Personal({ auth }) {
                         }
                         {
                             pointer == 4?
-                            <AddHuman married={false} childrens={true} />
+                            <><AddRelative relative={"children"} datas={object_status} /></>
                             :
                             null
                             

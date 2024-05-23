@@ -21,50 +21,68 @@ import Collapse from 'react-bootstrap/Collapse';
 
 
 export function getBequestArrObj() {
-    return bequestArrObj;
+  return bequestArrObj;
 }
 
 function Residue({ id, datas }) {
 
- 
 
 
 
 
 
-    var options = [' Have the residue go to children per stirpes',
-        'Have the residue go to children per capita',
-        'Have the residue go to parents then siblings per stirpes',
-        'Have the residue go to siblings per sirpes',
-        'Specific Beneficiaries',
-        'CUSTOM CLAUSE (will override every other option)'
+  //should add on options in the case no spouse added
+  const marriedStatus = datas[1].marriedq.selection;
 
-     ]
-     var obj = {
-        options: options, // Your array of string values
-        selectedOption: null,
-      };
-      
-      var [selected ,setSelected ] = useState(obj);
-      var [custom ,setCustom ] = useState(false);
-      var [specific ,setSpecific ] = useState(false);
-      console.log(selected);
-      const handleSelect = (key, eventKey) => {
-        setSelected({ ...selected, selectedOption: eventKey });
-        if(key==4){
-            setSpecific(true);
-            setCustom(false);
-        }
-        if(key==5){
-            setCustom(true);
-            setSpecific(false);
-        }
-      }
-      
-    return (
-        <>
+  if (marriedStatus == "true") {
+    var options = [
+      'NO SPOUSAL WILL: Have the residue go to spouse first then children per stirpes',
+      'Have the residue go to children per stirpes',
+      'Have the residue go to children per capita',
+      'Have the residue go to parents then siblings per stirpes',
+      'Have the residue go to siblings per sirpes',
+      'Specific Beneficiaries',
+      'CUSTOM CLAUSE (will override every other option)']
 
-<DropdownButton
+  }
+  else {
+    var options = [
+      'Have the residue go to children per stirpes',
+      'Have the residue go to children per capita',
+      'Have the residue go to parents then siblings per stirpes',
+      'Have the residue go to siblings per sirpes',
+      'Specific Beneficiaries',
+      'CUSTOM CLAUSE (will override every other option)']
+
+
+  }
+
+
+  var obj = {
+    options: options, // Your array of string values
+    selectedOption: null,
+  };
+
+  var [selected, setSelected] = useState(obj);
+  var [custom, setCustom] = useState(false);
+  var [specific, setSpecific] = useState(false);
+  const handleSelect = (key, eventKey) => {
+    setSelected({ ...selected, selectedOption: eventKey });
+    debugger;
+    if (key == 4) {
+      setSpecific(true);
+      setCustom(false);
+    }
+    if (key == 5) {
+      setCustom(true);
+      setSpecific(false);
+    }
+  }
+
+  return (
+    <>
+
+      <DropdownButton
         id="dropdown-basic-button"
         title={selected.selectedOption ? selected.selectedOption : 'Select an option'}
         onSelect={handleSelect}
@@ -75,34 +93,34 @@ function Residue({ id, datas }) {
           </Dropdown.Item>
         ))}
       </DropdownButton>
-           {
-            specific?
-            <p>Question for Dale, what should I do here? by the legal part I cannot do a custom? or you just can select 1 option? How could this be better?</p>
-            :
-            null
-           }
-           {
-            custom? 
-            <Form>
-                <Form.Group className="mb-3" controlId="customTextArea">
-                    <Form.Label>Custom Clause</Form.Label>
-                    <Form.Control as="textarea" rows={8}  />
-                </Form.Group>
-            </Form>
-            :
-            null
-           }
+      {
+        specific ?
+          <p>Question for Dale, what should I do here? by the legal part I cannot do a custom? or you just can select 1 option? How could this be better?</p>
+          :
+          null
+      }
+      {
+        custom ?
+          <Form>
+            <Form.Group className="mb-3" controlId="customTextArea">
+              <Form.Label>Custom Clause</Form.Label>
+              <Form.Control as="textarea" rows={8} />
+            </Form.Group>
+          </Form>
+          :
+          null
+      }
 
 
 
 
 
 
-        </>
+    </>
 
 
 
 
-    );
+  );
 }
 export default Residue;
