@@ -1,4 +1,4 @@
-debugger;
+
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
 import { useState } from 'react'
@@ -25,11 +25,13 @@ export function getTableData() {
 function Trusting({ datas }) {
 
     const [open, setOpen] = useState(false);
+    var [objStats, setObjStats] = useState({});
     const handleAdd = () => {
         debugger;
         const age = document.getElementById('age').value;
         const shares = document.getElementById('shares').value;
         var floatshares = parseFloat(shares);
+        var flag = false;
         if (floatshares > 100) {
 
         }
@@ -39,16 +41,43 @@ function Trusting({ datas }) {
             }
         }
         else if (floatshares <= 100) {
-            sharescounter += floatshares;
+            if((sharescounter + floatshares)<= 100){
+                sharescounter += floatshares;
+            }
+            else{
+                flag = true;
+            }
+            
         }
-
+        tableData = tableData.filter(obj => obj.age !== age);
         var obj = {
             "id": pointer,
             "age": age,
             "shares": shares
         }
-        tableData.push(obj);
-        pointer++;
+        if(!flag){
+            tableData.push(obj);
+            setObjStats(obj);
+            pointer++;
+        }
+       
+
+    }
+
+    const handleDelete = (itemid) =>{
+        tableData = tableData.filter(obj => obj.id !== itemid);
+        var sumador = 0;
+        for (const key in tableData) {
+            const value = parseFloat(tableData[key].shares);
+            sumador += value;
+          }
+
+        sharescounter = sumador;
+        var obj = tableData;
+        setObjStats(obj);
+        
+        
+        pointer--;
 
     }
     return (
@@ -78,13 +107,13 @@ function Trusting({ datas }) {
                         <tbody>
 
                             {tableData.length == 0 ?
-                                <p>No information added yet, press "Add Recepient Button" to add.</p>
+                                <p>No information added yet, press "Add New Share" to add.</p>
                                 :
                                 tableData.map((item, index) => (
                                     <tr key={index}>
                                         <td>{item.id}</td>
                                         <td>{item.age}</td>
-                                        <td>{item.percentage}</td>
+                                        <td>{item.shares}</td>
                                         <td><Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button></td>
                                     </tr>
                                 ))}

@@ -28,6 +28,7 @@ var bequestindex = 0;
 var identifiers_names = [];
 function Wipeout({ id, datas }) {
     var [selected, setSelected] = useState(obj);
+    var [selectedBeneficiary, setSelectedBeneficiary] = useState("");
     var [custom, setCustom] = useState(false);
     var [specific, setSpecific] = useState(false);
     var [selectedRecepient, setSelectedRecepient] = useState("Select a recepient to continue...");
@@ -40,6 +41,7 @@ function Wipeout({ id, datas }) {
         const married = all_data[2].married;
         const kids = all_data[4].kids;
         const relatives = all_data[5].relatives;
+        const kidsq = all_data[3].kidsq.selection;
 
         var dataobj = {}
         dataobj = {
@@ -47,8 +49,20 @@ function Wipeout({ id, datas }) {
         }
 
         var married_names = married.firstName + " " + married.lastName;
-        var kids_names = kids.firstName + " " + kids.lastName;
-        identifiers_names.push(married_names, kids_names);
+        if (kidsq == "true") {
+            var kids_names = kids.firstName + " " + kids.lastName;
+            for (let child in kids) {
+                const names = kids[child].firstName + " " + kids[child].lastName;
+                identifiers_names.push(names);
+            }
+
+
+        }
+        else {
+
+
+        }
+        identifiers_names.push(married_names);
 
 
         for (let key in relatives) {
@@ -67,7 +81,7 @@ function Wipeout({ id, datas }) {
             options: options, // Your array of string values
             selectedOption: null,
         };
-        
+
         setSelected(obj);
         console.log(selected);
     }
@@ -85,41 +99,48 @@ function Wipeout({ id, datas }) {
 
 
 
-    const handleDelete = (itemId) =>
-        {
-            table_dataBequest = table_dataBequest.filter(obj => obj.id !== itemId);
-    
-            var obj = table_dataBequest;
-            setTable_dataBequest(obj);
-            returndata = table_dataBequest;
-            bequestindex -= 1;
-        }
+    const handleDelete = (itemId) => {
+        table_dataBequest = table_dataBequest.filter(obj => obj.id !== itemId);
+
+        var obj = table_dataBequest;
+        setTable_dataBequest(obj);
+        returndata = table_dataBequest;
+        bequestindex -= 1;
+    }
+
+    const handleAddItem = () => {
+        var organization = document.getElementById("organization").value;
+
+        setOpen(true);
+
         
-    const handleAddItem = () =>
-        {
-           
-            setOpen(true);
 
-            var beneficiary = selectedRecepient;
-            var backup = selectedOption;
-            var shares = document.getElementById('shares').value;
-            var obj = 
-            {
-             "id": bequestindex,
-             "names": beneficiary,
-             "shares": shares,
-             "backup": backup
-            }
-            table_dataBequest.push(obj);
-            returndata = table_dataBequest;
-      
-
+        if(organization != ""){
+            var beneficiary = organization;
         }
+        else{
+            var beneficiary = selectedRecepient;
+        }
+        var backup = selectedOption;
+        var shares = document.getElementById('shares').value;
+        var obj =
+        {
+            "id": bequestindex,
+            "names": beneficiary,
+            "shares": shares,
+            "backup": backup
+        }
+        table_dataBequest.push(obj);
+        returndata = table_dataBequest;
+
+
+    }
 
     const handleSelect = (key, eventKey) => {
-
-        setSelected({ ...selected, selectedOption: key });
-        if (key == "Wipeout Beneficiary") {
+        debugger;
+        const justobj = selected;
+        setSelected({ ...justobj, selectedOption: key });
+        if (key == "Specific Wipeout Beneficiary") {
             setCustom(true);
         }
         else {
@@ -127,9 +148,11 @@ function Wipeout({ id, datas }) {
             returndata = key;
         }
 
+
+
     }
     const setCurrentRecepient = (eventKey) => {
-        setSelectedRecepient(eventKey);
+        setSelectedBeneficiary(eventKey);
     };
 
 
@@ -138,8 +161,10 @@ function Wipeout({ id, datas }) {
             {
                 firstRender ?
                     <><DropdownButton
+                        size="md"
+                        variant="outline-info"
                         id="dropdown-basic-button"
-                        title={'select an option'}
+                        title={'select an option for wipeout'}
                         onSelect={handleSelect}
                     >
                         {selected.options.map((option, index) => (
@@ -155,26 +180,31 @@ function Wipeout({ id, datas }) {
             }
 
             {
+
                 custom ?
 
-                    <><Dropdown style={{ width: "100%" }} onSelect={setCurrentRecepient}>
-                        <DropdownToggle variants="success" caret id="size-dropdown">
-                            Select Beneficiary
-                        </DropdownToggle>
-                        <DropdownMenu>
-                            {identifiers_names.map(size => (
-                                <DropdownItem eventKey={size}>{size}</DropdownItem>
-                            ))}
-                        </DropdownMenu>
-                    </Dropdown>
+                    <>
+                        <Dropdown style={{ width: "100%" }} onSelect={setCurrentRecepient}>
+                            <DropdownToggle variants="success" caret id="size-dropdown">
+                               {selectedBeneficiary != ""? selectedBeneficiary : "Select Beneficiary"}
+                            </DropdownToggle>
+                            <DropdownMenu>
+                                {identifiers_names.map(size => (
+                                    <DropdownItem eventKey={size}>{size}</DropdownItem>
+                                ))}
+                            </DropdownMenu>
+                        </Dropdown>
+
+
+                      
                         <Form>
                             <Form.Group className="mb-3" controlId="organization">
                                 <Form.Label>Or Organization</Form.Label>
-                                <Form.Control type="text"  />
+                                <Form.Control type="text" />
                             </Form.Group>
                             <Form.Group className="mb-3" controlId="shares">
                                 <Form.Label>Shares %</Form.Label>
-                                <Form.Control type="number"  />
+                                <Form.Control type="number" />
                             </Form.Group>
 
                             <Form.Check
@@ -193,8 +223,9 @@ function Wipeout({ id, datas }) {
                                 checked={selectedOption === 'Per Capita'}
                                 onChange={handleOptionChange}
                             />
-                            <Button  variant="success" size="sm" onClick={() => handleAddItem()}> Add Beneficiary</Button>
-                        </Form></>
+                            <Button variant="outline-success" size="lg" onClick={() => handleAddItem()}> Add Beneficiary</Button>
+                        </Form>
+                    </>
 
 
                     :

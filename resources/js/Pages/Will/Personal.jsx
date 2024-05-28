@@ -25,6 +25,9 @@ import AddRelative from '@/Components/AddRelative';
 import Trusting from '@/Components/Trusting';
 import { getTableData } from '@/Components/Trusting';
 import {getChildRelatives } from '@/Components/AddRelative';
+import { getOptObject } from '@/Components/Residue';
+import GuardianForMinors from '@/Components/GuardianForMinors';
+import {getGuardiansForMinors} from '@/Components/GuardianForMinors';
 
 
 
@@ -117,10 +120,13 @@ export default function Personal({ auth }) {
                 object_to_push.bequests = { ...getBequestArrObj()};
                 break;
             case 7:
+                object_to_push.residue = {...getOptObject()};
                 break;
             case 8:
                 object_to_push.wipeout = { ...getWipeoutData()};
                 break;
+            case 9:
+                object_to_push.guardians = {...getGuardiansForMinors()}
 
         
             default:
@@ -206,11 +212,11 @@ export default function Personal({ auth }) {
                             pointer == 6?
                             <Bequest datas={object_status}/>
                             :
-                            null
+                            null    
                         }
                         {
                             pointer == 7?
-                            <Residue />
+                            <Residue datas={object_status}/>
                             :
                             null
                         }
@@ -223,6 +229,13 @@ export default function Personal({ auth }) {
                         {
                             pointer == 9?
                             <Trusting datas={object_status}/>
+                            :
+                            null
+                        }
+                        {
+                            pointer == 10?
+                            <GuardianForMinors datas={object_status}/>
+
                             :
                             null
                         }

@@ -199,25 +199,7 @@ function Bequest({ id, datas }) {
     all_data = datas;
 
     if (all_data != null && firstRender) {
-        //get marrieds get kids and relatives firsnames + lastname then save the names in a listt
-        /*
-        you should add to the object a bequest keyname and add the names there  for example
-        obj.bequests = [{
-            "text": "bequest",
-            "identifiers": [
-                {
-                    id: x,
-                    shares: z,
-                },
-                {
-                    id:y
-                    shares: z
-                }
-            ]
 
-
-        }]
-        */
         const married = all_data[2].married;
         const kids = all_data[4].kids;
         const relatives = all_data[5].relatives;
@@ -308,7 +290,6 @@ function Bequest({ id, datas }) {
 
                 <Button variant="outline-success" onClick={() => addRecepient()} >Add Recepient</Button>
                 <Button variant="outline-info" onClick={() => handleShow()}>Add Another Relative</Button>
-                <Button variant="outline-warning"  onClick={() => finishBequest()}>Finish Bequest</Button>
 
             </Form>
             <Button
