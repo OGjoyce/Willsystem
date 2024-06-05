@@ -52,7 +52,7 @@ function Married({ humanSelector }) {
                                 <Form.Check
 
                                     type={type}
-                                    label={`No, But I've lived with my spouse 3 or more years`}
+                                    label={`I am in a common law relationship`}
                                     id={`3`}
                                     value={"soso"} />
                             </div>

@@ -45,13 +45,14 @@ function HumanTable({ id, datas }) {
     const [modalSelector, setModalSelector] = useState(0);
 
 
-    if (datas != null && render == 0) {
+    if (datas != null && render == 0 ) {
         const len = datas.length;
         for (let index = 0; index < len; index++) {
 
             const element = datas[index];
             //Agregar un objeto json que cada posicion sea un elemento array
             if (element.married) {
+               
 
 
 
@@ -63,9 +64,36 @@ function HumanTable({ id, datas }) {
                 }
 
                 //setDataTable(obj);
-                table_data.push(obj);
-                render++;
-                ids++;
+                if(element.married.relative != "NA"){
+                    table_data.push(obj);
+                    render++;
+                    ids++;
+                }
+               
+
+
+
+
+            }
+            if (element.kids) {
+             
+
+
+
+                var obj = {
+                    "id": ids,
+                    "firstName": element.kids.firstName,
+                    "lastName": element.kids.lastName,
+                    "relative": element.kids.relative
+                }
+
+                //setDataTable(obj);
+                if(element.kids.relative != "NA"){
+                    table_data.push(obj);
+                    render++;
+                    ids++;
+                }
+               
 
 
 

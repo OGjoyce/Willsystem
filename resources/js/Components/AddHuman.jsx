@@ -12,56 +12,75 @@ import Form from 'react-bootstrap/Form';
 
 var selected_value = "";
 export function getHumanData(params) {
-    var firstName = document.getElementById('firstNameId').value;
-    var middleName = document.getElementById('middleNameId').value;
-    var lastName = document.getElementById('lastNameId').value;
-    var relative = document.getElementById('relativeId').value;
 
-    if (params == "childrens") {
-        var obj = {
-            "firstName": firstName,
-            "middleName": middleName,
-            "lastName": lastName,
-            "relative": relative,
-            "email":"NA",
-            "phone": "NA"
+
+    if (params != false) {
+
+        var firstName = document.getElementById('firstNameId').value;
+        var middleName = document.getElementById('middleNameId').value;
+        var lastName = document.getElementById('lastNameId').value;
+        var relative = document.getElementById('relativeId').value;
+
+        if (params == "childrens") {
+            var obj = {
+                "firstName": firstName,
+                "middleName": middleName,
+                "lastName": lastName,
+                "relative": relative,
+                "email": "NA",
+                "phone": "NA"
+            }
+
+
         }
-       
+        else {
+
+            var control = 0;
+
+            try {
+                var email1 = document.getElementById('emailId0').value;
+
+            } catch (error) {
+                control = 1;
+                var email2 = document.getElementById('emailId1').value;
+
+            }
+
+
+
+            var phone = document.getElementById('phoneId').value;
+            var obj = {
+                "firstName": firstName,
+                "middleName": middleName,
+                "lastName": lastName,
+                "relative": relative,
+                "email": control == 0 ? email1 : email2,
+                "phone": phone
+            }
+
+        }
+
+
+
+
+
+
+
+        return obj;
 
     }
     else {
-
-        var control = 0;
-
-        try {
-            var email1 = document.getElementById('emailId0').value;
-
-        } catch (error) {
-            control = 1;
-            var email2 = document.getElementById('emailId1').value;
-
-        }
-
-
-
-        var phone = document.getElementById('phoneId').value;
         var obj = {
-            "firstName": firstName,
-            "middleName": middleName,
-            "lastName": lastName,
-            "relative": relative,
-            "email": control == 0 ? email1 : email2,
-            "phone": phone
+            "firstName": "NA",
+            "middleName": "NA",
+            "lastName": "NA",
+            "relative": "NA",
+            "email": "NA",
+            "phone": "NA"
         }
+        return obj;
 
     }
-
-
-
-   
-    return obj;
-
-
 }
 
 function AddHuman({ married, childrens, human }) {
