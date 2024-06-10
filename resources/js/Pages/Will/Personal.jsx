@@ -1,5 +1,4 @@
 import FormCity from '@/Components/FormCity';
-
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
 import Button from 'react-bootstrap/Button';
@@ -28,6 +27,7 @@ import { getChildRelatives } from '@/Components/AddRelative';
 import { getOptObject } from '@/Components/Residue';
 import GuardianForMinors from '@/Components/GuardianForMinors';
 import { getGuardiansForMinors } from '@/Components/GuardianForMinors';
+import Pets from '@/Components/Pets';
 
 
 
@@ -79,11 +79,19 @@ export default function Personal({ auth }) {
         },
         {
             "step": 10,
-            "title": "Additional Information"
+            "title": "Guardian For Minors"
         },
         {
             "step": 11,
-            "title": "Additional"
+            "title": "Guardian For Pets"
+        },
+        {
+            "step": 12,
+            "title": "Additional Information"
+        },
+        {
+            "step": 13,
+            "title": "POA"
         },
 
 
@@ -350,6 +358,14 @@ export default function Personal({ auth }) {
                                 :
                                 null
                         }
+                        {
+                            pointer == 11 ?
+                                <Pets datas={object_status} />
+
+                                :
+                                null
+                        }
+
 
 
                         <div style={{ position: "relative", bottom: "1px", width: "80%", margin: "100px" }}>

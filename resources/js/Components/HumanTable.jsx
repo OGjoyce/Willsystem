@@ -29,7 +29,7 @@ export function getRelatives() {
     return relativesObj;
 
 }
-export function getExecutors(){
+export function getExecutors() {
     return executorsObj;
 
 }
@@ -45,14 +45,14 @@ function HumanTable({ id, datas }) {
     const [modalSelector, setModalSelector] = useState(0);
 
 
-    if (datas != null && render == 0 ) {
+    if (datas != null && render == 0) {
         const len = datas.length;
         for (let index = 0; index < len; index++) {
 
             const element = datas[index];
             //Agregar un objeto json que cada posicion sea un elemento array
             if (element.married) {
-               
+
 
 
 
@@ -64,42 +64,36 @@ function HumanTable({ id, datas }) {
                 }
 
                 //setDataTable(obj);
-                if(element.married.relative != "NA"){
+                if (element.married.relative != "NA") {
                     table_data.push(obj);
                     render++;
                     ids++;
                 }
-               
+
 
 
 
 
             }
-            if (element.kids) {
-             
 
 
+        }
 
+        if (datas[3].kidsq.selection == "true") {
+            var largo = Object.keys(datas[4].kids).length;
+
+            for (let index = 0; index < largo; index++) {
+                const child = datas[4].kids[index];
                 var obj = {
                     "id": ids,
-                    "firstName": element.kids.firstName,
-                    "lastName": element.kids.lastName,
-                    "relative": element.kids.relative
+                    "firstName": child.firstName,
+                    "lastName": child.lastName,
+                    "relative": child.relative
                 }
-
-                //setDataTable(obj);
-                if(element.kids.relative != "NA"){
-                    table_data.push(obj);
-                    render++;
-                    ids++;
-                }
-               
-
-
-
-
+                table_data.push(obj);
+                render++;
+                ids++;
             }
-
         }
 
     }
@@ -110,7 +104,7 @@ function HumanTable({ id, datas }) {
     const [showExecutor, setShowExecutor] = useState(false);
 
 
-       //saves data for relatives table 
+    //saves data for relatives table 
     const handleClose = () => {
         setShow(false);
         const modalData = getHumanData();
@@ -124,7 +118,7 @@ function HumanTable({ id, datas }) {
         table_data.push(obj);
         //  setDataTable(table_spoon);
         relativesObj.push(modalData);
-        ids +=1;
+        ids += 1;
 
     }
     const handleShow = () => {
@@ -171,12 +165,12 @@ function HumanTable({ id, datas }) {
             "lastName": selectedExecutor.lastName,
             "relative": selectedExecutor.relative
         }
-        
+
         table_dataExecutor.push(obj);
         executorsObj = table_dataExecutor;
         //setDataTableExecutor(selectedExecutor)
         executorPriority += 1;
-      
+
         setDataExecutor(1)
 
 
@@ -185,15 +179,15 @@ function HumanTable({ id, datas }) {
 
     const handleDelete = (id) => {
         //functiono should pop from table_dataExecutor and render again
-       
+
         table_dataExecutor = table_dataExecutor.filter(obj => obj.id !== id);
 
         var obj = table_dataExecutor;
         setDataTableExecutor(obj);
-        
+
         executorPriority -= 1;
 
-       
+
     }
 
 

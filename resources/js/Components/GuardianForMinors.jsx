@@ -147,7 +147,7 @@ export default function GuardianForMinors({ datas }) {
                         ))}
                     </DropdownButton>
                 </Form.Group>
-                <Button variant="outline-success" onClick={() => AddGuardianButton()} >Add Guardian Button</Button>
+                <Button variant="outline-success" onClick={() => AddGuardianButton()} >Add Guardian</Button>
             </Form>
 
             <Table striped bordered hover responsive>
