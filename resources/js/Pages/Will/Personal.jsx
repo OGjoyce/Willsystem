@@ -28,7 +28,7 @@ import { getOptObject } from '@/Components/Residue';
 import GuardianForMinors from '@/Components/GuardianForMinors';
 import { getGuardiansForMinors } from '@/Components/GuardianForMinors';
 import Pets from '@/Components/Pets';
-
+import Additional from '@/Components/Additional';
 
 
 var object_status = [];
@@ -102,7 +102,7 @@ export default function Personal({ auth }) {
 
 
     let username = auth.user.name;
-    var [pointer, setPointer] = useState(0);
+    var [pointer, setPointer] = useState(12);
     var lastPointer = 0;
     const pushInfo = function (step) {
 
@@ -364,6 +364,12 @@ export default function Personal({ auth }) {
 
                                 :
                                 null
+                        }
+                        {
+                            pointer == 12?
+                            <Additional datas={object_status}/>
+                            :null
+
                         }
 
 
