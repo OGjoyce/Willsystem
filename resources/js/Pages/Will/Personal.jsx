@@ -31,7 +31,7 @@ import Pets from '@/Components/Pets';
 import Additional from '@/Components/Additional';
 import { getAdditionalInformation } from '@/Components/Additional';
 import Poa from '@/Components/Poa';
-
+import { getPoa } from '@/Components/Poa';
 var object_status = [];
 var objectState = [];
 var dupMarried = false;
@@ -178,6 +178,12 @@ export default function Personal({ auth }) {
             case 12:
                 object_to_push.additional = { ...getAdditionalInformation() };
                 break;
+            case 13:
+                object_to_push.poa = {...getPoa()}
+                break;
+            case 14:
+                break;
+                
 
 
             default:

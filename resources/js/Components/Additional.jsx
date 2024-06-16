@@ -44,6 +44,7 @@ function Additional({ datas }) {
             [name]: checked
         });
         checkedFamily = checkedState;
+    
         objToReturn.blended = checkedState;
         
     };

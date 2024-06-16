@@ -14,10 +14,11 @@ import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Dropdown from 'react-bootstrap/Dropdown';
 
 import DropdownButton from 'react-bootstrap/DropdownButton';
-import { Row, Col, DropdownToggle, DropdownMenu, DropdownItem } from 'react-bootstrap';
+import { Container, Row, Col, DropdownToggle, DropdownMenu, DropdownItem } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Collapse from 'react-bootstrap/Collapse';
 import { InputGroup } from 'react-bootstrap';
+
 
 var identifiers_names = [];
 var priorityInformation = [1, 2, 3, 4, 5]
@@ -25,7 +26,7 @@ var bequestindex = 0;
 var backupBeneficiaryData = [];
 var all_data;
 
-export function getGuardiansForMinors(){
+export function getGuardiansForMinors() {
     return backupBeneficiaryData;
 }
 
@@ -113,42 +114,73 @@ export default function GuardianForMinors({ datas }) {
     }
     return (
         <>
+            <Container>
+                <Form>
+                    <Row>
+                        <Col sm={12}>
+                            <p>Select the guardian for your childs</p>
+                        </Col>
+                    </Row>
+                    <br>
+                    </br>
+                    <br></br>
+                    <Row>
+                        <Col sm={12}>
+                            <Dropdown style={{ width: "100%" }}>
+                                <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="dropdown-basic">
+                                    Select Relative
+                                </Dropdown.Toggle>
 
-            <Form>
-                <p>Select the guardian for your childs</p>
-                <Form.Group className="mb-3">
-                    <DropdownButton
-                        size="lg"
-                        variant="outline-dark"
-                        id="guardianSelector"
-                        title={selected != null ? selected : 'Select the Guardian'}
-                        onSelect={handleSelectBeneficiary}
-                    >
-                        {identifiers_names.map((option, index) => (
-                            <Dropdown.Item key={index} eventKey={option}>
-                                {option}
-                            </Dropdown.Item>
-                        ))}
-                    </DropdownButton>
-                </Form.Group>
+                                <Dropdown.Menu>
+                                    {identifiers_names.map((option, index) => (
+                                        <Dropdown.Item key={index} eventKey={option} style={{ width: "100%" }}>
+                                            {option}
+                                        </Dropdown.Item>
+                                    ))}
+                                </Dropdown.Menu>
+                            </Dropdown>
+                      
+                        </Col>
+                    </Row>
 
-                <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
-                    <DropdownButton
-                        size="lg"
-                        variant="outline-dark"
-                        id="prioritySelector"
-                        title={'Select priority'}
-                        onSelect={handleSelectPriority}
-                    >
-                        {priorityInformation.map((option, index) => (
-                            <Dropdown.Item key={index} eventKey={option}>
-                                {option}
-                            </Dropdown.Item>
-                        ))}
-                    </DropdownButton>
-                </Form.Group>
-                <Button variant="outline-success" onClick={() => AddGuardianButton()} >Add Guardian</Button>
-            </Form>
+                    <br>
+                    </br>
+                    <br></br>
+                    <Row>
+                        <Col sm={12}>
+                        <Dropdown style={{ width: "100%" }}>
+                                <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="dropdown-basic">
+                                    Select Priority
+                                </Dropdown.Toggle>
+
+                                <Dropdown.Menu>
+                                {priorityInformation.map((option, index) => (
+                                        <Dropdown.Item key={index} eventKey={option}>
+                                            {option}
+                                        </Dropdown.Item>
+                                    ))}
+                                </Dropdown.Menu>
+                            </Dropdown>
+                     
+
+                        </Col>
+                    </Row>
+                    <br>
+                    </br>
+                    <br></br>
+                    <Row>
+                        <Col sm={12}>
+                            <Button  style={{ width: "100%" }} variant="outline-success" onClick={() => AddGuardianButton()} >Add Guardian</Button>
+                        </Col>
+                    </Row>
+                    <br>
+                    </br>
+                    <br></br>
+
+
+
+                </Form>
+            </Container>
 
             <Table striped bordered hover responsive>
                 <thead>
