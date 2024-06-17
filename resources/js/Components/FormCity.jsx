@@ -95,11 +95,13 @@ export function getFormData(){
     
     var city = document.getElementById('city').value;
     var telephone = document.getElementById('phone').value;
+    var fullname = document.getElementById('fullname').value;
     var province = dropdown_selected;
     var obj = {
         "city" : city,
         "telephone" : telephone,
         "province" : province.name,
+        "fullName": fullname
     }
     return obj;
 }
@@ -210,6 +212,22 @@ function FormCity({ auth, laravelVersion, phpVersion }) {
                                 id="phone"
                                 className="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                                 placeholder="+1 (XXX) XXX-XXXX" />
+                        </div>
+                    </div>
+                    <div>
+                        <label htmlFor="name" className="block text-sm font-medium leading-6 text-gray-900">
+                            Full Name
+                        </label>
+                        <div className="relative mt-2 rounded-md shadow-sm">
+                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                              
+                            </div>
+                            <input
+                                type="text"
+                                name="name"
+                                id="fullname"
+                                className="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                placeholder="John Doe..." />
                         </div>
                     </div>
                 </>

@@ -37,8 +37,8 @@ export default function Poa({ datas }) {
             ...checkboxes,
             [name]: checked,
         });
-        arrayObject[10] = checkedState;
-        arrayObject[9] = checkedState;
+        arrayObject[10] = checkboxes;
+        arrayObject[9] = checkboxes;
     };
     const setCurrentRecepient = (eventKey, event) => {
         if (event == null) {
