@@ -14,138 +14,174 @@ import customIcon from '../../customicon.png'
 import blendedFamily from '../../blendedfamily.png'
 import dualHanded from '../../dualhands.png'
 import OrganDonation from '@/Components/AdditionalComponents/OrganDonation';
+import ClauseArea from '@/Components/AdditionalComponents/ClauseArea';
+import OtherWishes from '@/Components/AdditionalComponents/ClauseArea';
 import { Form, Button, Container, Row, Col, Table } from 'react-bootstrap';
 var selected_value = "";
 var objSelector = [];
+var objToReturn = {
+    "blended": false
+};
+var checkedFamily = false;
 export function getAdditionalInformation() {
+    objSelector.push(checkedFamily)
     return objSelector;
 }
 var firstRender = 0;
+
 function Additional({ datas }) {
-    console.log(OrganDonation);
-    var [dataPointer2, setDataPointer2] = useState(1);
+
+
+    var [dataPointer2, setDataPointer2] = useState(null);
     const [updatePointerSelector, setUpdatePointerSelector] = useState({});
+    const [checkedState, setCheckedState] = useState({
+        blendedFamily: false
+    });
+    const handleCheckboxChange = (event) => {
+        const { name, checked } = event.target;
+        setCheckedState({
+            ...checkedState,
+            [name]: checked
+        });
+        checkedFamily = checkedState;
+        objToReturn.blended = checkedState;
+        
+    };
 
     const callFunction = (obj) => {
-        setUpdatePointerSelector(obj);
-        var objExport = {
-            "Master": dataPointer2,
-            ...obj
+        if (obj === false) {
+            setDataPointer2(null);
         }
-        objSelector.push(objExport);
-        console.log(dataPointer2);
-        // setDataPointer2(null)
-        console.log(objSelector);
+        else {
+            setDataPointer2(null);
+            setUpdatePointerSelector(obj);
+            var objExport = {
+                "Master": dataPointer2==0? "standard": dataPointer2==1? "custom": dataPointer2==3? "otherWishes": "",
+                ...obj
+            }
+            objToReturn = {
+                ...objToReturn,
+                "Master": dataPointer2==0? "standard": dataPointer2==1? "custom": dataPointer2==3? "otherWishes": "",
+                ...obj
+                
+            }
+          
+            
+            objSelector.push(objExport);
+           
+
+        }
+
     }
 
     const handleSwitch = (pointer) => {
 
-        if (firstRender == 1) {
-            dataPointer2 = 1;
-            setDataPointer2(pointer);
-
-        }
 
 
-        console.log(dataPointer2 + "-*refreshrate*-" + pointer);
+
+
+        setDataPointer2(pointer);
+
+
+
+
 
     }
     if (firstRender == 0) {
         firstRender == 1;
     }
-    console.log(dataPointer2);
+
 
 
 
     return (
         <><>
 
-            {dataPointer2 == 0 ?
-                <OrganDonation callFunction={callFunction} />
+
+
+            {dataPointer2 == null ?
+
+                <Container>
+
+                    <Row>
+                        <Col sm={4}>
+                            <Image style={{ position: "relative", left: "30%", width: "100px", height: "110px" }} src={donorIcon} rounded />
+                        </Col>
+                        <Col sm={4}>
+
+                            <Button variant="outline-dark" type="submit" onClick={() => { handleSwitch(0) }} style={{ width: "100%", position: "relative", top: "40%" }} >Standard Clause</Button>
+
+
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col sm={4}>
+                            <Image style={{ position: "relative", left: "30%", width: "100px", height: "110px" }} src={customIcon} rounded />
+                        </Col>
+                        <Col sm={4}>
+                            <Button variant="outline-dark" type="submit" onClick={() => { handleSwitch(1) }} style={{ width: "100%", position: "relative", top: "40%" }} >Custom Clause</Button>
+
+
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col sm={4}>
+                            <Image style={{ position: "relative", left: "30%", width: "100px", height: "110px" }} src={blendedFamily} rounded />
+                        </Col>
+                        <Col sm={4}>
+                           
+                            <Form.Check
+                                 
+                                 style={{ position: "relative", top: "40%" }}
+                                type="checkbox"
+                                id="blendedFamily"
+                                name="blendedFamily"
+                                label="Blended Family"
+                                checked={checkedState.option2}
+                                onChange={handleCheckboxChange}
+                            />
+
+
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col sm={4}>
+                            <Image style={{ position: "relative", left: "30%", width: "100px", height: "110px" }} src={dualHanded} rounded />
+                        </Col>
+                        <Col sm={4}>
+                        <Button variant="outline-dark" type="submit" onClick={() => { handleSwitch(3) }} style={{ width: "100%", position: "relative", top: "40%" }} >Other Wishes</Button>
+
+
+                        </Col>
+                    </Row>
+                </Container>
                 :
-                null
+                dataPointer2 == 0 ?
+                    <><OrganDonation callFunction={callFunction} />
+                    </>
+                    :
+                    dataPointer2 == 1 ?
+                        <>
+                            <ClauseArea callFunction={callFunction} />
+
+                        </>
+                        :
+                        // <span>{console.log('no case' + dataPointer2)}</span>
+                        dataPointer2 == 3 ?
+                            <>
+                            <OtherWishes callFunction={callFunction} clause={"other"} />
+                            </>
+                            :
+                            null
+
+
             }
+
         </><>
 
-                {dataPointer2 != null ?
-                    null
 
 
 
-
-                    :
-
-                    <Container>
-
-                        <Row>
-                            <Col xs={6} md={4}>
-                                <Image style={{ position: "relative", left: "30%", width: "100px", height: "110px" }} src={donorIcon} rounded />
-                            </Col>
-                            <Col xs={6} md={4}>
-                                <Form>
-                                    <Form.Check onClick={ handleSwitch(0)}
-
-                                        type="switch"
-                                        id="custom-switch"
-                                        label="Standard Clause" />
-
-                                </Form>
-
-
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col xs={6} md={4}>
-                                <Image style={{ position: "relative", left: "30%", width: "100px", height: "110px" }} src={customIcon} rounded />
-                            </Col>
-                            <Col xs={6} md={4}>
-                                <Form>
-                                    <Form.Check // prettier-ignore
-
-                                        type="switch"
-                                        id="custom-switch2"
-                                        label="Custom Clause" />
-
-                                </Form>
-
-
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col xs={6} md={4}>
-                                <Image style={{ position: "relative", left: "30%", width: "100px", height: "110px" }} src={blendedFamily} rounded />
-                            </Col>
-                            <Col xs={6} md={4}>
-                                <Form>
-                                    <Form.Check // prettier-ignore
-
-                                        type="switch"
-                                        id="custom-switch3"
-                                        label="Blended Family" />
-
-                                </Form>
-
-
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col xs={6} md={4}>
-                                <Image style={{ position: "relative", left: "30%", width: "100px", height: "110px" }} src={dualHanded} rounded />
-                            </Col>
-                            <Col xs={6} md={4}>
-                                <Form>
-                                    <Form.Check // prettier-ignore
-
-                                        type="switch"
-                                        id="custom-switch4"
-                                        label="Other Wishes" />
-
-                                </Form>
-
-
-                            </Col>
-                        </Row>
-                    </Container>}
 
 
 

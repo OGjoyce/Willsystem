@@ -27,7 +27,7 @@ function Trusting({ datas }) {
     const [open, setOpen] = useState(false);
     var [objStats, setObjStats] = useState({});
     const handleAdd = () => {
-        debugger;
+       
         const age = document.getElementById('age').value;
         const shares = document.getElementById('shares').value;
         var floatshares = parseFloat(shares);

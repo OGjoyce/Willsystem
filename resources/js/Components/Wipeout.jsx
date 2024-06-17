@@ -137,7 +137,6 @@ function Wipeout({ id, datas }) {
     }
 
     const handleSelect = (key, eventKey) => {
-        debugger;
         const justobj = selected;
         setSelected({ ...justobj, selectedOption: key });
         if (key == "Specific Wipeout Beneficiary") {

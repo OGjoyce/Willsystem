@@ -29,7 +29,8 @@ import GuardianForMinors from '@/Components/GuardianForMinors';
 import { getGuardiansForMinors } from '@/Components/GuardianForMinors';
 import Pets from '@/Components/Pets';
 import Additional from '@/Components/Additional';
-
+import { getAdditionalInformation } from '@/Components/Additional';
+import Poa from '@/Components/Poa';
 
 var object_status = [];
 var objectState = [];
@@ -102,7 +103,7 @@ export default function Personal({ auth }) {
 
 
     let username = auth.user.name;
-    var [pointer, setPointer] = useState(12);
+    var [pointer, setPointer] = useState(0);
     var lastPointer = 0;
     const pushInfo = function (step) {
 
@@ -165,7 +166,18 @@ export default function Personal({ auth }) {
                 object_to_push.wipeout = { ...getWipeoutData() };
                 break;
             case 9:
+                object_to_push.trusting = {};
+                break;
+            case 10:
                 object_to_push.guardians = { ...getGuardiansForMinors() }
+
+            case 11:
+                object_to_push.pets = {};
+                break;
+
+            case 12:
+                object_to_push.additional = { ...getAdditionalInformation() };
+                break;
 
 
             default:
@@ -236,7 +248,7 @@ export default function Personal({ auth }) {
             }
 
         } catch (error) {
-            
+
         }
 
         console.log("nb." + nextStep);
@@ -250,25 +262,25 @@ export default function Personal({ auth }) {
         console.log("pointer --" + pointer);
         const objectStatus = popInfo();
         var dupFlag = true;
-   
+
 
         try {
             if (pointer <= 3 && objectStatus[1].marriedq != undefined && objectStatus[1].marriedq.selection == "false") {
-             
+
                 nextStep = nextStep - 1;
-  
+
                 popInfo();
 
             }
             if (pointer >= 4 && pointer <= 5 && objectStatus[3].kidsq != undefined && objectStatus[3].kidsq.selection == "false") {
-           
+
                 nextStep = nextStep - 1;
                 popInfo();
 
             }
 
         } catch (error) {
-            
+
         }
         console.log("bb." + nextStep);
 
@@ -366,10 +378,16 @@ export default function Personal({ auth }) {
                                 null
                         }
                         {
-                            pointer == 12?
-                            <Additional datas={object_status}/>
-                            :null
+                            pointer == 12 ?
+                                <Additional datas={object_status} />
+                                : null
 
+                        }
+                        {
+                            pointer == 13 ?
+                                <Poa datas={object_status} />
+                                :
+                                null
                         }
 
 
