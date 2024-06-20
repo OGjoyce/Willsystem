@@ -20,6 +20,10 @@ export function getHumanData(params) {
         var middleName = document.getElementById('middleNameId').value;
         var lastName = document.getElementById('lastNameId').value;
         var relative = document.getElementById('relativeId').value;
+        var city = document.getElementById('city').value;
+        var province = document.getElementById('province').value;
+        var country =  document.getElementById('country').value;
+    
 
         if (params == "childrens") {
             var obj = {
@@ -28,7 +32,11 @@ export function getHumanData(params) {
                 "lastName": lastName,
                 "relative": relative,
                 "email": "NA",
-                "phone": "NA"
+                "phone": "NA",
+                "city" : city,
+                "province": province,
+                "country": country
+
             }
 
 
@@ -55,7 +63,10 @@ export function getHumanData(params) {
                 "lastName": lastName,
                 "relative": relative,
                 "email": control == 0 ? email1 : email2,
-                "phone": phone
+                "phone": phone,
+                "city" : city,
+                "province": province,
+                "country": country
             }
 
         }
@@ -142,6 +153,18 @@ function AddHuman({ married, childrens, human }) {
                             :
                             null
                     }
+                    <Form.Group className="mb-3" controlId="city">
+                        <Form.Label>City</Form.Label>
+                        <Form.Control type="text" placeholder="..." />
+                    </Form.Group>
+                    <Form.Group className="mb-3" controlId="province">
+                        <Form.Label>Province/State:</Form.Label>
+                        <Form.Control type="text" placeholder="..." />
+                    </Form.Group>
+                    <Form.Group className="mb-3" controlId="country">
+                        <Form.Label>Country:</Form.Label>
+                        <Form.Control type="text" placeholder="..." />
+                    </Form.Group>
 
 
                 </Form.Group>

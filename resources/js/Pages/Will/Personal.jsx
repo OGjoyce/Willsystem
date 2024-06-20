@@ -117,7 +117,7 @@ export default function Personal({ auth }) {
 
 
     let username = auth.user.name;
-    var [pointer, setPointer] = useState(15);
+    var [pointer, setPointer] = useState(0);
     var lastPointer = 0;
     const pushInfo = function (step) {
 
@@ -431,11 +431,17 @@ export default function Personal({ auth }) {
                             <Container fluid="md">
                                 <Row>
                                     <Col xs={6} >
-                                        <Button onClick={() => backStep(pointer - 1)} variant="outline-dark" size="lg" style={{ width: "100%" }}>Back</Button>{' '}
-                                    </Col>
+                                    {
+                                        pointer == 0?
+                                        null
+                                        :
+                                        <Button onClick={() => backStep(pointer - 1)} variant="outline-dark" size="lg" style={{ width: "100%" }}>Back</Button>
+                                   
+                                    }
+                                       </Col>
                                     <Col xs={6}>
 
-                                        <Button onClick={() => nextStep(pointer + 1)} variant="outline-success" size="lg" style={{ width: "100%" }}>Continue</Button>{' '}
+                                        <Button onClick={() => nextStep(pointer + 1)} variant="outline-success" size="lg" style={{ width: "100%" }}>Continue</Button>
                                     </Col>
                                 </Row>
                             </Container>

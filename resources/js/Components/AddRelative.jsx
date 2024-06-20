@@ -51,7 +51,10 @@ function AddRelative({ relative, datas }) {
             "id": idpointer,
             "firstName": modalData.firstName,
             "lastName": modalData.lastName,
-            "relative": modalData.relative
+            "relative": modalData.relative,
+            "city": modalData.city,
+            "country": modalData.country,
+            "province": modalData.province
         }
         table_data.push(obj);
         //  setDataTable(table_spoon);

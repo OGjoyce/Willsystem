@@ -52,6 +52,7 @@ function HumanTable({ id, datas }) {
             const element = datas[index];
             //Agregar un objeto json que cada posicion sea un elemento array
             if (element.married) {
+                console.log(element.married);
 
 
 
@@ -60,7 +61,10 @@ function HumanTable({ id, datas }) {
                     "id": ids,
                     "firstName": element.married.firstName,
                     "lastName": element.married.lastName,
-                    "relative": element.married.relative
+                    "relative": element.married.relative,
+                    "city": element.married.city,
+                    "country": element.married.country,
+                    "province": element.married.province
                 }
 
                 //setDataTable(obj);
@@ -84,11 +88,16 @@ function HumanTable({ id, datas }) {
 
             for (let index = 0; index < largo; index++) {
                 const child = datas[4].kids[index];
+                console.log(child);
+            
                 var obj = {
                     "id": ids,
                     "firstName": child.firstName,
                     "lastName": child.lastName,
-                    "relative": child.relative
+                    "relative": child.relative,
+                    "city": child.city,
+                    "country": child.country,
+                    "province": child.province
                 }
                 table_data.push(obj);
                 render++;
@@ -113,7 +122,10 @@ function HumanTable({ id, datas }) {
             "id": idpointer,
             "firstName": modalData.firstName,
             "lastName": modalData.lastName,
-            "relative": modalData.relative
+            "relative": modalData.relative,
+            "city": modalData.city,
+            "province": modalData.province,
+            "country": modalData.country
         }
         table_data.push(obj);
         //  setDataTable(table_spoon);
@@ -143,8 +155,10 @@ function HumanTable({ id, datas }) {
     const handleShowE = (exe) => {
 
 
+        
         selectedExecutor = exe;
         setShowExecutor(true);
+       
 
         const names = exe.firstName + " " + exe.lastName + " -> " + exe.relative;
         selected_executor = names;
@@ -155,7 +169,7 @@ function HumanTable({ id, datas }) {
     //function to get data from executor and place it in a table
 
     const handleCloseExecutor = () => {
-
+        
         setShowExecutor(false);
         const pointer = executorPriority;
 
@@ -163,7 +177,11 @@ function HumanTable({ id, datas }) {
             "id": pointer,
             "firstName": selectedExecutor.firstName,
             "lastName": selectedExecutor.lastName,
-            "relative": selectedExecutor.relative
+            "relative": selectedExecutor.relative,
+            "country": selectedExecutor.country,
+            "city" : selectedExecutor.city,
+            "province": selectedExecutor.province,
+
         }
 
         table_dataExecutor.push(obj);
@@ -171,7 +189,7 @@ function HumanTable({ id, datas }) {
         //setDataTableExecutor(selectedExecutor)
         executorPriority += 1;
 
-        setDataExecutor(1)
+        setDataExecutor(1);
 
 
     }
