@@ -32,6 +32,11 @@ import Additional from '@/Components/Additional';
 import { getAdditionalInformation } from '@/Components/Additional';
 import Poa from '@/Components/Poa';
 import { getPoa } from '@/Components/Poa';
+import FinalDetails from '@/Components/FinalDetails';
+import PDFComponent from '@/Components/PDFComponent';
+import { PDFViewer } from '@react-pdf/renderer';
+
+
 var object_status = [];
 var objectState = [];
 var dupMarried = false;
@@ -40,7 +45,7 @@ export default function Personal({ auth }) {
     var stepper = [
         {
             "step": 0,
-            "title": "Please insert your personal information"
+            "title": "Please insert the personal information"
         },
         {
             "step": 1,
@@ -92,8 +97,17 @@ export default function Personal({ auth }) {
         },
         {
             "step": 13,
-            "title": "POA"
+            "title": "Power Of Attorney POA"
         },
+        {
+            "step": 14,
+            "title": "Final Details"
+        }
+        ,
+        {
+            "step": 15,
+            "title": "Review and Download your file"
+        }
 
 
 
@@ -120,15 +134,15 @@ export default function Personal({ auth }) {
         switch (step) {
 
             case 0:
-                object_to_push.personal = { ...stepper[step], ...getFormData() };
+                object_to_push.personal = { ...stepper[step], ...getFormData(), "timestamp": Date.now() };
                 break;
             case 1:
-                object_to_push.marriedq = { "selection": getMarriedData() };
+                object_to_push.marriedq = { "selection": getMarriedData(), "timestamp": Date.now() };
 
                 break;
             case 2:
                 if (!dupMarried) {
-                    object_to_push.married = { ...getHumanData() };
+                    object_to_push.married = { ...getHumanData(), "timestamp": Date.now() };
 
                 }
                 else {
@@ -157,33 +171,35 @@ export default function Personal({ auth }) {
                 object_to_push.executors = { ...getExecutors() };
                 break;
             case 6:
-                object_to_push.bequests = { ...getBequestArrObj() };
+                object_to_push.bequests = { ...getBequestArrObj(), "timestamp": Date.now() };
                 break;
             case 7:
-                object_to_push.residue = { ...getOptObject() };
+                object_to_push.residue = { ...getOptObject(), "timestamp": Date.now() };
                 break;
             case 8:
-                object_to_push.wipeout = { ...getWipeoutData() };
+                object_to_push.wipeout = { ...getWipeoutData(), "timestamp": Date.now() };
                 break;
             case 9:
+                //DATA
                 object_to_push.trusting = {};
                 break;
             case 10:
-                object_to_push.guardians = { ...getGuardiansForMinors() }
+                object_to_push.guardians = { ...getGuardiansForMinors(), "timestamp": Date.now() }
 
             case 11:
+                //DATA
                 object_to_push.pets = {};
                 break;
 
             case 12:
-                object_to_push.additional = { ...getAdditionalInformation() };
+                object_to_push.additional = { ...getAdditionalInformation(), "timestamp": Date.now() };
                 break;
             case 13:
-                object_to_push.poa = {...getPoa()}
+                object_to_push.poa = { ...getPoa(), "timestamp": Date.now() }
                 break;
             case 14:
                 break;
-                
+
 
 
             default:
@@ -395,6 +411,19 @@ export default function Personal({ auth }) {
                                 :
                                 null
                         }
+                        {
+                            pointer == 14 ?
+                                <FinalDetails datas={object_status} />
+                                :
+                                null
+                        }
+                        {
+                            pointer == 15 ?
+
+                                <PDFComponent datas={object_status} />
+                                :
+                                 null
+                        }
 
 
 
@@ -402,11 +431,17 @@ export default function Personal({ auth }) {
                             <Container fluid="md">
                                 <Row>
                                     <Col xs={6} >
-                                        <Button onClick={() => backStep(pointer - 1)} variant="outline-dark" size="lg" style={{ width: "100%" }}>Back</Button>{' '}
-                                    </Col>
+                                    {
+                                        pointer == 0?
+                                        null
+                                        :
+                                        <Button onClick={() => backStep(pointer - 1)} variant="outline-dark" size="lg" style={{ width: "100%" }}>Back</Button>
+                                   
+                                    }
+                                       </Col>
                                     <Col xs={6}>
 
-                                        <Button onClick={() => nextStep(pointer + 1)} variant="outline-success" size="lg" style={{ width: "100%" }}>Continue</Button>{' '}
+                                        <Button onClick={() => nextStep(pointer + 1)} variant="outline-success" size="lg" style={{ width: "100%" }}>Continue</Button>
                                     </Col>
                                 </Row>
                             </Container>
