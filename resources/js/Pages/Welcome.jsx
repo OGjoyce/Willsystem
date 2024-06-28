@@ -1,5 +1,12 @@
 import { Link, Head } from '@inertiajs/react';
-
+import { Image, Row, Container, Col, Navbar, Button, Card } from 'react-bootstrap';
+import Carousel from 'react-bootstrap/Carousel';
+import Nav from 'react-bootstrap/Nav';
+import logo from '../../B.png';
+import bg1 from '../../bgcar1.png';
+import bg2 from '../../bgcar2.png';
+import bg3 from '../../bgcar3.png';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 export default function Welcome({ auth, laravelVersion, phpVersion }) {
     const handleImageError = () => {
         document.getElementById('screenshot-container')?.classList.add('!hidden');
@@ -12,93 +19,148 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
         <>
             <Head title="Welcome" />
             <div className="bg-white">
-                <div className="relative min-h-screen flex flex-col items-center justify-center selection:bg-[#FF2D20] selection:text-black">
-                    <div className="relative w-full max-w-2xl px-6 lg:max-w-7xl">
-                        <header className="grid grid-cols-2 items-center gap-2 py-10 lg:grid-cols-3" style={{zIndex:1}}>
-                            <div className="flex lg:justify-center lg:col-start-2">
+                <Navbar className="bg-body-tertiary">
+                    <Container>
+                        <Navbar.Brand href="#">
+                            <img
+                                alt=""
+                                src={logo}
+                                width="80"
+                                height="100"
+                                className="d-inline-block align-top"
+                            />{' '}
 
-                            </div>
-                            <nav className="-mx-3 flex flex-1 justify-end">
+                        </Navbar.Brand>
+                        <Navbar.Toggle aria-controls="basic-navbar-nav" />
+                        <Navbar.Collapse id="basic-navbar-nav">
+                            <Nav className="me-auto">
                                 {auth.user ? (
-                                    <Link
+                                    <Nav.Link
                                         href={route('dashboard')}
                                         className="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-black dark:hover:text-black/80 dark:focus-visible:ring-black"
                                     >
                                         Dashboard
-                                    </Link>
+                                    </Nav.Link>
                                 ) : (
                                     <>
-                                        <Link
+                                        <Nav.Link
                                             href={route('login')}
                                             className="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-black dark:hover:text-black/80 dark:focus-visible:ring-black"
                                         >
                                             Log in
-                                        </Link>
-                                        <Link
+                                        </Nav.Link>
+                                        <Nav.Link
                                             href={route('register')}
                                             className="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-black dark:hover:text-black/80 dark:focus-visible:ring-black"
                                         >
                                             Register
-                                        </Link>
+                                        </Nav.Link>
                                     </>
                                 )}
-                            </nav>
-                        </header>
 
-                        <main className="mt-6">
+                            </Nav>
+                        </Navbar.Collapse>
+                    </Container>
+                </Navbar>
 
-                            <div className="relative isolate px-6 pt-14 lg:px-8">
-                                <div className="mx-auto max-w-2xl py-32 sm:py-48 lg:py-56">
-                                    <div className="hidden sm:mb-8 sm:flex sm:justify-center">
-                                        <div className="relative rounded-full px-3 py-1 text-sm leading-6 text-gray-600 ring-1 ring-gray-900/10 hover:ring-gray-900/20">
-                                            Secure your legacy with the power of Berrett Will System{' '}
-                                            <a href="/create" className="font-semibold text-indigo-600">
-                                                <span className="absolute inset-0" aria-hidden="true" />
-                                                Read more <span aria-hidden="true">&rarr;</span>
-                                            </a>
-                                        </div>
-                                    </div>
-                                    <div className="text-center">
-                                        <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
-                                            Your Wil, your memory, your legacy...
-                                        </h1>
-                                        <p className="mt-6 text-lg leading-8 text-gray-600">
-                                            Example test we need to define what should be here
-                                        </p>
-                                        <div className="mt-10 flex items-center justify-center gap-x-6">
-                                            <a
-                                                href="#"
-                                                className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                                            >
-                                                Get started
-                                            </a>
-                                            <a href="#" className="text-sm font-semibold leading-6 text-gray-900">
-                                                Learn more <span aria-hidden="true">→</span>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div
-                                    className="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]"
-                                    aria-hidden="true"
-                                >
-                                    <div
-                                        className="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]"
-                                        style={{
-                                            clipPath:
-                                                'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
-                                        }}
-                                    />
-                                </div>
-                            </div>
 
-                        </main>
+                <Carousel data-bs-theme="dark">
+                    <Carousel.Item>
+                        <img
+                            className="d-block w-100"
+                            src={bg1}
+                            alt="First slide"
+                        />
+                        <Carousel.Caption>
+                            <h5>Your family</h5>
+                            <p>They will keep the goal and dreams.</p>
+                        </Carousel.Caption>
+                    </Carousel.Item>
+                    <Carousel.Item>
+                        <img
+                            className="d-block w-100"
+                            src={bg2}
+                            alt="Second slide"
+                        />
+                        <Carousel.Caption>
+                            <h5>Your legacy</h5>
+                            <p>They will follow your guidelines</p>
+                        </Carousel.Caption>
+                    </Carousel.Item>
+                    <Carousel.Item>
+                        <img
+                            className="d-block w-100"
+                            src={bg3}
+                            alt="Third slide"
+                        />
+                        <Carousel.Caption>
+                            <h5>Create your Will</h5>
+                            <p>
+                                Your will is easier with our Will System.
+                            </p>
+                        </Carousel.Caption>
+                    </Carousel.Item>
+                </Carousel>
 
-                        <footer className="py-16 text-center text-sm text-black dark:text-white/70">
-                           Willsystem powered with Laravel v{laravelVersion} (PHP v{phpVersion})
-                        </footer>
-                    </div>
-                </div>
+
+
+
+                <Container className="text-center my-5">
+                    <Row>
+
+                        <Col md={4}>
+                            <Card>
+                                <Card.Body>
+                                    <Card.Title>Register</Card.Title>
+                                    <Card.Text>Create your account today</Card.Text>
+                                    <Link
+                                        href={route('register')}
+                                    >
+
+                                        <Button variant="outline-dark"><i className="bi bi-person-checkk">Register</i></Button>
+                                    </Link>
+
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                        <Col md={4}>
+                            <Card>
+                                <Card.Body>
+                                    <Card.Title>Create your will</Card.Title>
+                                    <Card.Text>Create today your will and save the tomorrow's family dreams</Card.Text>
+                                    <Link
+                                        href={route('dashboard')}
+                                    >
+                                        <Button variant="outline-dark"> <i class="bi bi-file-earmark-break">Create</i></Button>
+                                    </Link>
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                        <Col md={4}>
+                            <Card>
+                                <Card.Body>
+                                    <Card.Title>Business in a Box</Card.Title>
+                                    <Card.Text>do you want your own business?</Card.Text>
+                                    <Link
+                                        href={route('dashboard')}
+                                    >
+                                        <Button variant="outline-dark"><i class="bi bi-cash-stack"></i>I want my own will business</Button>
+
+
+                                    </Link>
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                    </Row>
+                </Container>
+
+
+                <footer className="bg-dark text-white text-center py-3">
+                    <Container>
+                        <p>&copy; 2024 Barrett Tax Law & Barrett Will System. All rights reserved.</p>
+                    </Container>
+                </footer>
+
             </div>
         </>
     );
