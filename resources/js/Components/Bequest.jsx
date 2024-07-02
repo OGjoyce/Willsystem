@@ -262,7 +262,7 @@ function Bequest({ id, datas }) {
                             </DropdownToggle>
                             <DropdownMenu>
                                 {identifiers_names.map(size => (
-                                    <DropdownItem eventKey={size}>{size}</DropdownItem>
+                                    <DropdownItem key={size} eventKey={size}>{size}</DropdownItem>
                                 ))}
                             </DropdownMenu>
                         </Dropdown>
