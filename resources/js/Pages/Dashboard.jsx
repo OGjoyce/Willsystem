@@ -28,7 +28,7 @@ export default function Dashboard({ auth }) {
                                     <Link
                                         href={route('personal')}
                                     >
-                                        <Button style={{ width: "100%" }} variant="outline-dark"> <i style={{color:"green"}} className="bi bi-file-plus">Create new will + 2 POA</i> </Button>
+                                        <Button style={{ width: "100%" }} variant="outline-dark"> <i style={{color:"green"}} className="bi bi-file-plus"></i>Create new will + 2 POA </Button>
                                     </Link>
                                 </Col>
                                 <Col sm={4}>
