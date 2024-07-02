@@ -6,10 +6,12 @@ var Article = React.forwardRef(function Article(props, ref,) {
 
     };
     if (props != undefined) {
+        debugger;
 
         
         var datasObj = props.props.data.datas;
         console.log(datasObj);
+        var isMarried = datasObj[1].marriedq.selection;
         var clientName = props.props.fullName;
         var firstExecutors = datasObj[5].executors[0].firstName + " " + datasObj[5].executors[0].lastName;
         var cityFirstExecutors = capitalLetters(datasObj[5].executors[0].city);
@@ -30,7 +32,7 @@ var Article = React.forwardRef(function Article(props, ref,) {
 
     return (
         <div ref={ref}>
-            <><center><strong>LAST WILL AND TESTAMENT OF {capitalLetters(clientName)} </strong></center><p><br /><br />
+            <><center ><strong>LAST WILL AND TESTAMENT OF {capitalLetters(clientName)} </strong></center><p><br /><br />
                 I, {capitalLetters(clientName)}  , presently of toronto, Ontario, declare that this is my Last Will and
                 Testament.<br /><br /></p><center><strong>I. PRELIMINARY DECLARATIONS</strong></center><p><strong><u>Prior Wills and Codicils</u></strong></p><ol>
                     <ol>
@@ -39,7 +41,14 @@ var Article = React.forwardRef(function Article(props, ref,) {
                 </ol><p><strong><u>Marital Status</u></strong></p><ol>
                     <ol>
                         {/* <li>I am not married or in a common law relationship.</li> */}
-                        <li> I am married to {capitalLetters(props.props.spouseName)} (my "Spouse").</li>
+                        {
+                            isMarried == true ?
+                            <li> I am married to {capitalLetters(props.props.spouseName)} (my "Spouse").</li>
+                            :
+                            null
+                            
+                        }
+                        
                     </ol>
                 </ol><p><strong><u>Current Children</u></strong></p><ol>
                     <ol>

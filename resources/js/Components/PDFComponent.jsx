@@ -11,7 +11,9 @@ var fullName, spouseName;
 var childs = [];
 export default function PDFComponent(datas) {
     var componentRef = useRef();
-    
+   
+    debugger;
+
 
 
 

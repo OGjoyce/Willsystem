@@ -121,13 +121,7 @@ export default function Personal({ auth }) {
     var lastPointer = 0;
     const pushInfo = function (step) {
 
-        /*
-        Aqui lo que pasa es que Step no pasa por married y pone la data sino que cambia automaticamente.... 
-        como hace un push del object status, que pasa, la posicion de kids no seria 3 sino 2....
-        if pointer == 3 and lastPointer == 1{
-            significa un paso de 2
-        }
-        */
+
         var object_to_push = {};
         var dupFlag = false;
 
@@ -135,6 +129,7 @@ export default function Personal({ auth }) {
 
             case 0:
                 object_to_push.personal = { ...stepper[step], ...getFormData(), "timestamp": Date.now() };
+                //Call DB and SAVE DATA
                 break;
             case 1:
                 object_to_push.marriedq = { "selection": getMarriedData(), "timestamp": Date.now() };
