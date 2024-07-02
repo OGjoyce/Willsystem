@@ -257,7 +257,7 @@ function Bequest({ id, datas }) {
                     <Col md="auto">
 
                         <Dropdown style={{ width: "100%" }} onSelect={setCurrentRecepient} >
-                            <DropdownToggle variants="success" caret id="size-dropdown">
+                            <DropdownToggle variants="success" caret="true" id="size-dropdown">
                                 Select Recepient
                             </DropdownToggle>
                             <DropdownMenu>
