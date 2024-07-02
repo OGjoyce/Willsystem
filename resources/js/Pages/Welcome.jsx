@@ -144,7 +144,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                     <Link
                                         href={route('dashboard')}
                                     >
-                                        <Button variant="outline-dark"><i class="bi bi-cash-stack"></i>I want my own will business</Button>
+                                        <Button variant="outline-primary"><i class="bi bi-cash-stack"></i>I want my own will business</Button>
 
 
                                     </Link>
