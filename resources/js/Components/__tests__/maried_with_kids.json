@@ -3,30 +3,31 @@
         "personal": {
             "step": 0,
             "title": "Please insert the personal information",
-            "city": "Québec",
-            "telephone": "+1 00000000",
-            "fullName": "John Doe",
-            "timestamp": 1719987211394
+            "city": "Toronto",
+            "telephone": "+1 000000",
+            "province": "Ontario",
+            "fullName": "Carlos Montiel",
+            "timestamp": 1720036111835
         }
     },
     {
         "marriedq": {
             "selection": "true",
-            "timestamp": 1719987214038
+            "timestamp": 1720036117111
         }
     },
     {
         "married": {
-            "firstName": "Jane",
-            "middleName": "Ms",
-            "lastName": "Doe",
+            "firstName": "Maria",
+            "middleName": "Middle Name",
+            "lastName": "Becerra",
             "relative": "Spouse",
-            "email": "jane@email.com",
-            "phone": "+1 0000000000",
-            "city": "Québec",
-            "province": "Québec",
-            "country": "Québec",
-            "timestamp": 1719987268340
+            "email": "maria@email.com",
+            "phone": "+1 000000",
+            "city": "Toronto",
+            "province": "Ontario",
+            "country": "Canada",
+            "timestamp": 1720036247698
         }
     },
     {
@@ -38,21 +39,21 @@
         "kids": {
             "0": {
                 "id": 1,
-                "firstName": "Junior",
+                "firstName": "Katie",
                 "lastName": "Doe",
                 "relative": "Children",
-                "city": "Québec",
-                "country": "Québec",
-                "province": "Québec"
+                "city": "Toronto",
+                "country": "Canada",
+                "province": "Ontario"
             },
             "1": {
                 "id": 2,
-                "firstName": "Helen",
-                "lastName": "Doe",
+                "firstName": "Junior",
+                "lastName": "Montiel",
                 "relative": "Children",
-                "city": "Québec",
-                "country": "Québec",
-                "province": "Québec"
+                "city": "Toronto",
+                "country": "Canada",
+                "province": "Ontario"
             }
         }
     },
@@ -60,133 +61,80 @@
         "relatives": {
             "0": {
                 "firstName": "John",
-                "middleName": "Doe",
-                "lastName": "Sr",
+                "middleName": "MiddleName",
+                "lastName": "Doe",
                 "relative": "Father",
-                "email": "jhonsr@email.com",
-                "phone": "+1 0000000000",
-                "city": "Québec",
-                "province": "Québec",
-                "country": "Québec"
+                "email": "john@email.com",
+                "phone": "+1 000000",
+                "city": "Toronto",
+                "province": "Ontario",
+                "country": "Canada"
             },
             "1": {
-                "firstName": "Joseph",
-                "middleName": "J",
+                "firstName": "William",
+                "middleName": "Middlename",
                 "lastName": "Doe",
                 "relative": "Brother",
-                "email": "joseph@email.com",
-                "phone": "+1 00000000000",
-                "city": "Québec",
-                "province": "Québec",
-                "country": "Québec"
-            },
-            "2": {
-                "firstName": "Mary",
-                "middleName": "M",
-                "lastName": "Doe",
-                "relative": "Sister",
-                "email": "mary@email.com",
-                "phone": "+1 00000000000",
-                "city": "Québec",
-                "province": "Québec",
-                "country": "Québec"
+                "email": "william@email.com",
+                "phone": "+1 000000",
+                "city": "Mississauga",
+                "province": "Ontario",
+                "country": "Canada"
             }
         },
-        "executors": {}
+        "executors": {
+            "0": {
+                "id": 1,
+                "firstName": "John",
+                "lastName": "Doe",
+                "relative": "Father",
+                "country": "Canada",
+                "city": "Toronto",
+                "province": "Ontario"
+            },
+            "1": {
+                "id": 2,
+                "firstName": "William",
+                "lastName": "Doe",
+                "relative": "Brother",
+                "country": "Canada",
+                "city": "Mississauga",
+                "province": "Ontario"
+            }
+        }
     },
     {
         "bequests": {
             "0": {
                 "id": 0,
-                "names": "Junior Doe",
-                "shares": "50",
-                "bequest": "Gold Chain"
+                "names": "Katie Doe",
+                "shares": "100",
+                "bequest": "Motorcycle - Harley"
             },
             "1": {
-                "id": 0,
-                "names": "Helen Doe",
-                "shares": "50",
+                "id": 1,
+                "names": "Katie Doe",
+                "shares": "100",
                 "bequest": "Gold Chain"
             },
-            "2": {
-                "id": 1,
-                "names": "Mary Doe",
-                "shares": "100",
-                "bequest": "Car"
-            },
-            "timestamp": 1719987567103
+            "timestamp": 1720036728035
         }
     },
     {
         "residue": {
-            "selected": "Specific Beneficiaries",
-            "beneficiary": [
-                {
-                    "id": 1,
-                    "beneficiary": "Helen Doe",
-                    "backup": "Junior Doe",
-                    "type": "Per Capita",
-                    "shares": 50
-                },
-                {
-                    "id": 2,
-                    "beneficiary": "Junior Doe",
-                    "backup": "Helen Doe",
-                    "type": "Per Capita",
-                    "shares": 50
-                }
-            ],
-            "timestamp": 1719987649003
+            "selected": "NO SPOUSAL WILL: Have the residue go to spouse first then children per stirpes",
+            "timestamp": 1720036866493
         }
     },
     {
         "wipeout": {
-            "0": "5",
-            "1": "0",
-            "2": "%",
-            "3": " ",
-            "4": "t",
-            "5": "o",
-            "6": " ",
-            "7": "s",
-            "8": "i",
-            "9": "b",
-            "10": "l",
-            "11": "i",
-            "12": "n",
-            "13": "g",
-            "14": "s",
-            "15": " ",
-            "16": "a",
-            "17": "n",
-            "18": "d",
-            "19": " ",
-            "20": "5",
-            "21": "0",
-            "22": "%",
-            "23": " ",
-            "24": "t",
-            "25": "o",
-            "26": " ",
-            "27": "s",
-            "28": "i",
-            "29": "b",
-            "30": "l",
-            "31": "i",
-            "32": "n",
-            "33": "g",
-            "34": "s",
-            "35": " ",
-            "36": "o",
-            "37": "f",
-            "38": " ",
-            "39": "s",
-            "40": "p",
-            "41": "o",
-            "42": "u",
-            "43": "s",
-            "44": "e",
-            "timestamp": 1719987672178
+            "0": {
+                "id": 0,
+                "names": "Select a recepient to continue...",
+                "shares": "100",
+                "backup": "Per Stirpes"
+            },
+            "timestamp": 1720037258052
         }
     },
     {
@@ -199,22 +147,7 @@
                 "guardian": null,
                 "position": 0
             },
-            "1": {
-                "id": 1,
-                "guardian": null,
-                "position": 0
-            },
-            "2": {
-                "id": 2,
-                "guardian": null,
-                "position": 0
-            },
-            "3": {
-                "id": 3,
-                "guardian": null,
-                "position": 0
-            },
-            "timestamp": 1719988033819
+            "timestamp": 1720037365674
         },
         "pets": {}
     },
@@ -222,21 +155,37 @@
         "pets": {
             "0": {
                 "id": 1,
-                "guardian": "Helen",
-                "backup": "Junior",
-                "amount": 2000
+                "guardian": "Maria",
+                "backup": "Katie",
+                "amount": 100
             }
         }
     },
     {
         "additional": {
             "0": false,
-            "timestamp": 1719988326584
+            "timestamp": 1720037398156
         }
     },
     {
         "poa": {
-            "timestamp": 1719988326687
+            "0": "Junior Montiel",
+            "1": "Maria Becerra",
+            "2": "Junior Montiel",
+            "3": "Maria Becerra",
+            "5": "Junior Montiel",
+            "6": "Maria Becerra",
+            "7": "Katie Doe",
+            "8": "Junior Montiel",
+            "9": {
+                "organ": false,
+                "dnr": true
+            },
+            "10": {
+                "organ": false,
+                "dnr": true
+            },
+            "timestamp": 1720037416049
         }
     },
     {}

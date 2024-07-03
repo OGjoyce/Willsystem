@@ -58,7 +58,7 @@ function Bequest({ id, datas }) {
 
             var obj =
             {
-                "id": bequestindex,
+                "id": bequestindex += 1,
                 "names": selected,
                 "shares": shares,
                 "bequest": bequest

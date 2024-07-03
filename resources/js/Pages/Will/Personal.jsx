@@ -180,14 +180,14 @@ export default function Personal({ auth }) {
                 break;
             case 9:
                 //DATA
-                object_to_push.trusting = {};
+                object_to_push.trusting = { ...getTableData(), "timestamp": Date.now() };
                 break;
             case 10:
                 object_to_push.guardians = { ...getGuardiansForMinors(), "timestamp": Date.now() }
 
             case 11:
                 //DATA
-                object_to_push.pets = { ...getPetInfo() };
+                object_to_push.pets = { ...getPetInfo(), "timestamp": Date.now() };
                 break;
 
             case 12:
