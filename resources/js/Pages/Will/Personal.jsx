@@ -35,6 +35,7 @@ import { getPoa } from '@/Components/Poa';
 import FinalDetails from '@/Components/FinalDetails';
 import PDFComponent from '@/Components/PDFComponent';
 import { PDFViewer } from '@react-pdf/renderer';
+import { getPetInfo } from '@/Components/Pets';
 
 
 var object_status = [];
@@ -148,7 +149,6 @@ export default function Personal({ auth }) {
             case 3:
                 object_to_push.kidsq = { "selection": getMarriedData() };
 
-
                 break;
             case 4:
                 if (!dupKids) {
@@ -183,7 +183,7 @@ export default function Personal({ auth }) {
 
             case 11:
                 //DATA
-                object_to_push.pets = {};
+                object_to_push.pets = { ...getPetInfo() };
                 break;
 
             case 12:
@@ -206,6 +206,9 @@ export default function Personal({ auth }) {
             object_status.push(object_to_push);
         }
 
+
+
+        saveData(object_status);
         console.log(object_status);
         return object_status;
 
@@ -216,11 +219,13 @@ export default function Personal({ auth }) {
         const objectStateFreezed = JSON.parse(JSON.stringify(object_status));
         object_status.pop()
 
-
+        saveData(object_status);
         console.log(objectStateFreezed);
         return objectStateFreezed;
 
     }
+
+
     const pushMarried = function () {
         console.log("1. pushMarried:" + object_status);
         var object_to_push = {};
@@ -307,14 +312,13 @@ export default function Personal({ auth }) {
     }
 
 
-
     return (
         <AuthenticatedLayout
             user={auth.user}
             header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">{stepper[pointer].title}</h2>}
         >
             <Head title={"Welcome, " + username} />
-
+            <button onClick={exportData}>Export data</button>
             <div className="py-12" style={{ height: "100%", overflow: "hidden" }}>
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8" style={{ height: "inherit" }} >
                     <div className="bg-white overflow-visible shadow-sm sm:rounded-lg container" style={{ height: "inherit" }}>
@@ -417,7 +421,7 @@ export default function Personal({ auth }) {
 
                                 <PDFComponent datas={object_status} />
                                 :
-                                 null
+                                null
                         }
 
 
@@ -426,14 +430,14 @@ export default function Personal({ auth }) {
                             <Container fluid="md">
                                 <Row>
                                     <Col xs={6} >
-                                    {
-                                        pointer == 0?
-                                        null
-                                        :
-                                        <Button onClick={() => backStep(pointer - 1)} variant="outline-dark" size="lg" style={{ width: "100%" }}>Back</Button>
-                                   
-                                    }
-                                       </Col>
+                                        {
+                                            pointer == 0 ?
+                                                null
+                                                :
+                                                <Button onClick={() => backStep(pointer - 1)} variant="outline-dark" size="lg" style={{ width: "100%" }}>Back</Button>
+
+                                        }
+                                    </Col>
                                     <Col xs={6}>
 
                                         <Button onClick={() => nextStep(pointer + 1)} variant="outline-success" size="lg" style={{ width: "100%" }}>Continue</Button>
