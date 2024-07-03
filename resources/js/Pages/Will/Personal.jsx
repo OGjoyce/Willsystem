@@ -35,6 +35,7 @@ import { getPoa } from '@/Components/Poa';
 import FinalDetails from '@/Components/FinalDetails';
 import PDFComponent from '@/Components/PDFComponent';
 import { PDFViewer } from '@react-pdf/renderer';
+import { getPetInfo } from '@/Components/Pets';
 
 
 var object_status = [];
@@ -183,7 +184,7 @@ export default function Personal({ auth }) {
 
             case 11:
                 //DATA
-                object_to_push.pets = {};
+                object_to_push.pets = {...getPetInfo()};
                 break;
 
             case 12:
