@@ -29,26 +29,26 @@ var backupBeneficiaryData = [];
 
 var bequestindex = 1;
 
-export function getOptObject(){
+export function getOptObject() {
   var userSelection = obj.selectedOption;
   var returnobject = {};
-  if(userSelection == "Specific Beneficiaries"){
+  if (userSelection == "Specific Beneficiaries") {
     returnobject = {
       "selected": userSelection,
       "beneficiary": backupBeneficiaryData
     }
 
-  } 
-  else if(userSelection == "CUSTOM CLAUSE (will override every other option)"){
+  }
+  else if (userSelection == "CUSTOM CLAUSE (will override every other option)") {
     returnobject = {
       "selected": userSelection,
       "clause": obj.customClause
     }
 
   }
-  else{
+  else {
     returnobject = {
-      "selected": userSelection 
+      "selected": userSelection
     }
 
   }
@@ -89,9 +89,11 @@ function Residue({ id, datas }) {
 
   }
   var [custom, setCustom] = useState(false);
+  var [clauseValue, setClauseValue] = useState("this is  a custom clause");
   var [specific, setSpecific] = useState(false);
   const [firstRender, setFirstRender] = useState(true);
   var [table_dataBequest, setTable_dataBequest] = useState([]);
+
 
   if (firstRender) {
     obj = {
@@ -167,15 +169,14 @@ function Residue({ id, datas }) {
 
 
 
-  const handleDelete = (itemId) =>
-    {
-        backupBeneficiaryData = backupBeneficiaryData.filter(obj => obj.id !== itemId);
+  const handleDelete = (itemId) => {
+    backupBeneficiaryData = backupBeneficiaryData.filter(obj => obj.id !== itemId);
 
-        var obj = backupBeneficiaryData;
-        setTable_dataBequest(backupBeneficiaryData);
-        
-        bequestindex -= 1;
-    }
+    var obj = backupBeneficiaryData;
+    setTable_dataBequest(backupBeneficiaryData);
+
+    bequestindex -= 1;
+  }
 
 
 
@@ -193,6 +194,7 @@ function Residue({ id, datas }) {
 
       setSpecific(false);
       setCustom(true);
+      obj = { ...obj, customClause: clauseValue };
     }
     else {
       setSpecific(false);
@@ -211,43 +213,42 @@ function Residue({ id, datas }) {
     obj = { ...obj, selectedBackup: key }
     setSelected(obj);
   }
-  const AddBackupButton = () =>
-    {
-        var selectedOption = selected.selectedOption;
-        var shares = document.getElementById('basic-url').value;
-        shares = Number(shares);
-        var beneficiary = selected.selectedBeneficiary;
-        var backup = selected.selectedBackup;
-        if(selectedOption == "A"){
-          selectedOption = "Per Stirpes"
+  const AddBackupButton = () => {
+    var selectedOption = selected.selectedOption;
+    var shares = document.getElementById('basic-url').value;
+    shares = Number(shares);
+    var beneficiary = selected.selectedBeneficiary;
+    var backup = selected.selectedBackup;
+    if (selectedOption == "A") {
+      selectedOption = "Per Stirpes"
 
-        }
-        else{
-          selectedOption = "Per Capita"
-        }
-
-        if(beneficiary != null && backup != null){
-          var objtopush = 
-          {
-           "id": bequestindex,
-           "beneficiary": beneficiary,
-           "backup": backup,
-           "type": selectedOption,
-           "shares": shares
-          }
-          
-        }
-        else{
-          alert("Please select beneficiary and backup")
-        }
-      
-           //add to table ... set a hook
-           backupBeneficiaryData.push(objtopush);
-           setTable_dataBequest(objtopush);
-           bequestindex++;
-
-      
     }
+    else {
+      selectedOption = "Per Capita"
+    }
+
+    if (beneficiary != null && backup != null) {
+      var objtopush =
+      {
+        "id": bequestindex,
+        "beneficiary": beneficiary,
+        "backup": backup,
+        "type": selectedOption,
+        "shares": shares
+      }
+
+    }
+    else {
+      alert("Please select beneficiary and backup")
+    }
+
+    //add to table ... set a hook
+    backupBeneficiaryData.push(objtopush);
+    setTable_dataBequest(objtopush);
+    bequestindex++;
+
+
+  }
   return (
     <>
       <Form.Group className="mb-3">
@@ -318,7 +319,7 @@ function Residue({ id, datas }) {
                 id="optionB"
               />
 
-         
+
               <InputGroup className="mb-3">
                 <InputGroup.Text id="basic-addon3">
                   Shares for backup
@@ -327,7 +328,7 @@ function Residue({ id, datas }) {
               </InputGroup>
             </Form>
             <Button variant="outline-success" onClick={() => AddBackupButton()} >Add Beneficiary Backup</Button>
-{/*  {
+            {/*  {
            "id": bequestindex,
            "beneficiary": beneficiary,
            "backup": backup,
@@ -335,37 +336,37 @@ function Residue({ id, datas }) {
            "shares": shares
           } */}
             <Table striped bordered hover responsive>
-                        <thead>
-                            <tr>
-                                <th>id</th>
-                                <th>beneficiary</th>
-                                <th>backup</th>
-                                <th>type</th>
-                                <th>shares</th>
-                                <th>Delete</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+              <thead>
+                <tr>
+                  <th>id</th>
+                  <th>beneficiary</th>
+                  <th>backup</th>
+                  <th>type</th>
+                  <th>shares</th>
+                  <th>Delete</th>
+                </tr>
+              </thead>
+              <tbody>
 
-                            {
-                                backupBeneficiaryData.length == 0?
-                                <p>No information added yet, press <b>"Add Beneficiary Backup Button"</b> to add</p>
-                                :
-                                backupBeneficiaryData.map((item, index) => (
-                                    <tr key={index}>
-                                        <td>{item.id}</td>
-                                        <td>{item.beneficiary}</td>
-                                        <td>{item.backup}</td>
-                                        <td>{item.type}</td>
-                                        <td>{item.shares}</td>
-                                        <td><Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button></td>
-                                    </tr>
-                                ))
-                            }
+                {
+                  backupBeneficiaryData.length == 0 ?
+                    <p>No information added yet, press <b>"Add Beneficiary Backup Button"</b> to add</p>
+                    :
+                    backupBeneficiaryData.map((item, index) => (
+                      <tr key={index}>
+                        <td>{item.id}</td>
+                        <td>{item.beneficiary}</td>
+                        <td>{item.backup}</td>
+                        <td>{item.type}</td>
+                        <td>{item.shares}</td>
+                        <td><Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button></td>
+                      </tr>
+                    ))
+                }
 
 
-                        </tbody>
-                    </Table>
+              </tbody>
+            </Table>
 
 
 
@@ -378,7 +379,12 @@ function Residue({ id, datas }) {
           <Form>
             <Form.Group className="mb-3" controlId="customTextArea">
               <Form.Label>Custom Clause</Form.Label>
-              <Form.Control as="textarea" rows={8} />
+              <Form.Control
+                as="textarea"
+                rows={8}
+                value={clauseValue}
+                onChange={(e) => setClauseValue(e.target.value)}
+              />
             </Form.Group>
           </Form>
           :
