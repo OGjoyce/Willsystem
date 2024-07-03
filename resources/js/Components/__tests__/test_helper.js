@@ -6,17 +6,24 @@ export const saveData = (data) => {
 
 
 // Function to export the current state to a JSON file
-export const exportData = () => {
-    const data = localStorage.getItem('fullData');
-    if (data) {
-        const blob = new Blob([data], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'form_data.json';
-        a.click();
-        URL.revokeObjectURL(url);
-    }
+export function exportData() {
+  const datos = localStorage.getItem('fullData');
+  if (datos) {
+    const blob = new Blob([datos], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'form_data.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  } else {
+    alert('No data saved on LocalStorage!')
+  }
+}
+
+export const deleteData = () => {
+    localStorage.removeItem('fullData');
+    console.log("Data deleted from localStorage");
 };
 
 //PENDING:

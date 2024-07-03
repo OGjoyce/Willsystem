@@ -37,6 +37,9 @@ import PDFComponent from '@/Components/PDFComponent';
 import { PDFViewer } from '@react-pdf/renderer';
 import { getPetInfo } from '@/Components/Pets';
 
+//ADDED FOR DEBBUGING: Will remove it soon
+import { exportData, deleteData } from '@/Components/__tests__/test_helper';
+
 
 var object_status = [];
 var objectState = [];
@@ -149,6 +152,7 @@ export default function Personal({ auth }) {
             case 3:
                 object_to_push.kidsq = { "selection": getMarriedData() };
 
+
                 break;
             case 4:
                 if (!dupKids) {
@@ -205,10 +209,7 @@ export default function Personal({ auth }) {
         if (!dupFlag) {
             object_status.push(object_to_push);
         }
-
-
-
-        saveData(object_status);
+        localStorage.setItem('fullData', JSON.stringify(object_status));
         console.log(object_status);
         return object_status;
 
@@ -219,13 +220,11 @@ export default function Personal({ auth }) {
         const objectStateFreezed = JSON.parse(JSON.stringify(object_status));
         object_status.pop()
 
-        saveData(object_status);
+        localStorage.setItem('fullData', JSON.stringify(object_status));
         console.log(objectStateFreezed);
         return objectStateFreezed;
 
     }
-
-
     const pushMarried = function () {
         console.log("1. pushMarried:" + object_status);
         var object_to_push = {};
@@ -312,13 +311,23 @@ export default function Personal({ auth }) {
     }
 
 
+
     return (
         <AuthenticatedLayout
             user={auth.user}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">{stepper[pointer].title}</h2>}
+            header={
+                <h2 className="font-semibold text-xl text-gray-800 leading-tight">
+                    {stepper[pointer].title}
+                    <div>
+                        {/* BUTTONS ADDED FOR DEBBUGING: Will remove them soon */}
+                        <Button onClick={exportData} size='sm' variant="outline-success">Export current Data</Button>
+                        <Button onClick={deleteData} size='sm' variant="outline-danger">Delete LocalStorage Data</Button>
+                    </div>
+                </h2>
+            }
         >
             <Head title={"Welcome, " + username} />
-            <button onClick={exportData}>Export data</button>
+
             <div className="py-12" style={{ height: "100%", overflow: "hidden" }}>
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8" style={{ height: "inherit" }} >
                     <div className="bg-white overflow-visible shadow-sm sm:rounded-lg container" style={{ height: "inherit" }}>
