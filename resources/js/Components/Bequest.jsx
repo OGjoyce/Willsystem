@@ -42,69 +42,66 @@ function Bequest({ id, datas }) {
     var [selectedRecepient, setSelectedRecepient] = useState("Select a recepient to continue...");
     const [readOnly, setReadOnly] = useState(false);
 
-    const reviewBequestSum = (index) =>
-    {
+    const reviewBequestSum = (index) => {
         var counter = 0;
         var obj = table_dataBequest[index];
 
 
     }
-    const addRecepient = () =>
-    {
+    const addRecepient = () => {
         var bequest, selected, shares;
         bequest = document.getElementById('bequestTextArea').value;
         selected = selectedRecepient;
         shares = document.getElementById('sharesID').value;
-        if (bequest != "" && selected != "false" && (shares != "") && (shares > 0 && shares <= 100)) 
-        {
-           //add to table ... set a hook
-           
-           var obj = 
-           {
-            "id": bequestindex,
-            "names": selected,
-            "shares": shares,
-            "bequest": bequest
-           }
-           
+        if (bequest != "" && selected != "false" && (shares != "") && (shares > 0 && shares <= 100)) {
+            //add to table ... set a hook
 
-           document.getElementById('sharesID').value = "";
-           setSelectedRecepient("Select other Recepient...");
-           var globalSemaphore = 0;
-           globalSemaphore = globalCounter;
-           globalCounter += Number(shares);
-           const sum = reviewBequestSum(bequestindex);
-          console.log(globalCounter);
-           if(globalCounter > 100){
-            console.log("Amount of shares should be less or equal than 100");
-            globalCounter = globalSemaphore;
-
-           }
-           else if(globalCounter < 100){
-            setReadOnly(true);
-            if(!open){
-                setOpen(true);
+            var obj =
+            {
+                "id": bequestindex,
+                "names": selected,
+                "shares": shares,
+                "bequest": bequest
             }
-            
-            table_dataBequest.push(obj);
-           bequestArrObj.push(obj);
-               
-           }
-           else if(globalCounter == 100){
-            table_dataBequest.push(obj);
-            bequestArrObj.push(obj);
-            console.log("100");
-            setReadOnly(false);
-            globalCounter = 0;
-            bequestindex +=1;
-            document.getElementById('bequestTextArea').value = "";
-           }
-           
-
-          
 
 
-        
+            document.getElementById('sharesID').value = "";
+            setSelectedRecepient("Select other Recepient...");
+            var globalSemaphore = 0;
+            globalSemaphore = globalCounter;
+            globalCounter += Number(shares);
+            const sum = reviewBequestSum(bequestindex);
+            console.log(globalCounter);
+            if (globalCounter > 100) {
+                console.log("Amount of shares should be less or equal than 100");
+                globalCounter = globalSemaphore;
+
+            }
+            else if (globalCounter < 100) {
+                setReadOnly(true);
+                if (!open) {
+                    setOpen(true);
+                }
+
+                table_dataBequest.push(obj);
+                bequestArrObj.push(obj);
+
+            }
+            else if (globalCounter == 100) {
+                table_dataBequest.push(obj);
+                bequestArrObj.push(obj);
+                console.log("100");
+                setReadOnly(false);
+                globalCounter = 0;
+                bequestindex += 1;
+                document.getElementById('bequestTextArea').value = "";
+            }
+
+
+
+
+
+
         }
 
 
@@ -116,7 +113,7 @@ function Bequest({ id, datas }) {
         const newrelative = getHumanData();
         const names = newrelative.firstName + " " + newrelative.lastName;
         identifiers_names.push(names);
-        
+
         let len = Object.keys(datas[5].relatives).length;
         datas[5].relatives[len] = newrelative;
         console.log(datas);
@@ -124,31 +121,31 @@ function Bequest({ id, datas }) {
 
     }
     function finishBequest() {
-       
+
         var flag = false;
         //sum by id
         var sum = sumValuesBySameIds(table_dataBequest);
         let len = Object.keys(sum).length;
-        for (let index = 0; index <len; index++) {
-            if(sum[index] != 100){
-                alert("Please fix the bequest with id: "+index);
+        for (let index = 0; index < len; index++) {
+            if (sum[index] != 100) {
+                alert("Please fix the bequest with id: " + index);
                 flag = true;
 
             }
-            
+
         }
-        if(!flag){
+        if (!flag) {
             bequestArrObj = table_dataBequest;
 
         }
-        else{
+        else {
 
         }
 
 
 
     }
-   
+
     function sumValuesBySameIds(containerObject) {
         let sums = {};
         // Loop through each object in the containerObject
@@ -156,13 +153,13 @@ function Bequest({ id, datas }) {
             // If the id already exists in sums, add the value to the sum
             if (sums.hasOwnProperty(obj.id)) {
                 sums[obj.id] += parseFloat(obj.shares);
-            } 
+            }
             // Otherwise, initialize the sum for this id
             else {
                 sums[obj.id] = parseFloat(obj.shares);
             }
         });
-    
+
         return sums;
     }
     const setCurrentRecepient = (eventKey) => {
@@ -185,13 +182,12 @@ function Bequest({ id, datas }) {
         setShow(true);
 
     }
-    const handleDelete = (itemId) =>
-    {
+    const handleDelete = (itemId) => {
         table_dataBequest = table_dataBequest.filter(obj => obj.id !== itemId);
 
         var obj = table_dataBequest;
         setTable_dataBequest(obj);
-        
+
         bequestindex -= 1;
     }
 
@@ -211,22 +207,22 @@ function Bequest({ id, datas }) {
         }
 
         var married_names = married.firstName + " " + married.lastName;
-        if(kidsq == "true"){
+        if (kidsq == "true") {
             var kids_names = kids.firstName + " " + kids.lastName;
-            for (let child in kids){
+            for (let child in kids) {
                 const names = kids[child].firstName + " " + kids[child].lastName;
                 identifiers_names.push(names);
             }
 
 
         }
-        else{
-           
+        else {
+
 
         }
         identifiers_names.push(married_names);
-        
-       
+
+
 
         for (let key in relatives) {
             const names = relatives[key].firstName + " " + relatives[key].lastName;
@@ -261,12 +257,12 @@ function Bequest({ id, datas }) {
                     <Col md="auto">
 
                         <Dropdown style={{ width: "100%" }} onSelect={setCurrentRecepient} >
-                            <DropdownToggle variants="success" caret id="size-dropdown">
+                            <DropdownToggle variants="success" caret="true" id="size-dropdown">
                                 Select Recepient
                             </DropdownToggle>
                             <DropdownMenu>
                                 {identifiers_names.map(size => (
-                                    <DropdownItem eventKey={size}>{size}</DropdownItem>
+                                    <DropdownItem key={size} eventKey={size}>{size}</DropdownItem>
                                 ))}
                             </DropdownMenu>
                         </Dropdown>
@@ -316,21 +312,26 @@ function Bequest({ id, datas }) {
                         <tbody>
 
                             {
-                                table_dataBequest.length == 0?
-                                <p>No information added yet, press "Add Recepient Button" to add.</p>
-                                :
-                                table_dataBequest.map((item, index) => (
-                                    <tr key={index}>
-                                        <td>{item.id}</td>
-                                        <td>{item.names}</td>
-                                        <td>{item.bequest}</td>
-                                        <td>{item.shares}</td>
-                                        <td><Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button></td>
+                                table_dataBequest.length == 0 ? (
+                                    <tr>
+                                        <td colSpan="5">
+                                            No information added yet, press "Add Recipient Button" to add.
+                                        </td>
                                     </tr>
-                                ))
+                                ) : (
+                                    table_dataBequest.map((item, index) => (
+                                        <tr key={index}>
+                                            <td>{item.id}</td>
+                                            <td>{item.names}</td>
+                                            <td>{item.bequest}</td>
+                                            <td>{item.shares}</td>
+                                            <td>
+                                                <Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )
                             }
-
-
                         </tbody>
                     </Table>
                 </div>
