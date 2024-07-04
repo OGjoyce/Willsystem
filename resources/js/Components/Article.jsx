@@ -8,7 +8,7 @@ var Article = React.forwardRef(function Article(props, ref,) {
     if (props != undefined) {
         debugger;
 
-        
+
         var datasObj = props.props.data.datas;
         console.log(datasObj);
         var isMarried = datasObj[1].marriedq.selection;
@@ -43,12 +43,12 @@ var Article = React.forwardRef(function Article(props, ref,) {
                         {/* <li>I am not married or in a common law relationship.</li> */}
                         {
                             isMarried == true ?
-                            <li> I am married to {capitalLetters(props.props.spouseName)} (my "Spouse").</li>
-                            :
-                            null
-                            
+                                <li> I am married to {capitalLetters(props.props.spouseName)} (my "Spouse").</li>
+                                :
+                                null
+
                         }
-                        
+
                     </ol>
                 </ol><p><strong><u>Current Children</u></strong></p><ol>
                     <ol>
@@ -133,7 +133,7 @@ var Article = React.forwardRef(function Article(props, ref,) {
                             fails to pass to a beneficiary will return to my estate to be included in the residue of my estate. All
                             property given under this Will is subject to any encumbrances or liens attached to the property. My specific
                             bequests are as follows:</li>
-                            {/* {bequestsData.map((item, index) => (
+                        {/* {bequestsData.map((item, index) => (
                                 <li>I leave {item[1].bequest}  to {item[1].names} of Toronto, ON if they shall survive me, for their own use
                             absolutely.</li>
                             ))} */}
