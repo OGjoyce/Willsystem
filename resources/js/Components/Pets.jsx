@@ -16,9 +16,11 @@ var render = 0;
 var ids = 1;
 var idtable = 1;
 var guardianDataStack = [];
+
 export function getPetInfo() {
     return guardianDataStack
 }
+
 function Pets({ datas }) {
     const [selectedOptionGuardian, setSelectedOptionGuardian] = useState('');
     const [selectedOptionBackup, setSelectedOptionBackup] = useState('');

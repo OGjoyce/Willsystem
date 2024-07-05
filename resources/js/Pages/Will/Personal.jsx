@@ -37,8 +37,9 @@ import PDFComponent from '@/Components/PDFComponent';
 import { PDFViewer } from '@react-pdf/renderer';
 import { getPetInfo } from '@/Components/Pets';
 
+
 //ADDED FOR DEBBUGING: Will remove it soon
-import { exportData, deleteData } from '@/Components/__tests__/test_helper';
+import { exportData, deleteData } from '@/Components/__tests__/test_helper
 
 
 var object_status = [];
