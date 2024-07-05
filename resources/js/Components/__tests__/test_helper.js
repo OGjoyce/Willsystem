@@ -27,6 +27,5 @@ export const deleteData = () => {
 };
 
 //PENDING:
-
-// Function to import data from a JSON file
+// Function to update localStorage
 // Function to load data from localStorage
