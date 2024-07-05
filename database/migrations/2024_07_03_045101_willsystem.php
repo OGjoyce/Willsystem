@@ -111,12 +111,18 @@ return new class extends Migration
             $table->string('dom');
             $table->timestamps();
         });
-        Schema::create('PoaHelth', function (Blueprint $table) {
+        Schema::create('PoaHealth', function (Blueprint $table) {
             $table->increments('id')->primary();
             $table->unsignedInteger('idFile');
             $table->json('information');
             $table->string('dom');
             $table->timestamps();
+        });
+        Schema::create('ObjectStatus', function (Blueprint $table) {
+            $table->increments('id')->primary();
+            $table->unsignedInteger('idFile');
+            $table->json('objstatus');
+
         });
     }
 
@@ -142,6 +148,7 @@ return new class extends Migration
         Schema::dropIfExists('Final');
         Schema::dropIfExists('Will');
         Schema::dropIfExists('PoaFinance');
-        Schema::dropIfExists('PoaHelth');
+        Schema::dropIfExists('PoaHealth');
+        Schema::dropIfExists('ObjectStatus');
     }
 };
