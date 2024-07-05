@@ -35,6 +35,10 @@ import { getPoa } from '@/Components/Poa';
 import FinalDetails from '@/Components/FinalDetails';
 import PDFComponent from '@/Components/PDFComponent';
 import { PDFViewer } from '@react-pdf/renderer';
+import { getPetInfo } from '@/Components/Pets';
+
+//ADDED FOR DEBBUGING: Will remove it soon
+import { exportData, deleteData } from '@/Components/__tests__/test_helper';
 
 
 var object_status = [];
@@ -176,14 +180,14 @@ export default function Personal({ auth }) {
                 break;
             case 9:
                 //DATA
-                object_to_push.trusting = {};
+                object_to_push.trusting = { ...getTableData(), "timestamp": Date.now() };
                 break;
             case 10:
                 object_to_push.guardians = { ...getGuardiansForMinors(), "timestamp": Date.now() }
 
             case 11:
                 //DATA
-                object_to_push.pets = {};
+                object_to_push.pets = { ...getPetInfo(), "timestamp": Date.now() };
                 break;
 
             case 12:
@@ -205,7 +209,7 @@ export default function Personal({ auth }) {
         if (!dupFlag) {
             object_status.push(object_to_push);
         }
-
+        localStorage.setItem('fullData', JSON.stringify(object_status));
         console.log(object_status);
         return object_status;
 
@@ -216,7 +220,7 @@ export default function Personal({ auth }) {
         const objectStateFreezed = JSON.parse(JSON.stringify(object_status));
         object_status.pop()
 
-
+        localStorage.setItem('fullData', JSON.stringify(object_status));
         console.log(objectStateFreezed);
         return objectStateFreezed;
 
@@ -311,7 +315,16 @@ export default function Personal({ auth }) {
     return (
         <AuthenticatedLayout
             user={auth.user}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">{stepper[pointer].title}</h2>}
+            header={
+                <h2 className="font-semibold text-xl text-gray-800 leading-tight">
+                    {stepper[pointer].title}
+                    <div>
+                        {/* BUTTONS ADDED FOR DEBBUGING: Will remove them soon */}
+                        <Button onClick={exportData} size='sm' variant="outline-success">Export current Data</Button>
+                        <Button onClick={deleteData} size='sm' variant="outline-danger">Delete LocalStorage Data</Button>
+                    </div>
+                </h2>
+            }
         >
             <Head title={"Welcome, " + username} />
 
@@ -417,7 +430,7 @@ export default function Personal({ auth }) {
 
                                 <PDFComponent datas={object_status} />
                                 :
-                                 null
+                                null
                         }
 
 
@@ -426,14 +439,14 @@ export default function Personal({ auth }) {
                             <Container fluid="md">
                                 <Row>
                                     <Col xs={6} >
-                                    {
-                                        pointer == 0?
-                                        null
-                                        :
-                                        <Button onClick={() => backStep(pointer - 1)} variant="outline-dark" size="lg" style={{ width: "100%" }}>Back</Button>
-                                   
-                                    }
-                                       </Col>
+                                        {
+                                            pointer == 0 ?
+                                                null
+                                                :
+                                                <Button onClick={() => backStep(pointer - 1)} variant="outline-dark" size="lg" style={{ width: "100%" }}>Back</Button>
+
+                                        }
+                                    </Col>
                                     <Col xs={6}>
 
                                         <Button onClick={() => nextStep(pointer + 1)} variant="outline-success" size="lg" style={{ width: "100%" }}>Continue</Button>

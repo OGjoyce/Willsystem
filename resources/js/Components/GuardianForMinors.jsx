@@ -22,7 +22,7 @@ import { InputGroup } from 'react-bootstrap';
 
 var identifiers_names = [];
 var priorityInformation = [1, 2, 3, 4, 5]
-var bequestindex = 0;
+var bequestindex = 1;
 var backupBeneficiaryData = [];
 var all_data;
 
@@ -126,7 +126,7 @@ export default function GuardianForMinors({ datas }) {
                     <br></br>
                     <Row>
                         <Col sm={12}>
-                            <Dropdown style={{ width: "100%" }}>
+                            <Dropdown onSelect={handleSelectBeneficiary} style={{ width: "100%" }}>
                                 <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="dropdown-basic">
                                     Select Relative
                                 </Dropdown.Toggle>
@@ -148,7 +148,7 @@ export default function GuardianForMinors({ datas }) {
                     <br></br>
                     <Row>
                         <Col sm={12}>
-                            <Dropdown style={{ width: "100%" }}>
+                            <Dropdown onSelect={handleSelectPriority} style={{ width: "100%" }}>
                                 <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="dropdown-basic">
                                     Select Priority
                                 </Dropdown.Toggle>
