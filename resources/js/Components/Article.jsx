@@ -24,10 +24,13 @@ var Article = React.forwardRef(function Article(props, ref,) {
         var executors = Object.values(statusObject.executors);
         var bequests = Object.values(statusObject.bequests).filter(item => typeof item === 'object');
         var trusting = Object.values(statusObject.trusting).filter(item => typeof item === 'object');
+        var minTrustingAge = trusting.length > 0
+            ? trusting.map(trust => trust.age).reduce((prevValue, currentValue) => prevValue > currentValue ? currentValue : prevValue)
+            : null
         var residueInfo = statusObject.residue;
         var pets = Object.values(statusObject.pets).filter(item => typeof item === 'object');
         var wipeoutInfo = statusObject.wipeout;
-        var guardians = statusObject.guardians;
+        var guardians = Object.values(statusObject.guardians).filter(item => typeof item === 'object').sort((a, b) => a.position - b.position);
         var additionalInfo = statusObject.additional;
         var POAInfo = statusObject.poa;
         console.log(statusObject)
@@ -42,7 +45,7 @@ var Article = React.forwardRef(function Article(props, ref,) {
         <div ref={ref}>
             <>
                 <center ><strong>LAST WILL AND TESTAMENT OF {capitalLetters(personal.fullName)} </strong></center>
-                <p><br /><br />I, {capitalLetters(personal.fullName)}  , presently of {capitalLetters(personal.city)}, declare that this is my Last Will and Testament.<br /><br /></p>
+                <p><br /><br />I, {capitalLetters(personal.fullName)}  , presently of {capitalLetters(personal.city)} {personal.province ? `, ${capitalLetters(personal.province)}` : ''} declare that this is my Last Will and Testament.<br /><br /></p>
 
                 <center><strong>I. PRELIMINARY DECLARATIONS</strong></center>
                 <p><strong><u>Prior Wills and Codicils</u></strong></p>
@@ -157,32 +160,18 @@ var Article = React.forwardRef(function Article(props, ref,) {
                             <li>To open, liquidate or dissolve a corporation;</li>
                             <li>To conduct post-mortem tax planning;</li>
                             <li>To employ any lawyer, accountant or other professional; and</li>
-                            <li>
-                                {trusting ? (
-                                    <li>
-                                        Except as otherwise provided in this my Will, to act as my Trustee by holding in trust the share of any
-                                        beneficiary for whom a Testamentary Trust is established pursuant to this Will, and to keep such share
-                                        invested, pay the income or capital or as much of either or both as my Executor considers advisable for
-                                        the maintenance, education, advancement or benefit of such beneficiary and to pay or transfer the
-                                        capital of such share or the amount remaining of that share to such beneficiary as follows:
-                                        <ul>
-                                            {Object.entries(trusting)
-                                                .filter(([key, value]) => typeof value === 'object' && 'age' in value && 'shares' in value)
-                                                .sort((a, b) => parseInt(a[1].age) - parseInt(b[1].age))
-                                                .map(([key, item], index, array) => (
-                                                    <li key={key}>
-                                                        When they reach the age of {item.age} years, {item.shares}% of the total share will be paid or transferred to the beneficiary.
-                                                    </li>
-                                                ))}
-                                        </ul>
-                                        If prior to reaching these ages, the share may be paid or transferred to any parent or guardian of such beneficiary subject to like conditions and the receipt of any such parent or guardian discharges my Executor.
-                                    </li>
-                                ) : (
-                                    <li>
-                                        No trusting conditions added to Will
-                                    </li>
-                                )}
-                            </li>
+                            {trusting.length > 0 && (
+                                <li>
+                                    Except as otherwise provided in this my Will, to act as my Trustee by holding in trust the share of any
+                                    beneficiary for whom a Testamentary Trust is established pursuant to this Will, and to keep such share
+                                    invested, pay the income or capital or as much of either or both as my Executor considers advisable for
+                                    the maintenance, education, advancement or benefit of such beneficiary and to pay or transfer the
+                                    capital of such share or the amount remaining of that share to such beneficiary reaching the age of {minTrustingAge} years
+                                    or, prior to such beneficiary when they reach the age of {minTrustingAge} years, to pay or transfer such share to
+                                    any parent or guardian of such beneficiary subject to like conditions and the receipt of any such parent or
+                                    guardian discharges my Executor
+                                </li>
+                            )}
                             <li>
                                 When my Executor administers my estate, my Executor may convert my estate or any part of my estate into
                                 money or any other form of property or security, and decide how, when, and on what terms. My Executor
@@ -259,7 +248,7 @@ var Article = React.forwardRef(function Article(props, ref,) {
                             <li>
                                 I direct my Executor to provide a maximum of {caretaker.amount} (CAD) out of the residue of my
                                 estate to the the pet caretaker assigned below as a one-time only sum to be used for
-                                the future care, feeding and maintenance of my pet(s).Upon the death of all of my pets,
+                                the future care, feeding and maintenance of my pet(s). Upon the death of all of my pets,
                                 the remainder of any funds provided to the caretaker for the care and maintenance
                                 shall be given to a local animal rescue or humane shelter, to be decided upon by the
                                 caretaker
@@ -279,27 +268,61 @@ var Article = React.forwardRef(function Article(props, ref,) {
                                 property to their descendants per stirpes for their own use absolutely.</li>
                         </ul>
                     </ol>
-                </ol><center><strong>IV. CHILDREN</strong></center><p><strong><u>Guardian for Minor and Dependent Children</u></strong></p><ol>
-                    <li>Should my minor or dependent children require a guardian to care for them, I appoint the following individual to
-                        be their guardian (the 'Guardian')</li>
-                    <li>I appoint JOHN DOE of Toronto, ON to be the sole Guardian of all my minor and dependent children until they are
-                        at least the age of majority.</li>
-                    <li>If JOHN DOE of Toronto, ON should refuse or be unable to act or to continue to act as the Guardian and my minor
-                        or dependent children require a guardian to care for them, then I appoint william Doe of mississauga, ON to be
-                        the sole Guardian of all my minor and dependent children until they are at least the age of majority.</li>
-                    <li>
-                        <p><strong><u>RESP and RDSP</u></strong></p>
-                    </li>
-                    <li>My Executor(s) shall appoint, as Successor Subscriber, a parent of the beneficiary(ies), Guardian for Property
-                        of the beneficiary(ies), person standing in the place of a parent of the beneficiary(ies) or to any other
-                        person, including the beneficiary(ies), which my Executor(s), in their sole discretion, considers to be a proper
-                        Successor Subscriber.</li>
-                    <li>The appointment by my Executor of a Successor Subscriber shall constitute a full and sufficient release to my
-                        Executor who shall not be obliged to see to the maintenance of the RESP and/or RDSP.</li>
-                    <li>Without limiting the foregoing, it is my wish that such Successor Subscriber shall take such steps as are
-                        necessary in order for the RESP to be maintained by them as the Successor Subscriber until such time as the
-                        beneficiary(ies) of the said RESP and/or RDSP qualify or may qualify for educational assistance payments (as
-                        such term is defined in the Income Tax Act).</li>
+                    {hasKids && guardians.length > 0 && (
+                        <>
+                            <center><strong>IV. CHILDREN</strong></center>
+                            <p><strong><u>Guardian for Minor and Dependent Children</u></strong></p>
+                            <ol>
+                                {guardians
+                                    .sort((a, b) => parseInt(a.position) - parseInt(b.position))
+                                    .map((guardian, index) => (
+                                        <React.Fragment key={guardian.id}>
+                                            {index === 0 && (
+                                                <li>
+                                                    Should my minor or dependent children require a guardian to care for them, I appoint the following individual to
+                                                    be their guardian (the 'Guardian')
+                                                </li>
+                                            )}
+                                            <li>
+                                                {index === 0 ? (
+                                                    <>
+                                                        I appoint {guardian.guardian.toUpperCase()} to be the sole Guardian of all my minor and dependent children until they are
+                                                        at least the age of majority.
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        If {guardians[index - 1].guardian.toUpperCase()} should refuse or be unable to act or to continue to act as the Guardian and my minor
+                                                        or dependent children require a guardian to care for them, then I appoint {guardian.guardian.toUpperCase()} to be
+                                                        the sole Guardian of all my minor and dependent children until they are at least the age of majority.
+                                                    </>
+                                                )}
+                                            </li>
+                                        </React.Fragment>
+                                    ))
+                                }
+                                <li>
+                                    <p><strong><u>RESP and RDSP</u></strong></p>
+                                </li>
+                                <li>
+                                    My Executor(s) shall appoint, as Successor Subscriber, a parent of the beneficiary(ies), Guardian for Property
+                                    of the beneficiary(ies), person standing in the place of a parent of the beneficiary(ies) or to any other
+                                    person, including the beneficiary(ies), which my Executor(s), in their sole discretion, considers to be a proper
+                                    Successor Subscriber.
+                                </li>
+                                <li>
+                                    The appointment by my Executor of a Successor Subscriber shall constitute a full and sufficient release to my
+                                    Executor who shall not be obliged to see to the maintenance of the RESP and/or RDSP.
+                                </li>
+                                <li>
+                                    Without limiting the foregoing, it is my wish that such Successor Subscriber shall take such steps as are
+                                    necessary in order for the RESP to be maintained by them as the Successor Subscriber until such time as the
+                                    beneficiary(ies) of the said RESP and/or RDSP qualify or may qualify for educational assistance payments (as
+                                    such term is defined in the Income Tax Act).
+                                </li>
+                            </ol>
+                        </>
+                    )}
+
                     <li><br />
                         <center><strong>V. TESTAMENTARY TRUSTS</strong></center>
                         <p><strong><u>Testamentary Trust for Young Beneficiaries</u></strong></p>
@@ -309,7 +332,7 @@ var Article = React.forwardRef(function Article(props, ref,) {
                             {trusting && Object.keys(trusting).length > 1 ? (
                                 <>
                                     It is my intent to create a testamentary trust (a "Testamentary Trust") for each beneficiary who has not yet
-                                    reached the age of {trusting[0].age} at the time of my death (a "Young Beneficiary"). I name my Executor(s) as trustee (the
+                                    reached the age of {minTrustingAge} at the time of my death (a "Young Beneficiary"). I name my Executor(s) as trustee (the
                                     "Trustee") of any and all Testamentary Trusts required in this my Will. Any assets bequeathed, transferred, or
                                     gifted to a Young Beneficiary are to be held in a separate trust by the Trustee until that Young Beneficiary
                                     reaches the designated age. Any property left by me to any Young Beneficiary in this my Will shall be given to
@@ -331,7 +354,7 @@ var Article = React.forwardRef(function Article(props, ref,) {
                                 </>
                             ) : (
                                 <li>
-                                    No trusting conditions added to Will
+                                    No young beneficiary trusting conditions added to Will
                                 </li>
                             )}
                         </li>
@@ -455,9 +478,10 @@ var Article = React.forwardRef(function Article(props, ref,) {
                         items, regardless of the ownership of any physical device upon which the digital item is stored.</li>
                     <li>
                         <center><strong>VII. GENERAL PROVISIONS</strong></center>
+                        <p><strong><u>Pets</u></strong></p>
                         {pets && pets.length > 0 ? (
                             <>
-                                <p><strong><u>Pets</u></strong></p>
+
                                 {pets.map((caretaker, index) => {
                                     // PENDING TO EXTRACT LOGIC TO FUNCTIONS FOR GENERAL USE
                                     let guardianInfo = relatives.find(rel => rel.firstName === caretaker.guardian) ||
@@ -487,7 +511,7 @@ var Article = React.forwardRef(function Article(props, ref,) {
                                             </li>
                                             {caretaker.backup && (
                                                 <li>If {caretaker.guardian} {guardianLastName} should refuse or be unable to act or continue to act as my pet(s) guardian, then I
-                                                    appoint {caretaker.backup} {backupLastName}, of {backupCity}, {guardianProvince} to act as my pet(s) guardian.
+                                                    appoint {caretaker.backup} {backupLastName}, of {backupCity}, {backupProvince}, {backupCountry} to act as my pet(s) guardian.
 
                                                 </li>
                                             )}
@@ -505,7 +529,7 @@ var Article = React.forwardRef(function Article(props, ref,) {
                                 })}
                             </>
                         ) : (
-                            <li>No pets added</li>
+                            <li>No pet(s) guardian added in this my Will</li>
                         )}
 
 
@@ -551,15 +575,15 @@ var Article = React.forwardRef(function Article(props, ref,) {
                 </ol><p>&nbsp;</p><center><em>The remainder of this page has intentionally been left blank.</em></center><p><br /><br /> IN WITNESS WHEREOF, I have signed my name on this the _________ day of ______________________, 20______,
                     at toronto, Ontario declaring and publishing this instrument as my Last Will, in the presence of the undersigned
                     witnesses, who witnessed and subscribed this Last Will at my request, and in my presence, via video conference.
-                    <br /><br /><br /> _____________________________<br /> CARLOS MONTIEL (Testator) Signature<br /> <br /><br /> SIGNED
-                    AND DECLARED by CARLOS MONTIEL on this ____ day of ____________________, 20____ to be the Testator&rsquo;s Last Will
+                    <br /><br /><br /> _____________________________<br /> {capitalLetters(personal.fullName)}  (Testator) Signature<br /> <br /><br /> SIGNED
+                    AND DECLARED by {capitalLetters(personal.fullName)}  on this ____ day of ____________________, 20____ to be the Testator&rsquo;s Last Will
                     and Testament, in our presence, remotely, who at the Testator&rsquo;s request and in the presence of the Testator,
                     via video conference and in the physical presence of each other at Vaughan, Ontario, all being present at the same
                     time, have signed our names as witnesses in the Testator&rsquo;s presence on the above date. <br /><br /><br />
                     ________________________________________________<br /> Witness #1 (Nicole Barrett)<br /><br /> 665 Millway Ave.
                     #44<br /> Vaughan, ON<br /> L4K 3T8<br /> <br /><br /><br /> ________________________________________________<br />
                     Witness #2 (Dale Barrett)<br /><br /> 665 Millway Ave. #44<br /> Vaughan, ON<br /> L4K 3T8
-                </p><center><strong>LAST WILL AND TESTAMENT OF CARLOS MONTIEL </strong></center><p><br /><br /><br /><br /><br /> <br /><br /><br /><br /><br /><br /> Prepared by: Lawyers and Lattes Professional
+                </p><center><strong>LAST WILL AND TESTAMENT OF {capitalLetters(personal.fullName)}  </strong></center><p><br /><br /><br /><br /><br /> <br /><br /><br /><br /><br /><br /> Prepared by: Lawyers and Lattes Professional
                     Corporation<br /> Toronto, ON<br /> lawyersandlattes.com<br /> docs@lawyersandlattes.com<br />
                     <br /><br /><br /><br />
                 </p></>
