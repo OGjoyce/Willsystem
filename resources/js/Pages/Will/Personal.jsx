@@ -40,7 +40,6 @@ import { getPetInfo } from '@/Components/Pets';
 //ADDED FOR DEBBUGING: Will remove it soon
 import { exportData, deleteData } from '@/Components/__tests__/test_helper';
 
-
 var object_status = [];
 var objectState = [];
 var dupMarried = false;
