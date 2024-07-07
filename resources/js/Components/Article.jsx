@@ -17,7 +17,9 @@ var Article = React.forwardRef(function Article(props, ref,) {
         });
         var personal = statusObject.personal;
         var isMarried = statusObject.marriedq.selection === "true";
+        var isCommonRelationship = statusObject.marriedq.selection === "soso"
         var spouseInfo = statusObject.married;
+        if (isCommonRelationship) { spouseInfo.relative = 'Partner' }
         var hasKids = statusObject.kidsq.selection === "true";
         var kids = Object.values(statusObject.kids);
         var relatives = Object.values(statusObject.relatives);
@@ -29,7 +31,7 @@ var Article = React.forwardRef(function Article(props, ref,) {
             : null
         var residueInfo = statusObject.residue;
         var pets = Object.values(statusObject.pets).filter(item => typeof item === 'object');
-        var wipeoutInfo = statusObject.wipeout;
+        var wipeoutInfo = Object.values(statusObject.wipeout).filter(item => typeof item === 'object');
         var guardians = Object.values(statusObject.guardians).filter(item => typeof item === 'object').sort((a, b) => a.position - b.position);
         var additionalInfo = statusObject.additional;
         var POAInfo = statusObject.poa;
@@ -59,8 +61,11 @@ var Article = React.forwardRef(function Article(props, ref,) {
                     <ol>
                         <li>
                             {isMarried
-                                ? `I am married to ${spouseInfo.firstName} ${spouseInfo.lastName} (my "Spouse").`
-                                : "I am not married or in a common law relationship."}
+                                ? `I am married to ${capitalLetters(spouseInfo.firstName)} ${capitalLetters(spouseInfo.lastName)} (my "${spouseInfo.relative}").`
+                                : isCommonRelationship
+                                    ? `I am in a common law relationship with ${capitalLetters(spouseInfo.firstName)} ${capitalLetters(spouseInfo.lastName)} (my "${spouseInfo.relative}").`
+                                    : "I am not married or in a common law relationship."
+                            }
                         </li>
                     </ol>
                 </ol>
@@ -71,7 +76,7 @@ var Article = React.forwardRef(function Article(props, ref,) {
                             <ol>
                                 <li>I have the following living children:</li>
                                 <ul>
-                                    {kids.map(kid => <li>{`${kid.firstName} ${kid.lastName}`}</li>)}
+                                    {kids.map(kid => <li>{`${capitalLetters(kid.firstName)} ${capitalLetters(kid.lastName)}`}</li>)}
                                 </ul>
                                 <li>The term "child" or "children" as used in this my Will includes the above listed children and any children
                                     of mine that are subsequently born or legally adopted.</li>
@@ -209,7 +214,7 @@ var Article = React.forwardRef(function Article(props, ref,) {
 
                                     return (
                                         <li key={index}>
-                                            I leave {item.shares}% of {item.bequest} to {item.names} of {city}, if they shall survive me, for their own use absolutely.
+                                            I leave {item.shares}% of {item.bequest} to {capitalLetters(item.names)} of {item.city}, if they shall survive me, for their own use absolutely.
                                         </li>
                                     );
                                 })}
@@ -245,14 +250,16 @@ var Article = React.forwardRef(function Article(props, ref,) {
                             children, then that share or the amount remaining of that share will be divided amongst my surviving
                             children in equal shares.</li>
                         {pets && pets.map(caretaker => (
-                            <li>
-                                I direct my Executor to provide a maximum of {caretaker.amount} (CAD) out of the residue of my
-                                estate to the the pet caretaker assigned below as a one-time only sum to be used for
-                                the future care, feeding and maintenance of my pet(s). Upon the death of all of my pets,
-                                the remainder of any funds provided to the caretaker for the care and maintenance
-                                shall be given to a local animal rescue or humane shelter, to be decided upon by the
-                                caretaker
-                            </li>
+                            caretaker.amount > 0
+                                ? <li>
+                                    I direct my Executor to provide a maximum of {caretaker.amount} (CAD) out of the residue of my
+                                    estate to the the pet caretaker assigned below as a one-time only sum to be used for
+                                    the future care, feeding and maintenance of my pet(s). Upon the death of all of my pets,
+                                    the remainder of any funds provided to the caretaker for the care and maintenance
+                                    shall be given to a local animal rescue or humane shelter, to be decided upon by the
+                                    caretaker
+                                </li>
+                                : null
                         ))}
                     </ol>
                 </ol><p><strong><u>Wipeout Provision</u></strong></p><ol>
@@ -262,6 +269,11 @@ var Article = React.forwardRef(function Article(props, ref,) {
                             then I direct my Executor to divide any remaining residue of my estate into equal shares as outlined below
                             and to pay and transfer such shares to the following wipeout beneficiaries:</li>
                         <ul>
+                            {wipeoutInfo.length > 0 && (
+                                <li>
+                                    giatem
+                                </li>
+                            )}
                             <li>I leave 100 shares of the residue of my estate to william Doe of mississauga, ON if they shall survive
                                 me, for their own use absolutely. If william Doe should not survive me for thirty full days, or die
                                 before becoming entitled to receive the whole of their share of the residue of my estate, I leave this
@@ -359,9 +371,9 @@ var Article = React.forwardRef(function Article(props, ref,) {
                             )}
                         </li>
                     </li>
-                    <li>
-                        <p><strong><u>Testamentary Trust for Disabled Beneficiaries</u></strong></p>
-                    </li>
+
+                    <p><strong><u>Testamentary Trust for Disabled Beneficiaries</u></strong></p>
+
                     <li>It is my intent to create a testamentary trust (a "Testamentary Trust") for each beneficiary who is temporarily
                         or permanently disabled at the time of my death (a "Disabled Beneficiary"). Any assets bequeathed, transferred,
                         or gifted to a Disabled Beneficiary are to be held in a separate trust by the Trustee until that Disabled
@@ -371,36 +383,47 @@ var Article = React.forwardRef(function Article(props, ref,) {
                     <li>
                         <p><strong><u>Trust Administration</u></strong></p>
                     </li>
-                    <li>The Trustee shall manage the Testamentary Trust for Young Beneficiaries as follows:</li>
-                    <li>
+                    <ol>
+                        <li>The Trustee shall manage the Testamentary Trust for Young Beneficiaries as follows:</li>
+                        {minTrustingAge
+                            ? (
+                                <ul>
+                                    <li>The assets and property will be managed for the benefit of the Young Beneficiary until the beneficiary
+                                        reaches the age set by me for final distribution;</li>
+                                    <li>Upon the Young Beneficiary reaching the age set by me for final distribution, all property and assets
+                                        remaining in the trust will be transferred to the beneficiary as quickly as possible; and</li>
+                                    <li>Until the Young Beneficiary reaches the age set by me for final distribution, my Trustee will keep the
+                                        assets of the trust invested and pay the whole or such part of the net income derived therefrom and any
+                                        amount or amounts out of the capital that my Trustee may deem advisable to or for the support, health,
+                                        maintenance, education, or benefit of that beneficiary.</li>
+                                </ul>
+                            )
+                            : (null)
+                        }
                         <ul>
-                            <li>The assets and property will be managed for the benefit of the Young Beneficiary until the beneficiary
-                                reaches the age set by me for final distribution;</li>
-                            <li>Upon the Young Beneficiary reaching the age set by me for final distribution, all property and assets
-                                remaining in the trust will be transferred to the beneficiary as quickly as possible; and</li>
-                            <li>Until the Young Beneficiary reaches the age set by me for final distribution, my Trustee will keep the
-                                assets of the trust invested and pay the whole or such part of the net income derived therefrom and any
-                                amount or amounts out of the capital that my Trustee may deem advisable to or for the support, health,
-                                maintenance, education, or benefit of that beneficiary.</li>
+                            <li>The Trustee may, in the Trustee's discretion, invest and reinvest trust funds in any kind of real or personal
+                                property and any kind of investment, provided that the Trustee acts with the care, skill, prudence and
+                                diligence, considering all financial and economic considerations, that a prudent person acting in a similar
+                                capacity and familiar with such matters would use.</li>
+                            <li>No bond or other security of any kind will be required of any Trustee appointed in this my Will.</li>
                         </ul>
-                    </li>
-                    <li>The Trustee may, in the Trustee's discretion, invest and reinvest trust funds in any kind of real or personal
-                        property and any kind of investment, provided that the Trustee acts with the care, skill, prudence and
-                        diligence, considering all financial and economic considerations, that a prudent person acting in a similar
-                        capacity and familiar with such matters would use.</li>
-                    <li>No bond or other security of any kind will be required of any Trustee appointed in this my Will.</li>
+                    </ol>
                     <li>
+
                         <p><strong><u>Trust Termination</u></strong></p>
                     </li>
-                    <li>The Testamentary Trust will end after any of the following:</li>
-                    <li>
+                    <ol>
+                        <li>The Testamentary Trust will end after any of the following:</li>
+
                         <ul>
-                            <li>The beneficiary reaching the age set by me for final distribution;</li>
+                            {minTrustingAge ? <li>The beneficiary reaching the age set by me for final distribution;</li> : null}
                             <li>The beneficiary dies; or</li>
                             <li>The assets of the trust are exhausted through distributions.</li>
                         </ul>
-                        <p><strong><u>Powers of Trustee</u></strong></p>
-                    </li>
+
+                    </ol>
+                    <li><strong><u>Powers of Trustee</u></strong></li>
+
                     <li>To carry out the terms of my Will, I give my Trustee the following powers to be used in his or her discretion at
                         any time in the management of a trust created hereunder, namely:</li>
                     <li>
@@ -506,19 +529,21 @@ var Article = React.forwardRef(function Article(props, ref,) {
                                     return (
                                         <React.Fragment key={index}>
                                             <li>
-                                                Where I leave one or more pets which are healthy, I appoint {caretaker.guardian} {guardianLastName} of {guardianCity}, {guardianProvince}, {guardianCountry} to be the caretaker,
+                                                Where I leave one or more pets which are healthy, I appoint {capitalLetters(caretaker.guardian)} {capitalLetters(guardianLastName)} of {capitalLetters(guardianCity)}, {capitalLetters(guardianProvince)}, {capitalLetters(guardianCountry)} to be the caretaker,
                                                 to care for my pets as their own with all the rights and responsibilities of ownership.
                                             </li>
                                             {caretaker.backup && (
-                                                <li>If {caretaker.guardian} {guardianLastName} should refuse or be unable to act or continue to act as my pet(s) guardian, then I
-                                                    appoint {caretaker.backup} {backupLastName}, of {backupCity}, {backupProvince}, {backupCountry} to act as my pet(s) guardian.
+                                                <li>If {capitalLetters(caretaker.guardian)} {capitalLetters(guardianLastName)} should refuse or be unable to act or continue to act as my pet(s) guardian, then I
+                                                    appoint {capitalLetters(caretaker.backup)} {capitalLetters(backupLastName)}, of {capitalLetters(backupCity)}, {capitalLetters(backupProvince)}, {capitalLetters(backupCountry)} to act as my pet(s) guardian.
 
                                                 </li>
                                             )}
-                                            <li>I direct my Executor to provide a maximum of ${caretaker.amount} (CAD)
-                                                out of the residue of my estate to the pet caretaker as a one-time only sum to be used
-                                                for the future care, feeding and maintenance of my pet(s).
-                                            </li>
+                                            {caretaker.amount > 0 && (
+                                                <li>I direct my Executor to provide a maximum of ${caretaker.amount} (CAD)
+                                                    out of the residue of my estate to the pet caretaker as a one-time only sum to be used
+                                                    for the future care, feeding and maintenance of my pet(s).
+                                                </li>
+                                            )}
                                             <li>
                                                 Where any appointed caretaker cannot afford or refuses to accept the responsibilities of ownership for any pet
                                                 of mine then I give my Executor the fullest possible discretion in the placement of that pet in an alternate
