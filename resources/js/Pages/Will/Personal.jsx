@@ -34,11 +34,13 @@ import Poa from '@/Components/Poa';
 import { getPoa } from '@/Components/Poa';
 import FinalDetails from '@/Components/FinalDetails';
 import PDFComponent from '@/Components/PDFComponent';
+
 import { PDFViewer } from '@react-pdf/renderer';
 import { getPetInfo } from '@/Components/Pets';
 
 //ADDED FOR DEBBUGING: Will remove it soon
 import { exportData, deleteData } from '@/Components/__tests__/test_helper';
+import WillEditor from '@/Components/WillEditor';
 
 var object_status = [];
 var objectState = [];
@@ -427,7 +429,7 @@ export default function Personal({ auth }) {
                         {
                             pointer == 15 ?
 
-                                <PDFComponent datas={object_status} />
+                                <WillEditor object_status={object_status} />
                                 :
                                 null
                         }

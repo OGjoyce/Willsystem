@@ -102,7 +102,7 @@ var Article = React.forwardRef(function Article(props, ref,) {
                         )
                         : (
                             <ol>
-                                <li>I do not have any children</li>
+                                <li>I do not currently have any living children</li>
                             </ol>
                         )}
                 </ol>
@@ -430,10 +430,10 @@ var Article = React.forwardRef(function Article(props, ref,) {
                             <li>No bond or other security of any kind will be required of any Trustee appointed in this my Will.</li>
                         </ul>
                     </ol>
-                    <li>
 
-                        <p><strong><u>Trust Termination</u></strong></p>
-                    </li>
+
+                    <p><strong><u>Trust Termination</u></strong></p>
+
                     <ol>
                         <li>The Testamentary Trust will end after any of the following:</li>
 
@@ -489,12 +489,12 @@ var Article = React.forwardRef(function Article(props, ref,) {
                             </li>
                         </ul>
 
+
+
+                        <li>The above authority and powers granted to my Trustee are in addition to any powers and elective rights conferred
+                            by statute or federal law or by other provision of this Will and may be exercised as often as required, and
+                            without application to or approval by any court.</li>
                     </ol>
-
-                    <li>The above authority and powers granted to my Trustee are in addition to any powers and elective rights conferred
-                        by statute or federal law or by other provision of this Will and may be exercised as often as required, and
-                        without application to or approval by any court.</li>
-
                     <p><strong><u>Other Trust Provisions</u></strong></p>
                     <ol>
                         <li>The expression "my Trustee" used throughout this Will includes either the singular or plural number, as
@@ -526,10 +526,11 @@ var Article = React.forwardRef(function Article(props, ref,) {
                             preparation service accounts, online stores, affiliate programs, other online accounts, and similar digital
                             items, regardless of the ownership of any physical device upon which the digital item is stored.</li>
                     </ol>
-                    <li>
 
-                        <center><strong>VII. GENERAL PROVISIONS</strong></center>
-                        <p><strong><u>Pets</u></strong></p>
+
+                    <center><strong>VII. GENERAL PROVISIONS</strong></center>
+                    <p><strong><u>Pets</u></strong></p>
+                    <ol>
                         {pets && pets.length > 0 ? (
                             <>
                                 {pets.map((caretaker, index) => {
@@ -567,47 +568,55 @@ var Article = React.forwardRef(function Article(props, ref,) {
                         ) : (
                             <li>No pet(s) guardian added in this my Will</li>
                         )}
+                    </ol>
 
+                    <p><strong><u>Family Law Act</u></strong></p>
+                    <ol>
+                        <li>I declare that all property acquired by a person as a result of my death together with any property into which
+                            such property can be traced, and all income from such property or any property into which such property can be
+                            traced, including income on such income, shall be excluded from such person&rsquo;s net family property for the
+                            purposes of Part I of the Family Law Act, R.S.O. 1990, c. F.3, as amended (the &ldquo;Family Law Act&rdquo;) and
+                            for the purposes of any provisions in any successor legislation or other legislation in any jurisdiction. For
+                            the purposes of this paragraph, the term &ldquo;net family property&rdquo; includes any property available for
+                            division or for satisfying any financial claim, between spouses upon separation, divorce, annulment or death of
+                            one of them and, for greater certainty, such term includes any net family property within the meaning of the
+                            Family Law Act. This declaration shall be an express statement within the meaning of paragraph 4(2)2 of the
+                            Family Law Act and shall have effect to the extent permitted by that statute, any successor legislation thereto
+                            or any legislation in any jurisdiction.</li>
+                    </ol>
 
-                        <p><strong><u>Family Law Act</u></strong></p>
-                    </li>
-                    <li>I declare that all property acquired by a person as a result of my death together with any property into which
-                        such property can be traced, and all income from such property or any property into which such property can be
-                        traced, including income on such income, shall be excluded from such person&rsquo;s net family property for the
-                        purposes of Part I of the Family Law Act, R.S.O. 1990, c. F.3, as amended (the &ldquo;Family Law Act&rdquo;) and
-                        for the purposes of any provisions in any successor legislation or other legislation in any jurisdiction. For
-                        the purposes of this paragraph, the term &ldquo;net family property&rdquo; includes any property available for
-                        division or for satisfying any financial claim, between spouses upon separation, divorce, annulment or death of
-                        one of them and, for greater certainty, such term includes any net family property within the meaning of the
-                        Family Law Act. This declaration shall be an express statement within the meaning of paragraph 4(2)2 of the
-                        Family Law Act and shall have effect to the extent permitted by that statute, any successor legislation thereto
-                        or any legislation in any jurisdiction.</li>
-                    <li>
-                        <p><strong><u>Individuals Omitted from Bequests</u></strong></p>
-                    </li>
-                    <li>If I have omitted to leave property in this Will to one or more of my heirs as named above or have provided them
-                        with zero shares of a bequest, the failure to do so is intentional.</li>
-                    <li>
-                        <p><strong><u>Insufficient Estate</u></strong></p>
-                    </li>
-                    <li>If the value of my estate is insufficient to fulfill all of the bequests described in this Will, then I give my
-                        Executor full authority to decrease each bequest by a proportionate amount.</li>
-                    <li>
-                        <p><strong><u>Additional Provisions</u></strong></p>
-                    </li>
-                    <li>I wish to have ashes scatted over mediteranean sea</li>
-                    <li>
-                        <p><strong><u>No Contest Provision</u></strong></p>
-                    </li>
-                    <li>If any beneficiary under this Will contests in any court any of the provisions of this Will, then each and all
-                        such persons shall not be entitled to any devises, legacies, bequests, or benefits under this Will or any
-                        codicil hereto, and such interest or share in my estate shall be disposed of as if that contesting beneficiary
-                        had not survived me.</li>
-                    <li>
-                        <p><strong><u>Severability</u></strong></p>
-                    </li>
-                    <li>If any provisions of this Will are deemed unenforceable, the remaining provisions will remain in full force and
-                        effect.</li>
+                    <p><strong><u>Individuals Omitted from Bequests</u></strong></p>
+                    <ol>
+                        <li>If I have omitted to leave property in this Will to one or more of my heirs as named above or have provided them
+                            with zero shares of a bequest, the failure to do so is intentional.</li>
+                    </ol>
+
+                    <p><strong><u>Insufficient Estate</u></strong></p>
+                    <ol>
+                        <li>If the value of my estate is insufficient to fulfill all of the bequests described in this Will, then I give my
+                            Executor full authority to decrease each bequest by a proportionate amount.</li>
+                    </ol>
+
+                    <p><strong><u>Additional Provisions</u></strong></p>
+                    <ol>
+                        <li>I wish to have ashes scatted over mediteranean sea</li>
+                    </ol>
+
+                    <p><strong><u>No Contest Provision</u></strong></p>
+                    <ol>
+                        <li>If any beneficiary under this Will contests in any court any of the provisions of this Will, then each and all
+                            such persons shall not be entitled to any devises, legacies, bequests, or benefits under this Will or any
+                            codicil hereto, and such interest or share in my estate shall be disposed of as if that contesting beneficiary
+                            had not survived me.
+                        </li>
+                    </ol>
+
+                    <p><strong><u>Severability</u></strong></p>
+                    <ol>
+
+                        <li>If any provisions of this Will are deemed unenforceable, the remaining provisions will remain in full force and
+                            effect.</li>
+                    </ol>
                 </ol><p>&nbsp;</p><center><em>The remainder of this page has intentionally been left blank.</em></center><p><br /><br /> IN WITNESS WHEREOF, I have signed my name on this the _________ day of ______________________, 20______,
                     at toronto, Ontario declaring and publishing this instrument as my Last Will, in the presence of the undersigned
                     witnesses, who witnessed and subscribed this Last Will at my request, and in my presence, via video conference.
