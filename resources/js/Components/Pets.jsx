@@ -17,7 +17,7 @@ var ids = 1;
 var idtable = 1;
 var guardianDataStack = [];
 var returnOrbj = {};
-export function getPetInfo(){
+export function getPetInfo() {
     return guardianDataStack;
 }
 
@@ -137,8 +137,8 @@ function Pets({ datas }) {
                                 >
                                     <option value="">Choose...</option>
                                     {table_data.map((name, index) => (
-                                        <option key={index} value={name.firstName}>
-                                            {name.firstName}
+                                        <option key={index} value={`${name.firstName} ${name.lastName}`}>
+                                            {name.firstName + ' ' + name.lastName}
                                         </option>
                                     ))}
                                 </Form.Control>
@@ -153,8 +153,8 @@ function Pets({ datas }) {
                                 >
                                     <option disabled="true" value="" >Choose...</option>
                                     {table_data.map((name, index) => (
-                                        <option key={index} value={name.firstName}>
-                                            {name.firstName}
+                                        <option key={index} value={`${name.firstName} ${name.lastName}`}>
+                                            {name.firstName + ' ' + name.lastName}
                                         </option>
                                     ))}
                                 </Form.Control>

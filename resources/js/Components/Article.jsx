@@ -29,25 +29,43 @@ var Article = React.forwardRef(function Article(props, ref,) {
         var minTrustingAge = trusting.length > 0
             ? trusting.map(trust => trust.age).reduce((prevValue, currentValue) => prevValue > currentValue ? currentValue : prevValue)
             : null
-        var residueInfo = statusObject.residue;
         var pets = Object.values(statusObject.pets).filter(item => typeof item === 'object');
-        var wipeoutInfo = Object.values(statusObject.wipeout).filter(item => typeof item === 'object');
+        var wipeoutInfo = statusObject.wipeout.wipeout
         var guardians = Object.values(statusObject.guardians).filter(item => typeof item === 'object').sort((a, b) => a.position - b.position);
+        var residueInfo = statusObject.residue;
         var additionalInfo = statusObject.additional;
         var POAInfo = statusObject.poa;
+
         console.log(statusObject)
 
     }
 
+    function findPersonInfo(name, relatives, kids, spouseInfo) {
+        const names = name.trim();
 
+        const person =
+            relatives.find(rel => `${rel.firstName} ${rel.lastName}` === names) ||
+            kids.find(kid => `${kid.firstName} ${kid.lastName}` === names) ||
+            (spouseInfo.firstName && spouseInfo.lastName && `${spouseInfo.firstName} ${spouseInfo.lastName}` === names ? spouseInfo : null);
 
+        if (person) {
+            return {
+                city: person.city || '',
+                country: person.country || '',
+                province: person.province || '',
+                fullName: `${person.firstName} ${person.lastName}`.trim() || ''
+            };
+        }
+
+        return { city: '', country: '', province: '', fullName: names };
+    }
 
 
     return (
         <div ref={ref}>
             <>
                 <center ><strong>LAST WILL AND TESTAMENT OF {capitalLetters(personal.fullName)} </strong></center>
-                <p><br /><br />I, {capitalLetters(personal.fullName)}  , presently of {capitalLetters(personal.city)} {personal.province ? `, ${capitalLetters(personal.province)}` : ''} declare that this is my Last Will and Testament.<br /><br /></p>
+                <p><br /><br />I, {capitalLetters(personal.fullName)}, presently of {capitalLetters(personal.city)} {personal.province ? `, ${capitalLetters(personal.province)}` : ''} declare that this is my Last Will and Testament.<br /><br /></p>
 
                 <center><strong>I. PRELIMINARY DECLARATIONS</strong></center>
                 <p><strong><u>Prior Wills and Codicils</u></strong></p>
@@ -206,15 +224,10 @@ var Article = React.forwardRef(function Article(props, ref,) {
                                     bequests are as follows:
                                 </li>
                                 {bequests.map((item, index) => {
-                                    let beneficiary = relatives.find(rel => rel.firstName + ' ' + rel.lastName === item.names) ||
-                                        kids.find(kid => kid.firstName + ' ' + kid.lastName === item.names) ||
-                                        (spouseInfo.firstName + ' ' + spouseInfo.lastName === item.names ? spouseInfo : null);
-                                    let city = beneficiary ? beneficiary.city : '';
-                                    let country = beneficiary ? beneficiary.country : '';
-
+                                    const { city, country } = findPersonInfo(item.names, relatives, kids, spouseInfo);
                                     return (
                                         <li key={index}>
-                                            I leave {item.shares}% of {item.bequest} to {capitalLetters(item.names)} of {item.city}, if they shall survive me, for their own use absolutely.
+                                            I leave {item.shares}% of {item.bequest} to {capitalLetters(item.names)} of {capitalLetters(city)}, {capitalLetters(country)} if they shall survive me, for their own use absolutely.
                                         </li>
                                     );
                                 })}
@@ -269,15 +282,21 @@ var Article = React.forwardRef(function Article(props, ref,) {
                             then I direct my Executor to divide any remaining residue of my estate into equal shares as outlined below
                             and to pay and transfer such shares to the following wipeout beneficiaries:</li>
                         <ul>
-                            {wipeoutInfo.length > 0 && (
-                                <li>
-                                    giatem
-                                </li>
-                            )}
-                            <li>I leave 100 shares of the residue of my estate to william Doe of mississauga, ON if they shall survive
-                                me, for their own use absolutely. If william Doe should not survive me for thirty full days, or die
-                                before becoming entitled to receive the whole of their share of the residue of my estate, I leave this
-                                property to their descendants per stirpes for their own use absolutely.</li>
+                            {Array.isArray(wipeoutInfo) ? (
+                                wipeoutInfo.map((beneficiary, index) => {
+                                    const { city, country, fullName } = findPersonInfo(beneficiary.names, relatives, kids, spouseInfo);
+                                    return (
+                                        <li key={index}>
+                                            I leave {beneficiary.shares} shares of the residue of my estate to {capitalLetters(beneficiary.names)} of {capitalLetters(city)}, {capitalLetters(country)} if they shall survive me,
+                                            for their own use absolutely. If {capitalLetters(beneficiary.names)} should not survive me for thirty full days, or die
+                                            before becoming entitled to receive the whole of their share of the residue of my estate, I leave this
+                                            property to their descendants {beneficiary.backup} for their own use absolutely.
+                                        </li>
+                                    );
+                                })
+                            ) : typeof wipeoutInfo === 'string' ? (
+                                <li>{wipeoutInfo}</li>
+                            ) : null}
                         </ul>
                     </ol>
                     {hasKids && guardians.length > 0 && (
@@ -298,13 +317,13 @@ var Article = React.forwardRef(function Article(props, ref,) {
                                             <li>
                                                 {index === 0 ? (
                                                     <>
-                                                        I appoint {guardian.guardian.toUpperCase()} to be the sole Guardian of all my minor and dependent children until they are
+                                                        I appoint {capitalLetters(guardian.guardian)} to be the sole Guardian of all my minor and dependent children until they are
                                                         at least the age of majority.
                                                     </>
                                                 ) : (
                                                     <>
-                                                        If {guardians[index - 1].guardian.toUpperCase()} should refuse or be unable to act or to continue to act as the Guardian and my minor
-                                                        or dependent children require a guardian to care for them, then I appoint {guardian.guardian.toUpperCase()} to be
+                                                        If {capitalLetters(guardians[index - 1].guardian)} should refuse or be unable to act or to continue to act as the Guardian and my minor
+                                                        or dependent children require a guardian to care for them, then I appoint {capitalLetters(guardian.guardian)} to be
                                                         the sole Guardian of all my minor and dependent children until they are at least the age of majority.
                                                     </>
                                                 )}
@@ -312,9 +331,10 @@ var Article = React.forwardRef(function Article(props, ref,) {
                                         </React.Fragment>
                                     ))
                                 }
-                                <li>
-                                    <p><strong><u>RESP and RDSP</u></strong></p>
-                                </li>
+                            </ol>
+                            <ol>
+                                <p><strong><u>RESP and RDSP</u></strong></p>
+
                                 <li>
                                     My Executor(s) shall appoint, as Successor Subscriber, a parent of the beneficiary(ies), Guardian for Property
                                     of the beneficiary(ies), person standing in the place of a parent of the beneficiary(ies) or to any other
@@ -335,11 +355,11 @@ var Article = React.forwardRef(function Article(props, ref,) {
                         </>
                     )}
 
-                    <li><br />
-                        <center><strong>V. TESTAMENTARY TRUSTS</strong></center>
-                        <p><strong><u>Testamentary Trust for Young Beneficiaries</u></strong></p>
-                    </li>
-                    <li>
+                    <br />
+                    <center><strong>V. TESTAMENTARY TRUSTS</strong></center>
+                    <p><strong><u>Testamentary Trust for Young Beneficiaries</u></strong></p>
+
+                    <ol>
                         <li>
                             {trusting && Object.keys(trusting).length > 1 ? (
                                 <>
@@ -370,19 +390,21 @@ var Article = React.forwardRef(function Article(props, ref,) {
                                 </li>
                             )}
                         </li>
-                    </li>
+                    </ol>
 
                     <p><strong><u>Testamentary Trust for Disabled Beneficiaries</u></strong></p>
+                    <ol>
+                        <li>It is my intent to create a testamentary trust (a "Testamentary Trust") for each beneficiary who is temporarily
+                            or permanently disabled at the time of my death (a "Disabled Beneficiary"). Any assets bequeathed, transferred,
+                            or gifted to a Disabled Beneficiary are to be held in a separate trust by the Trustee until that Disabled
+                            Beneficiary regains the capacity to manage property (in the case of a temporary incapacity) or on a permanent
+                            basis if the incapacity is permanent. The property shall be managed, invested, or transferred to a Henson Trust
+                            at the absolute discretion of my Executor(s).</li>
+                    </ol>
 
-                    <li>It is my intent to create a testamentary trust (a "Testamentary Trust") for each beneficiary who is temporarily
-                        or permanently disabled at the time of my death (a "Disabled Beneficiary"). Any assets bequeathed, transferred,
-                        or gifted to a Disabled Beneficiary are to be held in a separate trust by the Trustee until that Disabled
-                        Beneficiary regains the capacity to manage property (in the case of a temporary incapacity) or on a permanent
-                        basis if the incapacity is permanent. The property shall be managed, invested, or transferred to a Henson Trust
-                        at the absolute discretion of my Executor(s).</li>
-                    <li>
-                        <p><strong><u>Trust Administration</u></strong></p>
-                    </li>
+
+                    <p><strong><u>Trust Administration</u></strong></p>
+
                     <ol>
                         <li>The Trustee shall manage the Testamentary Trust for Young Beneficiaries as follows:</li>
                         {minTrustingAge
@@ -422,11 +444,12 @@ var Article = React.forwardRef(function Article(props, ref,) {
                         </ul>
 
                     </ol>
-                    <li><strong><u>Powers of Trustee</u></strong></li>
+                    <strong><u>Powers of Trustee</u></strong>
+                    <ol>
 
-                    <li>To carry out the terms of my Will, I give my Trustee the following powers to be used in his or her discretion at
-                        any time in the management of a trust created hereunder, namely:</li>
-                    <li>
+                        <li>To carry out the terms of my Will, I give my Trustee the following powers to be used in his or her discretion at
+                            any time in the management of a trust created hereunder, namely:</li>
+
                         <ul>
                             <li>The power to make such expenditures as are necessary to carry out the purpose of the trust;</li>
                             <li>Subject to my express direction to the contrary, the power to sell, call in and convert into money any
@@ -465,81 +488,69 @@ var Article = React.forwardRef(function Article(props, ref,) {
                                 to assist the Trustee in the administration of this trust and to compensate them from the trust assets.
                             </li>
                         </ul>
-                    </li>
+
+                    </ol>
+
                     <li>The above authority and powers granted to my Trustee are in addition to any powers and elective rights conferred
                         by statute or federal law or by other provision of this Will and may be exercised as often as required, and
                         without application to or approval by any court.</li>
+
+                    <p><strong><u>Other Trust Provisions</u></strong></p>
+                    <ol>
+                        <li>The expression "my Trustee" used throughout this Will includes either the singular or plural number, as
+                            appropriate wherever the fact or context so requires.</li>
+                        <li>Subject to the terms of this my Will, I direct that my Trustee will not be liable for any loss to my estate or
+                            to any beneficiary resulting from the exercise by him or her in good faith of any discretion given him or her in
+                            this my Will;</li>
+                        <li>Any trust created in this Will shall be administered as independently of court supervision as possible under the
+                            laws of the Province / Territory having jurisdiction over the trust; and</li>
+                        <li>If any trust condition is held invalid, it will not affect other provisions that can be given effect without the
+                            invalid provision.</li>
+                    </ol>
+
+                    <center><strong>VI. DIGITAL ASSETS</strong></center>
+                    <ol>
+                        <li>My Executor(s) may access, handle, distribute, and dispose of my digital assets, and may obtain, access, modify,
+                            delete, and control my passwords and other electronic credentials associated with my digital devices and digital
+                            assets.</li>
+                        <li>My Executor(s) may engage contractors or agents to assist my Executor(s) in accessing, handling, distributing,
+                            and disposing of my digital assets.</li>
+                        <li>If I have prepared a memorandum, which may be altered by me from time to time, with instructions concerning my
+                            digital assets and their access, handling, distribution, and disposition, it is my wish that my Executor(s) and
+                            beneficiaries follow my instructions as outlined in that memorandum.</li>
+                        <li>For the purpose of my Will, &ldquo;digital assets&rdquo; includes the following: Files stored on my digital
+                            devices, including but not limited to, desktops, laptops, tablets, peripherals, storage devices, mobile
+                            telephones, smartphones, and any similar digital device as well as emails, email accounts, digital music,
+                            digital photographs, digital videos, software licenses, social network accounts, file sharing accounts,
+                            financial accounts, banking accounts, domain registrations, DNS service accounts, web hosting accounts, tax
+                            preparation service accounts, online stores, affiliate programs, other online accounts, and similar digital
+                            items, regardless of the ownership of any physical device upon which the digital item is stored.</li>
+                    </ol>
                     <li>
-                        <p><strong><u>Other Trust Provisions</u></strong></p>
-                    </li>
-                    <li>The expression "my Trustee" used throughout this Will includes either the singular or plural number, as
-                        appropriate wherever the fact or context so requires.</li>
-                    <li>Subject to the terms of this my Will, I direct that my Trustee will not be liable for any loss to my estate or
-                        to any beneficiary resulting from the exercise by him or her in good faith of any discretion given him or her in
-                        this my Will;</li>
-                    <li>Any trust created in this Will shall be administered as independently of court supervision as possible under the
-                        laws of the Province / Territory having jurisdiction over the trust; and</li>
-                    <li>If any trust condition is held invalid, it will not affect other provisions that can be given effect without the
-                        invalid provision.</li>
-                    <li>
-                        <center><strong>VI. DIGITAL ASSETS</strong></center>
-                    </li>
-                    <li>My Executor(s) may access, handle, distribute, and dispose of my digital assets, and may obtain, access, modify,
-                        delete, and control my passwords and other electronic credentials associated with my digital devices and digital
-                        assets.</li>
-                    <li>My Executor(s) may engage contractors or agents to assist my Executor(s) in accessing, handling, distributing,
-                        and disposing of my digital assets.</li>
-                    <li>If I have prepared a memorandum, which may be altered by me from time to time, with instructions concerning my
-                        digital assets and their access, handling, distribution, and disposition, it is my wish that my Executor(s) and
-                        beneficiaries follow my instructions as outlined in that memorandum.</li>
-                    <li>For the purpose of my Will, &ldquo;digital assets&rdquo; includes the following: Files stored on my digital
-                        devices, including but not limited to, desktops, laptops, tablets, peripherals, storage devices, mobile
-                        telephones, smartphones, and any similar digital device as well as emails, email accounts, digital music,
-                        digital photographs, digital videos, software licenses, social network accounts, file sharing accounts,
-                        financial accounts, banking accounts, domain registrations, DNS service accounts, web hosting accounts, tax
-                        preparation service accounts, online stores, affiliate programs, other online accounts, and similar digital
-                        items, regardless of the ownership of any physical device upon which the digital item is stored.</li>
-                    <li>
+
                         <center><strong>VII. GENERAL PROVISIONS</strong></center>
                         <p><strong><u>Pets</u></strong></p>
                         {pets && pets.length > 0 ? (
                             <>
-
                                 {pets.map((caretaker, index) => {
-                                    // PENDING TO EXTRACT LOGIC TO FUNCTIONS FOR GENERAL USE
-                                    let guardianInfo = relatives.find(rel => rel.firstName === caretaker.guardian) ||
-                                        Object.values(kids).find(kid => kid.firstName === caretaker.guardian) ||
-                                        (spouseInfo.firstName === caretaker.guardian ? spouseInfo : null);
-
-                                    let guardianLastName = guardianInfo ? guardianInfo.lastName : '';
-                                    let guardianCity = guardianInfo ? guardianInfo.city : '';
-                                    let guardianCountry = guardianInfo ? guardianInfo.country : '';
-                                    let guardianProvince = guardianInfo ? guardianInfo.province : '';
-
-                                    let backupInfo = relatives.find(rel => rel.firstName === caretaker.backup) ||
-                                        Object.values(kids).find(kid => kid.firstName === caretaker.backup) ||
-                                        (spouseInfo.firstName === caretaker.backup ? spouseInfo : null);
-
-                                    let backupLastName = backupInfo ? backupInfo.lastName : '';
-                                    let backupCity = backupInfo ? backupInfo.city : '';
-                                    let backupCountry = backupInfo ? backupInfo.country : '';
-                                    let backupProvince = backupInfo ? backupInfo.province : '';
-
+                                    const guardianInfo = findPersonInfo(caretaker.guardian, relatives, Object.values(kids), spouseInfo);
+                                    const backupInfo = caretaker.backup ? findPersonInfo(caretaker.backup, relatives, Object.values(kids), spouseInfo) : null;
 
                                     return (
                                         <React.Fragment key={index}>
                                             <li>
-                                                Where I leave one or more pets which are healthy, I appoint {capitalLetters(caretaker.guardian)} {capitalLetters(guardianLastName)} of {capitalLetters(guardianCity)}, {capitalLetters(guardianProvince)}, {capitalLetters(guardianCountry)} to be the caretaker,
+                                                Where I leave one or more pets which are healthy, I appoint {capitalLetters(guardianInfo.fullName)} of {capitalLetters(guardianInfo.city)}, {capitalLetters(guardianInfo.province)}, {capitalLetters(guardianInfo.country)} to be the caretaker,
                                                 to care for my pets as their own with all the rights and responsibilities of ownership.
                                             </li>
                                             {caretaker.backup && (
-                                                <li>If {capitalLetters(caretaker.guardian)} {capitalLetters(guardianLastName)} should refuse or be unable to act or continue to act as my pet(s) guardian, then I
-                                                    appoint {capitalLetters(caretaker.backup)} {capitalLetters(backupLastName)}, of {capitalLetters(backupCity)}, {capitalLetters(backupProvince)}, {capitalLetters(backupCountry)} to act as my pet(s) guardian.
-
+                                                <li>
+                                                    If {capitalLetters(guardianInfo.fullName)} should refuse or be unable to act or continue to act as my pet(s) guardian, then I
+                                                    appoint {capitalLetters(backupInfo.fullName)}, of {capitalLetters(backupInfo.city)}, {capitalLetters(backupInfo.province)}, {capitalLetters(backupInfo.country)} to act as my pet(s) guardian.
                                                 </li>
                                             )}
                                             {caretaker.amount > 0 && (
-                                                <li>I direct my Executor to provide a maximum of ${caretaker.amount} (CAD)
+                                                <li>
+                                                    I direct my Executor to provide a maximum of ${caretaker.amount} (CAD)
                                                     out of the residue of my estate to the pet caretaker as a one-time only sum to be used
                                                     for the future care, feeding and maintenance of my pet(s).
                                                 </li>
