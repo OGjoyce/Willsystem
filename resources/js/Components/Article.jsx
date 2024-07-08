@@ -225,11 +225,24 @@ var Article = React.forwardRef(function Article(props, ref,) {
                                 </li>
                                 {bequests.map((item, index) => {
                                     const { city, country } = findPersonInfo(item.names, relatives, kids, spouseInfo);
-                                    return (
-                                        <li key={index}>
-                                            I leave {item.shares}% of {item.bequest} to {capitalLetters(item.names)} of {capitalLetters(city)}, {capitalLetters(country)} if they shall survive me, for their own use absolutely.
-                                        </li>
-                                    );
+                                    return !item.isCustom
+                                        ? (
+                                            <li key={index}>
+                                                I leave {item.shares}% of {item.bequest} to {capitalLetters(item.names)} of {capitalLetters(city)}, {capitalLetters(country)} if they shall survive me, for their own use absolutely.
+                                            </li>
+                                        )
+                                        : null
+                                })}
+
+                                {bequests.map((item, index) => {
+                                    const { city, country } = findPersonInfo(item.names, relatives, kids, spouseInfo);
+                                    return item.isCustom
+                                        ? (
+                                            <li key={index}>
+                                                {item.bequest}, if they shall survive me, for their own use absolutely.
+                                            </li>
+                                        )
+                                        : null
                                 })}
                             </>
                         ) : (
