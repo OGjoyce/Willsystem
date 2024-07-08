@@ -3,9 +3,8 @@ import ReactDOMServer from 'react-dom/server';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import Article from './Article';
-
-
-import { exportData, deleteData, saveData } from '@/Components/__tests__/test_helper';
+import Button from 'react-bootstrap/Button';
+import { saveData } from '@/Components/__tests__/test_helper';
 
 const WillEditor = ({ object_status }) => {
     const [editorContent, setEditorContent] = useState('');
