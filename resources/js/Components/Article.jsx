@@ -91,20 +91,20 @@ var Article = React.forwardRef(function Article(props, ref,) {
                 <ol>
                     {hasKids
                         ? (
-                            <ol>
+                            <>
                                 <li>I have the following living children:</li>
                                 <ul>
                                     {kids.map(kid => <li>{`${capitalLetters(kid.firstName)} ${capitalLetters(kid.lastName)}`}</li>)}
                                 </ul>
-                                <li>The term "child" or "children" as used in this my Will includes the above listed children and any children
-                                    of mine that are subsequently born or legally adopted.</li>
-                            </ol>
+                            </>
                         )
                         : (
-                            <ol>
-                                <li>I do not currently have any living children</li>
-                            </ol>
+
+                            <li>I do not currently have any living children</li>
+
                         )}
+                    <li>The term "child" or "children" as used in this my Will includes the above listed children and any children
+                        of mine that are subsequently born or legally adopted.</li>
                 </ol>
 
                 <center><strong>II. EXECUTOR</strong></center><p><strong><u>Definition</u></strong></p><ol>
