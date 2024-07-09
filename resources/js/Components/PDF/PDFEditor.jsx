@@ -4,6 +4,7 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import Button from 'react-bootstrap/Button';
 
+
 const PDFEditor = ({ ContentComponent, object_status }) => {
   const [editorContent, setEditorContent] = useState('');
   const [documentVersions, setDocumentVersions] = useState({});
@@ -49,12 +50,11 @@ const PDFEditor = ({ ContentComponent, object_status }) => {
       { ...object_status[object_status.length - 1], documentDOM: updatedDocumentVersions }
     ];
 
-    saveData(updatedObjectStatus);
-    console.log("Updated object_status:", updatedObjectStatus);
+
   }, [editorContent, documentVersions, object_status]);
 
   return (
-    <div>
+    <div className="editor">
 
 
       <ReactQuill

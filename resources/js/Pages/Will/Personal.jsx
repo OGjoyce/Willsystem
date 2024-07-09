@@ -34,12 +34,14 @@ import Poa from '@/Components/Poa';
 import { getPoa } from '@/Components/Poa';
 import FinalDetails from '@/Components/FinalDetails';
 import PDFComponent from '@/Components/PDF/PDFComponent';
-
+import PDFEditor from '@/Components/PDF/PDFEditor';
+import WillContent from '@/Components/PDF/WillContent'
 import { PDFViewer } from '@react-pdf/renderer';
 import { getPetInfo } from '@/Components/Pets';
-import PDFEditor from '@/Components/PDFEditor';
 
-var object_status = [];
+//OBJECT ADDED FOR TESTING
+import data from '@/Components/__tests__/maried_with_kids'
+var object_status = data;
 var objectState = [];
 var dupMarried = false;
 var dupKids = false;
@@ -313,24 +315,14 @@ export default function Personal({ auth }) {
     return (
         <AuthenticatedLayout
             user={auth.user}
-            header={
-                <h2 className="font-semibold text-xl text-gray-800 leading-tight">
-                    {stepper[pointer].title}
-                    <div>
-                        {/* BUTTONS ADDED FOR DEBBUGING: Will remove them soon */}
-                        <Button onClick={exportData} size='sm' variant="outline-success">Export current Data</Button>
-                        <Button onClick={deleteData} size='sm' variant="outline-danger">Delete LocalStorage Data</Button>
-                    </div>
-                </h2>
-            }
+            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">{stepper[pointer].title}</h2>}
         >
             <Head title={"Welcome, " + username} />
-
             <div className="py-12" style={{ height: "100%", overflow: "hidden" }}>
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8" style={{ height: "inherit" }} >
                     <div className="bg-white overflow-visible shadow-sm sm:rounded-lg container" style={{ height: "inherit" }}>
 
-                        {pointer == 0 ?
+                        {pointer == 15 ?
                             <FormCity />
                             :
                             null
@@ -424,9 +416,9 @@ export default function Personal({ auth }) {
                                 null
                         }
                         {
-                            pointer == 15 ?
+                            pointer == 0 ?
 
-                                <WillEditor object_status={object_status} />
+                                <PDFEditor ContentComponent={WillContent} object_status={object_status} />
                                 :
                                 null
                         }

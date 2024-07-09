@@ -1,4 +1,5 @@
 import React from 'react';
+import './content.css'
 
 var WillContent = React.forwardRef(function WillContent(props, ref,) {
     const capitalLetters = (word) => {
@@ -19,7 +20,6 @@ var WillContent = React.forwardRef(function WillContent(props, ref,) {
         var isMarried = statusObject.marriedq.selection === "true";
         var isCommonRelationship = statusObject.marriedq.selection === "soso"
         var spouseInfo = statusObject.married;
-        if (isCommonRelationship) { spouseInfo.relative = 'Partner' }
         var hasKids = statusObject.kidsq.selection === "true";
         var kids = Object.values(statusObject.kids);
         var relatives = Object.values(statusObject.relatives);
@@ -63,237 +63,226 @@ var WillContent = React.forwardRef(function WillContent(props, ref,) {
 
     return (
         <div ref={ref}>
-            <div className='article-container'>
-                <center ><strong>LAST WILL AND TESTAMENT OF {capitalLetters(personal.fullName)} </strong></center>
+            <div className='document-container'>
+                <p class="ql-align-center"><strong>LAST WILL AND TESTAMENT OF {capitalLetters(personal.fullName)} </strong></p>
                 <p><br /><br />I, {capitalLetters(personal.fullName)}, presently of {capitalLetters(personal.city)} {personal.province ? `, ${capitalLetters(personal.province)}` : ''} declare that this is my Last Will and Testament.<br /><br /></p>
 
-                <center><strong>I. PRELIMINARY DECLARATIONS</strong></center>
                 <p><strong><u>Prior Wills and Codicils</u></strong></p>
                 <ol>
-                    <ol>
-                        <li>I revoke all prior Wills and Codicils.</li>
-                    </ol>
+
+                    <li>I revoke all prior Wills and Codicils.</li>
                 </ol>
                 <p><strong><u>Marital Status</u></strong></p>
                 <ol>
-                    <ol>
-                        <li>
-                            {isMarried
-                                ? `I am married to ${capitalLetters(spouseInfo.firstName)} ${capitalLetters(spouseInfo.lastName)} (my "${spouseInfo.relative}").`
-                                : isCommonRelationship
-                                    ? `I am in a common law relationship with ${capitalLetters(spouseInfo.firstName)} ${capitalLetters(spouseInfo.lastName)} (my "${spouseInfo.relative}").`
-                                    : "I am not married or in a common law relationship."
-                            }
-                        </li>
-                    </ol>
+                    <li>
+                        {isMarried
+                            ? `I am married to ${capitalLetters(spouseInfo.firstName)} ${capitalLetters(spouseInfo.lastName)} (my "${spouseInfo.relative}").`
+                            : isCommonRelationship
+                                ? `I am in a common law relationship with ${capitalLetters(spouseInfo.firstName)} ${capitalLetters(spouseInfo.lastName)} (my "${spouseInfo.relative}").`
+                                : "I am not married or in a common law relationship."
+                        }
+                    </li>
                 </ol>
                 <p><strong><u>Current Children</u></strong></p>
                 <ol>
-                    {hasKids
-                        ? (
-                            <ol>
-                                <li>I have the following living children:</li>
-                                <ul>
-                                    {kids.map(kid => <li>{`${capitalLetters(kid.firstName)} ${capitalLetters(kid.lastName)}`}</li>)}
-                                </ul>
-                                <li>The term "child" or "children" as used in this my Will includes the above listed children and any children
-                                    of mine that are subsequently born or legally adopted.</li>
-                            </ol>
-                        )
-                        : (
-                            <ol>
-                                <li>I do not currently have any living children</li>
-                            </ol>
-                        )}
-                </ol>
+                    {hasKids ? (
+                        <>
+                            <li>I have the following living children:</li>
+                            <ul>
+                                {kids.map((kid, index) => (
+                                    <li key={index}>{`${capitalLetters(kid.firstName)} ${capitalLetters(kid.lastName)}`}</li>
+                                ))}
+                            </ul>
 
-                <center><strong>II. EXECUTOR</strong></center><p><strong><u>Definition</u></strong></p><ol>
-                    <ol>
-                        <li>The expression "my Executor" used throughout this Will includes either the singular or plural number,
-                            wherever the fact or context so requires. The term "executor" in this Will is synonymous with and includes
-                            the terms "personal representative" and "executrix".</li>
-                    </ol>
+                        </>
+                    ) : (
+                        <li>I do not currently have any living children</li>
+                    )}
+                    <li>The term "child" or "children" as used in this my Will includes the above listed children and any children of mine that are subsequently born or legally adopted.</li>
+                </ol>
+                <br></br>
+                <p class="ql-align-center"><strong>II. EXECUTOR</strong></p><p><strong><u>Definition</u></strong></p>
+                <ol>
+                    <li>The expression "my Executor" used throughout this Will includes either the singular or plural number,
+                        wherever the fact or context so requires. The term "executor" in this Will is synonymous with and includes
+                        the terms "personal representative" and "executrix".
+                    </li>
                 </ol>
                 <p><strong><u>Appointment</u></strong></p>
                 <ol>
-                    <ol>
-                        {executors.length > 0 && executors.map((executor, index) => (
-                            <li key={index}>
-                                {index === 0 ? "I appoint " : `If ${capitalLetters(executors[index - 1].firstName)} ${capitalLetters(executors[index - 1].lastName)} should refuse or be unable to act or continue to act as my Executor, then I appoint `}
-                                {capitalLetters(executor.firstName)} {capitalLetters(executor.lastName)} of {capitalLetters(executor.city)}, {capitalLetters(executor.province)}
-                                {index === 0 ? " as the sole Executor of this my Will." : " to be the sole Executor of this my Will."}
-                            </li>
-                        ))}
-                        {executors.length > 0 ? (
-                            <li>
-                                If {capitalLetters(executors[executors.length - 1].firstName)} {capitalLetters(executors[executors.length - 1].lastName)} should refuse or be unable to act or continue to act as my Executor, then I appoint Lawyers and Lattes Professional Corporation or any successor law firm as the sole Executor of this my Will.
-                            </li>
-                        ) : (
-                            <li>
-                                I appoint Lawyers and Lattes Professional Corporation or any successor law firm as the sole Executor of this my Will.
-                            </li>
-                        )}
-                        <li>No bond or other security of any kind will be required of any Executor appointed in this my Will.</li>
-                    </ol>
-
-
+                    {executors.length > 0 && executors.map((executor, index) => (
+                        <li key={index}>
+                            {index === 0 ? "I appoint " : `If ${capitalLetters(executors[index - 1].firstName)} ${capitalLetters(executors[index - 1].lastName)} should refuse or be unable to act or continue to act as my Executor, then I appoint `}
+                            {capitalLetters(executor.firstName)} {capitalLetters(executor.lastName)} of {capitalLetters(executor.city)}, {capitalLetters(executor.province)}
+                            {index === 0 ? " as the sole Executor of this my Will." : " to be the sole Executor of this my Will."}
+                        </li>
+                    ))}
+                    {executors.length > 0 ? (
+                        <li>
+                            If {capitalLetters(executors[executors.length - 1].firstName)} {capitalLetters(executors[executors.length - 1].lastName)} should refuse or be unable to act or continue to act as my Executor, then I appoint Lawyers and Lattes Professional Corporation or any successor law firm as the sole Executor of this my Will.
+                        </li>
+                    ) : (
+                        <li>
+                            I appoint Lawyers and Lattes Professional Corporation or any successor law firm as the sole Executor of this my Will.
+                        </li>
+                    )}
+                    <li>No bond or other security of any kind will be required of any Executor appointed in this my Will.</li>
                 </ol>
                 <p><strong><u>Powers of my Executor</u></strong></p>
                 <ol>
-                    <ol>
-                        <li>I give and appoint to my Executor the following duties and powers with respect to my estate:</li>
-                        <ul>
-                            <li>
-                                My Executor(s) shall collect and gather my assets and may sell these assets at a time and price and upon
-                                such other terms as they consider appropriate in their absolute discretion, and without liability for
-                                loss or depreciation;
-                            </li>
-                            <li>
-                                To pay my legally enforceable debts, funeral expenses and all expenses in connection with the
-                                administration of my estate and the trusts created by my Will as soon as convenient after my death. If
-                                any of the real property devised in my Will remains subject to a mortgage at the time of my death, then
-                                I direct that the devisee taking that mortgaged property will take the property subject to that mortgage
-                                and that the devisee will not be entitled to have the mortgage paid out or resolved from the remaining
-                                assets of the residue of my estate;
-                            </li>
-                            <li>
-                                To take all legal actions to have the probate of my Will completed as quickly and simply as possible,
-                                and as free as possible from any court supervision, under the laws of the Province of Ontario;
-                            </li>
-                            <li>
-                                To retain, exchange, insure, repair, improve, sell or dispose of any and all personal property belonging
-                                to my estate as my Executor deems advisable without liability for loss or depreciation;
-                            </li>
-                            <li>
-                                To invest, manage, lease, rent, exchange, mortgage, sell, dispose of or give options without being
-                                limited as to term and to insure, repair, improve, or add to or otherwise deal with any and all real
-                                property belonging to my estate as my Executor deems advisable without liability for loss or
-                                depreciation;
-                            </li>
-                            <li>
-                                To purchase, maintain, convert and liquidate investments or securities, and to vote stock, or exercise
-                                any option concerning any investments or securities without liability for loss;
-                            </li>
-                            <li>To open or close bank accounts;</li>
-                            <li>
-                                To maintain, continue, dissolve, change or sell any business which is part of my estate, or to purchase
-                                any business if deemed necessary or beneficial to my estate by my Executor;
-                            </li>
-                            <li>To maintain, settle, abandon, sue or defend, or otherwise deal with any lawsuits against my estate;</li>
-                            <li>To open, liquidate or dissolve a corporation;</li>
-                            <li>To conduct post-mortem tax planning;</li>
-                            <li>To employ any lawyer, accountant or other professional; and</li>
-                            {trusting.length > 0 && (
-                                <li>
-                                    Except as otherwise provided in this my Will, to act as my Trustee by holding in trust the share of any
-                                    beneficiary for whom a Testamentary Trust is established pursuant to this Will, and to keep such share
-                                    invested, pay the income or capital or as much of either or both as my Executor considers advisable for
-                                    the maintenance, education, advancement or benefit of such beneficiary and to pay or transfer the
-                                    capital of such share or the amount remaining of that share to such beneficiary reaching the age of {minTrustingAge} years
-                                    or, prior to such beneficiary when they reach the age of {minTrustingAge} years, to pay or transfer such share to
-                                    any parent or guardian of such beneficiary subject to like conditions and the receipt of any such parent or
-                                    guardian discharges my Executor
-                                </li>
-                            )}
-                            <li>
-                                When my Executor administers my estate, my Executor may convert my estate or any part of my estate into
-                                money or any other form of property or security, and decide how, when, and on what terms. My Executor
-                                may keep my estate, or any part of it, in the form it is in at my death and for as long as my Executor
-                                decides, even for the duration of the trusts in this Will. This power applies even if the property is
-                                not an investment authorized under this Will, a debt is owing on the property; or the property does not
-                                produce income.
-                            </li>
-                        </ul>
+                    <li>I give and appoint to my Executor the following duties and powers with respect to my estate:</li>
+                    <ul>
                         <li>
-                            The above authority and powers granted to my Executor are in addition to any powers and elective rights
-                            conferred by provincial/territorial or federal law or by other provision of this Will and may be exercised
-                            as often as required, and without application to or approval by any court.
+                            My Executor(s) shall collect and gather my assets and may sell these assets at a time and price and upon
+                            such other terms as they consider appropriate in their absolute discretion, and without liability for
+                            loss or depreciation;
                         </li>
-                    </ol>
-                </ol>
-
-                <center><strong>III. DISPOSITION OF ESTATE</strong></center>
-                <p><strong><u>Bequests</u></strong></p><ol>
-                    <ol>
-                        {bequests && bequests.length > 0 ? (
-                            <>
-                                <li>
-                                    To receive a specific bequest under this Will a beneficiary must survive me for thirty days. Any item that
-                                    fails to pass to a beneficiary will return to my estate to be included in the residue of my estate. All
-                                    property given under this Will is subject to any encumbrances or liens attached to the property. My specific
-                                    bequests are as follows:
-                                </li>
-                                {bequests.map((item, index) => {
-                                    const { city, country } = findPersonInfo(item.names, relatives, kids, spouseInfo);
-                                    return !item.isCustom
-                                        ? (
-                                            <li key={index}>
-                                                I leave {item.shares}% of {item.bequest} to {capitalLetters(item.names)} of {capitalLetters(city)}, {capitalLetters(country)} if they shall survive me, for their own use absolutely.
-                                            </li>
-                                        )
-                                        : null
-                                })}
-
-                                {bequests.map((item, index) => {
-                                    const { city, country } = findPersonInfo(item.names, relatives, kids, spouseInfo);
-                                    return item.isCustom
-                                        ? (
-                                            <li key={index}>
-                                                {item.bequest}, if they shall survive me, for their own use absolutely.
-                                            </li>
-                                        )
-                                        : null
-                                })}
-                            </>
-                        ) : (
+                        <li>
+                            To pay my legally enforceable debts, funeral expenses and all expenses in connection with the
+                            administration of my estate and the trusts created by my Will as soon as convenient after my death. If
+                            any of the real property devised in my Will remains subject to a mortgage at the time of my death, then
+                            I direct that the devisee taking that mortgaged property will take the property subject to that mortgage
+                            and that the devisee will not be entitled to have the mortgage paid out or resolved from the remaining
+                            assets of the residue of my estate;
+                        </li>
+                        <li>
+                            To take all legal actions to have the probate of my Will completed as quickly and simply as possible,
+                            and as free as possible from any court supervision, under the laws of the Province of Ontario;
+                        </li>
+                        <li>
+                            To retain, exchange, insure, repair, improve, sell or dispose of any and all personal property belonging
+                            to my estate as my Executor deems advisable without liability for loss or depreciation;
+                        </li>
+                        <li>
+                            To invest, manage, lease, rent, exchange, mortgage, sell, dispose of or give options without being
+                            limited as to term and to insure, repair, improve, or add to or otherwise deal with any and all real
+                            property belonging to my estate as my Executor deems advisable without liability for loss or
+                            depreciation;
+                        </li>
+                        <li>
+                            To purchase, maintain, convert and liquidate investments or securities, and to vote stock, or exercise
+                            any option concerning any investments or securities without liability for loss;
+                        </li>
+                        <li>To open or close bank accounts;</li>
+                        <li>
+                            To maintain, continue, dissolve, change or sell any business which is part of my estate, or to purchase
+                            any business if deemed necessary or beneficial to my estate by my Executor;
+                        </li>
+                        <li>To maintain, settle, abandon, sue or defend, or otherwise deal with any lawsuits against my estate;</li>
+                        <li>To open, liquidate or dissolve a corporation;</li>
+                        <li>To conduct post-mortem tax planning;</li>
+                        <li>To employ any lawyer, accountant or other professional; and</li>
+                        {trusting.length > 0 && (
                             <li>
-                                No bequests added to Will
+                                Except as otherwise provided in this my Will, to act as my Trustee by holding in trust the share of any
+                                beneficiary for whom a Testamentary Trust is established pursuant to this Will, and to keep such share
+                                invested, pay the income or capital or as much of either or both as my Executor considers advisable for
+                                the maintenance, education, advancement or benefit of such beneficiary and to pay or transfer the
+                                capital of such share or the amount remaining of that share to such beneficiary reaching the age of {minTrustingAge} years
+                                or, prior to such beneficiary when they reach the age of {minTrustingAge} years, to pay or transfer such share to
+                                any parent or guardian of such beneficiary subject to like conditions and the receipt of any such parent or
+                                guardian discharges my Executor
                             </li>
                         )}
-                    </ol>
+                        <li>
+                            When my Executor administers my estate, my Executor may convert my estate or any part of my estate into
+                            money or any other form of property or security, and decide how, when, and on what terms. My Executor
+                            may keep my estate, or any part of it, in the form it is in at my death and for as long as my Executor
+                            decides, even for the duration of the trusts in this Will. This power applies even if the property is
+                            not an investment authorized under this Will, a debt is owing on the property; or the property does not
+                            produce income.
+                        </li>
+                    </ul>
+                    <li>
+                        The above authority and powers granted to my Executor are in addition to any powers and elective rights
+                        conferred by provincial/territorial or federal law or by other provision of this Will and may be exercised
+                        as often as required, and without application to or approval by any court.
+                    </li>
+                </ol>
+                <br></br>
+                <p class="ql-align-center"><strong>III. DISPOSITION OF ESTATE</strong></p>
+                <p><strong><u>Bequests</u></strong></p>
+                <ol>
+                    {bequests && bequests.length > 0 ? (
+                        <>
+                            <li>
+                                To receive a specific bequest under this Will a beneficiary must survive me for thirty days. Any item that
+                                fails to pass to a beneficiary will return to my estate to be included in the residue of my estate. All
+                                property given under this Will is subject to any encumbrances or liens attached to the property. My specific
+                                bequests are as follows:
+                            </li>
+                            {bequests.map((item, index) => {
+                                const { city, country } = findPersonInfo(item.names, relatives, kids, spouseInfo);
+                                return !item.isCustom
+                                    ? (
+                                        <li key={index}>
+                                            I leave {item.shares}% of {item.bequest} to {capitalLetters(item.names)} of {capitalLetters(city)}, {capitalLetters(country)} if they shall survive me, for their own use absolutely.
+                                        </li>
+                                    )
+                                    : null
+                            })}
 
-                </ol><p><strong><u>Distribution of Residue</u></strong></p><p>&nbsp;</p><ol>
-                    <ol>
-                        <li>To receive any gift or property under this Will a beneficiary must survive me for thirty days.</li>
-                        <li>Beneficiaries or any alternate beneficiaries of my estate residue will receive and share all of my property
-                            and assets not specifically bequeathed or otherwise required for the payment of any debts owed, including
-                            but not limited to, expenses associated with the probate of my Will, the payment of taxes, funeral expenses
-                            or any other expense resulting from the administration of my Will.</li>
-                        <li>The entire estate residue is to be divided between my designated beneficiaries or any alternate
-                            beneficiaries with the beneficiaries or any alternate beneficiaries receiving a part of the entire estate
-                            residue.</li>
-                        <li>All property given under this Will is subject to any encumbrances or liens attached to the property.</li>
-                        <li>The entire of my estate shall be divided into as many equal shares as there shall be children of mine then
-                            alive at my death, subject to the provisions hereinafter specified and to pay and transfer one such share to
-                            each of those surviving children.</li>
-                        <li>If any child of mine shall predecease me or die before becoming entitled, in accordance with the terms of
-                            this my Will, to receive the whole of his or her share of my estate, but such child has a child or children
-                            which survive me, that child of mine shall be deemed to have survived me and such share or the amount
-                            remaining of that share will be divided and transferred in equal shares to each of the surviving children of
-                            that deceased child of mine. If any of such children of my deceased child dies before receiving the whole of
-                            his or her share of my estate, that share or the amount remaining thereof will be divided in equal shares
-                            amongst the surviving children of that child of mine. But if that deceased child of mine leaves no surviving
-                            children, then that share or the amount remaining of that share will be divided amongst my surviving
-                            children in equal shares.</li>
-                        {pets && pets.map(caretaker => (
-                            caretaker.amount > 0
-                                ? <li>
-                                    I direct my Executor to provide a maximum of {caretaker.amount} (CAD) out of the residue of my
-                                    estate to the the pet caretaker assigned below as a one-time only sum to be used for
-                                    the future care, feeding and maintenance of my pet(s). Upon the death of all of my pets,
-                                    the remainder of any funds provided to the caretaker for the care and maintenance
-                                    shall be given to a local animal rescue or humane shelter, to be decided upon by the
-                                    caretaker
-                                </li>
-                                : null
-                        ))}
-                    </ol>
-                </ol><p><strong><u>Wipeout Provision</u></strong></p><ol>
+                            {bequests.map((item, index) => {
+                                const { city, country } = findPersonInfo(item.names, relatives, kids, spouseInfo);
+                                return item.isCustom
+                                    ? (
+                                        <li key={index}>
+                                            {item.bequest}, if they shall survive me, for their own use absolutely.
+                                        </li>
+                                    )
+                                    : null
+                            })}
+                        </>
+                    ) : (
+                        <li>
+                            No bequests added to Will
+                        </li>
+                    )}
+                </ol>
+
+                <p><strong><u>Distribution of Residue</u></strong></p><p>&nbsp;</p>
+                <ol>
+                    <li>To receive any gift or property under this Will a beneficiary must survive me for thirty days.</li>
+                    <li>Beneficiaries or any alternate beneficiaries of my estate residue will receive and share all of my property
+                        and assets not specifically bequeathed or otherwise required for the payment of any debts owed, including
+                        but not limited to, expenses associated with the probate of my Will, the payment of taxes, funeral expenses
+                        or any other expense resulting from the administration of my Will.</li>
+                    <li>The entire estate residue is to be divided between my designated beneficiaries or any alternate
+                        beneficiaries with the beneficiaries or any alternate beneficiaries receiving a part of the entire estate
+                        residue.</li>
+                    <li>All property given under this Will is subject to any encumbrances or liens attached to the property.</li>
+                    <li>The entire of my estate shall be divided into as many equal shares as there shall be children of mine then
+                        alive at my death, subject to the provisions hereinafter specified and to pay and transfer one such share to
+                        each of those surviving children.</li>
+                    <li>If any child of mine shall predecease me or die before becoming entitled, in accordance with the terms of
+                        this my Will, to receive the whole of his or her share of my estate, but such child has a child or children
+                        which survive me, that child of mine shall be deemed to have survived me and such share or the amount
+                        remaining of that share will be divided and transferred in equal shares to each of the surviving children of
+                        that deceased child of mine. If any of such children of my deceased child dies before receiving the whole of
+                        his or her share of my estate, that share or the amount remaining thereof will be divided in equal shares
+                        amongst the surviving children of that child of mine. But if that deceased child of mine leaves no surviving
+                        children, then that share or the amount remaining of that share will be divided amongst my surviving
+                        children in equal shares.</li>
+                    {pets && pets.map(caretaker => (
+                        caretaker.amount > 0
+                            ? <li>
+                                I direct my Executor to provide a maximum of {caretaker.amount} (CAD) out of the residue of my
+                                estate to the the pet caretaker assigned below as a one-time only sum to be used for
+                                the future care, feeding and maintenance of my pet(s). Upon the death of all of my pets,
+                                the remainder of any funds provided to the caretaker for the care and maintenance
+                                shall be given to a local animal rescue or humane shelter, to be decided upon by the
+                                caretaker
+                            </li>
+                            : null
+                    ))}
+                </ol>
+                <p><strong><u>Wipeout Provision</u></strong></p><ol>
                     <ol>
                         <li>Should all my named beneficiaries and alternate beneficiaries predecease me or fail to survive me for thirty
                             full days, or should they all die before becoming entitled to receive the whole of their share of my estate,
                             then I direct my Executor to divide any remaining residue of my estate into equal shares as outlined below
-                            and to pay and transfer such shares to the following wipeout beneficiaries:</li>
+                            and to pay and transfer such shares to the following wipeout beneficiaries:
+                        </li>
                         <ul>
                             {Array.isArray(wipeoutInfo) ? (
                                 wipeoutInfo.map((beneficiary, index) => {
@@ -314,7 +303,8 @@ var WillContent = React.forwardRef(function WillContent(props, ref,) {
                     </ol>
                     {hasKids && guardians.length > 0 && (
                         <>
-                            <center><strong>IV. CHILDREN</strong></center>
+                            <br></br>
+                            <p class="ql-align-center"><strong>IV. CHILDREN</strong></p>
                             <p><strong><u>Guardian for Minor and Dependent Children</u></strong></p>
                             <ol>
                                 {guardians
@@ -369,7 +359,7 @@ var WillContent = React.forwardRef(function WillContent(props, ref,) {
                     )}
 
                     <br />
-                    <center><strong>V. TESTAMENTARY TRUSTS</strong></center>
+                    <p class="ql-align-center"><strong>V. TESTAMENTARY TRUSTS</strong></p>
                     <p><strong><u>Testamentary Trust for Young Beneficiaries</u></strong></p>
 
                     <ol>
@@ -520,8 +510,7 @@ var WillContent = React.forwardRef(function WillContent(props, ref,) {
                         <li>If any trust condition is held invalid, it will not affect other provisions that can be given effect without the
                             invalid provision.</li>
                     </ol>
-
-                    <center><strong>VI. DIGITAL ASSETS</strong></center>
+                    <p class="ql-align-center"><strong>VI. DIGITAL ASSETS</strong></p>
                     <ol>
                         <li>My Executor(s) may access, handle, distribute, and dispose of my digital assets, and may obtain, access, modify,
                             delete, and control my passwords and other electronic credentials associated with my digital devices and digital
@@ -541,7 +530,7 @@ var WillContent = React.forwardRef(function WillContent(props, ref,) {
                     </ol>
 
 
-                    <center><strong>VII. GENERAL PROVISIONS</strong></center>
+                    <p class="ql-align-center"><strong>VII. GENERAL PROVISIONS</strong></p>
                     <p><strong><u>Pets</u></strong></p>
                     <ol>
                         {pets && pets.length > 0 ? (
@@ -630,9 +619,10 @@ var WillContent = React.forwardRef(function WillContent(props, ref,) {
                         <li>If any provisions of this Will are deemed unenforceable, the remaining provisions will remain in full force and
                             effect.</li>
                     </ol>
-                </ol><p>&nbsp;</p><center><em>The remainder of this page has intentionally been left blank.</em></center><p><br /><br /> IN WITNESS WHEREOF, I have signed my name on this the _________ day of ______________________, 20______,
-                    at toronto, Ontario declaring and publishing this instrument as my Last Will, in the presence of the undersigned
-                    witnesses, who witnessed and subscribed this Last Will at my request, and in my presence, via video conference.
+                </ol><p>&nbsp;</p><p class="ql-align-center"><em>The remainder of this page has
+                    intentionally been left blank.</em></p><p><br /><br /> IN WITNESS WHEREOF, I have signed my name on this the _________ day of ______________________, 20______,
+                        at toronto, Ontario declaring and publishing this instrument as my Last Will, in the presence of the undersigned
+                        witnesses, who witnessed and subscribed this Last Will at my request, and in my presence, via video conference.
                     <br /><br /><br /> _____________________________<br /> {capitalLetters(personal.fullName)}  (Testator) Signature<br /> <br /><br /> SIGNED
                     AND DECLARED by {capitalLetters(personal.fullName)}  on this ____ day of ____________________, 20____ to be the Testator&rsquo;s Last Will
                     and Testament, in our presence, remotely, who at the Testator&rsquo;s request and in the presence of the Testator,
@@ -641,7 +631,7 @@ var WillContent = React.forwardRef(function WillContent(props, ref,) {
                     ________________________________________________<br /> Witness #1 (Nicole Barrett)<br /><br /> 665 Millway Ave.
                     #44<br /> Vaughan, ON<br /> L4K 3T8<br /> <br /><br /><br /> ________________________________________________<br />
                     Witness #2 (Dale Barrett)<br /><br /> 665 Millway Ave. #44<br /> Vaughan, ON<br /> L4K 3T8
-                </p><center><strong>LAST WILL AND TESTAMENT OF {capitalLetters(personal.fullName)}  </strong></center><p><br /><br /><br /><br /><br /> <br /><br /><br /><br /><br /><br /> Prepared by: Lawyers and Lattes Professional
+                </p><p class="ql-align-center"><strong>LAST WILL AND TESTAMENT OF {capitalLetters(personal.fullName)}  </strong></p><p><br /><br /><br /><br /><br /> <br /><br /><br /><br /><br /><br /> Prepared by: Lawyers and Lattes Professional
                     Corporation<br /> Toronto, ON<br /> lawyersandlattes.com<br /> docs@lawyersandlattes.com<br />
                     <br /><br /><br /><br />
                 </p></div>
