@@ -39,7 +39,6 @@ import WillContent from '@/Components/PDF/WillContent'
 import { PDFViewer } from '@react-pdf/renderer';
 import { getPetInfo } from '@/Components/Pets';
 
-//OBJECT ADDED FOR TESTING
 
 var object_status = [];
 var objectState = [];
