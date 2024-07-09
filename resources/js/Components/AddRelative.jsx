@@ -26,7 +26,7 @@ var childRelatives = [];
 var executorsObj = [];
 
 var relativeGlobal = "";
-export function getChildRelatives(){
+export function getChildRelatives() {
     return childRelatives;
 }
 
@@ -103,21 +103,27 @@ function AddRelative({ relative, datas }) {
                 <tbody>
 
 
-                    { childRelatives.length == 0?
-                    <p>No records found, please add new child using above button...</p>
-                    :
-
+                    {childRelatives.length == 0 ? (
+                        <tr>
+                            <td colSpan="5">
+                                No records found, please add new child using above button...
+                            </td>
+                        </tr>
+                    ) : (
                         table_data.map((item, index) => (
                             <tr key={index}>
                                 <td>{item.id}</td>
                                 <td>{item.firstName}</td>
                                 <td>{item.lastName}</td>
                                 <td>{item.relative}</td>
-                                <td><Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button></td>
+                                <td>
+                                    <Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>
+                                        Delete
+                                    </Button>
+                                </td>
                             </tr>
-                        ))}
-
-
+                        ))
+                    )}
                 </tbody>
             </Table>
 

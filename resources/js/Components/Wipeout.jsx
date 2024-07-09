@@ -113,12 +113,12 @@ function Wipeout({ id, datas }) {
 
         setOpen(true);
 
-        
 
-        if(organization != ""){
+
+        if (organization != "") {
             var beneficiary = organization;
         }
-        else{
+        else {
             var beneficiary = selectedRecepient;
         }
         var backup = selectedOption;
@@ -185,7 +185,7 @@ function Wipeout({ id, datas }) {
                     <>
                         <Dropdown style={{ width: "100%" }} onSelect={setCurrentRecepient}>
                             <DropdownToggle variants="success" caret id="size-dropdown">
-                               {selectedBeneficiary != ""? selectedBeneficiary : "Select Beneficiary"}
+                                {selectedBeneficiary != "" ? selectedBeneficiary : "Select Beneficiary"}
                             </DropdownToggle>
                             <DropdownMenu>
                                 {identifiers_names.map(size => (
@@ -195,7 +195,7 @@ function Wipeout({ id, datas }) {
                         </Dropdown>
 
 
-                      
+
                         <Form>
                             <Form.Group className="mb-3" controlId="organization">
                                 <Form.Label>Or Organization</Form.Label>
@@ -252,23 +252,25 @@ function Wipeout({ id, datas }) {
                             </tr>
                         </thead>
                         <tbody>
-
-                            {
-                                table_dataBequest.length == 0 ?
-                                    <p>No information added yet, press "Add Recepient Button" to add.</p>
-                                    :
-                                    table_dataBequest.map((item, index) => (
-                                        <tr key={index}>
-                                            <td>{item.id}</td>
-                                            <td>{item.names}</td>
-                                            <td>{item.backup}</td>
-                                            <td>{item.shares}</td>
-                                            <td><Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button></td>
-                                        </tr>
-                                    ))
-                            }
-
-
+                            {table_dataBequest.length === 0 ? (
+                                <tr>
+                                    <td colSpan="5">
+                                        No information added yet, press "Add Recepient Button" to add.
+                                    </td>
+                                </tr>
+                            ) : (
+                                table_dataBequest.map((item, index) => (
+                                    <tr key={index}>
+                                        <td>{item.id}</td>
+                                        <td>{item.names}</td>
+                                        <td>{item.backup}</td>
+                                        <td>{item.shares}</td>
+                                        <td>
+                                            <Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </Table>
                 </div>

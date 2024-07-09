@@ -22,7 +22,7 @@ import { InputGroup } from 'react-bootstrap';
 
 var identifiers_names = [];
 var priorityInformation = [1, 2, 3, 4, 5]
-var bequestindex = 0;
+var bequestindex = 1;
 var backupBeneficiaryData = [];
 var all_data;
 
@@ -126,7 +126,7 @@ export default function GuardianForMinors({ datas }) {
                     <br></br>
                     <Row>
                         <Col sm={12}>
-                            <Dropdown style={{ width: "100%" }}>
+                            <Dropdown onSelect={handleSelectBeneficiary} style={{ width: "100%" }}>
                                 <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="dropdown-basic">
                                     Select Relative
                                 </Dropdown.Toggle>
@@ -139,7 +139,7 @@ export default function GuardianForMinors({ datas }) {
                                     ))}
                                 </Dropdown.Menu>
                             </Dropdown>
-                      
+
                         </Col>
                     </Row>
 
@@ -148,20 +148,20 @@ export default function GuardianForMinors({ datas }) {
                     <br></br>
                     <Row>
                         <Col sm={12}>
-                        <Dropdown style={{ width: "100%" }}>
+                            <Dropdown onSelect={handleSelectPriority} style={{ width: "100%" }}>
                                 <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="dropdown-basic">
                                     Select Priority
                                 </Dropdown.Toggle>
 
                                 <Dropdown.Menu>
-                                {priorityInformation.map((option, index) => (
+                                    {priorityInformation.map((option, index) => (
                                         <Dropdown.Item key={index} eventKey={option}>
                                             {option}
                                         </Dropdown.Item>
                                     ))}
                                 </Dropdown.Menu>
                             </Dropdown>
-                     
+
 
                         </Col>
                     </Row>
@@ -170,7 +170,7 @@ export default function GuardianForMinors({ datas }) {
                     <br></br>
                     <Row>
                         <Col sm={12}>
-                            <Button  style={{ width: "100%" }} variant="outline-success" onClick={() => AddGuardianButton()} >Add Guardian</Button>
+                            <Button style={{ width: "100%" }} variant="outline-success" onClick={() => AddGuardianButton()} >Add Guardian</Button>
                         </Col>
                     </Row>
                     <br>
@@ -192,22 +192,24 @@ export default function GuardianForMinors({ datas }) {
                     </tr>
                 </thead>
                 <tbody>
-
-                    {
-                        backupBeneficiaryData.length == 0 ?
-                            <p>No information added yet, press <b>"Add Guardian Button"</b> to add</p>
-                            :
-                            backupBeneficiaryData.map((item, index) => (
-                                <tr key={index}>
-                                    <td>{item.id}</td>
-                                    <td>{item.guardian}</td>
-                                    <td>{item.position}</td>
-                                    <td><Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button></td>
-                                </tr>
-                            ))
-                    }
-
-
+                    {backupBeneficiaryData.length === 0 ? (
+                        <tr>
+                            <td colSpan="4">
+                                No information added yet, press <b>"Add Guardian Button"</b> to add.
+                            </td>
+                        </tr>
+                    ) : (
+                        backupBeneficiaryData.map((item, index) => (
+                            <tr key={index}>
+                                <td>{item.id}</td>
+                                <td>{item.guardian}</td>
+                                <td>{item.position}</td>
+                                <td>
+                                    <Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button>
+                                </td>
+                            </tr>
+                        ))
+                    )}
                 </tbody>
             </Table>
         </>
