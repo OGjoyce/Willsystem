@@ -1,37 +1,27 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ReactDOMServer from 'react-dom/server';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
 import Button from 'react-bootstrap/Button';
+import { useReactToPrint } from "react-to-print";
+import './PDFEditor.css'
 
-const PDFEditor = ({ ContentComponent, object_status }) => {
+
+const PDFEditor = ({ ContentComponent, datas }) => {
+  var object_status = datas
   const [editorContent, setEditorContent] = useState('');
   const [documentVersions, setDocumentVersions] = useState({});
 
-  useEffect(() => {
-    try {
-      const documentHtml = ReactDOMServer.renderToString(
-        <ContentComponent props={{ data: { datas: object_status } }} />
-      );
-      setEditorContent(documentHtml);
-    } catch (error) {
-      console.error("ERROR while rendering document:", error);
-      setEditorContent("No content to show");
-    }
-  }, [object_status, ContentComponent]);
+  const editor = useEditor({
+    extensions: [StarterKit],
+    content: editorContent,
+    onUpdate: ({ editor }) => {
+      setEditorContent(editor.getHTML());
+    },
+  });
 
-  useEffect(() => {
-    const latestVersion = object_status[object_status.length - 1]?.documentDOM;
-    if (latestVersion) {
-      setDocumentVersions(latestVersion);
-    }
-  }, [object_status]);
 
-  const handleChange = useCallback((content) => {
-    setEditorContent(content);
-  }, []);
-
-  const handleSaveDocument = useCallback(() => {
+  const saveDocumentDOM = useCallback(() => {
     const timestamp = new Date().toISOString();
     const versionNumber = Object.keys(documentVersions).length + 1;
     const newVersion = {
@@ -42,6 +32,8 @@ const PDFEditor = ({ ContentComponent, object_status }) => {
     };
 
     const updatedDocumentVersions = { ...documentVersions, ...newVersion };
+
+
     setDocumentVersions(updatedDocumentVersions);
 
     const updatedObjectStatus = [
@@ -52,31 +44,54 @@ const PDFEditor = ({ ContentComponent, object_status }) => {
     console.log(updatedObjectStatus);
   }, [editorContent, documentVersions, object_status]);
 
+  var componentRef = useRef();
+
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+    onAfterPrint: saveDocumentDOM
+  });
+
+  const PrintComponent = React.forwardRef((props, ref) => {
+    return (
+      <div ref={ref} dangerouslySetInnerHTML={{ __html: props.content }} />
+    );
+  });
+
+  useEffect(() => {
+    try {
+      const ContentComponentWithRef = React.forwardRef((props, ref) => (
+        <ContentComponent ref={ref} props={{ datas }} />
+      ));
+
+      const documentHtml = ReactDOMServer.renderToString(
+        <ContentComponentWithRef />
+      );
+      setEditorContent(documentHtml);
+      if (editor) {
+        editor.commands.setContent(documentHtml);
+      }
+    } catch (error) {
+      console.error("ERROR while rendering document:", error);
+      setEditorContent("No content to show");
+    }
+  }, [object_status, ContentComponent, editor]);
+
+  useEffect(() => {
+    const latestVersion = object_status[object_status.length - 1]?.documentDOM;
+    if (latestVersion) {
+      setDocumentVersions(latestVersion);
+    }
+  }, [object_status]);
+
   return (
     <div className="editor">
-      <ReactQuill
-        value={editorContent}
-        onChange={handleChange}
-        theme="snow"
-        modules={{
-          toolbar: [
-            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-            ['bold', 'italic', 'underline', 'strike'],
-            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-            ['blockquote', 'code-block'],
-            [{ 'script': 'sub' }, { 'script': 'super' }],
-            [{ 'indent': '-1' }, { 'indent': '+1' }],
-            [{ 'direction': 'rtl' }],
-            [{ 'size': ['small', false, 'large', 'huge'] }],
-            [{ 'color': [] }, { 'background': [] }],
-            [{ 'font': [] }],
-            [{ 'align': [] }],
-            ['clean'],
-            ['link', 'image', 'video'],
-          ],
-        }}
-      />
-      <Button onClick={handleSaveDocument} variant="primary">Save Document</Button>
+      <EditorContent editor={editor} />
+      <Button variant="primary" onClick={handlePrint} className="mt-3">
+        Download as PDF
+      </Button>
+      <div style={{ display: 'none' }}>
+        <PrintComponent ref={componentRef} content={editorContent} />
+      </div>
     </div>
   );
 };

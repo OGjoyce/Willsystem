@@ -38,9 +38,9 @@ import PDFEditor from '@/Components/PDF/PDFEditor';
 import WillContent from '@/Components/PDF/WillContent'
 import { PDFViewer } from '@react-pdf/renderer';
 import { getPetInfo } from '@/Components/Pets';
+import data from '@/Components/__tests__/maried_with_kids'
 
-
-var object_status = [];
+var object_status = data;
 var objectState = [];
 var dupMarried = false;
 var dupKids = false;
@@ -321,7 +321,7 @@ export default function Personal({ auth }) {
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8" style={{ height: "inherit" }} >
                     <div className="bg-white overflow-visible shadow-sm sm:rounded-lg container" style={{ height: "inherit" }}>
 
-                        {pointer == 0 ?
+                        {pointer == 15 ?
                             <FormCity />
                             :
                             null
@@ -415,9 +415,9 @@ export default function Personal({ auth }) {
                                 null
                         }
                         {
-                            pointer == 15 ?
+                            pointer == 0 ?
 
-                                <PDFEditor ContentComponent={WillContent} object_status={object_status} />
+                                <PDFEditor ContentComponent={WillContent} datas={object_status} />
                                 :
                                 null
                         }

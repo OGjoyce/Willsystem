@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import './content.css'
 
-var WillContent = React.forwardRef(function WillContent(props, ref,) {
+var WillContent = forwardRef((props, ref) => {
     const capitalLetters = (word) => {
         return word.toUpperCase();
     };
@@ -9,7 +9,7 @@ var WillContent = React.forwardRef(function WillContent(props, ref,) {
     if (props != undefined) {
 
 
-        var datasObj = props.props.data.datas;
+        var datasObj = props.props.datas;
         var statusObject = {};
         datasObj.forEach(item => {
             Object.entries(item).forEach(([key, value]) => {
@@ -64,7 +64,7 @@ var WillContent = React.forwardRef(function WillContent(props, ref,) {
     return (
         <div ref={ref}>
             <div className='document-container'>
-                <p class="ql-align-center"><strong>LAST WILL AND TESTAMENT OF {capitalLetters(personal.fullName)} </strong></p>
+                <p class="align-center"><strong>LAST WILL AND TESTAMENT OF {capitalLetters(personal.fullName)} </strong></p>
                 <p><br /><br />I, {capitalLetters(personal.fullName)}, presently of {capitalLetters(personal.city)} {personal.province ? `, ${capitalLetters(personal.province)}` : ''} declare that this is my Last Will and Testament.<br /><br /></p>
 
                 <p><strong><u>Prior Wills and Codicils</u></strong></p>
@@ -89,23 +89,23 @@ var WillContent = React.forwardRef(function WillContent(props, ref,) {
                         <>
                             <li>I have the following living children: </li>
 
-                            <ol>
+                            <ul>
 
                                 {kids.map((kid, index) => (
                                     <li key={index}>{`${capitalLetters(kid.firstName)} ${capitalLetters(kid.lastName)}`}</li>
                                 ))}
 
-                            </ol>
+                            </ul>
 
 
                         </>
                     ) : (
                         <li>I do not currently have any living children</li>
                     )}
-                    <li className='second'>The term "child" or "children" as used in this my Will includes the above listed children and any children of mine that are subsequently born or legally adopted.</li>
+                    <li>The term "child" or "children" as used in this my Will includes the above listed children and any children of mine that are subsequently born or legally adopted.</li>
                 </ol>
                 <br></br>
-                <p class="ql-align-center"><strong>II. EXECUTOR</strong></p><p><strong><u>Definition</u></strong></p>
+                <p class="align-center"><strong>II. EXECUTOR</strong></p><p><strong><u>Definition</u></strong></p>
                 <ol>
                     <li>The expression "my Executor" used throughout this Will includes either the singular or plural number,
                         wherever the fact or context so requires. The term "executor" in this Will is synonymous with and includes
@@ -135,7 +135,7 @@ var WillContent = React.forwardRef(function WillContent(props, ref,) {
                 <p><strong><u>Powers of my Executor</u></strong></p>
                 <ol>
                     <li>I give and appoint to my Executor the following duties and powers with respect to my estate:</li>
-                    <ol>
+                    <ul>
                         <li>
                             My Executor(s) shall collect and gather my assets and may sell these assets at a time and price and upon
                             such other terms as they consider appropriate in their absolute discretion, and without liability for
@@ -196,7 +196,7 @@ var WillContent = React.forwardRef(function WillContent(props, ref,) {
                             not an investment authorized under this Will, a debt is owing on the property; or the property does not
                             produce income.
                         </li>
-                    </ol>
+                    </ul>
                     <li value="2">
                         The above authority and powers granted to my Executor are in addition to any powers and elective rights
                         conferred by provincial/territorial or federal law or by other provision of this Will and may be exercised
@@ -204,7 +204,7 @@ var WillContent = React.forwardRef(function WillContent(props, ref,) {
                     </li>
                 </ol>
                 <br></br>
-                <p class="ql-align-center"><strong>III. DISPOSITION OF ESTATE</strong></p>
+                <p class="align-center"><strong>III. DISPOSITION OF ESTATE</strong></p>
                 <p><strong><u>Bequests</u></strong></p>
                 <ol>
                     {bequests && bequests.length > 0 ? (
@@ -215,27 +215,29 @@ var WillContent = React.forwardRef(function WillContent(props, ref,) {
                                 property given under this Will is subject to any encumbrances or liens attached to the property. My specific
                                 bequests are as follows:
                             </li>
-                            {bequests.map((item, index) => {
-                                const { city, country } = findPersonInfo(item.names, relatives, kids, spouseInfo);
-                                return !item.isCustom
-                                    ? (
-                                        <li key={index}>
-                                            I leave {item.shares}% of {item.bequest} to {capitalLetters(item.names)} of {capitalLetters(city)}, {capitalLetters(country)} if they shall survive me, for their own use absolutely.
-                                        </li>
-                                    )
-                                    : null
-                            })}
+                            <ul>
+                                {bequests.map((item, index) => {
+                                    const { city, country } = findPersonInfo(item.names, relatives, kids, spouseInfo);
+                                    return !item.isCustom
+                                        ? (
+                                            <li key={index}>
+                                                I leave {item.shares}% of {item.bequest} to {capitalLetters(item.names)} of {capitalLetters(city)}, {capitalLetters(country)} if they shall survive me, for their own use absolutely.
+                                            </li>
+                                        )
+                                        : null
+                                })}
 
-                            {bequests.map((item, index) => {
-                                const { city, country } = findPersonInfo(item.names, relatives, kids, spouseInfo);
-                                return item.isCustom
-                                    ? (
-                                        <li key={index}>
-                                            {item.bequest}, if they shall survive me, for their own use absolutely.
-                                        </li>
-                                    )
-                                    : null
-                            })}
+                                {bequests.map((item, index) => {
+                                    const { city, country } = findPersonInfo(item.names, relatives, kids, spouseInfo);
+                                    return item.isCustom
+                                        ? (
+                                            <li key={index}>
+                                                {item.bequest}, if they shall survive me, for their own use absolutely.
+                                            </li>
+                                        )
+                                        : null
+                                })}
+                            </ul>
                         </>
                     ) : (
                         <li>
@@ -309,7 +311,7 @@ var WillContent = React.forwardRef(function WillContent(props, ref,) {
                 {hasKids && guardians.length > 0 && (
                     <>
                         <br></br>
-                        <p class="ql-align-center"><strong>IV. CHILDREN</strong></p>
+                        <p class="align-center"><strong>IV. CHILDREN</strong></p>
                         <p><strong><u>Guardian for Minor and Dependent Children</u></strong></p>
                         <ol>
                             {guardians
@@ -364,7 +366,7 @@ var WillContent = React.forwardRef(function WillContent(props, ref,) {
                 )}
 
                 <br />
-                <p class="ql-align-center"><strong>V. TESTAMENTARY TRUSTS</strong></p>
+                <p class="align-center"><strong>V. TESTAMENTARY TRUSTS</strong></p>
                 <p><strong><u>Testamentary Trust for Young Beneficiaries</u></strong></p>
 
                 <ol>
@@ -378,7 +380,7 @@ var WillContent = React.forwardRef(function WillContent(props, ref,) {
                                 reaches the designated age. Any property left by me to any Young Beneficiary in this my Will shall be given to
                                 my Executor(s) to be managed until that Young Beneficiary reaches the following ages, at which time they will
                                 receive that designated percentage of their inheritance:
-                                <ol>
+                                <ul>
                                     {Object.entries(trusting)
                                         .filter(([key, value]) => typeof value === 'object' && 'age' in value && 'shares' in value)
                                         .sort((a, b) => parseInt(a[1].age) - parseInt(b[1].age))
@@ -387,10 +389,12 @@ var WillContent = React.forwardRef(function WillContent(props, ref,) {
                                                 When they reach the age of {item.age} years, {item.shares}% of the total share will be paid or transferred to the beneficiary.
                                             </li>
                                         ))}
-                                </ol>
-                                At the age of {Math.max(...Object.values(trusting).filter(item => typeof item === 'object' && 'age' in item).map(item => parseInt(item.age)))} each beneficiary will receive their last payment, plus any other amounts then still remaining in trust for them.
+                                </ul>
+                                <li>
+                                    At the age of {Math.max(...Object.values(trusting).filter(item => typeof item === 'object' && 'age' in item).map(item => parseInt(item.age)))} each beneficiary will receive their last payment, plus any other amounts then still remaining in trust for them.
 
-                                If prior to reaching these ages, the share may be paid or transferred to any parent or guardian of such beneficiary subject to like conditions and the receipt of any such parent or guardian discharges my Executor.
+                                    If prior to reaching these ages, the share may be paid or transferred to any parent or guardian of such beneficiary subject to like conditions and the receipt of any such parent or guardian discharges my Executor.
+                                </li>
                             </>
                         ) : (
                             <li>
@@ -516,7 +520,7 @@ var WillContent = React.forwardRef(function WillContent(props, ref,) {
                         invalid provision.</li>
                 </ol>
                 <br></br>
-                <p class="ql-align-center"><strong>VI. DIGITAL ASSETS</strong></p>
+                <p class="align-center"><strong>VI. DIGITAL ASSETS</strong></p>
                 <ol>
                     <li>My Executor(s) may access, handle, distribute, and dispose of my digital assets, and may obtain, access, modify,
                         delete, and control my passwords and other electronic credentials associated with my digital devices and digital
@@ -531,12 +535,11 @@ var WillContent = React.forwardRef(function WillContent(props, ref,) {
                         telephones, smartphones, and any similar digital device as well as emails, email accounts, digital music,
                         digital photographs, digital videos, software licenses, social network accounts, file sharing accounts,
                         financial accounts, banking accounts, domain registrations, DNS service accounts, web hosting accounts, tax
-                        preparation service accounts, online stores, affiliate programs, other online accounts, and similar digital
                         items, regardless of the ownership of any physical device upon which the digital item is stored.</li>
                 </ol>
 
                 <br></br>
-                <p class="ql-align-center"><strong>VII. GENERAL PROVISIONS</strong></p>
+                <p class="align-center"><strong>VII. GENERAL PROVISIONS</strong></p>
                 <p><strong><u>Pets</u></strong></p>
                 <ol>
                     {pets && pets.length > 0 ? (
@@ -625,7 +628,7 @@ var WillContent = React.forwardRef(function WillContent(props, ref,) {
                     <li>If any provisions of this Will are deemed unenforceable, the remaining provisions will remain in full force and
                         effect.</li>
                 </ol>
-                <p>&nbsp;</p><p class="ql-align-center"><em>The remainder of this page has
+                <p>&nbsp;</p><p class="align-center"><em>The remainder of this page has
                     intentionally been left blank.</em></p><p><br /><br /> IN WITNESS WHEREOF, I have signed my name on this the _________ day of ______________________, 20______,
                         at toronto, Ontario declaring and publishing this instrument as my Last Will, in the presence of the undersigned
                         witnesses, who witnessed and subscribed this Last Will at my request, and in my presence, via video conference.
@@ -637,7 +640,7 @@ var WillContent = React.forwardRef(function WillContent(props, ref,) {
                     ________________________________________________<br /> Witness #1 (Nicole Barrett)<br /><br /> 665 Millway Ave.
                     #44<br /> Vaughan, ON<br /> L4K 3T8<br /> <br /><br /><br /> ________________________________________________<br />
                     Witness #2 (Dale Barrett)<br /><br /> 665 Millway Ave. #44<br /> Vaughan, ON<br /> L4K 3T8
-                </p><p class="ql-align-center"><strong>LAST WILL AND TESTAMENT OF {capitalLetters(personal.fullName)}  </strong></p><p><br /><br /><br /><br /><br /> <br /><br /><br /><br /><br /><br /> Prepared by: Lawyers and Lattes Professional
+                </p><p class="align-center"><strong>LAST WILL AND TESTAMENT OF {capitalLetters(personal.fullName)}  </strong></p><p><br /><br /><br /><br /><br /> <br /><br /><br /><br /><br /><br /> Prepared by: Lawyers and Lattes Professional
                     Corporation<br /> Toronto, ON<br /> lawyersandlattes.com<br /> docs@lawyersandlattes.com<br />
                     <br /><br /><br /><br />
                 </p></div >
