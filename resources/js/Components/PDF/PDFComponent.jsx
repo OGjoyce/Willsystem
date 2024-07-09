@@ -1,28 +1,20 @@
-
 import { useRef } from "react";
 import { Preview, print } from 'react-html2pdf';
-
 import { useReactToPrint } from "react-to-print";
 import { Button } from "react-bootstrap";
 import { forwardRef } from 'react';
-import Article from "./Article";
 var render = 0;
 var fullName, spouseName;
 var childs = [];
 export default function PDFComponent(datas) {
     var componentRef = useRef();
-   
-    debugger;
-
-
-
 
     fullName = datas.datas[0].personal.fullName;
 
     const isMarried = datas.datas[1].marriedq.selection;
     spouseName = "";
     if (isMarried) {
-        spouseName = datas.datas[2].married.firstName + " " + datas.datas[2].married.middleName +" "+ datas.datas[2].married.lastName;
+        spouseName = datas.datas[2].married.firstName + " " + datas.datas[2].married.middleName + " " + datas.datas[2].married.lastName;
     }
     else {
         //add what happens if not married
@@ -31,10 +23,10 @@ export default function PDFComponent(datas) {
 
     if (hasChilds) {
         const len = Object.keys(datas.datas[4].kids).length;
-        
-        for (var i = 0; i< len-1; i++) {
-            childs.push({"name":datas.datas[4].kids[i].firstName + " " + datas.datas[4].kids[i].firstName});
-            
+
+        for (var i = 0; i < len - 1; i++) {
+            childs.push({ "name": datas.datas[4].kids[i].firstName + " " + datas.datas[4].kids[i].firstName });
+
         }
 
     }
