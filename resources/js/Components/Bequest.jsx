@@ -47,7 +47,7 @@ function Bequest({ id, datas }) {
     const addRecepient = () => {
         var bequest, selected, shares;
         bequest = document.getElementById('bequestTextArea').value;
-        selected = isCustomBequest ? '' : selectedRecepient;
+        selected = isCustomBequest ? 'NA' : selectedRecepient;
         shares = isCustomBequest ? "100%" : document.getElementById('sharesID').value;
 
         if (bequest != "" && (isCustomBequest || (selected != "false" && shares != "" && shares > 0 && shares <= 100))) {

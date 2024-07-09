@@ -4,7 +4,6 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import Button from 'react-bootstrap/Button';
 
-
 const PDFEditor = ({ ContentComponent, object_status }) => {
   const [editorContent, setEditorContent] = useState('');
   const [documentVersions, setDocumentVersions] = useState({});
@@ -19,7 +18,7 @@ const PDFEditor = ({ ContentComponent, object_status }) => {
       console.error("ERROR while rendering document:", error);
       setEditorContent("No content to show");
     }
-  }, [object_status]);
+  }, [object_status, ContentComponent]);
 
   useEffect(() => {
     const latestVersion = object_status[object_status.length - 1]?.documentDOM;
@@ -50,13 +49,11 @@ const PDFEditor = ({ ContentComponent, object_status }) => {
       { ...object_status[object_status.length - 1], documentDOM: updatedDocumentVersions }
     ];
 
-
+    console.log(updatedObjectStatus);
   }, [editorContent, documentVersions, object_status]);
 
   return (
     <div className="editor">
-
-
       <ReactQuill
         value={editorContent}
         onChange={handleChange}
@@ -84,4 +81,4 @@ const PDFEditor = ({ ContentComponent, object_status }) => {
   );
 };
 
-export default PDFEditor
+export default PDFEditor;

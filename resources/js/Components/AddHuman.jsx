@@ -1,102 +1,86 @@
-
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
-import { useState } from 'react'
-import { Dialog } from '@headlessui/react'
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
-
-import { Fragment } from 'react'
-import { Listbox, Transition } from '@headlessui/react'
-import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
+import { useState } from 'react';
+import { Dialog } from '@headlessui/react';
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Fragment } from 'react';
+import { Listbox, Transition } from '@headlessui/react';
+import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import Form from 'react-bootstrap/Form';
 
 var selected_value = "";
+
 export function getHumanData(params) {
-
-
     if (params != false) {
-
         var firstName = document.getElementById('firstNameId').value;
         var middleName = document.getElementById('middleNameId').value;
         var lastName = document.getElementById('lastNameId').value;
         var relative = document.getElementById('relativeId').value;
+        if (relative === 'Other') {
+            relative = document.getElementById('otherRelativeId').value;
+        }
         var city = document.getElementById('city').value;
         var province = document.getElementById('province').value;
-        var country =  document.getElementById('country').value;
-    
+        var country = document.getElementById('country').value;
 
-        if (params == "childrens") {
-            var obj = {
-                "firstName": firstName,
-                "middleName": middleName,
-                "lastName": lastName,
-                "relative": relative,
-                "email": "NA",
-                "phone": "NA",
-                "city" : city,
-                "province": province,
-                "country": country
-
-            }
-
-
-        }
-        else {
-
+        var obj;
+        if (params === "childrens") {
+            obj = {
+                firstName: firstName,
+                middleName: middleName,
+                lastName: lastName,
+                relative: relative,
+                email: "NA",
+                phone: "NA",
+                city: city,
+                province: province,
+                country: country
+            };
+        } else {
             var control = 0;
-
+            var email = "NA";
             try {
-                var email1 = document.getElementById('emailId0').value;
-
+                email = document.getElementById('emailId0').value;
             } catch (error) {
                 control = 1;
-                var email2 = document.getElementById('emailId1').value;
-
+                email = document.getElementById('emailId1').value;
             }
-
-
 
             var phone = document.getElementById('phoneId').value;
-            var obj = {
-                "firstName": firstName,
-                "middleName": middleName,
-                "lastName": lastName,
-                "relative": relative,
-                "email": control == 0 ? email1 : email2,
-                "phone": phone,
-                "city" : city,
-                "province": province,
-                "country": country
-            }
-
-        }
-
-
-
-
-
-
-
-        return obj;
-
-    }
-    else {
-        var obj = {
-            "firstName": "NA",
-            "middleName": "NA",
-            "lastName": "NA",
-            "relative": "NA",
-            "email": "NA",
-            "phone": "NA"
+            obj = {
+                firstName: firstName,
+                middleName: middleName,
+                lastName: lastName,
+                relative: relative,
+                email: email,
+                phone: phone,
+                city: city,
+                province: province,
+                country: country
+            };
         }
         return obj;
-
+    } else {
+        return {
+            firstName: "NA",
+            middleName: "NA",
+            lastName: "NA",
+            relative: "NA",
+            email: "NA",
+            phone: "NA"
+        };
     }
 }
 
 function AddHuman({ married, childrens, human }) {
+    const [relative, setRelative] = useState('');
+    const [showOther, setShowOther] = useState(false);
 
-
+    const handleRelativeChange = (e) => {
+        const value = e.target.value;
+        setRelative(value);
+        setShowOther(value === 'Other');
+    };
 
     return (
         <>
@@ -116,67 +100,69 @@ function AddHuman({ married, childrens, human }) {
                 </Form.Group>
                 <Form.Group className="mb-3" controlId="relativeId">
                     <Form.Label>Relative</Form.Label>
-                    {
-                        married ?
-                            <><Form.Control readOnly defaultValue="Spouse" />
-                                <Form.Group className="mb-3" controlId="emailId0">
-                                    <Form.Label>Email for notifications:</Form.Label>
-                                    <Form.Control type="email" placeholder="example@dot.com" />
-                                </Form.Group>
-                                <Form.Group className="mb-3" controlId="phoneId">
-                                    <Form.Label>Phone</Form.Label>
-                                    <Form.Control type="text" placeholder="+1(XXX)XXX-XXXX" />
-                                </Form.Group>
-                            </>
-                            :
-                            null
+                    <Form.Control as="select" value={relative} onChange={handleRelativeChange}>
+                        <option value="">Select...</option>
+                        <option value="Spouse">Spouse</option>
+                        <option value="Children">Children</option>
+                        <option value="Brother">Brother</option>
+                        <option value="Uncle">Uncle</option>
+                        <option value="Other">Other</option>
+                    </Form.Control>
+                    {showOther && (
+                        <Form.Group className="mt-3" controlId="otherRelativeId">
+                            <Form.Label>Specify Other</Form.Label>
+                            <Form.Control type="text" placeholder="Enter relation" />
+                        </Form.Group>
+                    )}
+                    {married && (
+                        <>
+                            <Form.Group className="mb-3" controlId="emailId0">
+                                <Form.Label>Email for notifications:</Form.Label>
+                                <Form.Control type="email" placeholder="example@dot.com" />
+                            </Form.Group>
+                            <Form.Group className="mb-3" controlId="phoneId">
+                                <Form.Label>Phone</Form.Label>
+                                <Form.Control type="text" placeholder="+1(XXX)XXX-XXXX" />
+                            </Form.Group>
+                        </>
+                    )}
+                    {childrens && (
+                        <>
+                            <Form.Control readOnly defaultValue="Children" />
+                            <Form.Group className="mb-3" controlId="emailId1">
+                                {/* Email input can be added here if needed */}
+                            </Form.Group>
+                        </>
+                    )}
+                    {human && (
+                        <>
 
-
-                    }
-                    {
-                        childrens ?
-                            <><Form.Control readOnly defaultValue="Children" /><Form.Group className="mb-3" controlId="emailId1">
-                            </Form.Group></>
-                            :
-                            null
-                    }
-                    {
-                        human ?
-                            <><><Form.Control type="text" placeholder="Relative" />
-                                <Form.Group className="mb-3" controlId="emailId1">
-                                    <Form.Label>Email for notifications:</Form.Label>
-                                    <Form.Control type="email" placeholder="example@dot.com" />
-                                </Form.Group></><Form.Group className="mb-3" controlId="phoneId">
-                                    <Form.Label>Phone</Form.Label>
-                                    <Form.Control type="text" placeholder="+1(XXX)XXX-XXXX" />
-                                </Form.Group></>
-                            :
-                            null
-                    }
-                    <Form.Group className="mb-3" controlId="city">
-                        <Form.Label>City</Form.Label>
-                        <Form.Control type="text" placeholder="..." />
-                    </Form.Group>
-                    <Form.Group className="mb-3" controlId="province">
-                        <Form.Label>Province/State:</Form.Label>
-                        <Form.Control type="text" placeholder="..." />
-                    </Form.Group>
-                    <Form.Group className="mb-3" controlId="country">
-                        <Form.Label>Country:</Form.Label>
-                        <Form.Control type="text" placeholder="..." />
-                    </Form.Group>
-
-
+                            <Form.Group className="mb-3" controlId="emailId1">
+                                <Form.Label>Email for notifications:</Form.Label>
+                                <Form.Control type="email" placeholder="example@dot.com" />
+                            </Form.Group>
+                            <Form.Group className="mb-3" controlId="phoneId">
+                                <Form.Label>Phone</Form.Label>
+                                <Form.Control type="text" placeholder="+1(XXX)XXX-XXXX" />
+                            </Form.Group>
+                        </>
+                    )}
                 </Form.Group>
-
+                <Form.Group className="mb-3" controlId="city">
+                    <Form.Label>City</Form.Label>
+                    <Form.Control type="text" placeholder="..." />
+                </Form.Group>
+                <Form.Group className="mb-3" controlId="province">
+                    <Form.Label>Province/State:</Form.Label>
+                    <Form.Control type="text" placeholder="..." />
+                </Form.Group>
+                <Form.Group className="mb-3" controlId="country">
+                    <Form.Label>Country:</Form.Label>
+                    <Form.Control type="text" placeholder="..." />
+                </Form.Group>
             </Form>
-
-
         </>
-
-
-
-
     );
 }
+
 export default AddHuman;
