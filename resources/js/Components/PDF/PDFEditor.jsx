@@ -9,7 +9,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import html2canvas from 'html2canvas';
 import './PDFEditor.css';
-import './content.css';
+import '@/Components/PDF/Content/content.css'
 
 
 const contentcss = `
@@ -108,6 +108,36 @@ export function getDocumentDOMInfo() {
   return updatedObjectStatus.documentDOM
 }
 
+const Toolbar = ({ editor }) => {
+  if (!editor) {
+    return null;
+  }
+
+  return (
+    <div className="toolbar">
+      <button
+        onClick={() => editor.chain().focus().toggleBold().run()}
+        className={editor.isActive('bold') ? 'is-active' : ''}
+      >
+        Bold
+      </button>
+      <button
+        onClick={() => editor.chain().focus().toggleItalic().run()}
+        className={editor.isActive('italic') ? 'is-active' : ''}
+      >
+        Italic
+      </button>
+      <button
+        onClick={() => editor.chain().focus().toggleUnderline().run()}
+        className={editor.isActive('underline') ? 'is-active' : ''}
+      >
+        Underline
+      </button>
+      {/* Añade más botones según necesites */}
+    </div>
+  );
+};
+
 const PDFEditor = ({ ContentComponent, datas }) => {
   var object_status = datas;
 
@@ -189,6 +219,9 @@ const PDFEditor = ({ ContentComponent, datas }) => {
 
   return (
     <div className="editor">
+      <div className="toolbar-container">
+        <Toolbar editor={editor} />
+      </div>
       <Button variant="primary" onClick={handlePrint} className="mt-3 mb-3">
         Download as PDF
       </Button>

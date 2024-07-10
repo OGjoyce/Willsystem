@@ -26,6 +26,7 @@ const POA2Content = forwardRef((props, ref) => {
     const POAInfo = statusObject.poa || {};
 
     function findPersonInfo(name, relatives, kids, spouseInfo) {
+        if (!name) return { city: '', country: '', province: '', fullName: '', relation: '', telephone: '' };
         const names = name.trim();
         let person = relatives.find(rel => `${rel.firstName} ${rel.lastName}` === names);
         let relation = person ? person.relative : '';
@@ -54,9 +55,9 @@ const POA2Content = forwardRef((props, ref) => {
         return { city: '', country: '', province: '', fullName: names, relation: '', telephone: '' };
     }
 
-    const attorneyOne = findPersonInfo(POAInfo.poaHealth.attorney, relatives, kids, spouseInfo);
-    const attorneyTwo = findPersonInfo(POAInfo.poaHealth.join, relatives, kids, spouseInfo);
-    const restrictions = POAInfo.poaHealth.restrictions || '';
+    const attorneyOne = POAInfo.poaHealth ? findPersonInfo(POAInfo.poaHealth.attorney, relatives, kids, spouseInfo) : {};
+    const attorneyTwo = POAInfo.poaHealth ? findPersonInfo(POAInfo.poaHealth.join, relatives, kids, spouseInfo) : {};
+    const restrictions = POAInfo.poaHealth ? (POAInfo.poaHealth.restrictions || '') : '';
 
     return (
         <div ref={ref}>
@@ -65,7 +66,7 @@ const POA2Content = forwardRef((props, ref) => {
                 <br />
                 <p><strong>POWER OF ATTORNEY FOR PERSONAL CARE OF {capitalLetters(personal.fullName)}</strong></p>
                 <p>
-                    I, {personal.fullName} (the "Grantor") of {personal.city}, {personal.province}, {personal.country}, being of sound mind and of legal age to execute this document, do hereby make this Power of Attorney for Personal Care. I fully understand the consequences of my actions in doing so. I intend this Power of Attorney for Personal Care to be read by my health care providers, family, and friends as a true reflection of my wishes and instructions should I lack capacity and be unable to communicate such wishes and instructions.
+                    I,  {personal.fullName || ''} (the "Grantor") of {personal.city}, {personal.province}, {personal.country}, being of sound mind and of legal age to execute this document, do hereby make this Power of Attorney for Personal Care. I fully understand the consequences of my actions in doing so. I intend this Power of Attorney for Personal Care to be read by my health care providers, family, and friends as a true reflection of my wishes and instructions should I lack capacity and be unable to communicate such wishes and instructions.
                 </p>
                 <p><strong>Definitions</strong></p>
                 <ol>

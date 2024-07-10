@@ -1,39 +1,38 @@
+
 import React, { forwardRef } from 'react';
 import './content.css';
 
 const POA1Content = forwardRef((props, ref) => {
     const capitalLetters = (word) => {
-        return word.toUpperCase();
+        return word ? word.toUpperCase() : '';
     };
-    if (props === undefined) {
+
+    if (!props || !props.props || !props.props.datas) {
         return null;
     }
 
-    const datasObj = props.props.datas || [];
-    const statusObject = {};
+    const datasObj = props.props.datas;
+    const statusObject = datasObj.reduce((acc, item) => ({ ...acc, ...item }), {});
 
-    datasObj.forEach(item => {
-        Object.entries(item).forEach(([key, value]) => {
-            statusObject[key] = value;
-        });
-    });
+    const personal = statusObject.personal || {};
+    const spouseInfo = statusObject.married || {};
+    const kids = Object.values(statusObject.kids || {});
+    const relatives = Object.values(statusObject.relatives || {});
+    const POAInfo = statusObject.poa || {};
 
-    var personal = statusObject.personal;
-    var spouseInfo = statusObject.married;
-    var kids = Object.values(statusObject.kids || {});
-    var relatives = Object.values(statusObject.relatives || {});
-    var POAInfo = statusObject.poa || {};
     function findPersonInfo(name, relatives, kids, spouseInfo) {
+        if (!name) return { city: '', country: '', province: '', fullName: '', relation: '', telephone: '' };
         const names = name.trim();
-        let person = relatives.find(rel => `${rel.firstName} ${rel.lastName}` === names);
+        let person = relatives.find(rel => `${rel.firstName || ''} ${rel.lastName || ''}`.trim() === names);
         let relation = person ? person.relative : '';
 
         if (!person) {
-            person = kids.find(kid => `${kid.firstName} ${kid.lastName}` === names);
+            person = kids.find(kid => `${kid.firstName || ''} ${kid.lastName || ''}`.trim() === names);
             relation = person ? 'Child' : '';
         }
 
-        if (!person && spouseInfo.firstName && spouseInfo.lastName && `${spouseInfo.firstName} ${spouseInfo.lastName}` === names) {
+        if (!person && spouseInfo.firstName && spouseInfo.lastName &&
+            `${spouseInfo.firstName} ${spouseInfo.lastName}`.trim() === names) {
             person = spouseInfo;
             relation = 'Spouse';
         }
@@ -43,23 +42,24 @@ const POA1Content = forwardRef((props, ref) => {
                 city: person.city || '',
                 country: person.country || '',
                 province: person.province || '',
-                fullName: `${person.firstName} ${person.lastName}`.trim() || '',
-                relation: relation
+                fullName: `${person.firstName || ''} ${person.lastName || ''}`.trim(),
+                relation: relation,
+                telephone: person.phone || person.telephone || ''
             };
         }
 
-        return { city: '', country: '', province: '', fullName: names, relation: '' };
+        return { city: '', country: '', province: '', fullName: names, relation: '', telephone: '' };
     }
 
-    const attorneyOne = findPersonInfo(POAInfo.poaProperty.attorney, relatives, kids, spouseInfo);
-    const attorneyTwo = findPersonInfo(POAInfo.poaProperty.join, relatives, kids, spouseInfo);
-    const restrictions = POAInfo.poaProperty.restrictions
+    const attorneyOne = POAInfo.poaProperty ? findPersonInfo(POAInfo.poaProperty.attorney, relatives, kids, spouseInfo) : {};
+    const attorneyTwo = POAInfo.poaProperty ? findPersonInfo(POAInfo.poaProperty.join, relatives, kids, spouseInfo) : {};
+    const restrictions = POAInfo.poaProperty ? (POAInfo.poaProperty.restrictions || '') : '';
 
     return (
         <div ref={ref}>
             <div className='document-container'>
-                <h2 className='document-header'>Continuing Power of Attorney for Property of {personal.fullName}</h2>
-                <br></br>
+                <h2 className='document-header'>Continuing Power of Attorney for Property of {personal.fullName || ''}</h2>
+                <br />
                 <p><strong>CONTINUING POWER OF ATTORNEY FOR PROPERTY OF {capitalLetters(personal.fullName)}</strong></p>
                 <p>I, {capitalLetters(personal.fullName)} of {capitalLetters(personal.city)}{personal.province ? `, ${capitalLetters(personal.province)}` : ""} revoke any previous continuing Power of Attorney for
                     Property made by me and APPOINT {attorneyOne.relation ? `, my ${attorneyOne.relation}` : ""} {capitalLetters(attorneyOne.fullName)} of {capitalLetters(attorneyOne.city)}{attorneyOne.province ? `, ${capitalLetters(attorneyOne.province)}` : ""} to be my sole Attorney for
@@ -89,13 +89,14 @@ const POA1Content = forwardRef((props, ref) => {
                         with any level of government.</li>
                 </ul>
                 <p>CONDITIONS AND RESTRICTIONS</p>
-                {restrictions
-                    ? (
-                        <ol>
-                            <li>{restrictions}</li>
-                        </ol>
-                    )
-                    : <p>No conditions or restrictions upon Power of Attorney.</p>
+                {
+                    restrictions
+                        ? (
+                            <ol>
+                                <li>{restrictions}</li>
+                            </ol>
+                        )
+                        : <p>No conditions or restrictions upon Power of Attorney.</p>
                 }
 
                 <p>The authority granted to my Attorney under this Power of Attorney for Personal Property will be in effect if and
@@ -125,8 +126,8 @@ const POA1Content = forwardRef((props, ref) => {
                     665 Millway Avenue, Unit 44<br />
                     Vaughan, Ontario<br />
                     L4K 3T8</p>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 });
 
