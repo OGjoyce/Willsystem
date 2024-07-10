@@ -89,7 +89,7 @@ function HumanTable({ id, datas }) {
             for (let index = 0; index < largo; index++) {
                 const child = datas[4].kids[index];
                 console.log(child);
-            
+
                 var obj = {
                     "id": ids,
                     "firstName": child.firstName,
@@ -155,10 +155,10 @@ function HumanTable({ id, datas }) {
     const handleShowE = (exe) => {
 
 
-        
+
         selectedExecutor = exe;
         setShowExecutor(true);
-       
+
 
         const names = exe.firstName + " " + exe.lastName + " -> " + exe.relative;
         selected_executor = names;
@@ -169,7 +169,7 @@ function HumanTable({ id, datas }) {
     //function to get data from executor and place it in a table
 
     const handleCloseExecutor = () => {
-        
+
         setShowExecutor(false);
         const pointer = executorPriority;
 
@@ -179,7 +179,7 @@ function HumanTable({ id, datas }) {
             "lastName": selectedExecutor.lastName,
             "relative": selectedExecutor.relative,
             "country": selectedExecutor.country,
-            "city" : selectedExecutor.city,
+            "city": selectedExecutor.city,
             "province": selectedExecutor.province,
 
         }

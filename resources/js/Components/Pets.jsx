@@ -137,8 +137,8 @@ function Pets({ datas }) {
                                 >
                                     <option value="">Choose...</option>
                                     {table_data.map((name, index) => (
-                                        <option key={index} value={name.firstName}>
-                                            {name.firstName}
+                                        <option key={index} value={`${name.firstName} ${name.lastName}`}>
+                                            {name.firstName + ' ' + name.lastName}
                                         </option>
                                     ))}
                                 </Form.Control>
@@ -153,8 +153,8 @@ function Pets({ datas }) {
                                 >
                                     <option disabled="true" value="" >Choose...</option>
                                     {table_data.map((name, index) => (
-                                        <option key={index} value={name.firstName}>
-                                            {name.firstName}
+                                        <option key={index} value={`${name.firstName} ${name.lastName}`}>
+                                            {name.firstName + ' ' + name.lastName}
                                         </option>
                                     ))}
                                 </Form.Control>

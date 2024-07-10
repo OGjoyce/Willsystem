@@ -1,7 +1,6 @@
-
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Dialog } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 
@@ -20,8 +19,6 @@ import { Row, Col, DropdownToggle, DropdownMenu, DropdownItem } from 'react-boot
 import Form from 'react-bootstrap/Form';
 import Collapse from 'react-bootstrap/Collapse';
 
-
-
 var all_data;
 var identifiers_names = [];
 var bequestArrObj = [];
@@ -33,82 +30,72 @@ export function getBequestArrObj() {
 }
 
 function Bequest({ id, datas }) {
-
     const [show, setShow] = useState(false);
     const [showExecutor, setShowExecutor] = useState(false);
     const [open, setOpen] = useState(false);
     const [firstRender, setFirstRender] = useState(true);
     var [table_dataBequest, setTable_dataBequest] = useState([]);
     var [selectedRecepient, setSelectedRecepient] = useState("Select a recepient to continue...");
+    const [isCustomBequest, setIsCustomBequest] = useState(false);
     const [readOnly, setReadOnly] = useState(false);
 
     const reviewBequestSum = (index) => {
         var counter = 0;
         var obj = table_dataBequest[index];
-
-
     }
+
     const addRecepient = () => {
         var bequest, selected, shares;
         bequest = document.getElementById('bequestTextArea').value;
-        selected = selectedRecepient;
-        shares = document.getElementById('sharesID').value;
-        if (bequest != "" && selected != "false" && (shares != "") && (shares > 0 && shares <= 100)) {
-            //add to table ... set a hook
+        selected = isCustomBequest ? 'NA' : selectedRecepient;
+        shares = isCustomBequest ? "100%" : document.getElementById('sharesID').value;
 
-            var obj =
-            {
+        if (bequest != "" && (isCustomBequest || (selected != "false" && shares != "" && shares > 0 && shares <= 100))) {
+            var obj = {
                 "id": bequestindex += 1,
                 "names": selected,
                 "shares": shares,
-                "bequest": bequest
+                "bequest": bequest,
+                "isCustom": isCustomBequest
             }
 
-
-            document.getElementById('sharesID').value = "";
-            setSelectedRecepient("Select other Recepient...");
-            var globalSemaphore = 0;
-            globalSemaphore = globalCounter;
-            globalCounter += Number(shares);
-            const sum = reviewBequestSum(bequestindex);
-            console.log(globalCounter);
-            if (globalCounter > 100) {
-                console.log("Amount of shares should be less or equal than 100");
-                globalCounter = globalSemaphore;
-
+            document.getElementById('bequestTextArea').value = "";
+            if (!isCustomBequest) {
+                setSelectedRecepient("Select other Recepient...");
             }
-            else if (globalCounter < 100) {
-                setReadOnly(true);
-                if (!open) {
-                    setOpen(true);
-                }
 
+            if (isCustomBequest) {
                 table_dataBequest.push(obj);
                 bequestArrObj.push(obj);
-
-            }
-            else if (globalCounter == 100) {
-                table_dataBequest.push(obj);
-                bequestArrObj.push(obj);
-                console.log("100");
                 setReadOnly(false);
-                globalCounter = 0;
                 bequestindex += 1;
-                document.getElementById('bequestTextArea').value = "";
+            } else {
+                var globalSemaphore = globalCounter;
+                globalCounter += Number(shares);
+
+                if (globalCounter > 100) {
+                    console.log("Amount of shares should be less or equal than 100");
+                    globalCounter = globalSemaphore;
+                } else if (globalCounter <= 100) {
+                    setReadOnly(true);
+                    if (!open) {
+                        setOpen(true);
+                    }
+                    table_dataBequest.push(obj);
+                    bequestArrObj.push(obj);
+
+                    if (globalCounter == 100) {
+                        setReadOnly(false);
+                        globalCounter = 0;
+                        bequestindex += 1;
+                    }
+                }
             }
 
-
-
-
-
-
+            setTable_dataBequest([...table_dataBequest]);
         }
-
-
-
-
-
     }
+
     function addAnotherRelative() {
         const newrelative = getHumanData();
         const names = newrelative.firstName + " " + newrelative.lastName;
@@ -117,60 +104,42 @@ function Bequest({ id, datas }) {
         let len = Object.keys(datas[5].relatives).length;
         datas[5].relatives[len] = newrelative;
         console.log(datas);
-
-
     }
-    function finishBequest() {
 
+    function finishBequest() {
         var flag = false;
-        //sum by id
         var sum = sumValuesBySameIds(table_dataBequest);
         let len = Object.keys(sum).length;
         for (let index = 0; index < len; index++) {
             if (sum[index] != 100) {
                 alert("Please fix the bequest with id: " + index);
                 flag = true;
-
             }
-
         }
         if (!flag) {
             bequestArrObj = table_dataBequest;
-
         }
-        else {
-
-        }
-
-
-
     }
 
     function sumValuesBySameIds(containerObject) {
         let sums = {};
-        // Loop through each object in the containerObject
         containerObject.forEach(obj => {
-            // If the id already exists in sums, add the value to the sum
             if (sums.hasOwnProperty(obj.id)) {
                 sums[obj.id] += parseFloat(obj.shares);
-            }
-            // Otherwise, initialize the sum for this id
-            else {
+            } else {
                 sums[obj.id] = parseFloat(obj.shares);
             }
         });
-
         return sums;
     }
+
     const setCurrentRecepient = (eventKey) => {
         setSelectedRecepient(eventKey);
     };
 
-    //saves data for relatives table 
     const handleClose = () => {
         setShow(false);
         addAnotherRelative();
-
     }
 
     const handleCloseNosave = () => {
@@ -180,31 +149,24 @@ function Bequest({ id, datas }) {
     const handleShow = () => {
         console.log("nice");
         setShow(true);
-
     }
+
     const handleDelete = (itemId) => {
         table_dataBequest = table_dataBequest.filter(obj => obj.id !== itemId);
-
         var obj = table_dataBequest;
         setTable_dataBequest(obj);
-
         bequestindex -= 1;
     }
-
 
     all_data = datas;
 
     if (all_data != null && firstRender) {
-
         const married = all_data[2].married;
         const kids = all_data[4].kids;
         const relatives = all_data[5].relatives;
         const kidsq = all_data[3].kidsq.selection;
 
-        var dataobj = {}
-        dataobj = {
-            married, kids, relatives
-        }
+        var dataobj = { married, kids, relatives }
 
         var married_names = married.firstName + " " + married.lastName;
         if (kidsq == "true") {
@@ -213,16 +175,8 @@ function Bequest({ id, datas }) {
                 const names = kids[child].firstName + " " + kids[child].lastName;
                 identifiers_names.push(names);
             }
-
-
-        }
-        else {
-
-
         }
         identifiers_names.push(married_names);
-
-
 
         for (let key in relatives) {
             const names = relatives[key].firstName + " " + relatives[key].lastName;
@@ -230,64 +184,60 @@ function Bequest({ id, datas }) {
         }
 
         setFirstRender(false);
-
-
     }
-
-
-
-
-
-
-
-
 
     return (
         <>
-
-
             <Form>
                 <Form.Group className="mb-3" controlId="bequestTextArea">
                     <Form.Label>Bequest</Form.Label>
                     <Form.Control as="textarea" rows={3} placeholder="(i.e... Gold chain...)" readOnly={readOnly} />
                 </Form.Group>
 
+                <Form.Check
+                    type="checkbox"
+                    id="custom-bequest-checkbox"
+                    label="Custom Bequest"
+                    checked={isCustomBequest}
+                    onChange={(e) => setIsCustomBequest(e.target.checked)}
+                />
 
-                <Row >
-                    <Col md="auto">
+                {!isCustomBequest && (
+                    <>
+                        <Row >
+                            <Col md="auto">
+                                <Dropdown style={{ width: "100%" }} onSelect={setCurrentRecepient} >
+                                    <DropdownToggle variants="success" caret="true" id="size-dropdown">
+                                        Select Recepient
+                                    </DropdownToggle>
+                                    <DropdownMenu>
+                                        {identifiers_names.map(size => (
+                                            <DropdownItem key={size} eventKey={size}>{size}</DropdownItem>
+                                        ))}
+                                    </DropdownMenu>
+                                </Dropdown>
+                            </Col>
+                            <Col md="auto" style={{ border: "1px solid black" }}>
+                                {
+                                    selectedRecepient == "false" ?
+                                        null
+                                        :
+                                        <p>Selected Recepient:<b> {selectedRecepient} </b></p>
+                                }
+                            </Col>
+                        </Row>
 
-                        <Dropdown style={{ width: "100%" }} onSelect={setCurrentRecepient} >
-                            <DropdownToggle variants="success" caret="true" id="size-dropdown">
-                                Select Recepient
-                            </DropdownToggle>
-                            <DropdownMenu>
-                                {identifiers_names.map(size => (
-                                    <DropdownItem key={size} eventKey={size}>{size}</DropdownItem>
-                                ))}
-                            </DropdownMenu>
-                        </Dropdown>
-                    </Col>
-                    <Col md="auto" style={{ border: "1px solid black" }}>
-                        {
-                            selectedRecepient == "false" ?
-                                null
-                                :
-                                <p>Selected Recepient:<b> {selectedRecepient} </b></p>
-                        }
-                    </Col>
-
-                </Row>
-
-
-                <Form.Group className="mb-3" controlId="sharesID">
-                    <Form.Label>The total shares should be equal to 100% </Form.Label>
-                    <Form.Control type="number" placeholder="100%" />
-                </Form.Group>
+                        <Form.Group className="mb-3" controlId="sharesID">
+                            <Form.Label>The total shares should be equal to 100% </Form.Label>
+                            <Form.Control type="number" placeholder="100" />
+                        </Form.Group>
+                    </>
+                )}
 
                 <Button variant="outline-success" onClick={() => addRecepient()} >Add Recepient</Button>
                 <Button variant="outline-info" onClick={() => handleShow()}>Add Another Relative</Button>
-
             </Form>
+
             <Button
                 onClick={() => setOpen(!open)}
                 aria-controls="example-collapse-text"
@@ -306,15 +256,15 @@ function Bequest({ id, datas }) {
                                 <th>Names</th>
                                 <th>Bequest</th>
                                 <th>Shares</th>
+                                <th>Custom</th>
                                 <th>Delete</th>
                             </tr>
                         </thead>
                         <tbody>
-
                             {
                                 table_dataBequest.length == 0 ? (
                                     <tr>
-                                        <td colSpan="5">
+                                        <td colSpan="6">
                                             No information added yet, press "Add Recipient Button" to add.
                                         </td>
                                     </tr>
@@ -325,6 +275,7 @@ function Bequest({ id, datas }) {
                                             <td>{item.names}</td>
                                             <td>{item.bequest}</td>
                                             <td>{item.shares}</td>
+                                            <td>{item.isCustom ? 'Yes' : 'No'}</td>
                                             <td>
                                                 <Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button>
                                             </td>
@@ -337,17 +288,12 @@ function Bequest({ id, datas }) {
                 </div>
             </Collapse>
 
-
-
             <Modal show={show} onHide={handleCloseNosave}>
                 <Modal.Header closeButton>
                     <Modal.Title>Add New Person</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-
                     <AddHuman human={true} />
-
-
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" size="sm" onClick={handleCloseNosave}>
@@ -358,14 +304,8 @@ function Bequest({ id, datas }) {
                     </Button>
                 </Modal.Footer>
             </Modal>
-
-
-
         </>
-
-
-
-
     );
 }
+
 export default Bequest;

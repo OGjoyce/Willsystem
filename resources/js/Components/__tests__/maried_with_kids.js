@@ -1,4 +1,4 @@
-[
+const object_status = [
     {
         "personal": {
             "step": 0,
@@ -117,6 +117,13 @@
                 "names": "Hector Veliz",
                 "shares": "100",
                 "bequest": "Bronce Chain"
+            },
+            "4": {
+                "id":7,
+                "names":"",
+                "shares":"100",
+                "bequest":"I leave to my dauther Stefany Ross  a brand new car and $1000 a month for grocerys",
+                "isCustom":true
             },
             "timestamp": 1720434130834
         }
@@ -246,3 +253,5 @@
     },
     {}
 ]
+
+export default object_status

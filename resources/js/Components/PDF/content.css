@@ -1,0 +1,75 @@
+.document-container ol li {
+    margin-left: 48px;
+}
+
+.align-center {
+    text-align: center;
+}
+
+body {
+    font-family: 'Times New Roman', Times, serif;
+    line-height: 1.6;
+    color: #333;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #333;
+    padding-bottom: 10px;
+}
+
+h2 {
+    font-size: 18px;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #999;
+    padding-bottom: 5px;
+}
+
+h3 {
+    font-size: 16px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+p,
+ul {
+    margin-bottom: 15px;
+}
+
+ul {
+    padding-left: 30px;
+}
+
+.signature-line {
+    border-top: 1px solid #333;
+    width: 50%;
+    margin-top: 50px;
+}
+
+@media print {
+    body {
+        font-size: 12pt;
+    }
+
+    h1 {
+        font-size: 18pt;
+    }
+
+    h2 {
+        font-size: 14pt;
+    }
+
+    h3 {
+        font-size: 12pt;
+    }
+
+    .page-break {
+        page-break-before: always;
+    }
+}
