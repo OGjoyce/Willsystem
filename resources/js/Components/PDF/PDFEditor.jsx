@@ -2,62 +2,110 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ReactDOMServer from 'react-dom/server';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
 import Button from 'react-bootstrap/Button';
 import { useReactToPrint } from "react-to-print";
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';  // Importamos jspdf-autotable para manejar múltiples páginas
+import 'jspdf-autotable';
+import html2canvas from 'html2canvas';
 import './PDFEditor.css';
+import './content.css';
+
+const contentcss = `
+.document-container ol {
+    list-style-type: decimal;
+    margin-left: 48px;
+}
+
+.document-container ul {
+    list-style-type: disc;
+    margin-left: 48px;
+}
+
+.align-center {
+    text-align: center;
+}
+
+body {
+    font-family: 'Times New Roman', Times, serif;
+    line-height: 1.6;
+    color: #333;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #333;
+    padding-bottom: 10px;
+}
+
+h2 {
+    font-size: 18px;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #999;
+    padding-bottom: 5px;
+}
+
+h3 {
+    font-size: 16px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+p,
+ul,
+ol {
+    margin-bottom: 15px;
+}
+
+ul,
+ol {
+    padding-left: 30px;
+}
+
+.signature-line {
+    border-top: 1px solid #333;
+    width: 50%;
+    margin-top: 50px;
+}
+
+@media print {
+    body {
+        font-size: 12pt;
+    }
+
+    h1 {
+        font-size: 18pt;
+    }
+
+    h2 {
+        font-size: 14pt;
+    }
+
+    h3 {
+        font-size: 12pt;
+    }
+
+    .page-break {
+        page-break-before: always;
+    }
+}`;
 
 const PDFEditor = ({ ContentComponent, datas }) => {
   var object_status = datas;
-  const downloadPdf = (object_status) => {
-    const documentDOM = object_status.find(item => item.documentDOM)?.documentDOM;
-    if (!documentDOM || !documentDOM.v1 || !documentDOM.v1.content) {
-      console.error("No se encontró contenido del documento");
-      return;
-    }
-
-    const content = documentDOM.v1.content;
-
-    const pdf = new jsPDF('p', 'mm', 'a4');
-
-    // Configurar la fuente
-    pdf.setFont("times", "normal");
-    pdf.setFontSize(12);
-
-    // Definir márgenes (en mm)
-    const margin = 25;
-    const pageWidth = pdf.internal.pageSize.width;
-    const pageHeight = pdf.internal.pageSize.height;
-
-    // Agregar el contenido al PDF
-    pdf.html(content, {
-      callback: function (pdf) {
-        // Agregar números de página
-        const pageCount = pdf.internal.getNumberOfPages();
-        for (let i = 1; i <= pageCount; i++) {
-          pdf.setPage(i);
-          pdf.setFontSize(10);
-          pdf.text(`Página ${i} de ${pageCount}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
-        }
-        pdf.save('testamento.pdf');
-      },
-      x: margin,
-      y: margin,
-      width: pageWidth - 2 * margin,
-      windowWidth: 794,
-      html2canvas: {
-        scale: 2,
-        letterRendering: true,
-      }
-    });
-  };;
 
   const [editorContent, setEditorContent] = useState('');
   const [documentVersions, setDocumentVersions] = useState({});
-
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [
+      StarterKit,
+      Underline,
+    ],
     content: editorContent,
     onUpdate: ({ editor }) => {
       setEditorContent(editor.getHTML());
@@ -83,7 +131,6 @@ const PDFEditor = ({ ContentComponent, datas }) => {
     ];
 
     object_status = updatedObjectStatus;
-    downloadPdf(object_status);
     console.log(object_status);
   }, [editorContent, documentVersions, object_status]);
 
@@ -91,7 +138,9 @@ const PDFEditor = ({ ContentComponent, datas }) => {
 
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
-    onAfterPrint: saveDocumentDOM
+    onAfterPrint: saveDocumentDOM,
+    documentTitle: 'Document',
+    pageStyle: contentcss
   });
 
   const PrintComponent = React.forwardRef((props, ref) => {
@@ -132,9 +181,6 @@ const PDFEditor = ({ ContentComponent, datas }) => {
         Download as PDF
       </Button>
       <EditorContent editor={editor} className="editor-content" />
-      <Button variant="primary" onClick={handlePrint} className="mt-3">
-        Download as PDF
-      </Button>
       <div style={{ display: 'none' }}>
         <PrintComponent ref={componentRef} content={editorContent} />
       </div>

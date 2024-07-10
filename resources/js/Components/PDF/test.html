@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Henry Veliz's Will</title>
+    <link rel="stylesheet" href="content.css">
+</head>
+
+<body>
+    <div id="content">
+
+    </div>
+
+    <script>
+        //  HTML content with backslash
+        let htmlContent = `${documentDOM.v1.content}`
+
+        // Function to clean content
+        function cleanContent(content) {
+            return content.replace(/\\/g, '');
+        }
+
+        let cleanedContent = cleanContent(htmlContent);
+
+        document.getElementById('content').innerHTML = cleanedContent;
+    </script>
+</body>
+
+</html>
