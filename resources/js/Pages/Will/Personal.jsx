@@ -33,14 +33,16 @@ import { getAdditionalInformation } from '@/Components/Additional';
 import Poa from '@/Components/Poa';
 import { getPoa } from '@/Components/Poa';
 import FinalDetails from '@/Components/FinalDetails';
-import PDFComponent from '@/Components/PDF/PDFComponent';
 import PDFEditor from '@/Components/PDF/PDFEditor';
-import WillContent from '@/Components/PDF/WillContent'
+import WillContent from '@/Components/PDF/Content/WillContent'
+import POA1Content from '@/Components/PDF/Content/POA1Content';
+import POA2Content from '@/Components/PDF/Content/POA2Content';
 import { PDFViewer } from '@react-pdf/renderer';
 import { getPetInfo } from '@/Components/Pets';
-import data from '@/Components/__tests__/maried_with_kids'
+import { getDocumentDOMInfo } from '@/Components/PDF/PDFEditor';
 
-var object_status = data;
+
+var object_status = [];
 var objectState = [];
 var dupMarried = false;
 var dupKids = false;
@@ -109,10 +111,16 @@ export default function Personal({ auth }) {
         ,
         {
             "step": 15,
-            "title": "Review and Download your file"
+            "title": "Review, Edit and Download your Will"
+        },
+        {
+            "step": 16,
+            "title": "Review, Edit or Download your Documents"
+        },
+        {
+            "step": 17,
+            "title": "Review, Edit or Download your Document"
         }
-
-
 
     ]
 
@@ -121,6 +129,7 @@ export default function Personal({ auth }) {
 
     let username = auth.user.name;
     var [pointer, setPointer] = useState(0);
+    const [selectedDocument, setSelectedDocument] = useState(null);
     var lastPointer = 0;
     const pushInfo = function (step) {
 
@@ -197,6 +206,9 @@ export default function Personal({ auth }) {
                 break;
             case 14:
                 break;
+            case 15:
+                object_to_push.documentDOM = { ...getDocumentDOMInfo(), "timestamp": Date.now() }
+                break;
 
 
 
@@ -219,9 +231,6 @@ export default function Personal({ auth }) {
         const objectStateFreezed = JSON.parse(JSON.stringify(object_status));
         object_status.pop()
 
-        localStorage.setItem('fullData', JSON.stringify(object_status));
-        console.log(objectStateFreezed);
-        return objectStateFreezed;
 
     }
     const pushMarried = function () {
@@ -274,6 +283,14 @@ export default function Personal({ auth }) {
         console.log("nb." + nextStep);
         setPointer(nextStep);
 
+
+        if (pointer === 15) {
+            // Move to document selection
+            setPointer(16);
+        } else {
+            setPointer(nextStep);
+        }
+
         return true;
 
     }
@@ -305,10 +322,37 @@ export default function Personal({ auth }) {
         console.log("bb." + nextStep);
 
         setPointer(nextStep);
+
+
+        if (pointer === 16 || pointer === 17 || pointer === 18) {
+            // Go back to document selection
+            setSelectedDocument(null);
+            setPointer(16);
+        } else {
+            setPointer(nextStep);
+        }
         return true;
 
     }
 
+    const DocumentSelector = ({ onSelect }) => {
+        return (
+            <Container>
+                <h3>Select a Document to View, Edit or Download</h3>
+                <Row className="mt-3">
+                    <Col>
+                        <Button onClick={() => onSelect('Will')} style={{ width: "100%" }} variant="outline-dark"> <i class="bi bi-file-text"></i> Will</Button>
+                    </Col>
+                    <Col>
+                        <Button onClick={() => onSelect('POA1')} style={{ width: "100%" }} variant="outline-dark"> <i class="bi bi-house"></i> POA1 Property</Button>
+                    </Col>
+                    <Col>
+                        <Button onClick={() => onSelect('POA2')} style={{ width: "100%" }} variant="outline-dark"> <i class="bi bi-hospital"></i> POA2 Health</Button>
+                    </Col>
+                </Row>
+            </Container >
+        );
+    };
 
 
     return (
@@ -321,7 +365,7 @@ export default function Personal({ auth }) {
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8" style={{ height: "inherit" }} >
                     <div className="bg-white overflow-visible shadow-sm sm:rounded-lg container" style={{ height: "inherit" }}>
 
-                        {pointer == 15 ?
+                        {pointer == 0 ?
                             <FormCity />
                             :
                             null
@@ -415,12 +459,32 @@ export default function Personal({ auth }) {
                                 null
                         }
                         {
-                            pointer == 0 ?
+                            pointer == 15 ?
 
                                 <PDFEditor ContentComponent={WillContent} datas={object_status} />
                                 :
                                 null
                         }
+                        {
+                            pointer == 16 ? (
+                                <DocumentSelector onSelect={(doc) => {
+                                    setSelectedDocument(doc);
+                                    setPointer(17); // Move to the next pointer when a document is selected
+                                }} />
+                            ) : pointer == 17 || pointer == 18 ? (
+                                selectedDocument ? (
+                                    <PDFEditor
+                                        ContentComponent={
+                                            selectedDocument === 'Will' ? WillContent :
+                                                selectedDocument === 'POA1' ? POA1Content :
+                                                    POA2Content
+                                        }
+                                        datas={object_status}
+                                    />
+                                ) : null
+                            ) : null
+                        }
+
 
 
 
@@ -433,20 +497,19 @@ export default function Personal({ auth }) {
                                                 null
                                                 :
                                                 <Button onClick={() => backStep(pointer - 1)} variant="outline-dark" size="lg" style={{ width: "100%" }}>Back</Button>
-
                                         }
                                     </Col>
                                     <Col xs={6}>
-
-                                        <Button onClick={() => nextStep(pointer + 1)} variant="outline-success" size="lg" style={{ width: "100%" }}>Continue</Button>
+                                        {
+                                            pointer < 16 ?
+                                                <Button onClick={() => nextStep(pointer + 1)} variant="outline-success" size="lg" style={{ width: "100%" }}>Continue</Button>
+                                                :
+                                                null
+                                        }
                                     </Col>
                                 </Row>
                             </Container>
-
-
-
                         </div>
-
 
                     </div>
                 </div>
