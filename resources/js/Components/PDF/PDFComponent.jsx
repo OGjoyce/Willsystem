@@ -3,6 +3,7 @@ import { Preview, print } from 'react-html2pdf';
 import { useReactToPrint } from "react-to-print";
 import { Button } from "react-bootstrap";
 
+
 export default function PDFComponent({ ContentComponent, datas }) {
     var componentRef = useRef();
     const handlePrint = useReactToPrint({
@@ -23,4 +24,5 @@ export default function PDFComponent({ ContentComponent, datas }) {
     );
 
 }
+
 
