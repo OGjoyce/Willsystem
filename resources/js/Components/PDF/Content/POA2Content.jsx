@@ -66,7 +66,7 @@ const POA2Content = forwardRef((props, ref) => {
                 <br />
                 <p><strong>POWER OF ATTORNEY FOR PERSONAL CARE OF {capitalLetters(personal.fullName)}</strong></p>
                 <p>
-                    I,  {personal.fullName || ''} (the "Grantor") of {personal.city}, {personal.province}, {personal.country}, being of sound mind and of legal age to execute this document, do hereby make this Power of Attorney for Personal Care. I fully understand the consequences of my actions in doing so. I intend this Power of Attorney for Personal Care to be read by my health care providers, family, and friends as a true reflection of my wishes and instructions should I lack capacity and be unable to communicate such wishes and instructions.
+                    I, {capitalLetters(personal.fullName)} of {capitalLetters(personal.city)}{personal.province ? `, ${capitalLetters(personal.province)}` : ""}, being of sound mind and of legal age to execute this document, do hereby make this Power of Attorney for Personal Care. I fully understand the consequences of my actions in doing so. I intend this Power of Attorney for Personal Care to be read by my health care providers, family, and friends as a true reflection of my wishes and instructions should I lack capacity and be unable to communicate such wishes and instructions.
                 </p>
                 <p><strong>Definitions</strong></p>
                 <ol>
