@@ -102,6 +102,11 @@ ol {
         page-break-before: always;
     }
 }`;
+var updatedObjectStatus = []
+
+export function getDocumentDOMInfo() {
+  return updatedObjectStatus.documentDOM
+}
 
 const PDFEditor = ({ ContentComponent, datas }) => {
   var object_status = datas;
@@ -132,13 +137,13 @@ const PDFEditor = ({ ContentComponent, datas }) => {
     const updatedDocumentVersions = { ...documentVersions, ...newVersion };
     setDocumentVersions(updatedDocumentVersions);
 
-    const updatedObjectStatus = [
+    updatedObjectStatus = [
       ...object_status.slice(0, -1),
       { ...object_status[object_status.length - 1], documentDOM: updatedDocumentVersions }
     ];
 
     object_status = updatedObjectStatus;
-    console.log(object_status);
+
   }, [editorContent, documentVersions, object_status]);
 
   var componentRef = useRef();
