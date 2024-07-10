@@ -56,3 +56,9 @@
     text-decoration: underline;
     font-weight: bold;
 }
+
+.ProseMirror h2 {
+    text-align: right;
+    font-size: 8px;
+    font-weight: 600;
+}

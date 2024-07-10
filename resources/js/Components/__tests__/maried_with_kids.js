@@ -239,17 +239,20 @@ const object_status = [
         }
     },
     {
-        "poa": {
-            "0": "Helen Veliz",
-            "1": "Jennifer Salguero",
-            "2": "Eddie Véliz",
-            "3": "Hector Veliz",
-            "5": "Eddie Véliz",
-            "6": "Hector Veliz",
-            "7": "Eddie Véliz",
-            "8": "Hector Veliz",
-            "timestamp": 1720434450655
-        }
+       "poa" :{
+    "poaProperty": {
+        "attorney": "Jennifer Salguero",
+        "join": "Hector Veliz",
+        "restrictions": "Do not sell my car"
+    },
+    "poaHealth": {
+        "attorney": "Hector Veliz",
+        "join": "Jennifer Salguero",
+        "restrictions": "Do not sell my heart"
+    },
+    "organDonation": true,
+    "dnr": true
+}
     },
     {}
 ]

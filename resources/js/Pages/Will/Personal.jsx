@@ -36,6 +36,8 @@ import FinalDetails from '@/Components/FinalDetails';
 import PDFComponent from '@/Components/PDF/PDFComponent';
 import PDFEditor from '@/Components/PDF/PDFEditor';
 import WillContent from '@/Components/PDF/WillContent'
+import POA1Content from '@/Components/PDF/POA1Content';
+import POA2Content from '@/Components/PDF/POA2Content';
 import { PDFViewer } from '@react-pdf/renderer';
 import { getPetInfo } from '@/Components/Pets';
 import data from '@/Components/__tests__/maried_with_kids'
@@ -109,9 +111,12 @@ export default function Personal({ auth }) {
         ,
         {
             "step": 15,
-            "title": "Review and Download your file"
+            "title": "Review, Edit and Download your Will"
+        },
+        {
+            "step": 16,
+            "title": "Review, Edit or Download your Documents"
         }
-
 
 
     ]
@@ -321,7 +326,7 @@ export default function Personal({ auth }) {
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8" style={{ height: "inherit" }} >
                     <div className="bg-white overflow-visible shadow-sm sm:rounded-lg container" style={{ height: "inherit" }}>
 
-                        {pointer == 15 ?
+                        {pointer == null ?
                             <FormCity />
                             :
                             null
@@ -415,12 +420,27 @@ export default function Personal({ auth }) {
                                 null
                         }
                         {
-                            pointer == 0 ?
+                            pointer == 15 ?
 
                                 <PDFEditor ContentComponent={WillContent} datas={object_status} />
                                 :
                                 null
+                        },
+                        {
+                            pointer == 16 ?
+
+                                <PDFEditor ContentComponent={POA1Content} datas={object_status} />
+                                :
+                                null
+                        },
+                        {
+                            pointer == 0 ?
+
+                                <PDFEditor ContentComponent={POA2Content} datas={object_status} />
+                                :
+                                null
                         }
+
 
 
 

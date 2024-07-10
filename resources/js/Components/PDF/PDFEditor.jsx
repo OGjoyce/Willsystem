@@ -11,6 +11,7 @@ import html2canvas from 'html2canvas';
 import './PDFEditor.css';
 import './content.css';
 
+
 const contentcss = `
 .document-container ol {
     list-style-type: decimal;
@@ -66,6 +67,12 @@ ol {
 ul,
 ol {
     padding-left: 30px;
+}
+
+.document-header {
+ text-align: right;
+    font-size: 8px;
+    font-weight: 600;
 }
 
 .signature-line {
