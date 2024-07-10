@@ -1,57 +1,102 @@
 /* PDFEditor.css */
 .editor {
     max-width: 8.5in;
-    /* Ancho de página carta */
     margin: 0 auto;
     padding: 20px;
     font-family: 'Times New Roman', Times, serif;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    /* Altura completa de la ventana */
+}
+
+.toolbar-container {
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #ccc;
+    padding: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.toolbar {
+    display: flex;
+    gap: 5px;
+}
+
+.toolbar button {
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toolbar button:hover {
+    background-color: #e0e0e0;
+}
+
+.toolbar button.is-active {
+    background-color: #d0d0d0;
+    border-color: #888;
+}
+
+.toolbar button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .editor-content {
     border: 1px solid #ccc;
-    padding: 1in;
-    /* 1 pulgada de margen */
-    min-height: 11in;
-    /* Altura de página carta */
+    padding: 20px;
     background-color: white;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     font-size: 12pt;
     line-height: 1.5;
+    overflow-y: auto;
+    flex: 1;
+    /* Para que ocupe el espacio disponible */
+    margin-top: 10px;
+    /* Espacio entre la barra de herramientas y el contenido */
 }
 
 .ProseMirror {
     outline: none;
+    height: calc(100vh - 160px);
+    /* Altura de la ventana menos la altura aproximada de la barra de herramientas */
 }
 
 .ProseMirror p {
     margin-bottom: 1em;
 }
 
-/* Estilos para listas ordenadas */
 .ProseMirror ol {
     list-style-type: decimal;
     padding-left: 1.5em;
     margin-bottom: 1em;
 }
 
-/* Estilos para listas no ordenadas */
 .ProseMirror ul {
     list-style-type: disc;
     padding-left: 1.5em;
     margin-bottom: 1em;
 }
 
-/* Estilos para elementos de lista */
 .ProseMirror li {
     margin-bottom: 0.5em;
 }
 
-/* Estilos para texto subrayado */
 .ProseMirror span[style*="text-decoration: underline"] {
     text-decoration: underline;
 }
 
-/* Estilo específico para "wipeout provision" */
 .ProseMirror .wipeout-provision {
     text-decoration: underline;
     font-weight: bold;

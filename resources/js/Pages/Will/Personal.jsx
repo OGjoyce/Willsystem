@@ -33,7 +33,6 @@ import { getAdditionalInformation } from '@/Components/Additional';
 import Poa from '@/Components/Poa';
 import { getPoa } from '@/Components/Poa';
 import FinalDetails from '@/Components/FinalDetails';
-import PDFComponent from '@/Components/PDF/PDFComponent';
 import PDFEditor from '@/Components/PDF/PDFEditor';
 import WillContent from '@/Components/PDF/Content/WillContent'
 import POA1Content from '@/Components/PDF/Content/POA1Content';
@@ -41,9 +40,9 @@ import POA2Content from '@/Components/PDF/Content/POA2Content';
 import { PDFViewer } from '@react-pdf/renderer';
 import { getPetInfo } from '@/Components/Pets';
 import { getDocumentDOMInfo } from '@/Components/PDF/PDFEditor';
-import Data from '@/Components/__tests__/maried_with_kids'
 
-var object_status = Data;
+
+var object_status = [];
 var objectState = [];
 var dupMarried = false;
 var dupKids = false;

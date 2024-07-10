@@ -3,13 +3,17 @@ import ReactDOMServer from 'react-dom/server';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
+import Link from '@tiptap/extension-link';
+import TextAlign from '@tiptap/extension-text-align';
 import Button from 'react-bootstrap/Button';
 import { useReactToPrint } from "react-to-print";
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-import html2canvas from 'html2canvas';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faBold, faItalic, faUnderline, faHeading, faListUl, faListOl, faQuoteRight, faUndo, faRedo
+} from '@fortawesome/free-solid-svg-icons';
 import './PDFEditor.css';
-import '@/Components/PDF/Content/content.css'
+import '@/Components/PDF/Content/content.css';
+
 
 
 const contentcss = `
@@ -70,7 +74,7 @@ ol {
 }
 
 .document-header {
- text-align: right;
+    text-align: right;
     font-size: 8px;
     font-weight: 600;
 }
@@ -102,10 +106,12 @@ ol {
         page-break-before: always;
     }
 }`;
-var updatedObjectStatus = []
+
+
+var updatedObjectStatus = [];
 
 export function getDocumentDOMInfo() {
-  return updatedObjectStatus.documentDOM
+  return updatedObjectStatus.documentDOM;
 }
 
 const Toolbar = ({ editor }) => {
@@ -118,22 +124,73 @@ const Toolbar = ({ editor }) => {
       <button
         onClick={() => editor.chain().focus().toggleBold().run()}
         className={editor.isActive('bold') ? 'is-active' : ''}
+        title="Bold"
       >
-        Bold
+        <FontAwesomeIcon icon={faBold} />
       </button>
       <button
         onClick={() => editor.chain().focus().toggleItalic().run()}
         className={editor.isActive('italic') ? 'is-active' : ''}
+        title="Italic"
       >
-        Italic
+        <FontAwesomeIcon icon={faItalic} />
       </button>
       <button
         onClick={() => editor.chain().focus().toggleUnderline().run()}
         className={editor.isActive('underline') ? 'is-active' : ''}
+        title="Underline"
       >
-        Underline
+        <FontAwesomeIcon icon={faUnderline} />
       </button>
-      {/* Añade más botones según necesites */}
+      <button
+        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+        className={editor.isActive('heading', { level: 1 }) ? 'is-active' : ''}
+        title="Heading 1"
+      >
+        <FontAwesomeIcon icon={faHeading} /> 1
+      </button>
+      <button
+        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+        className={editor.isActive('heading', { level: 2 }) ? 'is-active' : ''}
+        title="Heading 2"
+      >
+        <FontAwesomeIcon icon={faHeading} /> 2
+      </button>
+      <button
+        onClick={() => editor.chain().focus().toggleBulletList().run()}
+        className={editor.isActive('bulletList') ? 'is-active' : ''}
+        title="Bullet List"
+      >
+        <FontAwesomeIcon icon={faListUl} />
+      </button>
+      <button
+        onClick={() => editor.chain().focus().toggleOrderedList().run()}
+        className={editor.isActive('orderedList') ? 'is-active' : ''}
+        title="Ordered List"
+      >
+        <FontAwesomeIcon icon={faListOl} />
+      </button>
+      <button
+        onClick={() => editor.chain().focus().toggleBlockquote().run()}
+        className={editor.isActive('blockquote') ? 'is-active' : ''}
+        title="Blockquote"
+      >
+        <FontAwesomeIcon icon={faQuoteRight} />
+      </button>
+      <button
+        onClick={() => editor.chain().focus().undo().run()}
+        disabled={!editor.can().undo()}
+        title="Undo"
+      >
+        <FontAwesomeIcon icon={faUndo} />
+      </button>
+      <button
+        onClick={() => editor.chain().focus().redo().run()}
+        disabled={!editor.can().redo()}
+        title="Redo"
+      >
+        <FontAwesomeIcon icon={faRedo} />
+      </button>
     </div>
   );
 };
@@ -147,6 +204,10 @@ const PDFEditor = ({ ContentComponent, datas }) => {
     extensions: [
       StarterKit,
       Underline,
+      Link,
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
     ],
     content: editorContent,
     onUpdate: ({ editor }) => {
@@ -220,11 +281,11 @@ const PDFEditor = ({ ContentComponent, datas }) => {
   return (
     <div className="editor">
       <div className="toolbar-container">
+        <Button variant="primary" onClick={handlePrint} className="mt-3 mb-3">
+          Download as PDF
+        </Button>
         <Toolbar editor={editor} />
       </div>
-      <Button variant="primary" onClick={handlePrint} className="mt-3 mb-3">
-        Download as PDF
-      </Button>
       <EditorContent editor={editor} className="editor-content" />
       <div style={{ display: 'none' }}>
         <PrintComponent ref={componentRef} content={editorContent} />
