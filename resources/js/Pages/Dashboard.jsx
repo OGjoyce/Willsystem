@@ -40,7 +40,7 @@ export default function Dashboard({ auth }) {
                                 </Col>
                                 <Col sm={4}>
                                     <Link
-                                        href={route('personal')}
+                                        href={route('view')}
                                     >
                                         <Button style={{ width: "100%" }} variant="outline-dark"> <i style={{color:"cyan"}} className="bi bi-search">Search Files</i> </Button>
                                     </Link>
