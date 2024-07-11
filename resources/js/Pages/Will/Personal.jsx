@@ -1,6 +1,6 @@
 import FormCity from '@/Components/FormCity';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Link, Head } from '@inertiajs/react';
+import { Link, Head, router } from '@inertiajs/react';
 import Button from 'react-bootstrap/Button';
 import { useEffect, useState } from 'react';
 import Row from 'react-bootstrap/Row';
@@ -267,6 +267,7 @@ export default function Personal({ auth }) {
     const nextStep = async function (nextStep) {
         console.log("na." + nextStep);
 
+
         const objectStatus = await pushInfo(pointer);
 
         //recordatorio : validar si hizo que no tienia esposa ni hijos de todas formas agregar el campo a objectstatus para que siempre sea [3]
@@ -298,10 +299,19 @@ export default function Personal({ auth }) {
 
 
         if (pointer === 15) {
-            // Move to document selection
             setPointer(16);
         } else {
             setPointer(nextStep);
+        }
+        if (nextStep === 0) {
+            // Reset everything
+            object_status = [];
+            objectState = [];
+            dupMarried = false;
+            dupKids = false;
+            localStorage.removeItem('fullData');
+            setPointer(0);
+            return true;
         }
 
         return true;
@@ -338,7 +348,6 @@ export default function Personal({ auth }) {
 
 
         if (pointer === 16 || pointer === 17 || pointer === 18) {
-            // Go back to document selection
             setSelectedDocument(null);
             setPointer(16);
         } else {
@@ -366,6 +375,15 @@ export default function Personal({ auth }) {
             </Container >
         );
     };
+
+    const handleExit = () => {
+        object_status = [];
+        objectState = [];
+        dupMarried = false;
+        dupKids = false;
+        localStorage.removeItem('fullData');
+        router.get(route('dashboard'));
+    }
 
 
     return (
@@ -516,6 +534,19 @@ export default function Personal({ auth }) {
                                         {
                                             pointer < 16 ?
                                                 <Button onClick={() => nextStep(pointer + 1)} variant="outline-success" size="lg" style={{ width: "100%" }}>Continue</Button>
+                                                :
+                                                null
+                                        }
+                                        {
+                                            pointer === 16 ?
+                                                <Button
+                                                    onClick={handleExit}
+                                                    variant="outline-success"
+                                                    size="lg"
+                                                    style={{ width: "100%" }}
+                                                >
+                                                    Exit
+                                                </Button>
                                                 :
                                                 null
                                         }
