@@ -82,6 +82,9 @@ function AddHuman({ married, childrens, human }) {
         setShowOther(value === 'Other');
     };
 
+    const isRelativeReadOnly = married || childrens;
+    const defaultRelativeValue = married ? 'Spouse' : (childrens ? 'Children' : '');
+
     return (
         <>
             <h1>Information details</h1>
@@ -100,15 +103,23 @@ function AddHuman({ married, childrens, human }) {
                 </Form.Group>
                 <Form.Group className="mb-3" controlId="relativeId">
                     <Form.Label>Relative</Form.Label>
-                    <Form.Control as="select" value={relative} onChange={handleRelativeChange}>
-                        <option value="">Select...</option>
-                        <option value="Spouse">Spouse</option>
-                        <option value="Children">Children</option>
-                        <option value="Brother">Brother</option>
-                        <option value="Uncle">Uncle</option>
-                        <option value="Other">Other</option>
-                    </Form.Control>
-                    {showOther && (
+                    {isRelativeReadOnly ? (
+                        <Form.Control
+                            type="text"
+                            value={defaultRelativeValue}
+                            readOnly
+                        />
+                    ) : (
+                        <Form.Control as="select" value={relative} onChange={handleRelativeChange}>
+                            <option value="">Select...</option>
+                            <option value="Spouse">Spouse</option>
+                            <option value="Children">Children</option>
+                            <option value="Brother">Brother</option>
+                            <option value="Uncle">Uncle</option>
+                            <option value="Other">Other</option>
+                        </Form.Control>
+                    )}
+                    {showOther && !isRelativeReadOnly && (
                         <Form.Group className="mt-3" controlId="otherRelativeId">
                             <Form.Label>Specify Other</Form.Label>
                             <Form.Control type="text" placeholder="Enter relation" />
@@ -128,7 +139,6 @@ function AddHuman({ married, childrens, human }) {
                     )}
                     {childrens && (
                         <>
-                            <Form.Control readOnly defaultValue="Children" />
                             <Form.Group className="mb-3" controlId="emailId1">
                                 {/* Email input can be added here if needed */}
                             </Form.Group>
@@ -136,7 +146,6 @@ function AddHuman({ married, childrens, human }) {
                     )}
                     {human && (
                         <>
-
                             <Form.Group className="mb-3" controlId="emailId1">
                                 <Form.Label>Email for notifications:</Form.Label>
                                 <Form.Control type="email" placeholder="example@dot.com" />

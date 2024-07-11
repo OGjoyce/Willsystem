@@ -1,7 +1,7 @@
 
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 import Table from 'react-bootstrap/Table';
 import Button from 'react-bootstrap/Button';
@@ -54,40 +54,37 @@ export function getOptObject() {
   }
   return returnobject;
 }
+
+
 function Residue({ id, datas }) {
+  const marriedStatus = datas[1].marriedq.selection === "true" || "soso";
+  const hasKids = datas[3].kidsq.selection === "true";
+  console.log('maried : ', marriedStatus)
+  console.log('kids : ', hasKids)
+  const [options, setOptions] = useState([]);
 
-
-
-
-
-
-
-
-  //should add on options in the case no spouse added
-  const marriedStatus = datas[1].marriedq.selection;
-
-  if (marriedStatus == "true") {
-    var options = [
-      'NO SPOUSAL WILL: Have the residue go to spouse first then children per stirpes',
-      'Have the residue go to children per stirpes',
-      'Have the residue go to children per capita',
+  useEffect(() => {
+    let newOptions = [
       'Have the residue go to parents then siblings per stirpes',
-      'Have the residue go to siblings per sirpes',
+      'Have the residue go to siblings per stirpes',
       'Specific Beneficiaries',
-      'CUSTOM CLAUSE (will override every other option)']
+      'CUSTOM CLAUSE (will override every other option)'
+    ];
 
-  }
-  else {
-    var options = [
-      'Have the residue go to children per stirpes',
-      'Have the residue go to children per capita',
-      'Have the residue go to parents then siblings per stirpes',
-      'Have the residue go to siblings per sirpes',
-      'Specific Beneficiaries',
-      'CUSTOM CLAUSE (will override every other option)']
+    if (marriedStatus) {
+      newOptions.unshift(`NO SPOUSAL WILL: Have the residue go to spouse ${hasKids ? 'first then children per stirpes' : ''}`);
+    }
 
+    if (hasKids) {
+      newOptions.unshift(
+        'Have the residue go to children per stirpes',
+        'Have the residue go to children per capita'
+      );
+    }
 
-  }
+    setOptions(newOptions);
+  }, [marriedStatus, hasKids]);
+
   var [custom, setCustom] = useState(false);
   var [clauseValue, setClauseValue] = useState("this is  a custom clause");
   var [specific, setSpecific] = useState(false);
@@ -259,7 +256,7 @@ function Residue({ id, datas }) {
           title={selected.selectedOption ? selected.selectedOption : 'Select an option'}
           onSelect={handleSelect}
         >
-          {selected.options.map((option, index) => (
+          {options.map((option, index) => (
             <Dropdown.Item key={index} eventKey={option}>
               {option}
             </Dropdown.Item>

@@ -9,12 +9,10 @@ import Button from 'react-bootstrap/Button';
 import { useReactToPrint } from "react-to-print";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faBold, faItalic, faUnderline, faHeading, faListUl, faListOl, faQuoteRight, faUndo, faRedo
+  faBold, faItalic, faUnderline, faHeading, faListUl, faListOl, faQuoteRight, faUndo, faRedo, faSave
 } from '@fortawesome/free-solid-svg-icons';
 import './PDFEditor.css';
 import '@/Components/PDF/Content/content.css';
-
-
 
 const contentcss = `
 .document-container ol {
@@ -107,11 +105,10 @@ ol {
     }
 }`;
 
-
 var updatedObjectStatus = [];
 
 export function getDocumentDOMInfo() {
-  return updatedObjectStatus.documentDOM;
+  return updatedObjectStatus[updatedObjectStatus.length - 1]?.documentDOM;
 }
 
 const Toolbar = ({ editor }) => {
@@ -195,11 +192,13 @@ const Toolbar = ({ editor }) => {
   );
 };
 
-const PDFEditor = ({ ContentComponent, datas }) => {
+const PDFEditor = ({ ContentComponent, datas, documentType }) => {
   var object_status = datas;
 
   const [editorContent, setEditorContent] = useState('');
   const [documentVersions, setDocumentVersions] = useState({});
+
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -217,7 +216,8 @@ const PDFEditor = ({ ContentComponent, datas }) => {
 
   const saveDocumentDOM = useCallback(() => {
     const timestamp = new Date().toISOString();
-    const versionNumber = Object.keys(documentVersions).length + 1;
+    const currentVersions = documentVersions[documentType] || {};
+    const versionNumber = Object.keys(currentVersions).length + 1;
     const newVersion = {
       [`v${versionNumber}`]: {
         content: editorContent,
@@ -225,24 +225,39 @@ const PDFEditor = ({ ContentComponent, datas }) => {
       }
     };
 
-    const updatedDocumentVersions = { ...documentVersions, ...newVersion };
+    const updatedDocumentVersions = {
+      ...documentVersions,
+      [documentType]: {
+        ...currentVersions,
+        ...newVersion
+      }
+    };
+
     setDocumentVersions(updatedDocumentVersions);
 
+    const lastObjectIndex = object_status.length - 1;
+    const updatedLastObject = {
+      ...object_status[lastObjectIndex],
+      documentDOM: updatedDocumentVersions
+    };
+
     updatedObjectStatus = [
-      ...object_status.slice(0, -1),
-      { ...object_status[object_status.length - 1], documentDOM: updatedDocumentVersions }
+      ...object_status.slice(0, lastObjectIndex),
+      updatedLastObject
     ];
 
     object_status = updatedObjectStatus;
 
-  }, [editorContent, documentVersions, object_status]);
+    console.log(`Document ${documentType} saved. Version: v${versionNumber}`);
+    console.log(object_status)
+  }, [editorContent, documentVersions, documentType, object_status]);
 
   var componentRef = useRef();
 
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
     onAfterPrint: saveDocumentDOM,
-    documentTitle: 'Document',
+    documentTitle: documentType,
     pageStyle: contentcss
   });
 
@@ -265,6 +280,8 @@ const PDFEditor = ({ ContentComponent, datas }) => {
       if (editor) {
         editor.commands.setContent(documentHtml);
       }
+
+
     } catch (error) {
       console.error("ERROR while rendering document:", error);
       setEditorContent("No content to show");
@@ -281,8 +298,11 @@ const PDFEditor = ({ ContentComponent, datas }) => {
   return (
     <div className="editor">
       <div className="toolbar-container">
-        <Button variant="primary" onClick={handlePrint} className="mt-3 mb-3">
+        <Button variant="primary" onClick={handlePrint} className="mt-3 mb-3 mr-2">
           Download as PDF
+        </Button>
+        <Button variant="success" onClick={saveDocumentDOM} className="mt-3 mb-3">
+          <FontAwesomeIcon icon={faSave} /> Save Document
         </Button>
         <Toolbar editor={editor} />
       </div>

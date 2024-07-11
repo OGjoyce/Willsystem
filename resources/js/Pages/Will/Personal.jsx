@@ -491,7 +491,7 @@ export default function Personal({ auth }) {
                         {
                             pointer == 15 ?
 
-                                <PDFEditor ContentComponent={WillContent} datas={object_status} />
+                                <PDFEditor ContentComponent={WillContent} datas={object_status} documentType='Will' />
                                 :
                                 null
                         }
@@ -510,6 +510,7 @@ export default function Personal({ auth }) {
                                                     POA2Content
                                         }
                                         datas={object_status}
+                                        documentType={selectedDocument}
                                     />
                                 ) : null
                             ) : null
