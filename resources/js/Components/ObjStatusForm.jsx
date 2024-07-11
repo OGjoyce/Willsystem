@@ -3,20 +3,36 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-export async function storeData(object){
+export async function storeDataObject(object){
     try {
         const response = await axios.post('/api/obj-statuses', {
-            information: JSON.stringify({ data: information }), // Convert to JSON string
+            information: JSON.stringify({ data: object }), // Convert to JSON string
             related_id: 0,
-            type: type,
+            type: "",
         });
         console.log('Data submitted successfully:', response.data);
+    
         // Optionally reset form
         return response.data;
 
     } catch (err) {
         console.error('Error submitting data:', err);
-        setError('Error submitting data');
+      
+    }
+
+}
+export async function updateDataObject(object, id ){
+    try {
+        const response = await axios.put(`/api/obj-statuses/${id}`, {
+            information: JSON.stringify({ data: object }), // Convert to JSON string
+            related_id: 1,
+            type: "",
+        });
+        console.log('Data submitted successfully:', response.data);
+        // Optionally reset form
+    } catch (err) {
+        console.error('Error submitting data:', err);
+
     }
 
 }
@@ -55,7 +71,7 @@ let idcualquiera = 1;
         e.preventDefault();
         try {
             const response = await axios.put(`/api/obj-statuses/${idcualquiera}`, {
-                information: JSON.stringify({ data: anyobject }), // Convert to JSON string
+                information: { data: anyobject }, // Convert to JSON string
                 related_id: idcualquiera,
                 type: type,
             });
