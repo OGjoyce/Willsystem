@@ -150,7 +150,7 @@ export default function Personal({ auth }) {
                 break;
             case 1:
                 object_to_push.marriedq = { "selection": getMarriedData(), "timestamp": Date.now() };
-                
+
 
                 break;
             case 2:
@@ -225,12 +225,12 @@ export default function Personal({ auth }) {
         const objectStateFreezed = JSON.parse(JSON.stringify(object_status));
         if (!dupFlag) {
             object_status.push(object_to_push);
-            if(step != 0 ){
+            if (step != 0) {
                 updateDataObject(object_status, currIdObjDB);
 
             }
-            
-            
+
+
         }
         localStorage.setItem('fullData', JSON.stringify(object_status));
         console.log(object_status);

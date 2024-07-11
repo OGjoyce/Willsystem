@@ -1,6 +1,11 @@
 /* PDFEditor.css */
+
+/* Editor styles */
 .editor {
-    max-width: 8.5in;
+    max-width: 100%;
+    /* Asegurar que ocupe el 100% del ancho */
+    width: 100%;
+    /* Asegurar que ocupe el 100% del ancho */
     margin: 0 auto;
     padding: 20px;
     font-family: 'Times New Roman', Times, serif;
@@ -10,6 +15,7 @@
     /* Altura completa de la ventana */
 }
 
+/* Toolbar styles */
 .toolbar-container {
     background-color: #f0f0f0;
     border-bottom: 1px solid #ccc;
@@ -53,6 +59,7 @@
     cursor: not-allowed;
 }
 
+/* Editor content styles */
 .editor-content {
     border: 1px solid #ccc;
     padding: 20px;
@@ -67,6 +74,7 @@
     /* Espacio entre la barra de herramientas y el contenido */
 }
 
+/* ProseMirror styles */
 .ProseMirror {
     outline: none;
     height: calc(100vh - 160px);
@@ -74,6 +82,23 @@
 }
 
 .ProseMirror p {
+    margin-bottom: 1em;
+    line-height: 1.5;
+}
+
+.ProseMirror p>strong {
+    display: block;
+    text-align: center;
+}
+
+.ProseMirror p>strong>u {
+    display: block;
+    text-align: left;
+}
+
+.ProseMirror ol {
+    list-style-type: decimal;
+    padding-left: 1.5em;
     margin-bottom: 1em;
 }
 
