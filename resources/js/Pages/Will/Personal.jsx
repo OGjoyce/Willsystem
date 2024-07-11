@@ -383,7 +383,7 @@ export default function Personal({ auth }) {
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8" style={{ height: "inherit" }} >
                     <div className="bg-white overflow-visible shadow-sm sm:rounded-lg container" style={{ height: "inherit" }}>
 
-                        {pointer == null ?
+                        {pointer == 0 ?
                             <FormCity />
                             :
                             null
@@ -477,7 +477,7 @@ export default function Personal({ auth }) {
                                 null
                         }
                         {
-                            pointer == 0 ?
+                            pointer == 15 ?
 
                                 <PDFEditor ContentComponent={WillContent} datas={object_status} />
                                 :
