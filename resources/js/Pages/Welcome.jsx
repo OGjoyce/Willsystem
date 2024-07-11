@@ -131,7 +131,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                     <Link
                                         href={route('dashboard')}
                                     >
-                                        <Button variant="outline-dark"> <i class="bi bi-file-earmark-break">Create</i></Button>
+                                        <Button variant="outline-dark"> <i className="bi bi-file-earmark-break">Create</i></Button>
                                     </Link>
                                 </Card.Body>
                             </Card>
@@ -144,7 +144,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                     <Link
                                         href={route('dashboard')}
                                     >
-                                        <Button variant="outline-dark"><i class="bi bi-cash-stack"></i>I want my own will business</Button>
+                                        <Button variant="outline-dark"><i className="bi bi-cash-stack"></i>I want my own will business</Button>
 
 
                                     </Link>

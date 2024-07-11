@@ -1,6 +1,6 @@
 import FormCity from '@/Components/FormCity';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Link, Head } from '@inertiajs/react';
+import { Link, Head, router } from '@inertiajs/react';
 import Button from 'react-bootstrap/Button';
 import { useEffect, useState } from 'react';
 import Row from 'react-bootstrap/Row';
@@ -33,14 +33,21 @@ import { getAdditionalInformation } from '@/Components/Additional';
 import Poa from '@/Components/Poa';
 import { getPoa } from '@/Components/Poa';
 import FinalDetails from '@/Components/FinalDetails';
-import PDFComponent from '@/Components/PDFComponent';
+import PDFEditor from '@/Components/PDF/PDFEditor';
+import WillContent from '@/Components/PDF/Content/WillContent'
+import POA1Content from '@/Components/PDF/Content/POA1Content';
+import POA2Content from '@/Components/PDF/Content/POA2Content';
 import { PDFViewer } from '@react-pdf/renderer';
-
+import { getPetInfo } from '@/Components/Pets';
+import { getDocumentDOMInfo } from '@/Components/PDF/PDFEditor';
+import { storeDataObject } from '@/Components/ObjStatusForm';
+import { updateDataObject } from '@/Components/ObjStatusForm';
 
 var object_status = [];
 var objectState = [];
 var dupMarried = false;
 var dupKids = false;
+let currIdObjDB = null;
 export default function Personal({ auth }) {
     var stepper = [
         {
@@ -106,10 +113,16 @@ export default function Personal({ auth }) {
         ,
         {
             "step": 15,
-            "title": "Review and Download your file"
+            "title": "Review, Edit and Download your Will"
+        },
+        {
+            "step": 16,
+            "title": "Review, Edit or Download your Documents"
+        },
+        {
+            "step": 17,
+            "title": "Review, Edit or Download your Document"
         }
-
-
 
     ]
 
@@ -118,26 +131,26 @@ export default function Personal({ auth }) {
 
     let username = auth.user.name;
     var [pointer, setPointer] = useState(0);
+    const [selectedDocument, setSelectedDocument] = useState(null);
     var lastPointer = 0;
-    const pushInfo = function (step) {
+    const pushInfo = async function (step) {
 
-        /*
-        Aqui lo que pasa es que Step no pasa por married y pone la data sino que cambia automaticamente.... 
-        como hace un push del object status, que pasa, la posicion de kids no seria 3 sino 2....
-        if pointer == 3 and lastPointer == 1{
-            significa un paso de 2
-        }
-        */
+
         var object_to_push = {};
         var dupFlag = false;
 
         switch (step) {
 
             case 0:
-                object_to_push.personal = { ...stepper[step], ...getFormData(), "timestamp": Date.now() };
+                const personalData = getFormData();
+                object_to_push.personal = { ...stepper[step], ...personalData, "timestamp": Date.now() };
+                object_to_push.owner = personalData.email
+                const dataFirstStore = await storeDataObject(object_to_push);
+                currIdObjDB = dataFirstStore.id;
                 break;
             case 1:
                 object_to_push.marriedq = { "selection": getMarriedData(), "timestamp": Date.now() };
+
 
                 break;
             case 2:
@@ -181,14 +194,14 @@ export default function Personal({ auth }) {
                 break;
             case 9:
                 //DATA
-                object_to_push.trusting = {};
+                object_to_push.trusting = { ...getTableData(), "timestamp": Date.now() };
                 break;
             case 10:
                 object_to_push.guardians = { ...getGuardiansForMinors(), "timestamp": Date.now() }
 
             case 11:
                 //DATA
-                object_to_push.pets = {};
+                object_to_push.pets = { ...getPetInfo(), "timestamp": Date.now() };
                 break;
 
             case 12:
@@ -198,6 +211,9 @@ export default function Personal({ auth }) {
                 object_to_push.poa = { ...getPoa(), "timestamp": Date.now() }
                 break;
             case 14:
+                break;
+            case 15:
+                object_to_push.documentDOM = { ...getDocumentDOMInfo(), "timestamp": Date.now() }
                 break;
 
 
@@ -209,8 +225,14 @@ export default function Personal({ auth }) {
         const objectStateFreezed = JSON.parse(JSON.stringify(object_status));
         if (!dupFlag) {
             object_status.push(object_to_push);
-        }
+            if (step != 0) {
+                updateDataObject(object_status, currIdObjDB);
 
+            }
+
+
+        }
+        localStorage.setItem('fullData', JSON.stringify(object_status));
         console.log(object_status);
         return object_status;
 
@@ -221,9 +243,6 @@ export default function Personal({ auth }) {
         const objectStateFreezed = JSON.parse(JSON.stringify(object_status));
         object_status.pop()
 
-
-        console.log(objectStateFreezed);
-        return objectStateFreezed;
 
     }
     const pushMarried = function () {
@@ -246,6 +265,7 @@ export default function Personal({ auth }) {
     }
     const nextStep = async function (nextStep) {
         console.log("na." + nextStep);
+
 
         const objectStatus = await pushInfo(pointer);
 
@@ -275,6 +295,23 @@ export default function Personal({ auth }) {
 
         console.log("nb." + nextStep);
         setPointer(nextStep);
+
+
+        if (pointer === 15) {
+            setPointer(16);
+        } else {
+            setPointer(nextStep);
+        }
+        if (nextStep === 0) {
+            // Reset everything
+            object_status = [];
+            objectState = [];
+            dupMarried = false;
+            dupKids = false;
+            localStorage.removeItem('fullData');
+            setPointer(0);
+            return true;
+        }
 
         return true;
 
@@ -307,10 +344,45 @@ export default function Personal({ auth }) {
         console.log("bb." + nextStep);
 
         setPointer(nextStep);
+
+
+        if (pointer === 16 || pointer === 17 || pointer === 18) {
+            setSelectedDocument(null);
+            setPointer(16);
+        } else {
+            setPointer(nextStep);
+        }
         return true;
 
     }
 
+    const DocumentSelector = ({ onSelect }) => {
+        return (
+            <Container>
+                <h3>Select a Document to View, Edit or Download</h3>
+                <Row className="mt-3">
+                    <Col>
+                        <Button onClick={() => onSelect('Will')} style={{ width: "100%" }} variant="outline-dark"> <i class="bi bi-file-text"></i> Will</Button>
+                    </Col>
+                    <Col>
+                        <Button onClick={() => onSelect('POA1')} style={{ width: "100%" }} variant="outline-dark"> <i class="bi bi-house"></i> POA1 Property</Button>
+                    </Col>
+                    <Col>
+                        <Button onClick={() => onSelect('POA2')} style={{ width: "100%" }} variant="outline-dark"> <i class="bi bi-hospital"></i> POA2 Health</Button>
+                    </Col>
+                </Row>
+            </Container >
+        );
+    };
+
+    const handleExit = () => {
+        object_status = [];
+        objectState = [];
+        dupMarried = false;
+        dupKids = false;
+        localStorage.removeItem('fullData');
+        router.get(route('dashboard'));
+    }
 
 
     return (
@@ -319,7 +391,6 @@ export default function Personal({ auth }) {
             header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">{stepper[pointer].title}</h2>}
         >
             <Head title={"Welcome, " + username} />
-
             <div className="py-12" style={{ height: "100%", overflow: "hidden" }}>
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8" style={{ height: "inherit" }} >
                     <div className="bg-white overflow-visible shadow-sm sm:rounded-lg container" style={{ height: "inherit" }}>
@@ -420,10 +491,30 @@ export default function Personal({ auth }) {
                         {
                             pointer == 15 ?
 
-                                <PDFComponent datas={object_status} />
+                                <PDFEditor ContentComponent={WillContent} datas={object_status} />
                                 :
-                                 null
+                                null
                         }
+                        {
+                            pointer == 16 ? (
+                                <DocumentSelector onSelect={(doc) => {
+                                    setSelectedDocument(doc);
+                                    setPointer(17); // Move to the next pointer when a document is selected
+                                }} />
+                            ) : pointer == 17 || pointer == 18 ? (
+                                selectedDocument ? (
+                                    <PDFEditor
+                                        ContentComponent={
+                                            selectedDocument === 'Will' ? WillContent :
+                                                selectedDocument === 'POA1' ? POA1Content :
+                                                    POA2Content
+                                        }
+                                        datas={object_status}
+                                    />
+                                ) : null
+                            ) : null
+                        }
+
 
 
 
@@ -431,25 +522,37 @@ export default function Personal({ auth }) {
                             <Container fluid="md">
                                 <Row>
                                     <Col xs={6} >
-                                    {
-                                        pointer == 0?
-                                        null
-                                        :
-                                        <Button onClick={() => backStep(pointer - 1)} variant="outline-dark" size="lg" style={{ width: "100%" }}>Back</Button>
-                                   
-                                    }
-                                       </Col>
+                                        {
+                                            pointer == 0 ?
+                                                null
+                                                :
+                                                <Button onClick={() => backStep(pointer - 1)} variant="outline-dark" size="lg" style={{ width: "100%" }}>Back</Button>
+                                        }
+                                    </Col>
                                     <Col xs={6}>
-
-                                        <Button onClick={() => nextStep(pointer + 1)} variant="outline-success" size="lg" style={{ width: "100%" }}>Continue</Button>
+                                        {
+                                            pointer < 16 ?
+                                                <Button onClick={() => nextStep(pointer + 1)} variant="outline-success" size="lg" style={{ width: "100%" }}>Continue</Button>
+                                                :
+                                                null
+                                        }
+                                        {
+                                            pointer === 16 ?
+                                                <Button
+                                                    onClick={handleExit}
+                                                    variant="outline-success"
+                                                    size="lg"
+                                                    style={{ width: "100%" }}
+                                                >
+                                                    Exit
+                                                </Button>
+                                                :
+                                                null
+                                        }
                                     </Col>
                                 </Row>
                             </Container>
-
-
-
                         </div>
-
 
                     </div>
                 </div>

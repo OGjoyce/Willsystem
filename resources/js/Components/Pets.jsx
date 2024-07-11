@@ -16,10 +16,14 @@ var render = 0;
 var ids = 1;
 var idtable = 1;
 var guardianDataStack = [];
+
+export function getPetInfo() {
+    return guardianDataStack
+}
+
 function Pets({ datas }) {
     const [selectedOptionGuardian, setSelectedOptionGuardian] = useState('');
     const [selectedOptionBackup, setSelectedOptionBackup] = useState('');
-
     var [petGuardianData, setPetGuardianData] = useState([]);
     const handleSubmit = (e) => {
         var amountid = document.getElementById('amountId').value;
@@ -32,13 +36,13 @@ function Pets({ datas }) {
             "backup": selectedOptionBackup,
             "amount": amountid
         }
-        if(guardianDataStack.length == 0){
+        if (guardianDataStack.length == 0) {
             guardianDataStack.push(obj);
             setPetGuardianData(guardianDataStack);
             idtable++;
 
         }
-       
+
 
     };
     const handleDelete = (id) => {
@@ -133,8 +137,8 @@ function Pets({ datas }) {
                                 >
                                     <option value="">Choose...</option>
                                     {table_data.map((name, index) => (
-                                        <option key={index} value={name.firstName}>
-                                            {name.firstName}
+                                        <option key={index} value={`${name.firstName} ${name.lastName}`}>
+                                            {name.firstName + ' ' + name.lastName}
                                         </option>
                                     ))}
                                 </Form.Control>
@@ -149,8 +153,8 @@ function Pets({ datas }) {
                                 >
                                     <option disabled="true" value="" >Choose...</option>
                                     {table_data.map((name, index) => (
-                                        <option key={index} value={name.firstName}>
-                                            {name.firstName}
+                                        <option key={index} value={`${name.firstName} ${name.lastName}`}>
+                                            {name.firstName + ' ' + name.lastName}
                                         </option>
                                     ))}
                                 </Form.Control>
