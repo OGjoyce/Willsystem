@@ -24,7 +24,7 @@ var ArrObj = [];
 let selectedData;
 let allDataFetched;
 let currIdSelected = 0
-
+var finalSelection = [];
 const View = () => {
     const [objStatuses, setObjStatuses] = useState([]);
     const [packageValue, setPackageValue] = useState('');
@@ -38,14 +38,21 @@ const View = () => {
     
     }
     function searchById(file){
-        debugger;
+    
         console.log(file);
-        let results = allDataFetched.filter(item => item.id === idSelected);
-        results = results[0].information;
-        console.log(results);
+        var selectedInformation = {};
+        console.log(allDataFetched);
+        
+        allDataFetched.forEach(function (arrayItem){
+            if(arrayItem.id == idSelected){
+                selectedInformation = arrayItem.information;
+            }
+        });
+        console.log("Selected information");
+        console.log(selectedInformation);
+        finalSelection = selectedInformation;
         setDocSelected(file);
-        console.log(idSelected);
-        console.log(currIdSelected);
+  
     
     }
 
@@ -116,7 +123,7 @@ const View = () => {
                                             docSelected === 'POA1' ? POA1Content :
                                                 POA2Content
                                     }
-                                    datas={results}
+                                    datas={finalSelection}
                                 />
                                 :
                                 <><Container style={{ padding: "10px" }}>

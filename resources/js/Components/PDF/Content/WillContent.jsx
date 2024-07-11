@@ -5,10 +5,9 @@ var WillContent = forwardRef((props, ref) => {
     const capitalLetters = (word) => {
         return word.toUpperCase();
     };
-
+  
     if (props != undefined) {
-
-
+        
         var datasObj = props.props.datas;
         var statusObject = {};
         datasObj.forEach(item => {

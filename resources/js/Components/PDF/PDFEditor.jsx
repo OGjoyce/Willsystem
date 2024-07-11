@@ -198,6 +198,7 @@ const Toolbar = ({ editor }) => {
 const PDFEditor = ({ ContentComponent, datas }) => {
   var object_status = datas;
 
+
   const [editorContent, setEditorContent] = useState('');
   const [documentVersions, setDocumentVersions] = useState({});
   const editor = useEditor({
