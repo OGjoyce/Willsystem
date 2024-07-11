@@ -71,7 +71,7 @@ let idcualquiera = 1;
         e.preventDefault();
         try {
             const response = await axios.put(`/api/obj-statuses/${idcualquiera}`, {
-                information: JSON.stringify({ data: anyobject }), // Convert to JSON string
+                information: { data: anyobject }, // Convert to JSON string
                 related_id: idcualquiera,
                 type: type,
             });

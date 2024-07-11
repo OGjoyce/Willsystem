@@ -10,3 +10,4 @@ Route::middleware('api')->group(function () {
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+Route::get('/files/search', [ObjStatusController::class, 'searchByEmail']);

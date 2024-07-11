@@ -147,7 +147,6 @@ export default function Personal({ auth }) {
                 object_to_push.owner = personalData.email
                 const dataFirstStore = await storeDataObject(object_to_push);
                 currIdObjDB = dataFirstStore.id;
-                //Call DB and SAVE DATA
                 break;
             case 1:
                 object_to_push.marriedq = { "selection": getMarriedData(), "timestamp": Date.now() };
