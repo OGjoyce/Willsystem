@@ -40,12 +40,14 @@ import POA2Content from '@/Components/PDF/Content/POA2Content';
 import { PDFViewer } from '@react-pdf/renderer';
 import { getPetInfo } from '@/Components/Pets';
 import { getDocumentDOMInfo } from '@/Components/PDF/PDFEditor';
-
+import { storeDataObject } from '@/Components/ObjStatusForm';
+import { updateDataObject } from '@/Components/ObjStatusForm';
 
 var object_status = [];
 var objectState = [];
 var dupMarried = false;
 var dupKids = false;
+let currIdObjDB = null;
 export default function Personal({ auth }) {
     var stepper = [
         {
@@ -131,7 +133,7 @@ export default function Personal({ auth }) {
     var [pointer, setPointer] = useState(0);
     const [selectedDocument, setSelectedDocument] = useState(null);
     var lastPointer = 0;
-    const pushInfo = function (step) {
+    const pushInfo = async function (step) {
 
 
         var object_to_push = {};
@@ -140,11 +142,16 @@ export default function Personal({ auth }) {
         switch (step) {
 
             case 0:
-                object_to_push.personal = { ...stepper[step], ...getFormData(), "timestamp": Date.now() };
+                const personalData = getFormData();
+                object_to_push.personal = { ...stepper[step], ...personalData, "timestamp": Date.now() };
+                object_to_push.owner = personalData.email
+                const dataFirstStore = await storeDataObject(object_to_push);
+                currIdObjDB = dataFirstStore.id;
                 //Call DB and SAVE DATA
                 break;
             case 1:
                 object_to_push.marriedq = { "selection": getMarriedData(), "timestamp": Date.now() };
+                
 
                 break;
             case 2:
@@ -219,6 +226,12 @@ export default function Personal({ auth }) {
         const objectStateFreezed = JSON.parse(JSON.stringify(object_status));
         if (!dupFlag) {
             object_status.push(object_to_push);
+            if(step != 0 ){
+                updateDataObject(object_status, currIdObjDB);
+
+            }
+            
+            
         }
         localStorage.setItem('fullData', JSON.stringify(object_status));
         console.log(object_status);
