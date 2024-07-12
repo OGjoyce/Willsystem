@@ -57,7 +57,8 @@ export function getOptObject() {
 
 
 function Residue({ id, datas }) {
-  const marriedStatus = datas[1].marriedq.selection === "true" || "soso";
+  const marriedStatus = datas[1].marriedq.selection === "true";
+  const sosoStatus = datas[1].marriedq.selection === "soso";
   const hasKids = datas[3].kidsq.selection === "true";
   console.log('maried : ', marriedStatus)
   console.log('kids : ', hasKids)
@@ -71,7 +72,7 @@ function Residue({ id, datas }) {
       'CUSTOM CLAUSE (will override every other option)'
     ];
 
-    if (marriedStatus) {
+    if (marriedStatus || sosoStatus) {
       newOptions.unshift(`NO SPOUSAL WILL: Have the residue go to spouse ${hasKids ? 'first then children per stirpes' : ''}`);
     }
 

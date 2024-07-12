@@ -35,6 +35,8 @@ function Wipeout({ id, datas }) {
         console.log("relatives:", datas[5].relatives);
 
         const married = datas[2].married;
+        const marriedStatus = datas[1].marriedq.selection === "true";
+        const sosoStatus = datas[1].marriedq.selection === "soso";
         const kids = datas[4].kids;
         const relatives = datas[5].relatives;
         const kidsq = datas[3].kidsq.selection;
@@ -79,10 +81,11 @@ function Wipeout({ id, datas }) {
 
         setIdentifiersNames(names);
 
+
+
         var options = [
-            '50% to parents and siblings and 50% to parents and siblings of spouse',
-            '50% to siblings and 50% to siblings of spouse',
-            'Specific Wipeout Beneficiary'
+            `${marriedStatus || sosoStatus ? '50% to parents and siblings  and 50% to parents and siblings of spouse' : '100% to parents and siblings '}`,
+            `${marriedStatus || sosoStatus ? '50% to siblings and 50 % to parents and siblings of spouse' : '100% to siblings'}`,
         ];
 
         setSelected({ options, selectedOption: null });

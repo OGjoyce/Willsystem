@@ -298,18 +298,19 @@ const PDFEditor = ({ ContentComponent, datas, documentType }) => {
   return (
     <div className="editor">
       <div className="toolbar-container">
-        <Button variant="primary" onClick={handlePrint} className="mt-3 mb-3 mr-2">
-          Download as PDF
-        </Button>
-        <Button variant="success" onClick={saveDocumentDOM} className="mt-3 mb-3">
-          <FontAwesomeIcon icon={faSave} /> Save Document
-        </Button>
         <Toolbar editor={editor} />
       </div>
       <EditorContent editor={editor} className="editor-content" />
+
       <div style={{ display: 'none' }}>
         <PrintComponent ref={componentRef} content={editorContent} />
       </div>
+      <Button variant="primary" onClick={handlePrint} className="mt-3 mb-3 mr-2">
+        Download as PDF
+      </Button>
+      <Button variant="success" onClick={saveDocumentDOM} className="mt-3 mb-3">
+        <FontAwesomeIcon icon={faSave} /> Save Document
+      </Button>
     </div>
   );
 };

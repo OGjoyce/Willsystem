@@ -3,13 +3,8 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-<<<<<<< Updated upstream
-        "build": "vite build",
-        "watch": "npm run dev | php artisan serve "
-=======
         "watch": "npm run dev | php artisan serve",
         "build": "vite build"
->>>>>>> Stashed changes
     },
     "devDependencies": {
         "@headlessui/react": "^1.4.2",
