@@ -28,6 +28,8 @@ function Wipeout({ id, datas }) {
     const [table_dataBequest, setTable_dataBequest] = useState([]);
     const [identifiers_names, setIdentifiersNames] = useState([]);
     const [selectedOption, setSelectedOption] = useState('');
+    const [fullWipeoutSelected, setFullWipeoutSelected] = useState(false);
+    const [beneficiarySelected, setBeneficiarySelected] = useState(false);
 
     useEffect(() => {
         console.log("datas:", datas);
@@ -81,11 +83,10 @@ function Wipeout({ id, datas }) {
 
         setIdentifiersNames(names);
 
-
-
         var options = [
-            `${marriedStatus || sosoStatus ? '50% to parents and siblings  and 50% to parents and siblings of spouse' : '100% to parents and siblings '}`,
-            `${marriedStatus || sosoStatus ? '50% to siblings and 50 % to parents and siblings of spouse' : '100% to siblings'}`,
+            `${marriedStatus | sosoStatus ? "50% to parents and siblings and 50% to parents and siblings of spouse" : "100% to parents and siblings"}`,
+            `${marriedStatus | sosoStatus ? "50% to siblings and 50% to siblings of spouse" : "100% to siblings"}`,
+            'Specific Wipeout Beneficiary'
         ];
 
         setSelected({ options, selectedOption: null });
@@ -93,6 +94,10 @@ function Wipeout({ id, datas }) {
 
     const handleOptionChange = (event) => {
         setSelectedOption(event.target.value);
+    };
+
+    const calculateTotalShares = () => {
+        return table_dataBequest.reduce((total, item) => total + parseFloat(item.shares), 0);
     };
 
     const handleDelete = (itemId) => {
@@ -103,12 +108,37 @@ function Wipeout({ id, datas }) {
     };
 
     const handleAddItem = () => {
+        if (fullWipeoutSelected) {
+            alert("Cannot add specific beneficiaries when a 100% wipeout option is selected.");
+            return;
+        }
+
         const organization = document.getElementById("organization").value;
         setOpen(true);
 
-        const beneficiary = organization !== "" ? organization : selectedBeneficiary;
+        let beneficiary;
+        if (beneficiarySelected) {
+            beneficiary = selectedBeneficiary;
+        } else if (organization !== "") {
+            beneficiary = organization;
+        } else {
+            alert("Please select a beneficiary or enter an organization name.");
+            return;
+        }
+
         const backup = selectedOption;
-        const shares = document.getElementById('shares').value;
+        const shares = parseFloat(document.getElementById('shares').value);
+
+        if (isNaN(shares) || shares <= 0) {
+            alert("Please enter a valid positive number for shares percentage.");
+            return;
+        }
+
+        const currentTotal = calculateTotalShares();
+        if (currentTotal + shares > 100) {
+            alert(`Cannot add ${shares}%. Current total is ${currentTotal}%. The sum cannot exceed 100%.`);
+            return;
+        }
 
         const newItem = {
             "id": bequestindex,
@@ -128,19 +158,34 @@ function Wipeout({ id, datas }) {
         document.getElementById("organization").value = "";
         document.getElementById("shares").value = "";
         setSelectedOption('');
+        setBeneficiarySelected(false);
     };
 
     const setCurrentRecepient = (eventKey) => {
         setSelectedBeneficiary(eventKey);
         setSelectedRecepient(eventKey);
+        setBeneficiarySelected(true);
+        document.getElementById("organization").value = "";
+    };
+
+    const handleOrganizationChange = (event) => {
+        if (event.target.value !== "") {
+            setSelectedBeneficiary("Select a beneficiary");
+            setSelectedRecepient("Select a recipient to continue...");
+            setBeneficiarySelected(false);
+        }
     };
 
     const handleSelect = (key) => {
         setSelected(prev => ({ ...prev, selectedOption: key }));
         if (key === "Specific Wipeout Beneficiary") {
             setCustom(true);
+            setFullWipeoutSelected(false);
         } else {
             setCustom(false);
+            setFullWipeoutSelected(true);
+            setTable_dataBequest([]);
+            bequestindex = 0;
             returndata = { wipeout: key, timestamp: Date.now() };
         }
     };
@@ -162,7 +207,7 @@ function Wipeout({ id, datas }) {
             </DropdownButton>
             <p style={{ color: "gray" }}> If you don't add a backup, then inheritance is per stirpes (if a person is deceased, their children will get their share equally. If one of their children is deceased and has children of their own, their children (testator's grandchildren) will get their share equally)</p>
 
-            {custom && (
+            {custom && !fullWipeoutSelected && (
                 <>
                     <Dropdown style={{ width: "100%" }} onSelect={setCurrentRecepient}>
                         <Dropdown.Toggle variant="success" id="dropdown-basic">
@@ -178,7 +223,10 @@ function Wipeout({ id, datas }) {
                     <Form>
                         <Form.Group className="mb-3" controlId="organization">
                             <Form.Label>Or Organization</Form.Label>
-                            <Form.Control type="text" />
+                            <Form.Control type="text"
+                                disabled={beneficiarySelected}
+                                onChange={handleOrganizationChange}
+                            />
                         </Form.Group>
                         <Form.Group className="mb-3" controlId="shares">
                             <Form.Label>Shares %</Form.Label>
@@ -217,38 +265,53 @@ function Wipeout({ id, datas }) {
             </Button>
             <Collapse in={open}>
                 <div id="example-collapse-text">
-                    <Table striped bordered hover responsive>
-                        <thead>
-                            <tr>
-                                <th>id</th>
-                                <th>Names</th>
-                                <th>backup</th>
-                                <th>Shares</th>
-                                <th>Delete</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {table_dataBequest.length === 0 ? (
-                                <tr>
-                                    <td colSpan="5">
-                                        No information added yet, press "Add Recipient Button" to add.
-                                    </td>
-                                </tr>
-                            ) : (
-                                table_dataBequest.map((item, index) => (
-                                    <tr key={index}>
-                                        <td>{item.id + 1}</td>
-                                        <td>{item.names}</td>
-                                        <td>{item.backup}</td>
-                                        <td>{item.shares}</td>
-                                        <td>
-                                            <Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button>
-                                        </td>
+                    {fullWipeoutSelected ? (
+                        <p>Selected option: {selected.selectedOption}</p>
+                    ) : (
+                        <>
+                            <div>
+                                <strong>Total Shares: {calculateTotalShares()}%</strong>
+                                {calculateTotalShares() < 100 && (
+                                    <span style={{ color: 'red' }}> (Remaining: {100 - calculateTotalShares()}%)</span>
+                                )}
+                                {calculateTotalShares() === 100 && (
+                                    <span style={{ color: 'green' }}> (Complete)</span>
+                                )}
+                            </div>
+                            <Table striped bordered hover responsive>
+                                <thead>
+                                    <tr>
+                                        <th>id</th>
+                                        <th>Names</th>
+                                        <th>backup</th>
+                                        <th>Shares</th>
+                                        <th>Delete</th>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </Table>
+                                </thead>
+                                <tbody>
+                                    {table_dataBequest.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="5">
+                                                No information added yet, press "Add Recipient Button" to add.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        table_dataBequest.map((item, index) => (
+                                            <tr key={index}>
+                                                <td>{item.id + 1}</td>
+                                                <td>{item.names}</td>
+                                                <td>{item.backup}</td>
+                                                <td>{item.shares}</td>
+                                                <td>
+                                                    <Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </Table>
+                        </>
+                    )}
                 </div>
             </Collapse>
         </>
