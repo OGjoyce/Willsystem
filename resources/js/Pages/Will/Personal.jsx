@@ -319,41 +319,35 @@ export default function Personal({ auth }) {
     const backStep = function (nextStep) {
         console.log("ab." + nextStep);
         console.log("pointer --" + pointer);
+
+        if (pointer === 17 || pointer === 18) {
+            // If we're viewing a specific document, go back to document selection
+            setSelectedDocument(null);
+            setPointer(16);
+            return true;
+        }
+
         const objectStatus = popInfo();
         var dupFlag = true;
 
-
         try {
             if (pointer <= 3 && objectStatus[1].marriedq != undefined && objectStatus[1].marriedq.selection == "false") {
-
                 nextStep = nextStep - 1;
-
                 popInfo();
-
             }
             if (pointer >= 4 && pointer <= 5 && objectStatus[3].kidsq != undefined && objectStatus[3].kidsq.selection == "false") {
-
                 nextStep = nextStep - 1;
                 popInfo();
-
             }
-
         } catch (error) {
-
+            // Handle or log error if needed
         }
+
         console.log("bb." + nextStep);
 
         setPointer(nextStep);
 
-
-        if (pointer === 16 || pointer === 17 || pointer === 18) {
-            setSelectedDocument(null);
-            setPointer(16);
-        } else {
-            setPointer(nextStep);
-        }
         return true;
-
     }
 
     const DocumentSelector = ({ onSelect }) => {
@@ -527,7 +521,14 @@ export default function Personal({ auth }) {
                                             pointer == 0 ?
                                                 null
                                                 :
-                                                <Button onClick={() => backStep(pointer - 1)} variant="outline-dark" size="lg" style={{ width: "100%" }}>Back</Button>
+                                                <Button
+                                                    onClick={() => backStep(pointer - 1)}
+                                                    variant="outline-dark"
+                                                    size="lg"
+                                                    style={{ width: "100%" }}
+                                                >
+                                                    Back
+                                                </Button>
                                         }
                                     </Col>
                                     <Col xs={6}>
