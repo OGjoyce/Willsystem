@@ -218,6 +218,8 @@ export default function Personal({ auth }) {
 
 
 
+
+
             default:
                 break;
         }
@@ -322,6 +324,20 @@ export default function Personal({ auth }) {
 
         if (pointer === 17 || pointer === 18) {
             // If we're viewing a specific document, go back to document selection
+            const newDocumentDOM = { ...getDocumentDOMInfo(), "timestamp": Date.now() };
+
+            // Find the index of the existing documentDOM object
+            const documentDOMIndex = object_status.findIndex(obj => obj.hasOwnProperty('documentDOM'));
+
+            if (documentDOMIndex !== -1) {
+                // If documentDOM exists, update it
+                object_status[documentDOMIndex].documentDOM = newDocumentDOM;
+            } else {
+                // If documentDOM doesn't exist, add it
+                object_status.push({ documentDOM: newDocumentDOM });
+            }
+
+            updateDataObject(object_status, currIdObjDB);
             setSelectedDocument(null);
             setPointer(16);
             return true;
