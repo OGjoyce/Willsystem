@@ -42,6 +42,7 @@ import { getPetInfo } from '@/Components/Pets';
 import { getDocumentDOMInfo } from '@/Components/PDF/PDFEditor';
 import { storeDataObject } from '@/Components/ObjStatusForm';
 import { updateDataObject } from '@/Components/ObjStatusForm';
+import { validateFormData } from './validations.js';
 
 var object_status = [];
 var objectState = [];
@@ -143,6 +144,15 @@ export default function Personal({ auth }) {
 
             case 0:
                 const personalData = getFormData();
+                const errors = validateFormData(personalData);
+
+                if (Object.keys(errors).length > 0) {
+                    // Hay errores de validación
+                    console.log('Validation errors:', errors);
+
+                    return false;
+                }
+
                 object_to_push.personal = { ...stepper[step], ...personalData, "timestamp": Date.now() };
                 object_to_push.owner = personalData.email
                 const dataFirstStore = await storeDataObject(object_to_push);
@@ -268,6 +278,13 @@ export default function Personal({ auth }) {
     const nextStep = async function (nextStep) {
         console.log("na." + nextStep);
 
+
+        const validationPassed = await pushInfo(pointer);
+
+        if (!validationPassed) {
+            // If validation failed, don't advance
+            return false;
+        }
 
         const objectStatus = await pushInfo(pointer);
 
@@ -550,7 +567,20 @@ export default function Personal({ auth }) {
                                     <Col xs={6}>
                                         {
                                             pointer < 16 ?
-                                                <Button onClick={() => nextStep(pointer + 1)} variant="outline-success" size="lg" style={{ width: "100%" }}>Continue</Button>
+                                                <Button
+                                                    onClick={async () => {
+                                                        const canAdvance = await nextStep(pointer + 1);
+                                                        if (!canAdvance) {
+                                                            // Optionally, you can show an error message here
+                                                            console.log("Cannot advance due to validation errors");
+                                                        }
+                                                    }}
+                                                    variant="outline-success"
+                                                    size="lg"
+                                                    style={{ width: "100%" }}
+                                                >
+                                                    Continue
+                                                </Button>
                                                 :
                                                 null
                                         }
