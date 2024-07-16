@@ -5,12 +5,9 @@ import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
-import Button from 'react-bootstrap/Button';
+import { Container, Row, Col, Button } from 'react-bootstrap';
 import { useReactToPrint } from "react-to-print";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faBold, faItalic, faUnderline, faHeading, faListUl, faListOl, faQuoteRight, faUndo, faRedo, faSave
-} from '@fortawesome/free-solid-svg-icons';
+
 import './PDFEditor.css';
 import '@/Components/PDF/Content/content.css';
 
@@ -116,78 +113,114 @@ const Toolbar = ({ editor }) => {
     return null;
   }
 
+
   return (
     <div className="toolbar">
-      <button
-        onClick={() => editor.chain().focus().toggleBold().run()}
-        className={editor.isActive('bold') ? 'is-active' : ''}
-        title="Bold"
-      >
-        <FontAwesomeIcon icon={faBold} />
-      </button>
-      <button
-        onClick={() => editor.chain().focus().toggleItalic().run()}
-        className={editor.isActive('italic') ? 'is-active' : ''}
-        title="Italic"
-      >
-        <FontAwesomeIcon icon={faItalic} />
-      </button>
-      <button
-        onClick={() => editor.chain().focus().toggleUnderline().run()}
-        className={editor.isActive('underline') ? 'is-active' : ''}
-        title="Underline"
-      >
-        <FontAwesomeIcon icon={faUnderline} />
-      </button>
-      <button
-        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-        className={editor.isActive('heading', { level: 1 }) ? 'is-active' : ''}
-        title="Heading 1"
-      >
-        <FontAwesomeIcon icon={faHeading} /> 1
-      </button>
-      <button
-        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-        className={editor.isActive('heading', { level: 2 }) ? 'is-active' : ''}
-        title="Heading 2"
-      >
-        <FontAwesomeIcon icon={faHeading} /> 2
-      </button>
-      <button
-        onClick={() => editor.chain().focus().toggleBulletList().run()}
-        className={editor.isActive('bulletList') ? 'is-active' : ''}
-        title="Bullet List"
-      >
-        <FontAwesomeIcon icon={faListUl} />
-      </button>
-      <button
-        onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        className={editor.isActive('orderedList') ? 'is-active' : ''}
-        title="Ordered List"
-      >
-        <FontAwesomeIcon icon={faListOl} />
-      </button>
-      <button
-        onClick={() => editor.chain().focus().toggleBlockquote().run()}
-        className={editor.isActive('blockquote') ? 'is-active' : ''}
-        title="Blockquote"
-      >
-        <FontAwesomeIcon icon={faQuoteRight} />
-      </button>
-      <button
-        onClick={() => editor.chain().focus().undo().run()}
-        disabled={!editor.can().undo()}
-        title="Undo"
-      >
-        <FontAwesomeIcon icon={faUndo} />
-      </button>
-      <button
-        onClick={() => editor.chain().focus().redo().run()}
-        disabled={!editor.can().redo()}
-        title="Redo"
-      >
-        <FontAwesomeIcon icon={faRedo} />
-      </button>
+      <div className="toolbar-inner">
+        <div className="toolbar-group">
+          <Button
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            variant={editor.isActive('bold') ? 'primary' : 'light'}
+            title="Bold"
+          >
+            <i className="bi bi-type-bold"></i>
+          </Button>
+          <Button
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            variant={editor.isActive('italic') ? 'primary' : 'light'}
+            title="Italic"
+          >
+            <i className="bi bi-type-italic"></i>
+          </Button>
+          <Button
+            onClick={() => editor.chain().focus().toggleUnderline().run()}
+            variant={editor.isActive('underline') ? 'primary' : 'light'}
+            title="Underline"
+          >
+            <i className="bi bi-type-underline"></i>
+          </Button>
+        </div>
+        <div className="toolbar-group">
+          <Button
+            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+            variant={editor.isActive('heading', { level: 1 }) ? 'primary' : 'light'}
+            title="Heading 1"
+          >
+            <i className="bi bi-type-h1"></i>
+          </Button>
+          <Button
+            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+            variant={editor.isActive('heading', { level: 2 }) ? 'primary' : 'light'}
+            title="Heading 2"
+          >
+            <i className="bi bi-type-h2"></i>
+          </Button>
+        </div>
+        <div className="toolbar-group">
+          <Button
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            variant={editor.isActive('bulletList') ? 'primary' : 'light'}
+            title="Bullet List"
+          >
+            <i className="bi bi-list-ul"></i>
+          </Button>
+          <Button
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            variant={editor.isActive('orderedList') ? 'primary' : 'light'}
+            title="Ordered List"
+          >
+            <i className="bi bi-list-ol"></i>
+          </Button>
+        </div>
+        <div className="toolbar-group">
+          <Button
+            onClick={() => editor.chain().focus().setTextAlign('left').run()}
+            variant={editor.isActive({ textAlign: 'left' }) ? 'primary' : 'light'}
+            title="Align Left"
+          >
+            <i className="bi bi-text-left"></i>
+          </Button>
+          <Button
+            onClick={() => editor.chain().focus().setTextAlign('center').run()}
+            variant={editor.isActive({ textAlign: 'center' }) ? 'primary' : 'light'}
+            title="Align Center"
+          >
+            <i className="bi bi-text-center"></i>
+          </Button>
+          <Button
+            onClick={() => editor.chain().focus().setTextAlign('right').run()}
+            variant={editor.isActive({ textAlign: 'right' }) ? 'primary' : 'light'}
+            title="Align Right"
+          >
+            <i className="bi bi-text-right"></i>
+          </Button>
+          <Button
+            onClick={() => editor.chain().focus().setTextAlign('justify').run()}
+            variant={editor.isActive({ textAlign: 'justify' }) ? 'primary' : 'light'}
+            title="Justify"
+          >
+            <i className="bi bi-justify"></i>
+          </Button>
+        </div>
+        <div className="toolbar-group">
+          <Button
+            onClick={() => editor.chain().focus().undo().run()}
+            disabled={!editor.can().undo()}
+            variant="light"
+            title="Undo"
+          >
+            <i className="bi bi-arrow-counterclockwise"></i>
+          </Button>
+          <Button
+            onClick={() => editor.chain().focus().redo().run()}
+            disabled={!editor.can().redo()}
+            variant="light"
+            title="Redo"
+          >
+            <i className="bi bi-arrow-clockwise"></i>
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };
@@ -197,7 +230,6 @@ const PDFEditor = ({ ContentComponent, datas, documentType }) => {
 
   const [editorContent, setEditorContent] = useState('');
   const [documentVersions, setDocumentVersions] = useState({});
-
 
   const editor = useEditor({
     extensions: [
@@ -280,8 +312,6 @@ const PDFEditor = ({ ContentComponent, datas, documentType }) => {
       if (editor) {
         editor.commands.setContent(documentHtml);
       }
-
-
     } catch (error) {
       console.error("ERROR while rendering document:", error);
       setEditorContent("No content to show");
@@ -296,22 +326,36 @@ const PDFEditor = ({ ContentComponent, datas, documentType }) => {
   }, [object_status]);
 
   return (
-    <div className="editor">
-      <div className="toolbar-container">
-        <Toolbar editor={editor} />
-      </div>
-      <EditorContent editor={editor} className="editor-content" />
-
+    <Container className="editor">
+      <Row className="toolbar-container">
+        <Col>
+          <Toolbar editor={editor} />
+        </Col>
+      </Row>
+      <Row>
+        <Col>
+          <EditorContent editor={editor} className="editor-content" />
+        </Col>
+      </Row>
+      <Row className="button-row justify-content-center mt-3 mb-3">
+        <Col xs={12} sm={6} md={4} lg={3}>
+          <Button variant="primary" onClick={handlePrint} className="btn-block w-100 mb-2">
+            <i style={{ marginRight: 12 }} class="bi bi-printer"></i>
+            Print
+          </Button>
+        </Col>
+        <Col xs={12} sm={6} md={4} lg={3}>
+          <Button variant="success" onClick={saveDocumentDOM} className="btn-block w-100 mb-2">
+            <i style={{ marginRight: 12 }} class="bi bi-download"></i>
+            Download as PDF
+          </Button>
+        </Col>
+      </Row>
       <div style={{ display: 'none' }}>
         <PrintComponent ref={componentRef} content={editorContent} />
       </div>
-      <Button variant="primary" onClick={handlePrint} className="mt-3 mb-3 mr-2">
-        Download as PDF
-      </Button>
-      <Button variant="success" onClick={saveDocumentDOM} className="mt-3 mb-3">
-        <FontAwesomeIcon icon={faSave} /> Save Document
-      </Button>
-    </div>
+    </Container>
+
   );
 };
 
