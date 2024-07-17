@@ -42,7 +42,7 @@ import { getPetInfo } from '@/Components/Pets';
 import { getDocumentDOMInfo } from '@/Components/PDF/PDFEditor';
 import { storeDataObject } from '@/Components/ObjStatusForm';
 import { updateDataObject } from '@/Components/ObjStatusForm';
-import { validateFormData } from './validations.js';
+import { validateFormData, validateAddHumanData } from '@/Components/Validations.jsx';
 
 var object_status = [];
 var objectState = [];
@@ -132,6 +132,7 @@ export default function Personal({ auth }) {
 
     let username = auth.user.name;
     var [pointer, setPointer] = useState(0);
+    var [validationErrors, setValidationErrors] = useState({})
     const [selectedDocument, setSelectedDocument] = useState(null);
     var lastPointer = 0;
     const pushInfo = async function (step) {
@@ -144,13 +145,14 @@ export default function Personal({ auth }) {
 
             case 0:
                 const personalData = getFormData();
-                const errors = validateFormData(personalData);
+
+                var errors = await validateFormData(personalData);
 
                 if (Object.keys(errors).length > 0) {
-                    // Hay errores de validación
-                    console.log('Validation errors:', errors);
 
-                    return false;
+                    setValidationErrors(errors)
+                    console.log(validationErrors)
+                    return null;
                 }
 
                 object_to_push.personal = { ...stepper[step], ...personalData, "timestamp": Date.now() };
@@ -159,26 +161,36 @@ export default function Personal({ auth }) {
                 currIdObjDB = dataFirstStore.id;
                 break;
             case 1:
+
                 object_to_push.marriedq = { "selection": getMarriedData(), "timestamp": Date.now() };
 
 
                 break;
             case 2:
-                if (!dupMarried) {
-                    object_to_push.married = { ...getHumanData(), "timestamp": Date.now() };
+                setValidationErrors({})
+                const humanData = getHumanData()
 
-                }
-                else {
-                    dupFlag = true;
+                var errors = await validateAddHumanData(humanData);
 
+                if (Object.keys(errors).length > 0) {
+
+                    setValidationErrors(errors)
+                    console.log(validationErrors)
+                    return null;
                 }
+
+
+                object_to_push.married = { ...getHumanData(), "timestamp": Date.now() };
                 break;
+
+
             case 3:
                 object_to_push.kidsq = { "selection": getMarriedData() };
 
 
                 break;
             case 4:
+                setValidationErrors({})
                 if (!dupKids) {
                     object_to_push.kids = { ...getChildRelatives() };
                 }
@@ -278,46 +290,35 @@ export default function Personal({ auth }) {
     const nextStep = async function (nextStep) {
         console.log("na." + nextStep);
 
-
-
-
         const objectStatus = await pushInfo(pointer);
         if (!objectStatus) {
             return false;
         }
-        //recordatorio : validar si hizo que no tienia esposa ni hijos de todas formas agregar el campo a objectstatus para que siempre sea [3]
+
         try {
-
-            if (pointer <= 2 && objectStatus[1].marriedq != undefined && objectStatus[1].marriedq.selection == "false") {
-                lastPointer = nextStep;
-                nextStep = nextStep + 1;
-                pushMarried();
-
-
-
+            // Skip spouse information if not married
+            if (pointer === 1 && objectStatus[1].marriedq !== undefined && objectStatus[1].marriedq?.selection === "false") {
+                nextStep = 3; // Skip to children question
             }
-            if (pointer >= 3 && pointer <= 4 && objectStatus[3].kidsq != undefined && objectStatus[3].kidsq.selection == "false") {
 
-                lastPointer = nextStep;
-                nextStep = nextStep + 1;
-                pushKid();
-
-
+            // Skip children information if no kids
+            if (pointer === 3 && objectStatus[3].kidsq !== undefined && objectStatus[3].kidsq?.selection === "false") {
+                nextStep = 5; // Skip to executors step
             }
 
         } catch (error) {
-
+            console.error("Error in nextStep:", error);
         }
 
         console.log("nb." + nextStep);
         setPointer(nextStep);
-
 
         if (pointer === 15) {
             setPointer(16);
         } else {
             setPointer(nextStep);
         }
+
         if (nextStep === 0) {
             // Reset everything
             object_status = [];
@@ -330,7 +331,6 @@ export default function Personal({ auth }) {
         }
 
         return true;
-
     }
     const backStep = function (nextStep) {
         console.log("ab." + nextStep);
@@ -420,7 +420,7 @@ export default function Personal({ auth }) {
                     <div className="bg-white overflow-visible shadow-sm sm:rounded-lg container" style={{ height: "inherit" }}>
 
                         {pointer == 0 ?
-                            <FormCity />
+                            <FormCity errors={validationErrors} />
                             :
                             null
                         }
@@ -431,7 +431,7 @@ export default function Personal({ auth }) {
                         }
                         {
                             pointer == 2 ?
-                                <AddHuman married={true} />
+                                <AddHuman married={true} errors={validationErrors} />
                                 :
                                 null
                         }
@@ -443,7 +443,7 @@ export default function Personal({ auth }) {
                         }
                         {
                             pointer == 4 ?
-                                <><AddRelative relative={"children"} datas={object_status} /></>
+                                <><AddRelative relative={"children"} datas={object_status} errors={validationErrors} /></>
                                 :
                                 null
 

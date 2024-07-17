@@ -9,6 +9,8 @@ import { Fragment } from 'react'
 import { Listbox, Transition } from '@headlessui/react'
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
 
+import { useEffect } from 'react';
+
 const people = [
 
 
@@ -86,18 +88,17 @@ const people = [
     },
 ]
 var dropdown_selected = "";
-
+var ErrorFullName = () => { }
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
 }
-
 export function getFormData() {
-
     var city = document.getElementById('city').value;
     var telephone = document.getElementById('phone').value;
     var fullname = document.getElementById('fullname').value;
     var province = dropdown_selected;
     var email = document.getElementById('email').value;
+
     var obj = {
         "city": city,
         "telephone": telephone,
@@ -105,16 +106,25 @@ export function getFormData() {
         "fullName": fullname,
         "email": email,
     }
+
     return obj;
 }
+
 function setData(x) {
     dropdown_selected = x;
 }
 
-function FormCity({ auth, laravelVersion, phpVersion }) {
+function FormCity({ auth, laravelVersion, phpVersion, errors }) {
+
     const [selected, setSelected] = useState(people[9])
+    const [validationErrors, setValidationErrors] = useState(errors)
+
+    useEffect(() => {
+        setValidationErrors(errors);
+    }, [errors]);
 
     const handleOnChange = (selected) => {
+
         setSelected(selected);
         setData(selected);
         return true;
@@ -181,9 +191,10 @@ function FormCity({ auth, laravelVersion, phpVersion }) {
                                         </Listbox.Option>
                                     ))}
                                 </Listbox.Options>
+
                             </Transition>
                         </div>
-
+                        {validationErrors.province && <p className="mt-2 text-sm text-red-600">{validationErrors.province}</p>}
                         <div>
                             <label htmlFor="City" className="block text-sm font-medium leading-6 text-gray-900">
                                 City
@@ -199,6 +210,7 @@ function FormCity({ auth, laravelVersion, phpVersion }) {
                                     className="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                                     placeholder="City" />
                             </div>
+                            {validationErrors.city && <p className="mt-2 text-sm text-red-600">{validationErrors.city}</p>}
                         </div>
                         <div>
                             <label htmlFor="phone" className="block text-sm font-medium leading-6 text-gray-900">
@@ -215,6 +227,7 @@ function FormCity({ auth, laravelVersion, phpVersion }) {
                                     className="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                                     placeholder="+1 (XXX) XXX-XXXX" />
                             </div>
+                            {validationErrors.telephone && <p className="mt-2 text-sm text-red-600">{validationErrors.telephone}</p>}
                         </div>
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-900">
@@ -231,6 +244,7 @@ function FormCity({ auth, laravelVersion, phpVersion }) {
                                     className="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                                     placeholder="johndoe@willexample.com...." />
                             </div>
+                            {validationErrors.email && <p className="mt-2 text-sm text-red-600">{validationErrors.email}</p>}
                         </div>
                         <div>
                             <label htmlFor="name" className="block text-sm font-medium leading-6 text-gray-900">
@@ -247,6 +261,7 @@ function FormCity({ auth, laravelVersion, phpVersion }) {
                                     className="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                                     placeholder="John Doe..." />
                             </div>
+                            {validationErrors.fullName && <p className="mt-2 text-sm text-red-600">{validationErrors.fullName}</p>}
                         </div>
                     </>
                 )}
@@ -257,4 +272,4 @@ function FormCity({ auth, laravelVersion, phpVersion }) {
 
     );
 }
-export default FormCity;
+export default FormCity
