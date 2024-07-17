@@ -19,7 +19,7 @@ import { Row, Col, DropdownToggle, DropdownMenu, DropdownItem } from 'react-boot
 import Form from 'react-bootstrap/Form';
 import Collapse from 'react-bootstrap/Collapse';
 
-var all_data;
+var all_data = [];
 var identifiers_names = [];
 var bequestArrObj = [];
 var bequestindex = 0;
@@ -164,13 +164,13 @@ function Bequest({ id, datas }) {
         const married = all_data[2].married;
         const kids = all_data[4].kids;
         const relatives = all_data[5].relatives;
-        const kidsq = all_data[3].kidsq.selection;
+        const kidsq = all_data[3].kidsq?.selection;
 
         var dataobj = { married, kids, relatives }
 
-        var married_names = married.firstName + " " + married.lastName;
+        var married_names = married?.firstName + " " + married?.lastName;
         if (kidsq == "true") {
-            var kids_names = kids.firstName + " " + kids.lastName;
+            var kids_names = kids?.firstName + " " + kids?.lastName;
             for (let child in kids) {
                 const names = kids[child].firstName + " " + kids[child].lastName;
                 identifiers_names.push(names);

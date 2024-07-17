@@ -1,3 +1,5 @@
+import Button from 'react-bootstrap/Button';
+
 const Toolbar = ({ editor }) => {
     if (!editor) {
         return null;

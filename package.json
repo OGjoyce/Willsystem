@@ -21,6 +21,7 @@
         "vite": "^5.0"
     },
     "dependencies": {
+        "@heroicons/react": "^2.1.5",
         "@react-pdf/renderer": "^3.4.4",
         "@tiptap/extension-color": "^2.4.0",
         "@tiptap/extension-highlight": "^2.4.0",

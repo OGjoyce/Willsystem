@@ -37,27 +37,27 @@ function Wipeout({ id, datas }) {
         console.log("relatives:", datas[5].relatives);
 
         const married = datas[2].married;
-        const marriedStatus = datas[1].marriedq.selection === "true";
-        const sosoStatus = datas[1].marriedq.selection === "soso";
+        const marriedStatus = datas[1].marriedq?.selection === "true";
+        const sosoStatus = datas[1].marriedq?.selection === "soso";
         const kids = datas[4].kids;
         const relatives = datas[5].relatives;
-        const kidsq = datas[3].kidsq.selection;
+        const kidsq = datas[3].kidsq?.selection;
 
         let names = [];
-        const married_names = `${married.firstName} ${married.lastName}`;
+        const married_names = `${married?.firstName} ${married?.lastName}`;
         names.push(married_names);
 
         if (kidsq === "true" && kids) {
             if (Array.isArray(kids)) {
                 for (let child of kids) {
-                    const childName = `${child.firstName} ${child.lastName}`;
+                    const childName = `${child?.firstName} ${child?.lastName}`;
                     names.push(childName);
                 }
             } else if (typeof kids === 'object') {
                 for (let key in kids) {
                     if (kids.hasOwnProperty(key)) {
                         const child = kids[key];
-                        const childName = `${child.firstName} ${child.lastName}`;
+                        const childName = `${child?.firstName} ${child?.lastName}`;
                         names.push(childName);
                     }
                 }
@@ -67,14 +67,14 @@ function Wipeout({ id, datas }) {
         if (relatives) {
             if (Array.isArray(relatives)) {
                 for (let relative of relatives) {
-                    const relativeName = `${relative.firstName} ${relative.lastName}`;
+                    const relativeName = `${relative?.firstName} ${relative?.lastName}`;
                     names.push(relativeName);
                 }
             } else if (typeof relatives === 'object') {
                 for (let key in relatives) {
                     if (relatives.hasOwnProperty(key)) {
                         const relative = relatives[key];
-                        const relativeName = `${relative.firstName} ${relative.lastName}`;
+                        const relativeName = `${relative?.firstName} ${relative?.lastName}`;
                         names.push(relativeName);
                     }
                 }

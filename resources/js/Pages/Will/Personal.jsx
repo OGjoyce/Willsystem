@@ -279,15 +279,12 @@ export default function Personal({ auth }) {
         console.log("na." + nextStep);
 
 
-        const validationPassed = await pushInfo(pointer);
 
-        if (!validationPassed) {
-            // If validation failed, don't advance
-            return false;
-        }
 
         const objectStatus = await pushInfo(pointer);
-
+        if (!objectStatus) {
+            return false;
+        }
         //recordatorio : validar si hizo que no tienia esposa ni hijos de todas formas agregar el campo a objectstatus para que siempre sea [3]
         try {
 

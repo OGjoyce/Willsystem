@@ -77,7 +77,7 @@ export default function GuardianForMinors({ datas }) {
         const married = all_data[2].married;
         const kids = all_data[4].kids;
         const relatives = all_data[5].relatives;
-        const kidsq = all_data[3].kidsq.selection;
+        const kidsq = all_data[3].kidsq?.selection;
 
 
         var dataobj = {}
@@ -85,11 +85,11 @@ export default function GuardianForMinors({ datas }) {
             married, kids, relatives
         }
 
-        var married_names = married.firstName + " " + married.lastName;
+        var married_names = married?.firstName + " " + married?.lastName;
         if (kidsq == "true") {
-            var kids_names = kids.firstName + " " + kids.lastName;
+            var kids_names = kids?.firstName + " " + kids?.lastName;
             for (let child in kids) {
-                const names = kids[child].firstName + " " + kids[child].lastName;
+                const names = kids[child]?.firstName + " " + kids[child]?.lastName;
                 // identifiers_names.push(names);
             }
 

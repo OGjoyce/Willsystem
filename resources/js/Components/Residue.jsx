@@ -57,9 +57,9 @@ export function getOptObject() {
 
 
 function Residue({ id, datas }) {
-  const marriedStatus = datas[1].marriedq.selection === "true";
-  const sosoStatus = datas[1].marriedq.selection === "soso";
-  const hasKids = datas[3].kidsq.selection === "true";
+  const marriedStatus = datas[1].marriedq?.selection === "true";
+  const sosoStatus = datas[1].marriedq?.selection === "soso";
+  const hasKids = datas[3].kidsq?.selection === "true";
   console.log('maried : ', marriedStatus)
   console.log('kids : ', hasKids)
   const [options, setOptions] = useState([]);
@@ -117,18 +117,18 @@ function Residue({ id, datas }) {
     const married = all_data[2].married;
     const kids = all_data[4].kids;
     const relatives = all_data[5].relatives;
-    const kidsq = all_data[3].kidsq.selection;
+    const kidsq = all_data[3].kidsq?.selection;
 
     var dataobj = {}
     dataobj = {
       married, kids, relatives
     }
 
-    var married_names = married.firstName + " " + married.lastName;
+    var married_names = married?.firstName + " " + married?.lastName;
     if (kidsq == "true") {
-      var kids_names = kids.firstName + " " + kids.lastName;
+      var kids_names = kids?.firstName + " " + kids?.lastName;
       for (let child in kids) {
-        const names = kids[child].firstName + " " + kids[child].lastName;
+        const names = kids[child]?.firstName + " " + kids[child]?.lastName;
         identifiers_names.push(names);
       }
 
