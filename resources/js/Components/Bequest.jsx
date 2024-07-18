@@ -18,6 +18,7 @@ import DropdownButton from 'react-bootstrap/DropdownButton';
 import { Row, Col, DropdownToggle, DropdownMenu, DropdownItem } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Collapse from 'react-bootstrap/Collapse';
+import { validateAddHumanData } from './Validations';
 
 var all_data = [];
 var identifiers_names = [];
@@ -38,6 +39,7 @@ function Bequest({ id, datas }) {
     var [selectedRecepient, setSelectedRecepient] = useState("Select a recepient to continue...");
     const [isCustomBequest, setIsCustomBequest] = useState(false);
     const [readOnly, setReadOnly] = useState(false);
+    const [validationErrors, setValidationErrors] = useState({})
 
     const reviewBequestSum = (index) => {
         var counter = 0;
@@ -97,13 +99,7 @@ function Bequest({ id, datas }) {
     }
 
     function addAnotherRelative() {
-        const newrelative = getHumanData();
-        const names = newrelative.firstName + " " + newrelative.lastName;
-        identifiers_names.push(names);
 
-        let len = Object.keys(datas[5].relatives).length;
-        datas[5].relatives[len] = newrelative;
-        console.log(datas);
     }
 
     function finishBequest() {
@@ -138,8 +134,30 @@ function Bequest({ id, datas }) {
     };
 
     const handleClose = () => {
-        setShow(false);
-        addAnotherRelative();
+        const newrelative = getHumanData();
+
+        // Realiza la validación
+        var errors = validateAddHumanData(newrelative);
+
+        if (Object.keys(errors).length <= 0) {
+            // Si no hay errores, procede a añadir los datos
+
+            const names = newrelative.firstName + " " + newrelative.lastName;
+            identifiers_names.push(names);
+
+            let len = Object.keys(datas[5].relatives).length;
+            datas[5].relatives[len] = newrelative;
+            console.log(datas);
+
+
+            setValidationErrors({});
+            setShow(false);
+        } else {
+            // Si hay errores, actualiza el estado de los errores
+            setValidationErrors(errors);
+            console.log(errors)
+        }
+
     }
 
     const handleCloseNosave = () => {
@@ -172,14 +190,14 @@ function Bequest({ id, datas }) {
         if (kidsq == "true") {
             var kids_names = kids?.firstName + " " + kids?.lastName;
             for (let child in kids) {
-                const names = kids[child].firstName + " " + kids[child].lastName;
+                const names = kids[child]?.firstName + " " + kids[child]?.lastName;
                 identifiers_names.push(names);
             }
         }
         identifiers_names.push(married_names);
 
         for (let key in relatives) {
-            const names = relatives[key].firstName + " " + relatives[key].lastName;
+            const names = relatives[key]?.firstName + " " + relatives[key]?.lastName;
             identifiers_names.push(names);
         }
 
@@ -293,7 +311,7 @@ function Bequest({ id, datas }) {
                     <Modal.Title>Add New Person</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <AddHuman human={true} />
+                    <AddHuman human={true} errors={validationErrors} />
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" size="sm" onClick={handleCloseNosave}>

@@ -6,6 +6,7 @@ import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Fragment } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
+
 import Form from 'react-bootstrap/Form';
 
 var selected_value = "";
@@ -125,8 +126,9 @@ function AddHuman({ married, childrens, human, errors }) {
                             <option value="Brother">Brother</option>
                             <option value="Uncle">Uncle</option>
                             <option value="Other">Other</option>
-                            {validationErrors.firstName && <p className="mt-2 text-sm text-red-600">{validationErrors.firstName}</p>}
+
                         </Form.Control>
+
 
 
                     )}
