@@ -91,6 +91,7 @@ function AddHuman({ married, childrens, human, errors }) {
     const isRelativeReadOnly = married || childrens;
     const defaultRelativeValue = married ? 'Spouse' : (childrens ? 'Children' : '');
 
+
     return (
         <>
             <h1>Information details</h1>
@@ -118,7 +119,7 @@ function AddHuman({ married, childrens, human, errors }) {
                             value={defaultRelativeValue}
                             readOnly
                         />
-                    ) : (
+                    ) : (<>
                         <Form.Control as="select" value={relative} onChange={handleRelativeChange}>
                             <option value="">Select...</option>
                             <option value="Spouse">Spouse</option>
@@ -129,15 +130,18 @@ function AddHuman({ married, childrens, human, errors }) {
 
                         </Form.Control>
 
-
+                        {!showOther && validationErrors.relative && <p className="mt-2 text-sm text-red-600">{validationErrors.relative}</p>}
+                    </>
 
                     )}
                     {showOther && !isRelativeReadOnly && (
-                        <Form.Group className="mt-3" controlId="otherRelativeId">
-                            <Form.Label>Specify Other</Form.Label>
-                            <Form.Control type="text" placeholder="Enter relation" />
-                            {validationErrors.otherRelative && <p className="mt-2 text-sm text-red-600">{validationErrors.relative}</p>}
-                        </Form.Group>
+                        <>
+                            <Form.Group className="mt-3" controlId="otherRelativeId">
+                                <Form.Label>Specify Other</Form.Label>
+                                <Form.Control type="text" placeholder="Enter relation" />
+                            </Form.Group>
+                            {validationErrors.otherRelative && <p className="mt-2 text-sm text-red-600">{validationErrors.otherRelative}</p>}
+                        </>
                     )}
                     {married && (
                         <>
@@ -165,12 +169,12 @@ function AddHuman({ married, childrens, human, errors }) {
                             <Form.Group className="mb-3" controlId="emailId1">
                                 <Form.Label>Email for notifications:</Form.Label>
                                 <Form.Control type="email" placeholder="example@dot.com" />
-                                {validationErrors.email && <p className="mt-2 text-sm text-red-600">{validationErrors.email}</p>}
+                                {(married || human) && validationErrors.email && <p className="mt-2 text-sm text-red-600">{validationErrors.email}</p>}
                             </Form.Group>
                             <Form.Group className="mb-3" controlId="phoneId">
                                 <Form.Label>Phone</Form.Label>
                                 <Form.Control type="text" placeholder="+1(XXX)XXX-XXXX" />
-                                {validationErrors.phone && <p className="mt-2 text-sm text-red-600">{validationErrors.phone}</p>}
+                                {(married || human) && validationErrors.phone && <p className="mt-2 text-sm text-red-600">{validationErrors.phone}</p>}
                             </Form.Group>
                         </>
                     )}

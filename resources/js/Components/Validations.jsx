@@ -56,15 +56,15 @@ export const validateAddHumanData = (data) => {
     errors.relative = 'Relative is required';
   }
 
-  if (data.relative === 'Other' && (!data.otherRelative || data.otherRelative.trim() === '')) {
+  if (!data.relative === '' || data.relative.trim() === '') {
     errors.otherRelative = 'Please specify the relation';
   }
 
-  if (data.email && !isValidEmail(data.email)) {
+  if (!data.email || !isValidEmail(data.email)) {
     errors.email = 'Valid email is required';
   }
 
-  if (data.phone && !isValidPhone(data.phone)) {
+  if (!data.phone || !isValidPhone(data.phone)) {
     errors.phone = 'Valid phone number is required (format: +1 (XXX) XXX-XXXX)';
   }
 
