@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Dialog } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 
@@ -30,7 +30,7 @@ export function getBequestArrObj() {
     return bequestArrObj;
 }
 
-function Bequest({ id, datas }) {
+function Bequest({ id, datas, errors }) {
     const [show, setShow] = useState(false);
     const [showExecutor, setShowExecutor] = useState(false);
     const [open, setOpen] = useState(false);
@@ -40,6 +40,10 @@ function Bequest({ id, datas }) {
     const [isCustomBequest, setIsCustomBequest] = useState(false);
     const [readOnly, setReadOnly] = useState(false);
     const [validationErrors, setValidationErrors] = useState({})
+
+    useEffect(() => {
+        setValidationErrors(errors)
+    }, [errors])
 
     const reviewBequestSum = (index) => {
         var counter = 0;
@@ -93,7 +97,7 @@ function Bequest({ id, datas }) {
                     }
                 }
             }
-
+            setValidationErrors({})
             setTable_dataBequest([...table_dataBequest]);
         }
     }
@@ -173,6 +177,7 @@ function Bequest({ id, datas }) {
         table_dataBequest = table_dataBequest.filter(obj => obj.id !== itemId);
         var obj = table_dataBequest;
         setTable_dataBequest(obj);
+        bequestArrObj = obj
         bequestindex -= 1;
     }
 
@@ -265,6 +270,7 @@ function Bequest({ id, datas }) {
             >
                 See Bequest information
             </Button>
+            {validationErrors.bequest && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.bequest}</p>}
             <Collapse in={open}>
                 <div id="example-collapse-text">
                     <Table striped bordered hover responsive>
@@ -303,6 +309,7 @@ function Bequest({ id, datas }) {
                             }
                         </tbody>
                     </Table>
+
                 </div>
             </Collapse>
 

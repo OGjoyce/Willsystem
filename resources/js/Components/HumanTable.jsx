@@ -1,7 +1,7 @@
 
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 
@@ -34,7 +34,7 @@ export function getExecutors() {
     return executorsObj;
 
 }
-function HumanTable({ id, datas }) {
+function HumanTable({ id, datas, errors }) {
 
     // var table_data = [];
     var table_spoon = [];
@@ -112,7 +112,12 @@ function HumanTable({ id, datas }) {
 
     const [show, setShow] = useState(false);
     const [showExecutor, setShowExecutor] = useState(false);
-    const [validationErrors, setValidationErrors] = useState({})
+    const [validationErrors, setValidationErrors] = useState(errors)
+
+    useEffect(() => {
+        setValidationErrors(errors)
+    }, [errors])
+
 
     //saves data for relatives table 
     const handleClose = () => {
@@ -207,6 +212,7 @@ function HumanTable({ id, datas }) {
         executorPriority += 1;
 
         setDataExecutor(1);
+        setValidationErrors({})
 
 
     }
@@ -295,7 +301,7 @@ function HumanTable({ id, datas }) {
             </Table>
 
 
-
+            {validationErrors.executors && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.executors}</p>}
 
             <Modal show={show} onHide={handleCloseNosave}>
                 <Modal.Header closeButton>

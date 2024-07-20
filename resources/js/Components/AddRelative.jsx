@@ -12,6 +12,7 @@ import { getHumanData } from './AddHuman';
 import Modal from 'react-bootstrap/Modal';
 import ResetPassword from '@/Pages/Auth/ResetPassword';
 
+
 let ids = 1;
 var childRelatives
 
@@ -19,12 +20,18 @@ var childRelatives
 function AddRelative({ relative, datas, errors }) {
     const [show, setShow] = useState(false);
     let [tableData, setTableData] = useState([]);
-    const [validationErrors, setValidationErrors] = useState({});
+    const [validationErrors, setValidationErrors] = useState(errors);
 
     useEffect(() => {
         childRelatives = tableData;
         console.log(childRelatives)
     }, [tableData]);
+
+
+    useEffect(() => {
+        setValidationErrors(errors);
+
+    }, [errors]);
 
     const handleCloseNosave = () => {
         setShow(false);
@@ -110,6 +117,7 @@ function AddRelative({ relative, datas, errors }) {
                         )}
                     </tbody>
                 </Table>
+                {validationErrors.kids && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.kids}</p>}
             </div>
 
             <Modal show={show} onHide={handleCloseNosave}>

@@ -83,3 +83,56 @@ export const validateAddHumanData = (data) => {
   return errors;
 };
 
+export const validate = {
+
+  kids: (data) => {
+    const errors = {};
+
+    if (!data || data.length === 0) {
+      errors.kids = 'At least one kid is required';
+    }
+
+    return errors;
+  },
+
+  executors: (data) => {
+    const errors = {};
+
+    if (!data || data.length === 0) {
+      errors.executors = 'At least one executor is required';
+    }
+    return errors;
+  },
+
+  bequest: (data) => {
+    const errors = {};
+
+    if (!data || data.length === 0) {
+      errors.bequest = 'At least one bequest is required';
+    }
+    return errors;
+  },
+
+
+  residue: (data) => {
+    const errors = {};
+    console.log(data)
+    if (!data || data.selected === null || data.selected === undefined) {
+      errors.residue = 'Residue selection is required';
+    }
+
+    if (data.selected === "Custom Clause" && data.clause === "") {
+      errors.residue = 'Custom clause is required';
+    }
+
+
+
+    if (data.selected === "Specific Beneficiaries" && data.beneficiary.length === 0) {
+      errors.residue = 'Specific beneficiary is required';
+    }
+
+
+
+    return errors;
+  },
+}

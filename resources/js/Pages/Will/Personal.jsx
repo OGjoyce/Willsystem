@@ -42,9 +42,9 @@ import { getPetInfo } from '@/Components/Pets';
 import { getDocumentDOMInfo } from '@/Components/PDF/PDFEditor';
 import { storeDataObject } from '@/Components/ObjStatusForm';
 import { updateDataObject } from '@/Components/ObjStatusForm';
-import { validateFormData, validateAddHumanData } from '@/Components/Validations.jsx';
-
-var object_status = [];
+import { validateFormData, validateAddHumanData, validate } from '@/Components/Validations.jsx';
+import data from '@/Components/__tests__/maried_with_kids'
+var object_status = data;
 var objectState = [];
 var dupMarried = false;
 var dupKids = false;
@@ -143,7 +143,8 @@ export default function Personal({ auth }) {
 
         switch (step) {
 
-            case 0:
+            case null:
+                setValidationErrors({})
                 const personalData = getFormData();
 
                 var errors = await validateFormData(personalData);
@@ -192,7 +193,21 @@ export default function Personal({ auth }) {
             case 4:
                 setValidationErrors({})
                 if (!dupKids) {
-                    object_to_push.kids = { ...getChildRelatives() };
+
+
+                    const kidsData = getChildRelatives()
+
+                    var errors = await validate.kids(kidsData);
+
+                    if (Object.keys(errors).length > 0) {
+
+                        setValidationErrors(errors)
+                        console.log(validationErrors)
+                        return null;
+                    } else {
+                        object_to_push.kids = { ...getChildRelatives() };
+                    }
+
                 }
                 else {
                     dupFlag = true;
@@ -202,14 +217,50 @@ export default function Personal({ auth }) {
                 break;
 
             case 5:
-                object_to_push.relatives = { ...getRelatives() };
-                object_to_push.executors = { ...getExecutors() };
+                setValidationErrors({})
+                const executorsData = getExecutors()
+                var errors = await validate.executors(executorsData)
+                if (Object.keys(errors).length > 0) {
+
+                    setValidationErrors(errors)
+                    console.log(validationErrors)
+                    return null;
+                } else {
+                    object_to_push.relatives = { ...getRelatives() };
+                    object_to_push.executors = { ...getExecutors() };
+                }
+
                 break;
             case 6:
-                object_to_push.bequests = { ...getBequestArrObj(), "timestamp": Date.now() };
+
+                setValidationErrors({})
+                const bequestData = getBequestArrObj()
+                var errors = await validate.bequest(bequestData);
+                if (Object.keys(errors).length > 0) {
+
+                    setValidationErrors(errors)
+                    console.log(validationErrors)
+                    return null;
+                } else {
+                    object_to_push.bequests = { ...getBequestArrObj(), "timestamp": Date.now() };
+                }
+
                 break;
-            case 7:
-                object_to_push.residue = { ...getOptObject(), "timestamp": Date.now() };
+            case 0:
+                setValidationErrors({})
+                const residueData = getOptObject()
+
+                var errors = await validate.residue(residueData);
+                if (Object.keys(errors).length > 0) {
+
+                    setValidationErrors(errors)
+                    console.log(validationErrors)
+                    return null;
+                } else {
+                    object_to_push.residue = { ...getOptObject(), "timestamp": Date.now() };
+                }
+
+
                 break;
             case 8:
                 object_to_push.wipeout = { ...getWipeoutData(), "timestamp": Date.now() };
@@ -419,7 +470,7 @@ export default function Personal({ auth }) {
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8" style={{ height: "inherit" }} >
                     <div className="bg-white overflow-visible shadow-sm sm:rounded-lg container" style={{ height: "inherit" }}>
 
-                        {pointer == 0 ?
+                        {pointer == null ?
                             <FormCity errors={validationErrors} />
                             :
                             null
@@ -452,19 +503,19 @@ export default function Personal({ auth }) {
                         {
                             pointer == 5 ?
 
-                                <HumanTable datas={object_status} />
+                                <HumanTable datas={object_status} errors={validationErrors} />
                                 :
                                 null
                         }
                         {
                             pointer == 6 ?
-                                <Bequest datas={object_status} />
+                                <Bequest datas={object_status} errors={validationErrors} />
                                 :
                                 null
                         }
                         {
-                            pointer == 7 ?
-                                <Residue datas={object_status} />
+                            pointer == 0 ?
+                                <Residue datas={object_status} errors={validationErrors} />
                                 :
                                 null
                         }
