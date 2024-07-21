@@ -276,7 +276,7 @@ export default function Personal({ auth }) {
                 }
 
                 break;
-            case 0:
+            case 9:
                 //DATA
                 const trustingData = getTableData()
 
@@ -291,8 +291,18 @@ export default function Personal({ auth }) {
                 }
 
                 break;
-            case 10:
-                object_to_push.guardians = { ...getGuardiansForMinors(), "timestamp": Date.now() }
+            case 0:
+
+                const guardiansData = getGuardiansForMinors()
+
+                var errors = await validate.guardians(guardiansData);
+                if (Object.keys(errors).length > 0) {
+                    setValidationErrors(errors)
+                    console.log(validationErrors)
+                    return null;
+                } else {
+                    object_to_push.guardians = { ...getGuardiansForMinors(), "timestamp": Date.now() }
+                }
 
             case 11:
                 //DATA
@@ -548,14 +558,14 @@ export default function Personal({ auth }) {
                                 null
                         }
                         {
-                            pointer == 0 ?
+                            pointer == 9 ?
                                 <Trusting datas={object_status} errors={validationErrors} />
                                 :
                                 null
                         }
                         {
-                            pointer == 10 ?
-                                <GuardianForMinors datas={object_status} />
+                            pointer == 0 ?
+                                <GuardianForMinors datas={object_status} errors={validationErrors} />
 
                                 :
                                 null

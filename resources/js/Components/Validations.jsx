@@ -154,4 +154,14 @@ export const validate = {
 
     return errors;
   },
+
+  guardians: (data) => {
+    const errors = {};
+    console.log(data)
+    if (!data || data.length === 0) {
+      errors.guardians = 'At least one guardian for minors is required';
+    }
+
+    return errors;
+  },
 }

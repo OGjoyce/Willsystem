@@ -1,7 +1,7 @@
 
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 import Table from 'react-bootstrap/Table';
 import Button from 'react-bootstrap/Button';
@@ -30,25 +30,29 @@ export function getGuardiansForMinors() {
     return backupBeneficiaryData;
 }
 
-export default function GuardianForMinors({ datas }) {
+export default function GuardianForMinors({ datas, errors }) {
     const [firstRender, setFirstRender] = useState(true);
     var [selected, setSelected] = useState(null);
     var [priority, setPriority] = useState(0);
     var [tableData, setTableData] = useState([]);
+    var [validationErrors, setValidationErrors] = useState(errors)
 
-
-
+    useEffect(() => {
+        setValidationErrors(errors)
+    }, [errors])
 
     const handleSelectBeneficiary = (key, eventKey) => {
-
+        setValidationErrors({})
         setSelected(key);
 
     }
     const handleSelectPriority = (key) => {
+        setValidationErrors({})
         setPriority(key);
 
     }
     const AddGuardianButton = () => {
+        setValidationErrors({})
         var objtopush = {
             "id": bequestindex,
             "guardian": selected,
@@ -128,7 +132,7 @@ export default function GuardianForMinors({ datas }) {
                         <Col sm={12}>
                             <Dropdown onSelect={handleSelectBeneficiary} style={{ width: "100%" }}>
                                 <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="dropdown-basic">
-                                    Select Relative
+                                    {selected !== null ? selected : 'Select Relative'}
                                 </Dropdown.Toggle>
 
                                 <Dropdown.Menu>
@@ -150,7 +154,7 @@ export default function GuardianForMinors({ datas }) {
                         <Col sm={12}>
                             <Dropdown onSelect={handleSelectPriority} style={{ width: "100%" }}>
                                 <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="dropdown-basic">
-                                    Select Priority
+                                    {priority !== 0 ? `Selected Priority: ${priority}` : 'Select Priority'}
                                 </Dropdown.Toggle>
 
                                 <Dropdown.Menu>
@@ -180,6 +184,7 @@ export default function GuardianForMinors({ datas }) {
 
 
                 </Form>
+                {validationErrors.guardians && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.guardians}</p>}
             </Container>
 
             <Table striped bordered hover responsive>
