@@ -132,6 +132,25 @@ export const validate = {
     }
 
 
+    return errors;
+  },
+
+  wipeout: (data) => {
+    const errors = {};
+    console.log(data)
+    if (!data || data.wipeout === null || data.wipeout === undefined) {
+      errors.wipeout = 'Wipeout selection is required';
+    }
+
+    return errors;
+  },
+
+  trusting: (data) => {
+    const errors = {};
+    console.log(data)
+    if (!data || data.length === 0) {
+      errors.trusting = 'Minimun testamentary trust age is required';
+    }
 
     return errors;
   },

@@ -19,7 +19,7 @@ export function getWipeoutData() {
 
 var bequestindex = 0;
 
-function Wipeout({ id, datas }) {
+function Wipeout({ id, datas, errors }) {
     const [selected, setSelected] = useState({ options: [], selectedOption: null });
     const [selectedBeneficiary, setSelectedBeneficiary] = useState("Select a beneficiary");
     const [custom, setCustom] = useState(false);
@@ -30,6 +30,11 @@ function Wipeout({ id, datas }) {
     const [selectedOption, setSelectedOption] = useState('');
     const [fullWipeoutSelected, setFullWipeoutSelected] = useState(false);
     const [beneficiarySelected, setBeneficiarySelected] = useState(false);
+    const [validationErrors, setValidationErrors] = useState(errors)
+
+    useEffect(() => {
+        setValidationErrors(errors)
+    }, [errors])
 
     useEffect(() => {
         console.log("datas:", datas);
@@ -122,7 +127,7 @@ function Wipeout({ id, datas }) {
         } else if (organization !== "") {
             beneficiary = organization;
         } else {
-            alert("Please select a beneficiary or enter an organization name.");
+            setValidationErrors({ name: "Please select a beneficiary or enter an organization name." })
             return;
         }
 
@@ -130,21 +135,25 @@ function Wipeout({ id, datas }) {
         const shares = parseFloat(document.getElementById('shares').value);
 
         if (isNaN(shares) || shares <= 0) {
-            alert("Please enter a valid positive number for shares percentage.");
+            setValidationErrors({ shares: "Please enter a valid positive number for shares percentage." })
             return;
         }
 
         const currentTotal = calculateTotalShares();
         if (currentTotal + shares > 100) {
-            alert(`Cannot add ${shares}%. Current total is ${currentTotal}%. The sum cannot exceed 100%.`);
+            setValidationErrors({ shares: `Cannot add ${shares}%. Current total is ${currentTotal}%. The sum cannot exceed 100%.` })
             return;
         }
 
+        if (selectedOption === '') {
+            setValidationErrors({ type: 'Backup type is required' })
+            return null
+        }
         const newItem = {
             "id": bequestindex,
             "names": beneficiary,
             "shares": shares,
-            "backup": backup
+            "backup": backup,
         };
 
         const updatedData = [...table_dataBequest, newItem];
@@ -159,6 +168,7 @@ function Wipeout({ id, datas }) {
         document.getElementById("shares").value = "";
         setSelectedOption('');
         setBeneficiarySelected(false);
+        setValidationErrors({})
     };
 
     const setCurrentRecepient = (eventKey) => {
@@ -166,6 +176,7 @@ function Wipeout({ id, datas }) {
         setSelectedRecepient(eventKey);
         setBeneficiarySelected(true);
         document.getElementById("organization").value = "";
+        setValidationErrors({})
     };
 
     const handleOrganizationChange = (event) => {
@@ -173,10 +184,12 @@ function Wipeout({ id, datas }) {
             setSelectedBeneficiary("Select a beneficiary");
             setSelectedRecepient("Select a recipient to continue...");
             setBeneficiarySelected(false);
+            setValidationErrors({})
         }
     };
 
     const handleSelect = (key) => {
+        setValidationErrors({})
         setSelected(prev => ({ ...prev, selectedOption: key }));
         if (key === "Specific Wipeout Beneficiary") {
             setCustom(true);
@@ -188,6 +201,7 @@ function Wipeout({ id, datas }) {
             bequestindex = 0;
             returndata = { wipeout: key, timestamp: Date.now() };
         }
+
     };
 
     return (
@@ -227,10 +241,12 @@ function Wipeout({ id, datas }) {
                                 disabled={beneficiarySelected}
                                 onChange={handleOrganizationChange}
                             />
+                            {validationErrors.name && <p className="mt-2 text-sm text-red-600">{validationErrors.name}</p>}
                         </Form.Group>
                         <Form.Group className="mb-3" controlId="shares">
                             <Form.Label>Shares %</Form.Label>
                             <Form.Control type="number" />
+                            {validationErrors.shares && <p className="mt-2 text-sm text-red-600">{validationErrors.shares}</p>}
                         </Form.Group>
 
                         <Form.Check
@@ -249,11 +265,11 @@ function Wipeout({ id, datas }) {
                             checked={selectedOption === 'Per Capita'}
                             onChange={handleOptionChange}
                         />
+                        {validationErrors.type && <p className="mt-2 text-sm text-red-600">{validationErrors.type}</p>}
                         <Button variant="outline-success" size="lg" onClick={handleAddItem}> Add Beneficiary</Button>
                     </Form>
                 </>
             )}
-
             <Button
                 onClick={() => setOpen(!open)}
                 aria-controls="example-collapse-text"
@@ -263,6 +279,7 @@ function Wipeout({ id, datas }) {
             >
                 See information
             </Button>
+            {validationErrors.wipeout && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.wipeout}</p>}
             <Collapse in={open}>
                 <div id="example-collapse-text">
                     {fullWipeoutSelected ? (
@@ -281,9 +298,9 @@ function Wipeout({ id, datas }) {
                             <Table striped bordered hover responsive>
                                 <thead>
                                     <tr>
-                                        <th>id</th>
+                                        <th>Id</th>
                                         <th>Names</th>
-                                        <th>backup</th>
+                                        <th>Backup</th>
                                         <th>Shares</th>
                                         <th>Delete</th>
                                     </tr>

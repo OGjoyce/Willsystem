@@ -158,6 +158,10 @@ function Residue({ id, datas, errors }) {
     backupBeneficiaryData = backupBeneficiaryData.filter(obj => obj.id !== itemId);
     setTable_dataBequest([...backupBeneficiaryData]);
     bequestindex -= 1;
+    var totalShares = backupBeneficiaryData.length > 0
+      ? 100 - backupBeneficiaryData?.map(backup => backup.shares).reduce((a, b) => a + b)
+      : 100
+    setAvailableShares(totalShares)
   };
 
   const AddBackupButton = () => {
@@ -167,7 +171,7 @@ function Residue({ id, datas, errors }) {
     var totalShares = backupBeneficiaryData.length > 0
       ? shares + backupBeneficiaryData?.map(backup => backup.shares).reduce((a, b) => a + b)
       : shares
-    setAvailableShares(100 - totalShares)
+
     var beneficiary = selected.selectedBeneficiary || null;
     var backup = selected.selectedBackup || null;
     var selectedType = selectedOption === 'A' ? "Per Stirpes" : null || selectedOption === 'B' ? "Per Capita" : null;
@@ -187,11 +191,15 @@ function Residue({ id, datas, errors }) {
       return null
     }
 
+    if (shares === 0) {
+      setValidationErrors({ shares: 'Shares for backup must be a valid percent' })
+      return null
+    }
+
     if (!Number(shares)) {
       setValidationErrors({ shares: 'Shares for backup must be a Number' })
       return null
     }
-
 
     if (shares > 100 || totalShares > 100) {
       setValidationErrors({ shares: 'Shares for backup must be equal to 100%' })
@@ -210,7 +218,11 @@ function Residue({ id, datas, errors }) {
     backupBeneficiaryData.push(objtopush);
     setTable_dataBequest([...backupBeneficiaryData]);
     bequestindex++;
-    setSelected([])
+    setAvailableShares(100 - totalShares)
+    obj = { ...obj, selectedBeneficiary: null };
+    obj = { ...obj, selectedBackup: null };
+    setSelected(obj);
+    document.getElementById('basic-url').value = '';
 
   };
 

@@ -246,7 +246,7 @@ export default function Personal({ auth }) {
                 }
 
                 break;
-            case 0:
+            case 7:
                 setValidationErrors({})
                 const residueData = getOptObject()
 
@@ -263,11 +263,33 @@ export default function Personal({ auth }) {
 
                 break;
             case 8:
-                object_to_push.wipeout = { ...getWipeoutData(), "timestamp": Date.now() };
+                const wipeoutData = getWipeoutData()
+
+                var errors = await validate.wipeout(wipeoutData);
+                if (Object.keys(errors).length > 0) {
+
+                    setValidationErrors(errors)
+                    console.log(validationErrors)
+                    return null;
+                } else {
+                    object_to_push.wipeout = { ...getWipeoutData(), "timestamp": Date.now() };
+                }
+
                 break;
-            case 9:
+            case 0:
                 //DATA
-                object_to_push.trusting = { ...getTableData(), "timestamp": Date.now() };
+                const trustingData = getTableData()
+
+                var errors = await validate.trusting(trustingData);
+                if (Object.keys(errors).length > 0) {
+
+                    setValidationErrors(errors)
+                    console.log(validationErrors)
+                    return null;
+                } else {
+                    object_to_push.trusting = { ...getTableData(), "timestamp": Date.now() };
+                }
+
                 break;
             case 10:
                 object_to_push.guardians = { ...getGuardiansForMinors(), "timestamp": Date.now() }
@@ -514,20 +536,20 @@ export default function Personal({ auth }) {
                                 null
                         }
                         {
-                            pointer == 0 ?
+                            pointer == 7 ?
                                 <Residue datas={object_status} errors={validationErrors} />
                                 :
                                 null
                         }
                         {
                             pointer == 8 ?
-                                <Wipeout datas={object_status} />
+                                <Wipeout datas={object_status} errors={validationErrors} />
                                 :
                                 null
                         }
                         {
-                            pointer == 9 ?
-                                <Trusting datas={object_status} />
+                            pointer == 0 ?
+                                <Trusting datas={object_status} errors={validationErrors} />
                                 :
                                 null
                         }
