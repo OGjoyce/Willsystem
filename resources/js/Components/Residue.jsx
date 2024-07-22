@@ -241,7 +241,7 @@ function Residue({ id, datas, errors }) {
               <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="category-dropdown">
                 {selectedCategory !== null ? selectedCategory : 'Select Residue'}
               </Dropdown.Toggle>
-              <Dropdown.Menu>
+              <Dropdown.Menu className={'text-center'} style={{ width: "100%" }}>
                 <Dropdown.Item eventKey="Bloodline Selection">Bloodline Selection</Dropdown.Item>
                 <Dropdown.Item eventKey="Custom Selection">Custom Selection</Dropdown.Item>
               </Dropdown.Menu>
@@ -256,9 +256,9 @@ function Residue({ id, datas, errors }) {
                 <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="category-dropdown">
                   {obj.selectedOption !== null ? obj.selectedOption : 'Select an Option'}
                 </Dropdown.Toggle>
-                <Dropdown.Menu>
+                <Dropdown.Menu className={'text-center'} style={{ width: "100%" }}>
                   {options.map((option, index) => (
-                    <Dropdown.Item key={index} eventKey={option}>
+                    <Dropdown.Item style={{ width: "100%" }} key={index} eventKey={option}>
                       {option}
                     </Dropdown.Item>
                   ))}
