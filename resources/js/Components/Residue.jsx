@@ -230,202 +230,193 @@ function Residue({ id, datas, errors }) {
 
   return (
     <Container>
-      <Row>
-        <Col sm={12}>
-          <Form.Group className="mb-3">
-            <ButtonGroup style={{ width: '100%' }}>
-              <DropdownButton
-                style={{ width: '100%' }}
-                size="lg"
-                variant="outline-dark"
-                id="category-dropdown"
-                title={selectedCategory || 'Select Residue'}
-                onSelect={handleCategorySelect}
-              >
-                <Dropdown.Item eventKey="Bloodline Selection">Bloodline Selection</Dropdown.Item>
-                <Dropdown.Item eventKey="Custom Selection">Custom Selection</Dropdown.Item>
-              </DropdownButton>
-            </ButtonGroup>
-          </Form.Group>
+      <Form>
 
-        </Col>
-      </Row>
-      {selectedCategory && (
         <Row>
           <Col sm={12}>
-            <Form.Group className="mb-3">
-              <ButtonGroup style={{ width: '100%' }}>
-                <DropdownButton
-                  style={{ width: '100%' }}
-                  size="lg"
-                  variant="outline-dark"
-                  id="option-dropdown"
-                  title={obj.selectedOption || 'Select an option'}
-                  onSelect={handleOptionSelect}
-                >
+            <Dropdown onSelect={handleCategorySelect} style={{ width: "100%" }}>
+              <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="category-dropdown">
+                {selectedCategory !== null ? selectedCategory : 'Select Residue'}
+              </Dropdown.Toggle>
+              <Dropdown.Menu>
+                <Dropdown.Item eventKey="Bloodline Selection">Bloodline Selection</Dropdown.Item>
+                <Dropdown.Item eventKey="Custom Selection">Custom Selection</Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+
+          </Col>
+        </Row>
+        {selectedCategory && (
+          <Row>
+            <Col sm={12}>
+              <Dropdown onSelect={handleOptionSelect} style={{ width: "100%" }}>
+                <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="category-dropdown">
+                  {obj.selectedOption !== null ? obj.selectedOption : 'Select an Option'}
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
                   {options.map((option, index) => (
                     <Dropdown.Item key={index} eventKey={option}>
                       {option}
                     </Dropdown.Item>
                   ))}
-                </DropdownButton>
-              </ButtonGroup>
-            </Form.Group>
-          </Col>
-        </Row>
-      )}
+                </Dropdown.Menu>
+              </Dropdown>
+            </Col>
+          </Row>
+        )}
 
-      {specific && (
-        <>
-          <Row>
-            <Col sm={12}>
-              <p>Please select a beneficiary for the residue following with a backup beneficiary</p>
-            </Col>
-          </Row>
-          <Row>
-            <Col sm={12}>
-              <Form.Group className="mb-3">
-                <ButtonGroup style={{ width: '100%' }}>
-                  <DropdownButton
-                    style={{ width: '100%' }}
-                    size="lg"
-                    variant="outline-dark"
-                    id="dropdown-basic-button"
-                    title={selected.selectedBeneficiary != null ? selected.selectedBeneficiary : 'Select the beneficiary'}
-                    onSelect={handleSelectBeneficiary}
-                  >
-                    {identifiers_names.map((option, index) => (
-                      <Dropdown.Item key={index} eventKey={option}>
-                        {option}
-                      </Dropdown.Item>
-                    ))}
-                  </DropdownButton>
-                </ButtonGroup>
-              </Form.Group>
-            </Col>
-          </Row>
-          <Row>
-            <Col sm={12}>
-              <Form.Group className="mb-3">
-                <ButtonGroup style={{ width: '100%' }}>
-                  <DropdownButton
-                    style={{ width: '100%' }}
-                    size="lg"
-                    variant="outline-dark"
-                    id="dropdown-basic-button"
-                    title={selected.selectedBackup != null ? selected.selectedBackup : 'Select the backup beneficiary'}
-                    onSelect={handleSelectBackup}
-                  >
-                    {identifiers_names.map((option, index) => (
-                      <Dropdown.Item key={index} eventKey={option}>
-                        {option}
-                      </Dropdown.Item>
-                    ))}
-                  </DropdownButton>
-                </ButtonGroup>
-              </Form.Group>
-              {validationErrors.identifiers && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.identifiers}</p>}
-            </Col>
-          </Row>
+        {specific && (
+          <>
+            <Row>
+              <Col sm={12}>
+                <p>Please select a beneficiary for the residue following with a backup beneficiary</p>
+              </Col>
+            </Row>
+            <Row>
+              <Col sm={12}>
+                <Form.Group className="mb-3">
+                  <ButtonGroup style={{ width: '100%' }}>
+                    <DropdownButton
+                      style={{ width: '100%' }}
+                      size="lg"
+                      variant="outline-dark"
+                      id="dropdown-basic-button"
+                      title={selected.selectedBeneficiary != null ? selected.selectedBeneficiary : 'Select the beneficiary'}
+                      onSelect={handleSelectBeneficiary}
+                    >
+                      {identifiers_names.map((option, index) => (
+                        <Dropdown.Item key={index} eventKey={option}>
+                          {option}
+                        </Dropdown.Item>
+                      ))}
+                    </DropdownButton>
+                  </ButtonGroup>
+                </Form.Group>
+              </Col>
+            </Row>
+            <Row>
+              <Col sm={12}>
+                <Form.Group className="mb-3">
+                  <ButtonGroup style={{ width: '100%' }}>
+                    <DropdownButton
+                      style={{ width: '100%' }}
+                      size="lg"
+                      variant="outline-dark"
+                      id="dropdown-basic-button"
+                      title={selected.selectedBackup != null ? selected.selectedBackup : 'Select the backup beneficiary'}
+                      onSelect={handleSelectBackup}
+                    >
+                      {identifiers_names.map((option, index) => (
+                        <Dropdown.Item key={index} eventKey={option}>
+                          {option}
+                        </Dropdown.Item>
+                      ))}
+                    </DropdownButton>
+                  </ButtonGroup>
+                </Form.Group>
+                {validationErrors.identifiers && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.identifiers}</p>}
+              </Col>
+            </Row>
+            <Row>
+              <Col sm={12}>
+                <Form>
+                  <Form.Check
+                    type="radio"
+                    label="per stirpes backup"
+                    name="options"
+                    value="A"
+                    checked={selectedOption === 'A'}
+                    onChange={(e) => setSelectedOption(e.target.value)}
+                    id="optionA"
+                  />
+                  <Form.Check
+                    type="radio"
+                    label="per capita backup"
+                    name="options"
+                    value="B"
+                    checked={selectedOption === 'B'}
+                    onChange={(e) => setSelectedOption(e.target.value)}
+                    id="optionB"
+                  />
+                  {validationErrors.backupType && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.backupType}</p>}
+                  <InputGroup className="mb-3">
+                    <InputGroup.Text id="basic-addon3" >
+                      Shares for Backup  ( Available: {availableShares}% )
+                    </InputGroup.Text>
+                    <Form.Control id="basic-url" aria-describedby="basic-addon3" />
+                  </InputGroup>
+                </Form>
+                {validationErrors.shares && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.shares}</p>}
+              </Col>
+            </Row>
+            <Row>
+              <Col sm={12}>
+                <Button style={{ width: '100%' }} variant="outline-success" onClick={AddBackupButton}>Add Beneficiary Backup</Button>
+              </Col>
+            </Row>
+            <Row>
+              <Col sm={12}>
+                <Table striped bordered hover responsive>
+                  <thead>
+                    <tr>
+                      <th>id</th>
+                      <th>beneficiary</th>
+                      <th>backup</th>
+                      <th>type</th>
+                      <th>shares</th>
+                      <th>Delete</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {backupBeneficiaryData.length === 0 ? (
+                      <tr>
+                        <td colSpan="6">
+                          <p>No information added yet, press <b>"Add Beneficiary Backup Button"</b> to add</p>
+                        </td>
+                      </tr>
+                    ) : (
+                      backupBeneficiaryData.map((item, index) => (
+                        <tr key={index}>
+                          <td>{item.id}</td>
+                          <td>{item.beneficiary}</td>
+                          <td>{item.backup}</td>
+                          <td>{item.type}</td>
+                          <td>{item.shares}</td>
+                          <td><Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button></td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </Table>
+              </Col>
+            </Row>
+          </>
+        )}
+
+        {custom && (
           <Row>
             <Col sm={12}>
               <Form>
-                <Form.Check
-                  type="radio"
-                  label="per stirpes backup"
-                  name="options"
-                  value="A"
-                  checked={selectedOption === 'A'}
-                  onChange={(e) => setSelectedOption(e.target.value)}
-                  id="optionA"
-                />
-                <Form.Check
-                  type="radio"
-                  label="per capita backup"
-                  name="options"
-                  value="B"
-                  checked={selectedOption === 'B'}
-                  onChange={(e) => setSelectedOption(e.target.value)}
-                  id="optionB"
-                />
-                {validationErrors.backupType && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.backupType}</p>}
-                <InputGroup className="mb-3">
-                  <InputGroup.Text id="basic-addon3" >
-                    Shares for Backup  ( Available: {availableShares}% )
-                  </InputGroup.Text>
-                  <Form.Control id="basic-url" aria-describedby="basic-addon3" />
-                </InputGroup>
+                <Form.Group className="mb-3" controlId="customTextArea">
+                  <Form.Label>Custom Clause</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={8}
+                    value={clauseValue}
+                    onChange={(e) => {
+                      setClauseValue(e.target.value);
+                      obj = { ...obj, customClause: e.target.value };
+                      setSelected(obj);
+                    }}
+                  />
+                </Form.Group>
               </Form>
-              {validationErrors.shares && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.shares}</p>}
             </Col>
           </Row>
-          <Row>
-            <Col sm={12}>
-              <Button style={{ width: '100%' }} variant="outline-success" onClick={AddBackupButton}>Add Beneficiary Backup</Button>
-            </Col>
-          </Row>
-          <Row>
-            <Col sm={12}>
-              <Table striped bordered hover responsive>
-                <thead>
-                  <tr>
-                    <th>id</th>
-                    <th>beneficiary</th>
-                    <th>backup</th>
-                    <th>type</th>
-                    <th>shares</th>
-                    <th>Delete</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {backupBeneficiaryData.length === 0 ? (
-                    <tr>
-                      <td colSpan="6">
-                        <p>No information added yet, press <b>"Add Beneficiary Backup Button"</b> to add</p>
-                      </td>
-                    </tr>
-                  ) : (
-                    backupBeneficiaryData.map((item, index) => (
-                      <tr key={index}>
-                        <td>{item.id}</td>
-                        <td>{item.beneficiary}</td>
-                        <td>{item.backup}</td>
-                        <td>{item.type}</td>
-                        <td>{item.shares}</td>
-                        <td><Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button></td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </Table>
-            </Col>
-          </Row>
-        </>
-      )}
-
-      {custom && (
-        <Row>
-          <Col sm={12}>
-            <Form>
-              <Form.Group className="mb-3" controlId="customTextArea">
-                <Form.Label>Custom Clause</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={8}
-                  value={clauseValue}
-                  onChange={(e) => {
-                    setClauseValue(e.target.value);
-                    obj = { ...obj, customClause: e.target.value };
-                    setSelected(obj);
-                  }}
-                />
-              </Form.Group>
-            </Form>
-          </Col>
-        </Row>
-      )}
-      {validationErrors.residue && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.residue}</p>}
-    </Container>
+        )}
+        {validationErrors.residue && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.residue}</p>}
+      </Form>
+    </Container >
 
   );
 }

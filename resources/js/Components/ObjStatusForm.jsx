@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-export async function storeDataObject(object){
+export async function storeDataObject(object) {
     try {
         const response = await axios.post('/api/obj-statuses', {
             information: JSON.stringify({ data: object }), // Convert to JSON string
@@ -11,17 +11,17 @@ export async function storeDataObject(object){
             type: "",
         });
         console.log('Data submitted successfully:', response.data);
-    
+        localStorage.setItem('objectStatus', JSON.stringify(object));
         // Optionally reset form
         return response.data;
 
     } catch (err) {
         console.error('Error submitting data:', err);
-      
+
     }
 
 }
-export async function updateDataObject(object, id ){
+export async function updateDataObject(object, id) {
     try {
         const response = await axios.put(`/api/obj-statuses/${id}`, {
             information: JSON.stringify({ data: object }), // Convert to JSON string
@@ -29,6 +29,8 @@ export async function updateDataObject(object, id ){
             type: "",
         });
         console.log('Data submitted successfully:', response.data);
+        // Update localStorage
+        localStorage.setItem('objectStatus', JSON.stringify(object));
         // Optionally reset form
     } catch (err) {
         console.error('Error submitting data:', err);
@@ -62,12 +64,12 @@ const ObjStatusForm = () => {
             setError('Error submitting data');
         }
     };
-let anyobject = {
-    "updated": "hello",
-    "otro": "another"
-};
-let idcualquiera = 1;
-    const handleUpdate = async (e) =>{
+    let anyobject = {
+        "updated": "hello",
+        "otro": "another"
+    };
+    let idcualquiera = 1;
+    const handleUpdate = async (e) => {
         e.preventDefault();
         try {
             const response = await axios.put(`/api/obj-statuses/${idcualquiera}`, {

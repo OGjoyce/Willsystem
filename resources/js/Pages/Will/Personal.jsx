@@ -135,6 +135,33 @@ export default function Personal({ auth }) {
     var [validationErrors, setValidationErrors] = useState({})
     const [selectedDocument, setSelectedDocument] = useState(null);
     var lastPointer = 0;
+
+
+    useEffect(() => {
+        const savedData = localStorage.getItem('fullData');
+        const savedPointer = localStorage.getItem('currentPointer');
+        const savedCurrIdObjDB = localStorage.getItem('currIdObjDB');
+
+        if (savedData && savedPointer) {
+            object_status = JSON.parse(savedData);
+            setPointer(parseInt(savedPointer, 10));
+
+            // Restore other necessary state
+            dupMarried = object_status.some(obj => obj.hasOwnProperty('married'));
+            dupKids = object_status.some(obj => obj.hasOwnProperty('kids'));
+
+            // If there's a stored ID, restore it
+            if (savedCurrIdObjDB) {
+                currIdObjDB = savedCurrIdObjDB;
+            }
+
+            // If there's stored data, update it in the database
+            if (currIdObjDB) {
+                updateDataObject(object_status, currIdObjDB);
+            }
+        }
+    }, []);
+
     const pushInfo = async function (step) {
 
 
@@ -372,10 +399,12 @@ export default function Personal({ auth }) {
                 updateDataObject(object_status, currIdObjDB);
 
             }
+            localStorage.setItem('fullData', JSON.stringify(object_status));
+            localStorage.setItem('currentPointer', step.toString());
+            localStorage.setItem('currIdObjDB', currIdObjDB);
 
 
         }
-        localStorage.setItem('fullData', JSON.stringify(object_status));
         console.log(object_status);
         return object_status;
 
@@ -444,11 +473,14 @@ export default function Personal({ auth }) {
             objectState = [];
             dupMarried = false;
             dupKids = false;
+
             localStorage.removeItem('fullData');
+            localStorage.removeItem('currentPointer');
+
             setPointer(0);
             return true;
         }
-
+        localStorage.setItem('currentPointer', nextStep.toString());
         return true;
     }
     const backStep = function (nextStep) {
@@ -495,6 +527,7 @@ export default function Personal({ auth }) {
         console.log("bb." + nextStep);
 
         setPointer(nextStep);
+        localStorage.setItem('currentPointer', nextStep.toString());
 
         return true;
     }
