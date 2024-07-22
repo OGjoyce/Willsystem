@@ -25,12 +25,17 @@ export function getAdditionalInformation() {
     return additionalInfo.additional;
 }
 
-function Additional({ datas }) {
+function Additional({ datas, errors }) {
     const [dataPointer2, setDataPointer2] = useState(null);
     const [updatePointerSelector, setUpdatePointerSelector] = useState({});
     const [checkedState, setCheckedState] = useState({
         blendedFamily: false
     });
+    const [validationErrors, setValidationErrors] = useState(errors)
+
+    useEffect(() => {
+        setValidationErrors(errors)
+    }, [errors])
 
     const handleCheckboxChange = (event) => {
         const { name, checked } = event.target;
@@ -58,6 +63,7 @@ function Additional({ datas }) {
     }
 
     const handleSwitch = (pointer) => {
+        setValidationErrors({})
         setDataPointer2(pointer);
     }
 
@@ -113,6 +119,7 @@ function Additional({ datas }) {
             ) : dataPointer2 == 3 ? (
                 <OtherWishes callFunction={callFunction} clause={"other"} />
             ) : null}
+            {validationErrors.additional && <p className="mt-12 text-sm text-center text-red-600">{validationErrors.additional}</p>}
         </>
     );
 }

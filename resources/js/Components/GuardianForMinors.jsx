@@ -56,21 +56,37 @@ export default function GuardianForMinors({ datas, errors }) {
         var objtopush = {
             "id": bequestindex,
             "guardian": selected,
-            "position": priority,
+            "position": parseInt(priority),
 
         }
+
+
+        let newErrors = {};
+        if (selected === null || priority === 0) {
+            if (selected === null) {
+                newErrors.selected = 'A relative selection is required';
+            }
+            if (priority === 0) {
+                newErrors.priority = 'A priority selection is required';
+            }
+            setValidationErrors(newErrors);
+            return null;
+        }
+
+
         backupBeneficiaryData.push(objtopush);
-        setTableData(objtopush);
+        setTableData({ ...tableData, [objtopush.id]: objtopush });
+        setPriority(0)
+        setSelected(null)
         bequestindex += 1;
 
     }
     const handleDelete = (itemId) => {
-        backupBeneficiaryData = backupBeneficiaryData.filter(obj => obj.id !== itemId);
+        backupBeneficiaryData = backupBeneficiaryData.filter((obj) => obj.id !== itemId);
+        const updatedTableData = { ...tableData };
+        delete updatedTableData[itemId];
+        setTableData(updatedTableData);
 
-        var obj = backupBeneficiaryData;
-        setTableData(obj);
-
-        bequestindex -= 1;
     }
 
     all_data = datas;
@@ -113,9 +129,17 @@ export default function GuardianForMinors({ datas, errors }) {
         }
 
         setFirstRender(false);
-
-
     }
+
+    const filteredIdentifiersNames = identifiers_names.filter(
+        (name) => !backupBeneficiaryData.some((item) => item.guardian === name)
+    );
+
+    const filteredPriorityInformation = priorityInformation.filter(
+        (priority) => !backupBeneficiaryData.some((item) => parseInt(item.position) === priority)
+    );
+
+
     return (
         <>
             <Container>
@@ -134,10 +158,10 @@ export default function GuardianForMinors({ datas, errors }) {
                                 <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="dropdown-basic">
                                     {selected !== null ? selected : 'Select Relative'}
                                 </Dropdown.Toggle>
-
+                                {validationErrors.selected && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.selected}</p>}
                                 <Dropdown.Menu>
-                                    {identifiers_names.map((option, index) => (
-                                        <Dropdown.Item key={index} eventKey={option} style={{ width: "100%" }}>
+                                    {filteredIdentifiersNames.map((option, index) => (
+                                        <Dropdown.Item key={index} eventKey={option} style={{ width: '100%' }}>
                                             {option}
                                         </Dropdown.Item>
                                     ))}
@@ -156,9 +180,10 @@ export default function GuardianForMinors({ datas, errors }) {
                                 <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="dropdown-basic">
                                     {priority !== 0 ? `Selected Priority: ${priority}` : 'Select Priority'}
                                 </Dropdown.Toggle>
+                                {validationErrors.priority && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.priority}</p>}
 
                                 <Dropdown.Menu>
-                                    {priorityInformation.map((option, index) => (
+                                    {filteredPriorityInformation.map((option, index) => (
                                         <Dropdown.Item key={index} eventKey={option}>
                                             {option}
                                         </Dropdown.Item>

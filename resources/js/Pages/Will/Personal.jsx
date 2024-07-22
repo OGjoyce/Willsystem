@@ -43,8 +43,8 @@ import { getDocumentDOMInfo } from '@/Components/PDF/PDFEditor';
 import { storeDataObject } from '@/Components/ObjStatusForm';
 import { updateDataObject } from '@/Components/ObjStatusForm';
 import { validateFormData, validateAddHumanData, validate } from '@/Components/Validations.jsx';
-import data from '@/Components/__tests__/maried_with_kids'
-var object_status = data;
+
+var object_status = [];
 var objectState = [];
 var dupMarried = false;
 var dupKids = false;
@@ -143,7 +143,7 @@ export default function Personal({ auth }) {
 
         switch (step) {
 
-            case null:
+            case 0:
                 setValidationErrors({})
                 const personalData = getFormData();
 
@@ -291,7 +291,7 @@ export default function Personal({ auth }) {
                 }
 
                 break;
-            case 0:
+            case 10:
 
                 const guardiansData = getGuardiansForMinors()
 
@@ -305,15 +305,51 @@ export default function Personal({ auth }) {
                 }
 
             case 11:
-                //DATA
-                object_to_push.pets = { ...getPetInfo(), "timestamp": Date.now() };
+
+                const petsData = getPetInfo()
+
+                var errors = await validate.pets(petsData);
+                if (Object.keys(errors).length > 0) {
+                    setValidationErrors(errors)
+                    console.log(validationErrors)
+                    return null;
+                } else {
+                    object_to_push.pets = { ...getPetInfo(), "timestamp": Date.now() };
+                }
+
+
                 break;
 
             case 12:
-                object_to_push.additional = { ...getAdditionalInformation(), "timestamp": Date.now() };
+
+                const additionalData = getAdditionalInformation()
+
+                var errors = await validate.additional(additionalData);
+                console.log('data', additionalData)
+                if (Object.keys(errors).length > 0) {
+                    setValidationErrors(errors)
+                    console.log(validationErrors)
+                    return null;
+                } else {
+                    object_to_push.additional = { ...getAdditionalInformation(), "timestamp": Date.now() };
+                }
+
                 break;
             case 13:
-                object_to_push.poa = { ...getPoa(), "timestamp": Date.now() }
+
+
+                const poaData = getPoa()
+
+                var errors = await validate.poa(poaData);
+                if (Object.keys(errors).length > 0) {
+                    setValidationErrors(errors)
+                    console.log(validationErrors)
+                    return null;
+                } else {
+                    object_to_push.poa = { ...getPoa(), "timestamp": Date.now() }
+
+                }
+
                 break;
             case 14:
                 break;
@@ -502,7 +538,7 @@ export default function Personal({ auth }) {
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8" style={{ height: "inherit" }} >
                     <div className="bg-white overflow-visible shadow-sm sm:rounded-lg container" style={{ height: "inherit" }}>
 
-                        {pointer == null ?
+                        {pointer == 0 ?
                             <FormCity errors={validationErrors} />
                             :
                             null
@@ -564,7 +600,7 @@ export default function Personal({ auth }) {
                                 null
                         }
                         {
-                            pointer == 0 ?
+                            pointer == 10 ?
                                 <GuardianForMinors datas={object_status} errors={validationErrors} />
 
                                 :
@@ -572,20 +608,20 @@ export default function Personal({ auth }) {
                         }
                         {
                             pointer == 11 ?
-                                <Pets datas={object_status} />
+                                <Pets datas={object_status} errors={validationErrors} />
 
                                 :
                                 null
                         }
                         {
                             pointer == 12 ?
-                                <Additional datas={object_status} />
+                                <Additional datas={object_status} errors={validationErrors} />
                                 : null
 
                         }
                         {
                             pointer == 13 ?
-                                <Poa datas={object_status} />
+                                <Poa datas={object_status} errors={validationErrors} />
                                 :
                                 null
                         }

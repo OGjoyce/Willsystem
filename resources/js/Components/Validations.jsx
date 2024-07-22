@@ -137,7 +137,6 @@ export const validate = {
 
   wipeout: (data) => {
     const errors = {};
-    console.log(data)
     if (!data || data.wipeout === null || data.wipeout === undefined) {
       errors.wipeout = 'Wipeout selection is required';
     }
@@ -147,7 +146,6 @@ export const validate = {
 
   trusting: (data) => {
     const errors = {};
-    console.log(data)
     if (!data || data.length === 0) {
       errors.trusting = 'Minimun testamentary trust age is required';
     }
@@ -157,11 +155,70 @@ export const validate = {
 
   guardians: (data) => {
     const errors = {};
-    console.log(data)
     if (!data || data.length === 0) {
       errors.guardians = 'At least one guardian for minors is required';
     }
 
+    return errors;
+  },
+
+  pets: (data) => {
+    const errors = {};
+    if (!data || data.length === 0) {
+      errors.pets = 'At least one guardian for pets is required';
+    }
+
+    return errors;
+  },
+
+  additional: (data) => {
+    const errors = {};
+    if (!data || Object.keys(data).length === 1) {
+      errors.additional = 'Standard or Custom clause is required';
+    }
+
+    return errors;
+  },
+
+
+  poa: (data) => {
+    const errors = {};
+
+    // Validate poaProperty
+    if (!data.poaProperty || typeof data.poaProperty !== 'object') {
+      errors.poaProperty = 'poaProperty is required';
+    } else {
+      if (data.poaProperty.attorney === null) {
+        errors.poaProperty = errors.poaProperty || {};
+        errors.poaProperty.attorney = 'Attorney is required in poaProperty';
+      }
+      if (data.poaProperty.join === null) {
+        errors.poaProperty = errors.poaProperty || {};
+        errors.poaProperty.join = 'Join is required in poaProperty';
+      }
+      if (data.poaProperty.restrictions === null) {
+        errors.poaProperty = errors.poaProperty || {};
+        errors.poaProperty.restrictions = 'Restrictions are required in poaProperty';
+      }
+    }
+
+    // Validate poaHealth
+    if (!data.poaHealth || typeof data.poaHealth !== 'object') {
+      errors.poaHealth = 'poaHealth is required';
+    } else {
+      if (data.poaHealth.attorney === null) {
+        errors.poaHealth = errors.poaHealth || {};
+        errors.poaHealth.attorney = 'Attorney is required in poaHealth';
+      }
+      if (data.poaHealth.join === null) {
+        errors.poaHealth = errors.poaHealth || {};
+        errors.poaHealth.join = 'Join is required in poaHealth';
+      }
+      if (data.poaHealth.restrictions === null) {
+        errors.poaHealth = errors.poaHealth || {};
+        errors.poaHealth.restrictions = 'Restrictions are required in poaHealth';
+      }
+    }
     return errors;
   },
 }
