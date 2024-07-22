@@ -176,33 +176,36 @@ function Residue({ id, datas, errors }) {
     var backup = selected.selectedBackup || null;
     var selectedType = selectedOption === 'A' ? "Per Stirpes" : null || selectedOption === 'B' ? "Per Capita" : null;
 
-    if (beneficiary === null || backup === null) {
-      setValidationErrors({ identifiers: 'Beneficiary and backup are required' })
-      return null
-    }
+    var newErrors = {}
 
-    if (beneficiary === backup) {
-      setValidationErrors({ identifiers: "Beneficiary and backup can't be the same person" })
-      return null
-    }
+    if (beneficiary === null || backup === null || beneficiary === backup || selectedType === null || shares === 0 || !Number(shares) || shares > 100 || totalShares > 100) {
 
-    if (selectedType === null) {
-      setValidationErrors({ backupType: 'Backup type is required' })
-      return null
-    }
+      if (beneficiary === backup) {
+        newErrors.identifiers = "Beneficiary and backup can't be the same person"
+      }
 
-    if (shares === 0) {
-      setValidationErrors({ shares: 'Shares for backup must be a valid percent' })
-      return null
-    }
+      if (beneficiary === null || backup === null) {
+        newErrors.identifiers = 'Beneficiary and backup are required'
+      }
 
-    if (!Number(shares)) {
-      setValidationErrors({ shares: 'Shares for backup must be a Number' })
-      return null
-    }
+      if (selectedType === null) {
+        newErrors.backupType = 'Backup type is required'
 
-    if (shares > 100 || totalShares > 100) {
-      setValidationErrors({ shares: 'Shares for backup must be equal to 100%' })
+      }
+
+      if (shares === 0) {
+        newErrors.shares = 'Shares for backup must be a valid percent'
+      }
+
+      if (!Number(shares)) {
+        newErrors.shares = 'Shares for backup must be a Number'
+      }
+
+      if (shares > 100 || totalShares > 100) {
+        newErrors.shares = 'Shares for backup must be equal to 100%'
+      }
+
+      setValidationErrors(newErrors)
       return null
     }
 
@@ -314,7 +317,7 @@ function Residue({ id, datas, errors }) {
                     </DropdownButton>
                   </ButtonGroup>
                 </Form.Group>
-                {validationErrors.identifiers && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.identifiers}</p>}
+                {validationErrors.identifiers && <p className="mt-2 text-sm text-red-600">{validationErrors.identifiers}</p>}
               </Col>
             </Row>
             <Row>
@@ -338,7 +341,7 @@ function Residue({ id, datas, errors }) {
                     onChange={(e) => setSelectedOption(e.target.value)}
                     id="optionB"
                   />
-                  {validationErrors.backupType && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.backupType}</p>}
+                  {validationErrors.backupType && <p className="mt-2 text-sm text-red-600">{validationErrors.backupType}</p>}
                   <InputGroup className="mb-3">
                     <InputGroup.Text id="basic-addon3" >
                       Shares for Backup  ( Available: {availableShares}% )
@@ -346,7 +349,7 @@ function Residue({ id, datas, errors }) {
                     <Form.Control id="basic-url" aria-describedby="basic-addon3" />
                   </InputGroup>
                 </Form>
-                {validationErrors.shares && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.shares}</p>}
+                {validationErrors.shares && <p className="mt-2 text-sm text-red-600">{validationErrors.shares}</p>}
               </Col>
             </Row>
             <Row>
