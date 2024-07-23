@@ -114,6 +114,7 @@ export function getDocumentDOMInfo() {
 const PDFEditor = ({ ContentComponent, datas, documentType, errors }) => {
   var object_status = datas;
 
+
   const [editorContent, setEditorContent] = useState('');
   const [documentVersions, setDocumentVersions] = useState({});
   const [validationErrors, setValidationErrors] = useState(errors)
