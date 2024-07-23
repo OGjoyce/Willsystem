@@ -40,6 +40,15 @@ Route::get('/create', function () {
     return Inertia::render('Will/Create');
 });
 
+Route::get('/profile-info', function () {
+    return Inertia::render('Profile/ProfileInfo', [
+        'auth' => [
+            'user' => auth()->user(),
+        ],
+    ]);
+})->middleware(['auth', 'verified'])->name('profile.info');
+
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
