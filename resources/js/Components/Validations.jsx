@@ -221,4 +221,12 @@ export const validate = {
     }
     return errors;
   },
+  documentDOM: (data) => {
+    const errors = {};
+    if (!data || !data.Will) {
+      errors.documentDOM = 'Please Save your Document to proceed';
+    }
+
+    return errors;
+  },
 }

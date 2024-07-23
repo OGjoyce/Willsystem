@@ -5,7 +5,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
-import { Container, Row, Col, Button } from 'react-bootstrap';
+import { Container, Row, Col, Button, Toast } from 'react-bootstrap';
 import Toolbar from './Toolbar'
 import { useReactToPrint } from "react-to-print";
 
@@ -111,11 +111,17 @@ export function getDocumentDOMInfo() {
 
 
 
-const PDFEditor = ({ ContentComponent, datas, documentType }) => {
+const PDFEditor = ({ ContentComponent, datas, documentType, errors }) => {
   var object_status = datas;
 
   const [editorContent, setEditorContent] = useState('');
   const [documentVersions, setDocumentVersions] = useState({});
+  const [validationErrors, setValidationErrors] = useState(errors)
+  const [showToast, setShowToast] = useState(false)
+
+  useEffect(() => {
+    setValidationErrors(errors)
+  }, [errors])
 
   const editor = useEditor({
     extensions: [
@@ -133,6 +139,7 @@ const PDFEditor = ({ ContentComponent, datas, documentType }) => {
   });
 
   const saveDocumentDOM = useCallback(() => {
+    setShowToast(true)
     const timestamp = new Date().toISOString();
     const currentVersions = documentVersions[documentType] || {};
     const versionNumber = Object.keys(currentVersions).length + 1;
@@ -226,17 +233,37 @@ const PDFEditor = ({ ContentComponent, datas, documentType }) => {
       <Row className="button-row justify-content-center mt-3 mb-3">
         <Col xs={12} sm={6} md={4} lg={3}>
           <Button variant="primary" onClick={handlePrint} className="btn-block w-100 mb-2">
-            <i style={{ marginRight: 12 }} class="bi bi-printer"></i>
-            Print
+            <i style={{ marginRight: 12 }} class="bi bi-download"></i>
+            Download
           </Button>
         </Col>
         <Col xs={12} sm={6} md={4} lg={3}>
           <Button variant="success" onClick={saveDocumentDOM} className="btn-block w-100 mb-2">
-            <i style={{ marginRight: 12 }} class="bi bi-download"></i>
-            Download as PDF
+            <i style={{ marginRight: 12 }} class="bi bi-floppy"></i>
+            Save
           </Button>
         </Col>
+        {validationErrors?.documentDOM && <p className="mt-2 text-sm text-center text-red-600">{validationErrors?.documentDOM}</p>}
       </Row>
+      <Row className="button-row justify-content-center mt-3 mb-3">
+        <Col xs={12} sm={6} md={4} lg={3} className="align-items-center">
+          <Toast show={showToast} onClose={() => { setShowToast(!showToast) }}>
+            <Toast.Header>
+              <img
+                src=""
+                className="rounded me-2"
+                alt=""
+              />
+              <strong className="me-auto">Will System</strong>
+              <small></small>
+            </Toast.Header>
+            <Toast.Body>Your {documentType ? documentType : 'Document'} has been saved Successfully!</Toast.Body>
+          </Toast>
+        </Col>
+      </Row>
+
+
+
       <div style={{ display: 'none' }}>
         <PrintComponent ref={componentRef} content={editorContent} />
       </div>

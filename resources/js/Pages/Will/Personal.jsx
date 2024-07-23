@@ -33,6 +33,7 @@ import { getAdditionalInformation } from '@/Components/Additional';
 import Poa from '@/Components/Poa';
 import { getPoa } from '@/Components/Poa';
 import FinalDetails from '@/Components/FinalDetails';
+import { getFinalDetails } from '@/Components/FinalDetails';
 import PDFEditor from '@/Components/PDF/PDFEditor';
 import WillContent from '@/Components/PDF/Content/WillContent'
 import POA1Content from '@/Components/PDF/Content/POA1Content';
@@ -330,7 +331,7 @@ export default function Personal({ auth }) {
                 } else {
                     object_to_push.guardians = { ...getGuardiansForMinors(), "timestamp": Date.now() }
                 }
-
+                break;
             case 11:
 
                 const petsData = getPetInfo()
@@ -379,9 +380,22 @@ export default function Personal({ auth }) {
 
                 break;
             case 14:
+                object_to_push.finalDetails = { ...getFinalDetails(), "timestamp": Date.now() }
                 break;
             case 15:
-                object_to_push.documentDOM = { ...getDocumentDOMInfo(), "timestamp": Date.now() }
+
+                const documentDOMData = getDocumentDOMInfo()
+
+                var errors = await validate.documentDOM(documentDOMData);
+                if (Object.keys(errors).length > 0) {
+                    setValidationErrors(errors)
+                    console.log(validationErrors)
+                    return null;
+                } else {
+                    object_to_push.documentDOM = { ...getDocumentDOMInfo(), "timestamp": Date.now() }
+
+                }
+
                 break;
 
 
@@ -414,7 +428,7 @@ export default function Personal({ auth }) {
         objectState = object_status;
         const objectStateFreezed = JSON.parse(JSON.stringify(object_status));
         object_status.pop()
-
+        localStorage.setItem('fullData', JSON.stringify(object_status));
 
     }
     const pushMarried = function () {
@@ -481,6 +495,7 @@ export default function Personal({ auth }) {
             return true;
         }
         localStorage.setItem('currentPointer', nextStep.toString());
+        localStorage.setItem('fullData', JSON.stringify(object_status));
         return true;
     }
     const backStep = function (nextStep) {
@@ -528,6 +543,7 @@ export default function Personal({ auth }) {
 
         setPointer(nextStep);
         localStorage.setItem('currentPointer', nextStep.toString());
+
 
         return true;
     }
@@ -667,7 +683,7 @@ export default function Personal({ auth }) {
                         {
                             pointer == 15 ?
 
-                                <PDFEditor ContentComponent={WillContent} datas={object_status} documentType='Will' />
+                                <PDFEditor ContentComponent={WillContent} datas={object_status} documentType='Will' errors={validationErrors} />
                                 :
                                 null
                         }
