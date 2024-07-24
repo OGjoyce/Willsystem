@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import { Container, Row, Col, Card } from 'react-bootstrap';
-import { FaUser, FaRing, FaChild, FaPaw, FaBalanceScale, FaGift, FaHeart } from 'react-icons/fa';
 import styled from 'styled-components';
+import { searchDataByEmail } from '@/Components/ObjStatusForm';
 import object_status from '@/Components/__tests__/maried_with_kids'
 
 const StyledCard = styled(Card)`
@@ -54,22 +54,43 @@ const Value = styled.span`
 `;
 
 export default function ProfileInfo({ auth }) {
-    const data = object_status
-    const { user } = auth;
-    const personal = data[0].personal;
-    const married = data[2].married;
-    const kids = data[4].kids;
-    const relatives = data[5].relatives;
-    const executors = data[5].executors;
-    const bequests = data[6].bequests;
-    const residue = data[7].residue;
-    const wipeout = data[8].wipeout;
-    const trusting = data[9].trusting;
-    const guardians = data[10].guardians;
-    const pets = data[11].pets;
-    const additional = data[12].additional;
-    const poa = data[13].poa;
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const result = await searchDataByEmail('henry@email.com');
+                setData(result);
+                setLoading(false);
+            } catch (err) {
+                setError(err);
+                setLoading(false);
+            }
+        }
+        fetchData()
+    }, [])
+
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error.message}</div>;
+    if (!data) return <div>No data available</div>;
+
+
+    const { user } = auth;
+    const personal = data[0]?.personal || {};
+    const married = data[2]?.married || {};
+    const kids = data[4]?.kids || [];
+    const relatives = data[5]?.relatives || [];
+    const executors = data[5]?.executors || [];
+    const bequests = data[6]?.bequests || {};
+    const residue = data[7]?.residue || {};
+    const wipeout = data[8]?.wipeout || {};
+    const trusting = data[9]?.trusting || {};
+    const guardians = data[10]?.guardians || [];
+    const pets = data[11]?.pets || {};
+    const additional = data[12]?.additional || [];
+    const poa = data[13]?.poa || {};
     return (
         <AuthenticatedLayout
             user={user}
@@ -171,7 +192,7 @@ export default function ProfileInfo({ auth }) {
                             <CardBody>
                                 <InfoItem><Label>Residue:</Label><Value>{residue.selected}</Value></InfoItem>
                                 <InfoItem><Label>Wipeout Provision:</Label><Value>{wipeout.wipeout}</Value></InfoItem>
-                                {additional[0].Slave && (
+                                {additional[0]?.Slave && (
                                     <>
                                         <InfoItem><Label>Organ Donation:</Label><Value>{additional[0].Slave.organdonation ? 'Yes' : 'No'}</Value></InfoItem>
                                         <InfoItem><Label>Cremation:</Label><Value>{additional[0].Slave.cremation ? 'Yes' : 'No'}</Value></InfoItem>
