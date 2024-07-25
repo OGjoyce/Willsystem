@@ -20,6 +20,7 @@ import POA2Content from '@/Components/PDF/Content/POA2Content';
 
 import Modal from 'react-bootstrap/Modal';
 
+
 var ArrObj = [];
 let selectedData;
 let allDataFetched;
@@ -35,16 +36,16 @@ const View = () => {
     const handleClose = () => {
 
         setShow(false);
-    
+
     }
-    function searchById(file){
-    
+    function searchById(file) {
+
         console.log(file);
         var selectedInformation = {};
         console.log(allDataFetched);
-        
-        allDataFetched.forEach(function (arrayItem){
-            if(arrayItem.id == idSelected){
+
+        allDataFetched.forEach(function (arrayItem) {
+            if (arrayItem.id == idSelected) {
                 selectedInformation = arrayItem.information;
             }
         });
@@ -52,8 +53,8 @@ const View = () => {
         console.log(selectedInformation);
         finalSelection = selectedInformation;
         setDocSelected(file);
-  
-    
+
+
     }
 
     const handleShow = (id) => {
@@ -61,9 +62,26 @@ const View = () => {
         currIdSelected = id;
         setShow(true);
     }
-    
+
     const showDoms = (id) => {
         return true;
+    }
+    const saveData = (idItem) => {
+        const dataFetchedLarge = allDataFetched.length;
+        var obj = [];
+        for (let i = 0; i < dataFetchedLarge; i++) {
+            if (allDataFetched[i].id == idItem) {
+                obj = allDataFetched[i].information;
+            }
+        }
+
+        localStorage.setItem('fullData', JSON.stringify(obj));
+        localStorage.setItem('currentPointer', obj.length.toString());
+        localStorage.setItem('currIdObjDB', idItem);
+
+        window.location.href = '/personal';
+
+
     }
     const handleSearch = async () => {
         const response = await axios.get('/api/files/search', {
@@ -79,13 +97,14 @@ const View = () => {
             let owner = backendData.information[0].owner;
             let id = backendData.id;
             let name = backendData.information[0].personal.fullName;
-
+         
             var obj = {
                 "id": id,
                 "created": createdat,
                 "updated": updatedat,
                 "email": owner,
                 "name": name,
+                "leng": element.information.length
             }
             ArrObj.push(obj);
         }
@@ -153,7 +172,8 @@ const View = () => {
                                                 <th>Name</th>
                                                 <th>Created</th>
                                                 <th>Last Modification</th>
-                                                <th>Watch Files</th>
+                                                <th>Step</th>
+                                                <th>Edit Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -164,8 +184,24 @@ const View = () => {
                                                     <td>{item.name}</td>
                                                     <td>{item.created}</td>
                                                     <td>{item.updated}</td>
+                                                    <td>{item.leng}/16</td>
                                                     <td>
-                                                        <Button variant="outline-warning" size="sm" onClick={() => handleShow(item.id)}><i class="bi bi-eye"></i>View Documents</Button>
+                                                        {
+                                                            item.leng > 15 ?
+                                                                <Button variant="outline-warning" size="sm" onClick={() => handleShow(item.id)}><i class="bi bi-eye"></i>View Documents</Button>
+
+                                                                :
+                                                                <Button variant="outline-info" size="sm" onClick={() => saveData(item.id)}><i class="bi bi-eye"></i>Continue Editing</Button>
+
+
+                                                        }
+
+
+
+                                                    </td>
+                                                    <td>
+
+
                                                     </td>
                                                 </tr>
                                             ))}
