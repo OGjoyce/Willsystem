@@ -13,7 +13,7 @@ export function getPoa() {
     return poaData;
 }
 
-export default function Poa({ datas }) {
+export default function Poa({ datas, errors }) {
     const [checkboxes, setCheckboxes] = useState({
         organ: false,
         dnr: false,
@@ -21,6 +21,7 @@ export default function Poa({ datas }) {
 
     const [identifiers_names, setIdentifiersNames] = useState([]);
     const [firstRender, setFirstRender] = useState(true);
+    const [validationErrors, setValidationErrors] = useState(errors)
 
     useEffect(() => {
         if (datas != null && firstRender) {
@@ -40,6 +41,10 @@ export default function Poa({ datas }) {
         }
     }, [datas, firstRender]);
 
+    useEffect(() => {
+        setValidationErrors(errors)
+    }, [errors])
+
     const handleCheckboxChange = (event) => {
         const { name, checked } = event.target;
         setCheckboxes(prev => ({
@@ -51,6 +56,7 @@ export default function Poa({ datas }) {
     };
 
     const setCurrentRecepient = (eventKey, event) => {
+        setValidationErrors({})
         if (event == null) {
             return;
         }
@@ -74,6 +80,7 @@ export default function Poa({ datas }) {
     };
 
     const handleRestrictionChange = (type, event) => {
+        setValidationErrors({})
         poaData[type].restrictions = event.target.value;
         console.log(poaData);
     };
@@ -92,6 +99,7 @@ export default function Poa({ datas }) {
                             ))}
                         </Dropdown.Menu>
                     </Dropdown>
+                    {validationErrors.poaProperty?.attorney && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.poaProperty?.attorney}</p>}
                 </Col>
             </Row>
             <br />
@@ -107,6 +115,7 @@ export default function Poa({ datas }) {
                             ))}
                         </Dropdown.Menu>
                     </Dropdown>
+                    {validationErrors.poaProperty?.join && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.poaProperty?.join}</p>}
                 </Col>
             </Row>
             <br />
@@ -120,6 +129,7 @@ export default function Poa({ datas }) {
                         id="property-restrictions"
                         onChange={(e) => handleRestrictionChange('poaProperty', e)}
                     />
+                    {validationErrors.poaProperty?.restrictions && <p className="mt-2 text-sm text-red-600">{validationErrors.poaProperty?.restrictions}</p>}
                 </Col>
             </Row>
             <br />
@@ -135,6 +145,7 @@ export default function Poa({ datas }) {
                             ))}
                         </Dropdown.Menu>
                     </Dropdown>
+                    {validationErrors.poaHealth?.attorney && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.poaHealth?.attorney}</p>}
                 </Col>
             </Row>
             <br />
@@ -150,6 +161,7 @@ export default function Poa({ datas }) {
                             ))}
                         </Dropdown.Menu>
                     </Dropdown>
+                    {validationErrors.poaHealth?.join && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.poaHealth?.join}</p>}
                 </Col>
             </Row>
             <br />
@@ -163,6 +175,7 @@ export default function Poa({ datas }) {
                         id="health-restrictions"
                         onChange={(e) => handleRestrictionChange('poaHealth', e)}
                     />
+                    {validationErrors.poaHealth?.restrictions && <p className="mt-2 text-sm text-red-600">{validationErrors.poaHealth?.restrictions}</p>}
                 </Col>
             </Row>
             <br />

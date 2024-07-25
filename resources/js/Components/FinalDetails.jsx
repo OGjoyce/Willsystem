@@ -33,7 +33,7 @@ export function getFinalDetails() {
 export default function FinalDetails({ datas }) {
     const [checkboxes, setCheckboxes] = useState({
         officePick: false,
-       
+
     });
 
     const handleCheckboxChange = (event) => {
@@ -42,8 +42,8 @@ export default function FinalDetails({ datas }) {
             ...checkboxes,
             [name]: checked,
         });
-        pickup = checkboxes.officePick;
-       
+        pickup = checked;
+
     };
 
 
@@ -64,7 +64,7 @@ export default function FinalDetails({ datas }) {
                 <Form>
                     <Row>
                         <Col sm={12}>
-                        <p>Elapsed time:  Hours {hours} , minutes {minutes}</p>
+                            <p>Elapsed time:  Hours {hours} , minutes {minutes}</p>
                         </Col>
                     </Row>
                     <Row>
@@ -83,15 +83,15 @@ export default function FinalDetails({ datas }) {
                     </Row>
                     <Row>
                         <Col sm={12}>
-                        <Form.Check
+                            <Form.Check
                                 type="checkbox"
                                 id="checkbox1"
                                 name="officePick"
                                 label="Client Wants To Pick Up Wills & POAs at Office"
-                                checked={checkboxes.organ}
+                                checked={checkboxes.officePick}
                                 onChange={handleCheckboxChange}
                             />
-                            </Col>
+                        </Col>
                     </Row>
                 </Form>
 

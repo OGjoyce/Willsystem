@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Dialog } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 
@@ -18,8 +18,9 @@ import DropdownButton from 'react-bootstrap/DropdownButton';
 import { Row, Col, DropdownToggle, DropdownMenu, DropdownItem } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Collapse from 'react-bootstrap/Collapse';
+import { validateAddHumanData } from './Validations';
 
-var all_data;
+var all_data = [];
 var identifiers_names = [];
 var bequestArrObj = [];
 var bequestindex = 0;
@@ -29,7 +30,7 @@ export function getBequestArrObj() {
     return bequestArrObj;
 }
 
-function Bequest({ id, datas }) {
+function Bequest({ id, datas, errors }) {
     const [show, setShow] = useState(false);
     const [showExecutor, setShowExecutor] = useState(false);
     const [open, setOpen] = useState(false);
@@ -38,6 +39,11 @@ function Bequest({ id, datas }) {
     var [selectedRecepient, setSelectedRecepient] = useState("Select a recepient to continue...");
     const [isCustomBequest, setIsCustomBequest] = useState(false);
     const [readOnly, setReadOnly] = useState(false);
+    const [validationErrors, setValidationErrors] = useState({})
+
+    useEffect(() => {
+        setValidationErrors(errors)
+    }, [errors])
 
     const reviewBequestSum = (index) => {
         var counter = 0;
@@ -91,19 +97,13 @@ function Bequest({ id, datas }) {
                     }
                 }
             }
-
+            setValidationErrors({})
             setTable_dataBequest([...table_dataBequest]);
         }
     }
 
     function addAnotherRelative() {
-        const newrelative = getHumanData();
-        const names = newrelative.firstName + " " + newrelative.lastName;
-        identifiers_names.push(names);
 
-        let len = Object.keys(datas[5].relatives).length;
-        datas[5].relatives[len] = newrelative;
-        console.log(datas);
     }
 
     function finishBequest() {
@@ -138,8 +138,30 @@ function Bequest({ id, datas }) {
     };
 
     const handleClose = () => {
-        setShow(false);
-        addAnotherRelative();
+        const newrelative = getHumanData();
+
+        // Realiza la validación
+        var errors = validateAddHumanData(newrelative);
+
+        if (Object.keys(errors).length <= 0) {
+            // Si no hay errores, procede a añadir los datos
+
+            const names = newrelative.firstName + " " + newrelative.lastName;
+            identifiers_names.push(names);
+
+            let len = Object.keys(datas[5].relatives).length;
+            datas[5].relatives[len] = newrelative;
+            console.log(datas);
+
+
+            setValidationErrors({});
+            setShow(false);
+        } else {
+            // Si hay errores, actualiza el estado de los errores
+            setValidationErrors(errors);
+            console.log(errors)
+        }
+
     }
 
     const handleCloseNosave = () => {
@@ -155,6 +177,7 @@ function Bequest({ id, datas }) {
         table_dataBequest = table_dataBequest.filter(obj => obj.id !== itemId);
         var obj = table_dataBequest;
         setTable_dataBequest(obj);
+        bequestArrObj = obj
         bequestindex -= 1;
     }
 
@@ -164,22 +187,22 @@ function Bequest({ id, datas }) {
         const married = all_data[2].married;
         const kids = all_data[4].kids;
         const relatives = all_data[5].relatives;
-        const kidsq = all_data[3].kidsq.selection;
+        const kidsq = all_data[3].kidsq?.selection;
 
         var dataobj = { married, kids, relatives }
 
-        var married_names = married.firstName + " " + married.lastName;
+        var married_names = married?.firstName + " " + married?.lastName;
         if (kidsq == "true") {
-            var kids_names = kids.firstName + " " + kids.lastName;
+            var kids_names = kids?.firstName + " " + kids?.lastName;
             for (let child in kids) {
-                const names = kids[child].firstName + " " + kids[child].lastName;
+                const names = kids[child]?.firstName + " " + kids[child]?.lastName;
                 identifiers_names.push(names);
             }
         }
         identifiers_names.push(married_names);
 
         for (let key in relatives) {
-            const names = relatives[key].firstName + " " + relatives[key].lastName;
+            const names = relatives[key]?.firstName + " " + relatives[key]?.lastName;
             identifiers_names.push(names);
         }
 
@@ -247,6 +270,7 @@ function Bequest({ id, datas }) {
             >
                 See Bequest information
             </Button>
+            {validationErrors.bequest && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.bequest}</p>}
             <Collapse in={open}>
                 <div id="example-collapse-text">
                     <Table striped bordered hover responsive>
@@ -285,6 +309,7 @@ function Bequest({ id, datas }) {
                             }
                         </tbody>
                     </Table>
+
                 </div>
             </Collapse>
 
@@ -293,7 +318,7 @@ function Bequest({ id, datas }) {
                     <Modal.Title>Add New Person</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <AddHuman human={true} />
+                    <AddHuman human={true} errors={validationErrors} />
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" size="sm" onClick={handleCloseNosave}>

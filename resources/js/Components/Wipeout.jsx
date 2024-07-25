@@ -19,7 +19,7 @@ export function getWipeoutData() {
 
 var bequestindex = 0;
 
-function Wipeout({ id, datas }) {
+function Wipeout({ id, datas, errors }) {
     const [selected, setSelected] = useState({ options: [], selectedOption: null });
     const [selectedBeneficiary, setSelectedBeneficiary] = useState("Select a beneficiary");
     const [custom, setCustom] = useState(false);
@@ -28,6 +28,13 @@ function Wipeout({ id, datas }) {
     const [table_dataBequest, setTable_dataBequest] = useState([]);
     const [identifiers_names, setIdentifiersNames] = useState([]);
     const [selectedOption, setSelectedOption] = useState('');
+    const [fullWipeoutSelected, setFullWipeoutSelected] = useState(false);
+    const [beneficiarySelected, setBeneficiarySelected] = useState(false);
+    const [validationErrors, setValidationErrors] = useState(errors)
+
+    useEffect(() => {
+        setValidationErrors(errors)
+    }, [errors])
 
     useEffect(() => {
         console.log("datas:", datas);
@@ -35,25 +42,27 @@ function Wipeout({ id, datas }) {
         console.log("relatives:", datas[5].relatives);
 
         const married = datas[2].married;
+        const marriedStatus = datas[1].marriedq?.selection === "true";
+        const sosoStatus = datas[1].marriedq?.selection === "soso";
         const kids = datas[4].kids;
         const relatives = datas[5].relatives;
-        const kidsq = datas[3].kidsq.selection;
+        const kidsq = datas[3].kidsq?.selection;
 
         let names = [];
-        const married_names = `${married.firstName} ${married.lastName}`;
+        const married_names = `${married?.firstName} ${married?.lastName}`;
         names.push(married_names);
 
         if (kidsq === "true" && kids) {
             if (Array.isArray(kids)) {
                 for (let child of kids) {
-                    const childName = `${child.firstName} ${child.lastName}`;
+                    const childName = `${child?.firstName} ${child?.lastName}`;
                     names.push(childName);
                 }
             } else if (typeof kids === 'object') {
                 for (let key in kids) {
                     if (kids.hasOwnProperty(key)) {
                         const child = kids[key];
-                        const childName = `${child.firstName} ${child.lastName}`;
+                        const childName = `${child?.firstName} ${child?.lastName}`;
                         names.push(childName);
                     }
                 }
@@ -63,14 +72,14 @@ function Wipeout({ id, datas }) {
         if (relatives) {
             if (Array.isArray(relatives)) {
                 for (let relative of relatives) {
-                    const relativeName = `${relative.firstName} ${relative.lastName}`;
+                    const relativeName = `${relative?.firstName} ${relative?.lastName}`;
                     names.push(relativeName);
                 }
             } else if (typeof relatives === 'object') {
                 for (let key in relatives) {
                     if (relatives.hasOwnProperty(key)) {
                         const relative = relatives[key];
-                        const relativeName = `${relative.firstName} ${relative.lastName}`;
+                        const relativeName = `${relative?.firstName} ${relative?.lastName}`;
                         names.push(relativeName);
                     }
                 }
@@ -80,8 +89,8 @@ function Wipeout({ id, datas }) {
         setIdentifiersNames(names);
 
         var options = [
-            '50% to parents and siblings and 50% to parents and siblings of spouse',
-            '50% to siblings and 50% to siblings of spouse',
+            `${marriedStatus | sosoStatus ? "50% to parents and siblings and 50% to parents and siblings of spouse" : "100% to parents and siblings"}`,
+            `${marriedStatus | sosoStatus ? "50% to siblings and 50% to siblings of spouse" : "100% to siblings"}`,
             'Specific Wipeout Beneficiary'
         ];
 
@@ -92,6 +101,10 @@ function Wipeout({ id, datas }) {
         setSelectedOption(event.target.value);
     };
 
+    const calculateTotalShares = () => {
+        return table_dataBequest.reduce((total, item) => total + parseFloat(item.shares), 0);
+    };
+
     const handleDelete = (itemId) => {
         const updatedData = table_dataBequest.filter(obj => obj.id !== itemId);
         setTable_dataBequest(updatedData);
@@ -100,18 +113,47 @@ function Wipeout({ id, datas }) {
     };
 
     const handleAddItem = () => {
+        if (fullWipeoutSelected) {
+            alert("Cannot add specific beneficiaries when a 100% wipeout option is selected.");
+            return;
+        }
+
         const organization = document.getElementById("organization").value;
         setOpen(true);
 
-        const beneficiary = organization !== "" ? organization : selectedBeneficiary;
-        const backup = selectedOption;
-        const shares = document.getElementById('shares').value;
+        let beneficiary;
+        if (beneficiarySelected) {
+            beneficiary = selectedBeneficiary;
+        } else if (organization !== "") {
+            beneficiary = organization;
+        } else {
+            setValidationErrors({ name: "Please select a beneficiary or enter an organization name." })
+            return;
+        }
 
+        const backup = selectedOption;
+        const shares = parseFloat(document.getElementById('shares').value);
+
+        if (isNaN(shares) || shares <= 0) {
+            setValidationErrors({ shares: "Please enter a valid positive number for shares percentage." })
+            return;
+        }
+
+        const currentTotal = calculateTotalShares();
+        if (currentTotal + shares > 100) {
+            setValidationErrors({ shares: `Cannot add ${shares}%. Current total is ${currentTotal}%. The sum cannot exceed 100%.` })
+            return;
+        }
+
+        if (selectedOption === '') {
+            setValidationErrors({ type: 'Backup type is required' })
+            return null
+        }
         const newItem = {
             "id": bequestindex,
             "names": beneficiary,
             "shares": shares,
-            "backup": backup
+            "backup": backup,
         };
 
         const updatedData = [...table_dataBequest, newItem];
@@ -125,21 +167,41 @@ function Wipeout({ id, datas }) {
         document.getElementById("organization").value = "";
         document.getElementById("shares").value = "";
         setSelectedOption('');
+        setBeneficiarySelected(false);
+        setValidationErrors({})
     };
 
     const setCurrentRecepient = (eventKey) => {
         setSelectedBeneficiary(eventKey);
         setSelectedRecepient(eventKey);
+        setBeneficiarySelected(true);
+        document.getElementById("organization").value = "";
+        setValidationErrors({})
+    };
+
+    const handleOrganizationChange = (event) => {
+        if (event.target.value !== "") {
+            setSelectedBeneficiary("Select a beneficiary");
+            setSelectedRecepient("Select a recipient to continue...");
+            setBeneficiarySelected(false);
+            setValidationErrors({})
+        }
     };
 
     const handleSelect = (key) => {
+        setValidationErrors({})
         setSelected(prev => ({ ...prev, selectedOption: key }));
         if (key === "Specific Wipeout Beneficiary") {
             setCustom(true);
+            setFullWipeoutSelected(false);
         } else {
             setCustom(false);
+            setFullWipeoutSelected(true);
+            setTable_dataBequest([]);
+            bequestindex = 0;
             returndata = { wipeout: key, timestamp: Date.now() };
         }
+
     };
 
     return (
@@ -159,7 +221,7 @@ function Wipeout({ id, datas }) {
             </DropdownButton>
             <p style={{ color: "gray" }}> If you don't add a backup, then inheritance is per stirpes (if a person is deceased, their children will get their share equally. If one of their children is deceased and has children of their own, their children (testator's grandchildren) will get their share equally)</p>
 
-            {custom && (
+            {custom && !fullWipeoutSelected && (
                 <>
                     <Dropdown style={{ width: "100%" }} onSelect={setCurrentRecepient}>
                         <Dropdown.Toggle variant="success" id="dropdown-basic">
@@ -175,11 +237,16 @@ function Wipeout({ id, datas }) {
                     <Form>
                         <Form.Group className="mb-3" controlId="organization">
                             <Form.Label>Or Organization</Form.Label>
-                            <Form.Control type="text" />
+                            <Form.Control type="text"
+                                disabled={beneficiarySelected}
+                                onChange={handleOrganizationChange}
+                            />
+                            {validationErrors.name && <p className="mt-2 text-sm text-red-600">{validationErrors.name}</p>}
                         </Form.Group>
                         <Form.Group className="mb-3" controlId="shares">
                             <Form.Label>Shares %</Form.Label>
                             <Form.Control type="number" />
+                            {validationErrors.shares && <p className="mt-2 text-sm text-red-600">{validationErrors.shares}</p>}
                         </Form.Group>
 
                         <Form.Check
@@ -198,11 +265,11 @@ function Wipeout({ id, datas }) {
                             checked={selectedOption === 'Per Capita'}
                             onChange={handleOptionChange}
                         />
+                        {validationErrors.type && <p className="mt-2 text-sm text-red-600">{validationErrors.type}</p>}
                         <Button variant="outline-success" size="lg" onClick={handleAddItem}> Add Beneficiary</Button>
                     </Form>
                 </>
             )}
-
             <Button
                 onClick={() => setOpen(!open)}
                 aria-controls="example-collapse-text"
@@ -212,40 +279,56 @@ function Wipeout({ id, datas }) {
             >
                 See information
             </Button>
+            {validationErrors.wipeout && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.wipeout}</p>}
             <Collapse in={open}>
                 <div id="example-collapse-text">
-                    <Table striped bordered hover responsive>
-                        <thead>
-                            <tr>
-                                <th>id</th>
-                                <th>Names</th>
-                                <th>backup</th>
-                                <th>Shares</th>
-                                <th>Delete</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {table_dataBequest.length === 0 ? (
-                                <tr>
-                                    <td colSpan="5">
-                                        No information added yet, press "Add Recipient Button" to add.
-                                    </td>
-                                </tr>
-                            ) : (
-                                table_dataBequest.map((item, index) => (
-                                    <tr key={index}>
-                                        <td>{item.id + 1}</td>
-                                        <td>{item.names}</td>
-                                        <td>{item.backup}</td>
-                                        <td>{item.shares}</td>
-                                        <td>
-                                            <Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button>
-                                        </td>
+                    {fullWipeoutSelected ? (
+                        <p>Selected option: {selected.selectedOption}</p>
+                    ) : (
+                        <>
+                            <div>
+                                <strong>Total Shares: {calculateTotalShares()}%</strong>
+                                {calculateTotalShares() < 100 && (
+                                    <span style={{ color: 'red' }}> (Remaining: {100 - calculateTotalShares()}%)</span>
+                                )}
+                                {calculateTotalShares() === 100 && (
+                                    <span style={{ color: 'green' }}> (Complete)</span>
+                                )}
+                            </div>
+                            <Table striped bordered hover responsive>
+                                <thead>
+                                    <tr>
+                                        <th>Id</th>
+                                        <th>Names</th>
+                                        <th>Backup</th>
+                                        <th>Shares</th>
+                                        <th>Delete</th>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </Table>
+                                </thead>
+                                <tbody>
+                                    {table_dataBequest.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="5">
+                                                No information added yet, press "Add Recipient Button" to add.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        table_dataBequest.map((item, index) => (
+                                            <tr key={index}>
+                                                <td>{item.id + 1}</td>
+                                                <td>{item.names}</td>
+                                                <td>{item.backup}</td>
+                                                <td>{item.shares}</td>
+                                                <td>
+                                                    <Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </Table>
+                        </>
+                    )}
                 </div>
             </Collapse>
         </>

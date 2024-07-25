@@ -1,7 +1,7 @@
 
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 
@@ -22,44 +22,90 @@ var sharescounter = 0;
 export function getTableData() {
     return tableData;
 }
-function Trusting({ datas }) {
+function Trusting({ datas, errors }) {
 
     const [open, setOpen] = useState(false);
+    const [validationErrors, setValidationErrors] = useState(errors)
     var [objStats, setObjStats] = useState({});
-    const handleAdd = () => {
 
+    useEffect(() => {
+        setValidationErrors(errors)
+    }, [errors])
+
+    const handleAdd = () => {
+        setValidationErrors({})
         const age = document.getElementById('age').value;
         const shares = document.getElementById('shares').value;
         var floatshares = parseFloat(shares);
         var flag = false;
-        if (floatshares > 100) {
+
+
+        if (!age || age > 100 || age === null || age === 0) {
+            setValidationErrors({ age: 'A valid age is required' })
+            return null
+        }
+
+        if (!shares || shares === 0 || shares > 100) {
+            setValidationErrors({ shares: 'Valid percent is required for shares' })
+            return null
+        }
+
+
+
+
+
+
+
+
+        const addedAge = tableData?.length > 0
+            ? tableData.filter(i => i.age === age)
+            : null
+
+        if (addedAge !== null && addedAge.length > 0) {
+            setValidationErrors({ age: 'Age already set, delete the anterior selection or change the actual age to proceed ' })
+            flag = true
+            return null
+        } else {
+
+            var obj = {
+                "id": pointer,
+                "age": age,
+                "shares": shares
+            }
+
+            if (floatshares > 100) {
+
+            }
+            else if (floatshares == 100) {
+                if (sharescounter == 0) {
+                    sharescounter += floatshares;
+                }
+            }
+            else if (floatshares <= 100) {
+                if ((sharescounter + floatshares) <= 100) {
+                    sharescounter += floatshares;
+                } else if (sharescounter > 100) {
+                    setValidationErrors({ shares: `Cannot add ${shares}%. Current total is ${sharescounter}%. The sum cannot exceed 100%.` })
+                    return null;
+                }
+                else {
+                    setValidationErrors({ shares: `Cannot add ${shares}%. Current total is ${sharescounter}%. The sum cannot exceed 100%.` })
+                    return null
+                }
+
+            }
+
+
+            if (!flag) {
+                tableData.push(obj);
+                setObjStats(obj);
+                pointer++;
+            }
+
 
         }
-        else if (floatshares == 100) {
-            if (sharescounter == 0) {
-                sharescounter += floatshares;
-            }
-        }
-        else if (floatshares <= 100) {
-            if ((sharescounter + floatshares) <= 100) {
-                sharescounter += floatshares;
-            }
-            else {
-                flag = true;
-            }
 
-        }
-        tableData = tableData.filter(obj => obj.age !== age);
-        var obj = {
-            "id": pointer,
-            "age": age,
-            "shares": shares
-        }
-        if (!flag) {
-            tableData.push(obj);
-            setObjStats(obj);
-            pointer++;
-        }
+
 
 
     }
@@ -86,15 +132,18 @@ function Trusting({ datas }) {
                 <Form.Group controlId="age">
                     <Form.Label>Age</Form.Label>
                     <Form.Control type="number" />
+                    {validationErrors.age && <p className="mt-2 text-sm text-red-600">{validationErrors.age}</p>}
                 </Form.Group>
                 <Form.Group controlId="shares">
                     <Form.Label>Shares %</Form.Label>
                     <Form.Control type="number" />
+                    {validationErrors.shares && <p className="mt-2 text-sm text-red-600">{validationErrors.shares}</p>}
                 </Form.Group>
 
             </Form>
             <Button variant="success" size="sm" onClick={handleAdd}>Add new Share</Button>
             <div id="example-collapse-text">
+                {validationErrors.trusting && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.trusting}</p>}
                 <Table striped bordered hover responsive>
                     <thead>
                         <tr>

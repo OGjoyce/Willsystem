@@ -1,406 +1,427 @@
-
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-
-import { useState } from 'react'
-
-import Table from 'react-bootstrap/Table';
-import Button from 'react-bootstrap/Button';
-
-import AddHuman from './AddHuman';
-import { getHumanData } from './AddHuman';
-import Modal from 'react-bootstrap/Modal';
-
-import ButtonGroup from 'react-bootstrap/ButtonGroup';
-import Dropdown from 'react-bootstrap/Dropdown';
-
-import DropdownButton from 'react-bootstrap/DropdownButton';
-import { Row, Col, DropdownToggle, DropdownMenu, DropdownItem } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
 import Form from 'react-bootstrap/Form';
-import Collapse from 'react-bootstrap/Collapse';
-import { InputGroup } from 'react-bootstrap';
-
-
+import DropdownButton from 'react-bootstrap/DropdownButton';
+import Dropdown from 'react-bootstrap/Dropdown';
+import Button from 'react-bootstrap/Button';
+import Table from 'react-bootstrap/Table';
+import InputGroup from 'react-bootstrap/InputGroup';
+import ButtonGroup from 'react-bootstrap/ButtonGroup';
+import Container from 'react-bootstrap/Container';
+import Col from 'react-bootstrap/Col';
+import Row from 'react-bootstrap/Row';
 
 var identifiers_names = [];
-
 var all_data;
 var obj = {};
 var backupBeneficiaryData = [];
-
 var bequestindex = 1;
 
 export function getOptObject() {
   var userSelection = obj.selectedOption;
   var returnobject = {};
-  if (userSelection == "Specific Beneficiaries") {
+  if (userSelection === "Specific Beneficiaries") {
     returnobject = {
       "selected": userSelection,
       "beneficiary": backupBeneficiaryData
-    }
-
-  }
-  else if (userSelection == "CUSTOM CLAUSE (will override every other option)") {
+    };
+  } else if (userSelection === "Custom Clause") {
     returnobject = {
       "selected": userSelection,
       "clause": obj.customClause
-    }
-
+    };
+  } else if (userSelection === null || undefined) {
+    returnobject = {};
   }
+
   else {
     returnobject = {
       "selected": userSelection
-    }
-
+    };
   }
   return returnobject;
 }
-function Residue({ id, datas }) {
 
+function Residue({ id, datas, errors }) {
+  const marriedStatus = datas[1].marriedq?.selection === "true";
+  const sosoStatus = datas[1].marriedq?.selection === "soso";
+  const hasKids = datas[3].kidsq?.selection === "true";
 
-
-
-
-
-
-
-  //should add on options in the case no spouse added
-  const marriedStatus = datas[1].marriedq.selection;
-
-  if (marriedStatus == "true") {
-    var options = [
-      'NO SPOUSAL WILL: Have the residue go to spouse first then children per stirpes',
-      'Have the residue go to children per stirpes',
-      'Have the residue go to children per capita',
-      'Have the residue go to parents then siblings per stirpes',
-      'Have the residue go to siblings per sirpes',
-      'Specific Beneficiaries',
-      'CUSTOM CLAUSE (will override every other option)']
-
-  }
-  else {
-    var options = [
-      'Have the residue go to children per stirpes',
-      'Have the residue go to children per capita',
-      'Have the residue go to parents then siblings per stirpes',
-      'Have the residue go to siblings per sirpes',
-      'Specific Beneficiaries',
-      'CUSTOM CLAUSE (will override every other option)']
-
-
-  }
-  var [custom, setCustom] = useState(false);
-  var [clauseValue, setClauseValue] = useState("this is  a custom clause");
-  var [specific, setSpecific] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [options, setOptions] = useState([]);
+  const [bloodlineOptions, setBloodlineOptions] = useState([]);
+  const [custom, setCustom] = useState(false);
+  const [specific, setSpecific] = useState(false);
+  const [clauseValue, setClauseValue] = useState("");
   const [firstRender, setFirstRender] = useState(true);
-  var [table_dataBequest, setTable_dataBequest] = useState([]);
+  const [table_dataBequest, setTable_dataBequest] = useState([]);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [selected, setSelected] = useState(obj);
+  const [validationErrors, setValidationErrors] = useState(errors)
+  const [availableShares, setAvailableShares] = useState(100)
 
 
-  if (firstRender) {
-    obj = {
-      options: options, // Your array of string values
-      selectedOption: null,
-      selectedBeneficiary: null,
-      selectedBackup: null,
-      customClause: null
-    };
-  }
+  useEffect(() => {
+    setValidationErrors(errors)
+  }, [errors])
 
+  useEffect(() => {
+    let newBloodlineOptions = [
+      'Have the residue go to parents then siblings per stirpes',
+      'Have the residue go to siblings per stirpes',
+    ];
 
-  var [selected, setSelected] = useState(obj);
-
-
-
-
-  all_data = datas;
-
-  if (all_data != null && firstRender) {
-
-
-    const married = all_data[2].married;
-    const kids = all_data[4].kids;
-    const relatives = all_data[5].relatives;
-    const kidsq = all_data[3].kidsq.selection;
-
-    var dataobj = {}
-    dataobj = {
-      married, kids, relatives
+    if (marriedStatus || sosoStatus) {
+      newBloodlineOptions.unshift(`NO SPOUSAL WILL: Have the residue go to spouse ${hasKids ? 'first then children per stirpes' : ''}`);
     }
 
-    var married_names = married.firstName + " " + married.lastName;
-    if (kidsq == "true") {
-      var kids_names = kids.firstName + " " + kids.lastName;
-      for (let child in kids) {
-        const names = kids[child].firstName + " " + kids[child].lastName;
+    if (hasKids) {
+      newBloodlineOptions.unshift(
+        'Have the residue go to children per stirpes',
+        'Have the residue go to children per capita'
+      );
+    }
+
+    setBloodlineOptions(newBloodlineOptions);
+    if (selectedCategory === 'Bloodline Selection' || !selectedCategory) {
+      setOptions(newBloodlineOptions);
+    }
+  }, [marriedStatus, hasKids, sosoStatus, selectedCategory]);
+
+  useEffect(() => {
+    if (firstRender && all_data != null) {
+      const married = all_data[2].married;
+      const kids = all_data[4].kids;
+      const relatives = all_data[5].relatives;
+      const kidsq = all_data[3].kidsq?.selection;
+
+      var married_names = married?.firstName + " " + married?.lastName;
+      identifiers_names.push(married_names);
+
+      if (kidsq === "true") {
+        for (let child in kids) {
+          const names = kids[child]?.firstName + " " + kids[child]?.lastName;
+          identifiers_names.push(names);
+        }
+      }
+
+      for (let key in relatives) {
+        const names = relatives[key].firstName + " " + relatives[key].lastName;
         identifiers_names.push(names);
       }
 
-
+      setFirstRender(false);
     }
-    else {
+  }, [firstRender, all_data]);
 
-
+  const handleCategorySelect = (category) => {
+    setSelectedCategory(category);
+    setValidationErrors({})
+    if (category === 'Custom Selection') {
+      setOptions(['Custom Clause', 'Specific Beneficiaries']);
+    } else {
+      setOptions(bloodlineOptions);
     }
-    identifiers_names.push(married_names);
-
-
-
-    for (let key in relatives) {
-      const names = relatives[key].firstName + " " + relatives[key].lastName;
-      identifiers_names.push(names);
-    }
-
-    setFirstRender(false);
-
-
-  }
-
-
-  const [selectedOption, setSelectedOption] = useState(null);
-
-  const handleOptionChange = (event) => {
-    setSelectedOption(event.target.value);
+    setCustom(false);
+    setSpecific(false);
+    obj = { ...obj, selectedOption: null };
+    setSelected(obj);
   };
 
+  const handleOptionSelect = (option) => {
+    if (option === 'Custom Clause') {
+      setCustom(true);
+      setSpecific(false);
+      obj = { ...obj, customClause: clauseValue };
+    } else if (option === 'Specific Beneficiaries') {
+      setSpecific(true);
+      setCustom(false);
+    } else {
+      setCustom(false);
+      setSpecific(false);
+    }
+    obj = { ...obj, selectedOption: option };
+    setSelected(obj);
+    setValidationErrors({})
+  };
 
+  const handleSelectBeneficiary = (key) => {
+    obj = { ...obj, selectedBeneficiary: key };
+    setSelected(obj);
+  };
 
-
-
-
-
-
+  const handleSelectBackup = (key) => {
+    obj = { ...obj, selectedBackup: key };
+    setSelected(obj);
+  };
 
   const handleDelete = (itemId) => {
     backupBeneficiaryData = backupBeneficiaryData.filter(obj => obj.id !== itemId);
-
-    var obj = backupBeneficiaryData;
-    setTable_dataBequest(backupBeneficiaryData);
-
+    setTable_dataBequest([...backupBeneficiaryData]);
     bequestindex -= 1;
-  }
+    var totalShares = backupBeneficiaryData.length > 0
+      ? 100 - backupBeneficiaryData?.map(backup => backup.shares).reduce((a, b) => a + b)
+      : 100
+    setAvailableShares(totalShares)
+  };
 
-
-
-  const handleSelect = (key, eventKey) => {
-
-    obj = { ...obj, selectedOption: key }
-
-
-    if (key == "Specific Beneficiaries") {
-      setSpecific(true);
-      setCustom(false);
-
-    }
-    else if (key == "CUSTOM CLAUSE (will override every other option)") {
-
-      setSpecific(false);
-      setCustom(true);
-      obj = { ...obj, customClause: clauseValue };
-    }
-    else {
-      setSpecific(false);
-      setCustom(false);
-    }
-    setSelected(obj);
-  }
-
-  const handleSelectBeneficiary = (key, eventKey) => {
-    obj = { ...obj, selectedBeneficiary: key }
-    setSelected(obj);
-
-  }
-
-  const handleSelectBackup = (key, eventKey) => {
-    obj = { ...obj, selectedBackup: key }
-    setSelected(obj);
-  }
   const AddBackupButton = () => {
-    var selectedOption = selected.selectedOption;
+    setValidationErrors({})
     var shares = document.getElementById('basic-url').value;
     shares = Number(shares);
-    var beneficiary = selected.selectedBeneficiary;
-    var backup = selected.selectedBackup;
-    if (selectedOption == "A") {
-      selectedOption = "Per Stirpes"
+    var totalShares = backupBeneficiaryData.length > 0
+      ? shares + backupBeneficiaryData?.map(backup => backup.shares).reduce((a, b) => a + b)
+      : shares
 
-    }
-    else {
-      selectedOption = "Per Capita"
-    }
+    var beneficiary = selected.selectedBeneficiary || null;
+    var backup = selected.selectedBackup || null;
+    var selectedType = selectedOption === 'A' ? "Per Stirpes" : null || selectedOption === 'B' ? "Per Capita" : null;
 
-    if (beneficiary != null && backup != null) {
-      var objtopush =
-      {
-        "id": bequestindex,
-        "beneficiary": beneficiary,
-        "backup": backup,
-        "type": selectedOption,
-        "shares": shares
+    var newErrors = {}
+
+    if (beneficiary === null || backup === null || beneficiary === backup || selectedType === null || shares === 0 || !Number(shares) || shares > 100 || totalShares > 100) {
+
+      if (beneficiary === backup) {
+        newErrors.identifiers = "Beneficiary and backup can't be the same person"
       }
 
-    }
-    else {
-      alert("Please select beneficiary and backup")
+      if (beneficiary === null || backup === null) {
+        newErrors.identifiers = 'Beneficiary and backup are required'
+      }
+
+      if (selectedType === null) {
+        newErrors.backupType = 'Backup type is required'
+
+      }
+
+      if (shares === 0) {
+        newErrors.shares = 'Shares for backup must be a valid percent'
+      }
+
+      if (!Number(shares)) {
+        newErrors.shares = 'Shares for backup must be a Number'
+      }
+
+      if (shares > 100 || totalShares > 100) {
+        newErrors.shares = 'Shares for backup must be equal to 100%'
+      }
+
+      setValidationErrors(newErrors)
+      return null
     }
 
-    //add to table ... set a hook
+
+    var objtopush = {
+      "id": bequestindex,
+      "beneficiary": beneficiary,
+      "backup": backup,
+      "type": selectedType,
+      "shares": shares
+    };
+
     backupBeneficiaryData.push(objtopush);
-    setTable_dataBequest(objtopush);
+    setTable_dataBequest([...backupBeneficiaryData]);
     bequestindex++;
+    setAvailableShares(100 - totalShares)
+    obj = { ...obj, selectedBeneficiary: null };
+    obj = { ...obj, selectedBackup: null };
+    setSelected(obj);
+    document.getElementById('basic-url').value = '';
 
+  };
 
-  }
+  all_data = datas;
+
   return (
-    <>
-      <Form.Group className="mb-3">
-        <DropdownButton
-          size="lg"
-          variant="outline-dark"
-          id="dropdown-basic-button"
-          title={selected.selectedOption ? selected.selectedOption : 'Select an option'}
-          onSelect={handleSelect}
-        >
-          {selected.options.map((option, index) => (
-            <Dropdown.Item key={index} eventKey={option}>
-              {option}
-            </Dropdown.Item>
-          ))}
-        </DropdownButton>
-      </Form.Group>
-      {
-        specific ?
-          <><p>Please select a benefeciary for the residue following with a backup beneficiary</p>
-            <Form.Group className="mb-3">
-              <DropdownButton
-                size="lg"
-                variant="outline-dark"
-                id="dropdown-basic-button"
-                title={selected.selectedBeneficiary != null ? selected.selectedBeneficiary : 'Select the beneficiary'}
-                onSelect={handleSelectBeneficiary}
-              >
-                {identifiers_names.map((option, index) => (
-                  <Dropdown.Item key={index} eventKey={option}>
-                    {option}
-                  </Dropdown.Item>
-                ))}
-              </DropdownButton>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <DropdownButton
-                size="lg"
-                variant="outline-dark"
-                id="dropdown-basic-button"
-                title={selected.selectedBackup != null ? selected.selectedBackup : 'Select the backup beneficiary'}
-                onSelect={handleSelectBackup}
-              >
-                {identifiers_names.map((option, index) => (
-                  <Dropdown.Item style={{ width: "100%" }} key={index} eventKey={option}>
-                    {option}
-                  </Dropdown.Item>
-                ))}
-              </DropdownButton>
-            </Form.Group>
-            <Form>
-              <Form.Check
-                type="radio"
-                label="per stirpes backup"
-                name="options"
-                value="A"
-                checked={selectedOption === 'A'}
-                onChange={handleOptionChange}
-                id="optionA"
-              />
-              <Form.Check
-                type="radio"
-                label="per capita backup"
-                name="options"
-                value="B"
-                checked={selectedOption === 'B'}
-                onChange={handleOptionChange}
-                id="optionB"
-              />
+    <Container>
+      <Form>
 
+        <Row>
+          <Col sm={12}>
+            <Dropdown onSelect={handleCategorySelect} style={{ width: "100%" }}>
+              <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="category-dropdown">
+                {selectedCategory !== null ? selectedCategory : 'Select Residue'}
+              </Dropdown.Toggle>
+              <Dropdown.Menu className={'text-center'} style={{ width: "100%" }}>
+                <Dropdown.Item eventKey="Bloodline Selection">Bloodline Selection</Dropdown.Item>
+                <Dropdown.Item eventKey="Custom Selection">Custom Selection</Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
 
-              <InputGroup className="mb-3">
-                <InputGroup.Text id="basic-addon3">
-                  Shares for backup
-                </InputGroup.Text>
-                <Form.Control id="basic-url" aria-describedby="basic-addon3" />
-              </InputGroup>
-            </Form>
-            <Button variant="outline-success" onClick={() => AddBackupButton()} >Add Beneficiary Backup</Button>
-            {/*  {
-           "id": bequestindex,
-           "beneficiary": beneficiary,
-           "backup": backup,
-           "type": selectedOption,
-           "shares": shares
-          } */}
-            <Table striped bordered hover responsive>
-              <thead>
-                <tr>
-                  <th>id</th>
-                  <th>beneficiary</th>
-                  <th>backup</th>
-                  <th>type</th>
-                  <th>shares</th>
-                  <th>Delete</th>
-                </tr>
-              </thead>
-              <tbody>
+          </Col>
+        </Row>
+        {selectedCategory && (
+          <Row>
+            <Col sm={12}>
+              <Dropdown onSelect={handleOptionSelect} style={{ width: "100%" }}>
+                <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="category-dropdown">
+                  {obj.selectedOption !== null ? obj.selectedOption : 'Select an Option'}
+                </Dropdown.Toggle>
+                <Dropdown.Menu className={'text-center'} style={{ width: "100%" }}>
+                  {options.map((option, index) => (
+                    <Dropdown.Item style={{ width: "100%" }} key={index} eventKey={option}>
+                      {option}
+                    </Dropdown.Item>
+                  ))}
+                </Dropdown.Menu>
+              </Dropdown>
+            </Col>
+          </Row>
+        )}
 
-                {
-                  backupBeneficiaryData.length == 0 ?
-                    <p>No information added yet, press <b>"Add Beneficiary Backup Button"</b> to add</p>
-                    :
-                    backupBeneficiaryData.map((item, index) => (
-                      <tr key={index}>
-                        <td>{item.id}</td>
-                        <td>{item.beneficiary}</td>
-                        <td>{item.backup}</td>
-                        <td>{item.type}</td>
-                        <td>{item.shares}</td>
-                        <td><Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button></td>
+        {specific && (
+          <>
+            <Row>
+              <Col sm={12}>
+                <p>Please select a beneficiary for the residue following with a backup beneficiary</p>
+              </Col>
+            </Row>
+            <Row>
+              <Col sm={12}>
+                <Form.Group className="mb-3">
+                  <ButtonGroup style={{ width: '100%' }}>
+                    <DropdownButton
+                      style={{ width: '100%' }}
+                      size="lg"
+                      variant="outline-dark"
+                      id="dropdown-basic-button"
+                      title={selected.selectedBeneficiary != null ? selected.selectedBeneficiary : 'Select the beneficiary'}
+                      onSelect={handleSelectBeneficiary}
+                    >
+                      {identifiers_names.map((option, index) => (
+                        <Dropdown.Item key={index} eventKey={option}>
+                          {option}
+                        </Dropdown.Item>
+                      ))}
+                    </DropdownButton>
+                  </ButtonGroup>
+                </Form.Group>
+              </Col>
+            </Row>
+            <Row>
+              <Col sm={12}>
+                <Form.Group className="mb-3">
+                  <ButtonGroup style={{ width: '100%' }}>
+                    <DropdownButton
+                      style={{ width: '100%' }}
+                      size="lg"
+                      variant="outline-dark"
+                      id="dropdown-basic-button"
+                      title={selected.selectedBackup != null ? selected.selectedBackup : 'Select the backup beneficiary'}
+                      onSelect={handleSelectBackup}
+                    >
+                      {identifiers_names.map((option, index) => (
+                        <Dropdown.Item key={index} eventKey={option}>
+                          {option}
+                        </Dropdown.Item>
+                      ))}
+                    </DropdownButton>
+                  </ButtonGroup>
+                </Form.Group>
+                {validationErrors.identifiers && <p className="mt-2 text-sm text-red-600">{validationErrors.identifiers}</p>}
+              </Col>
+            </Row>
+            <Row>
+              <Col sm={12}>
+                <Form>
+                  <Form.Check
+                    type="radio"
+                    label="per stirpes backup"
+                    name="options"
+                    value="A"
+                    checked={selectedOption === 'A'}
+                    onChange={(e) => setSelectedOption(e.target.value)}
+                    id="optionA"
+                  />
+                  <Form.Check
+                    type="radio"
+                    label="per capita backup"
+                    name="options"
+                    value="B"
+                    checked={selectedOption === 'B'}
+                    onChange={(e) => setSelectedOption(e.target.value)}
+                    id="optionB"
+                  />
+                  {validationErrors.backupType && <p className="mt-2 text-sm text-red-600">{validationErrors.backupType}</p>}
+                  <InputGroup className="mb-3">
+                    <InputGroup.Text id="basic-addon3" >
+                      Shares for Backup  ( Available: {availableShares}% )
+                    </InputGroup.Text>
+                    <Form.Control id="basic-url" aria-describedby="basic-addon3" />
+                  </InputGroup>
+                </Form>
+                {validationErrors.shares && <p className="mt-2 text-sm text-red-600">{validationErrors.shares}</p>}
+              </Col>
+            </Row>
+            <Row>
+              <Col sm={12}>
+                <Button style={{ width: '100%' }} variant="outline-success" onClick={AddBackupButton}>Add Beneficiary Backup</Button>
+              </Col>
+            </Row>
+            <Row>
+              <Col sm={12}>
+                <Table striped bordered hover responsive>
+                  <thead>
+                    <tr>
+                      <th>id</th>
+                      <th>beneficiary</th>
+                      <th>backup</th>
+                      <th>type</th>
+                      <th>shares</th>
+                      <th>Delete</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {backupBeneficiaryData.length === 0 ? (
+                      <tr>
+                        <td colSpan="6">
+                          <p>No information added yet, press <b>"Add Beneficiary Backup Button"</b> to add</p>
+                        </td>
                       </tr>
-                    ))
-                }
-
-
-              </tbody>
-            </Table>
-
-
-
+                    ) : (
+                      backupBeneficiaryData.map((item, index) => (
+                        <tr key={index}>
+                          <td>{item.id}</td>
+                          <td>{item.beneficiary}</td>
+                          <td>{item.backup}</td>
+                          <td>{item.type}</td>
+                          <td>{item.shares}</td>
+                          <td><Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button></td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </Table>
+              </Col>
+            </Row>
           </>
-          :
-          null
-      }
-      {
-        custom ?
-          <Form>
-            <Form.Group className="mb-3" controlId="customTextArea">
-              <Form.Label>Custom Clause</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={8}
-                value={clauseValue}
-                onChange={(e) => setClauseValue(e.target.value)}
-              />
-            </Form.Group>
-          </Form>
-          :
-          null
-      }
+        )}
 
-
-
-
-
-
-    </>
-
-
-
+        {custom && (
+          <Row>
+            <Col sm={12}>
+              <Form>
+                <Form.Group className="mb-3" controlId="customTextArea">
+                  <Form.Label>Custom Clause</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={8}
+                    value={clauseValue}
+                    onChange={(e) => {
+                      setClauseValue(e.target.value);
+                      obj = { ...obj, customClause: e.target.value };
+                      setSelected(obj);
+                    }}
+                  />
+                </Form.Group>
+              </Form>
+            </Col>
+          </Row>
+        )}
+        {validationErrors.residue && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.residue}</p>}
+      </Form>
+    </Container >
 
   );
 }
+
 export default Residue;

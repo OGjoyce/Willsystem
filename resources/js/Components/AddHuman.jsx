@@ -1,11 +1,12 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Fragment } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
+
 import Form from 'react-bootstrap/Form';
 
 var selected_value = "";
@@ -72,15 +73,24 @@ export function getHumanData(params) {
     }
 }
 
-function AddHuman({ married, childrens, human }) {
+function AddHuman({ married, childrens, human, errors }) {
     const [relative, setRelative] = useState('');
     const [showOther, setShowOther] = useState(false);
+    const [validationErrors, setValidationErrors] = useState(errors)
+
+    useEffect(() => {
+        setValidationErrors(errors);
+    }, [errors]);
 
     const handleRelativeChange = (e) => {
         const value = e.target.value;
         setRelative(value);
         setShowOther(value === 'Other');
     };
+
+    const isRelativeReadOnly = married || childrens;
+    const defaultRelativeValue = married ? 'Spouse' : (childrens ? 'Children' : '');
+
 
     return (
         <>
@@ -89,46 +99,66 @@ function AddHuman({ married, childrens, human }) {
                 <Form.Group className="mb-3" controlId="firstNameId">
                     <Form.Label>First Name</Form.Label>
                     <Form.Control type="text" placeholder="First Name" />
+                    {validationErrors.firstName && <p className="mt-2 text-sm text-red-600">{validationErrors.firstName}</p>}
                 </Form.Group>
                 <Form.Group className="mb-3" controlId="middleNameId">
                     <Form.Label>Middle Name</Form.Label>
                     <Form.Control type="text" placeholder="Middle Name" />
+                    {validationErrors.middleName && <p className="mt-2 text-sm text-red-600">{validationErrors.middleName}</p>}
                 </Form.Group>
                 <Form.Group className="mb-3" controlId="lastNameId">
                     <Form.Label>Last Name</Form.Label>
                     <Form.Control type="text" placeholder="Last Name" />
+                    {validationErrors.lastName && <p className="mt-2 text-sm text-red-600">{validationErrors.lastName}</p>}
                 </Form.Group>
                 <Form.Group className="mb-3" controlId="relativeId">
                     <Form.Label>Relative</Form.Label>
-                    <Form.Control as="select" value={relative} onChange={handleRelativeChange}>
-                        <option value="">Select...</option>
-                        <option value="Spouse">Spouse</option>
-                        <option value="Children">Children</option>
-                        <option value="Brother">Brother</option>
-                        <option value="Uncle">Uncle</option>
-                        <option value="Other">Other</option>
-                    </Form.Control>
-                    {showOther && (
-                        <Form.Group className="mt-3" controlId="otherRelativeId">
-                            <Form.Label>Specify Other</Form.Label>
-                            <Form.Control type="text" placeholder="Enter relation" />
-                        </Form.Group>
+                    {isRelativeReadOnly ? (
+                        <Form.Control
+                            type="text"
+                            value={defaultRelativeValue}
+                            readOnly
+                        />
+                    ) : (<>
+                        <Form.Control as="select" value={relative} onChange={handleRelativeChange}>
+                            <option value="">Select...</option>
+                            <option value="Spouse">Spouse</option>
+                            <option value="Children">Children</option>
+                            <option value="Brother">Brother</option>
+                            <option value="Uncle">Uncle</option>
+                            <option value="Other">Other</option>
+
+                        </Form.Control>
+
+                        {!showOther && validationErrors.relative && <p className="mt-2 text-sm text-red-600">{validationErrors.relative}</p>}
+                    </>
+
+                    )}
+                    {showOther && !isRelativeReadOnly && (
+                        <>
+                            <Form.Group className="mt-3" controlId="otherRelativeId">
+                                <Form.Label>Specify Other</Form.Label>
+                                <Form.Control type="text" placeholder="Enter relation" />
+                            </Form.Group>
+                            {validationErrors.otherRelative && <p className="mt-2 text-sm text-red-600">{validationErrors.otherRelative}</p>}
+                        </>
                     )}
                     {married && (
                         <>
                             <Form.Group className="mb-3" controlId="emailId0">
                                 <Form.Label>Email for notifications:</Form.Label>
                                 <Form.Control type="email" placeholder="example@dot.com" />
+                                {!childrens && validationErrors.email && <p className="mt-2 text-sm text-red-600">{validationErrors.email}</p>}
                             </Form.Group>
                             <Form.Group className="mb-3" controlId="phoneId">
                                 <Form.Label>Phone</Form.Label>
                                 <Form.Control type="text" placeholder="+1(XXX)XXX-XXXX" />
+                                {!childrens && validationErrors.phone && <p className="mt-2 text-sm text-red-600">{validationErrors.phone}</p>}
                             </Form.Group>
                         </>
                     )}
                     {childrens && (
                         <>
-                            <Form.Control readOnly defaultValue="Children" />
                             <Form.Group className="mb-3" controlId="emailId1">
                                 {/* Email input can be added here if needed */}
                             </Form.Group>
@@ -136,14 +166,15 @@ function AddHuman({ married, childrens, human }) {
                     )}
                     {human && (
                         <>
-
                             <Form.Group className="mb-3" controlId="emailId1">
                                 <Form.Label>Email for notifications:</Form.Label>
                                 <Form.Control type="email" placeholder="example@dot.com" />
+                                {(married || human) && validationErrors.email && <p className="mt-2 text-sm text-red-600">{validationErrors.email}</p>}
                             </Form.Group>
                             <Form.Group className="mb-3" controlId="phoneId">
                                 <Form.Label>Phone</Form.Label>
                                 <Form.Control type="text" placeholder="+1(XXX)XXX-XXXX" />
+                                {(married || human) && validationErrors.phone && <p className="mt-2 text-sm text-red-600">{validationErrors.phone}</p>}
                             </Form.Group>
                         </>
                     )}
@@ -151,14 +182,17 @@ function AddHuman({ married, childrens, human }) {
                 <Form.Group className="mb-3" controlId="city">
                     <Form.Label>City</Form.Label>
                     <Form.Control type="text" placeholder="..." />
+                    {validationErrors.city && <p className="mt-2 text-sm text-red-600">{validationErrors.city}</p>}
                 </Form.Group>
                 <Form.Group className="mb-3" controlId="province">
                     <Form.Label>Province/State:</Form.Label>
                     <Form.Control type="text" placeholder="..." />
+                    {validationErrors.province && <p className="mt-2 text-sm text-red-600">{validationErrors.province}</p>}
                 </Form.Group>
                 <Form.Group className="mb-3" controlId="country">
                     <Form.Label>Country:</Form.Label>
                     <Form.Control type="text" placeholder="..." />
+                    {validationErrors.country && <p className="mt-2 text-sm text-red-600">{validationErrors.country}</p>}
                 </Form.Group>
             </Form>
         </>
