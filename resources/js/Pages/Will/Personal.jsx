@@ -44,6 +44,7 @@ import { getDocumentDOMInfo } from '@/Components/PDF/PDFEditor';
 import { storeDataObject } from '@/Components/ObjStatusForm';
 import { updateDataObject } from '@/Components/ObjStatusForm';
 import { validateFormData, validateAddHumanData, validate } from '@/Components/Validations.jsx';
+import { document } from 'postcss';
 
 var object_status = [];
 var objectState = [];
@@ -123,7 +124,15 @@ export default function Personal({ auth }) {
         },
         {
             "step": 17,
-            "title": "Review, Edit or Download your Document"
+            "title": "Review, Edit or Download your Will"
+        },
+        {
+            "step": 18,
+            "title": "Review, Edit or Download your POA1"
+        },
+        {
+            "step": 19,
+            "title": "Review, Edit or Download your POA2"
         }
 
     ]
@@ -396,8 +405,8 @@ export default function Personal({ auth }) {
 
                 }
 
-                break;
 
+                break;
 
 
 
@@ -476,6 +485,7 @@ export default function Personal({ auth }) {
         setPointer(nextStep);
 
         if (pointer === 15) {
+            setValidationErrors({})
             setPointer(16);
         } else {
             setPointer(nextStep);
@@ -502,25 +512,65 @@ export default function Personal({ auth }) {
         console.log("ab." + nextStep);
         console.log("pointer --" + pointer);
 
-        if (pointer === 17 || pointer === 18) {
+        if (pointer === 17 || pointer === 18 || pointer === 19) {
+            setValidationErrors({})
             // If we're viewing a specific document, go back to document selection
+
+
             const newDocumentDOM = { ...getDocumentDOMInfo(), "timestamp": Date.now() };
 
-            // Find the index of the existing documentDOM object
-            const documentDOMIndex = object_status.findIndex(obj => obj.hasOwnProperty('documentDOM'));
+            var documentDOMData = getDocumentDOMInfo();
 
-            if (documentDOMIndex !== -1) {
-                // If documentDOM exists, update it
-                object_status[documentDOMIndex].documentDOM = newDocumentDOM;
-            } else {
-                // If documentDOM doesn't exist, add it
-                object_status.push({ documentDOM: newDocumentDOM });
+            if (pointer === 18) {
+
+
+                // Check if POA1 exists in the object_status
+                const poa1Exists = documentDOMData?.hasOwnProperty('POA1');
+                if (!poa1Exists) {
+                    setValidationErrors({ documentDOM: 'POA1 must be saved before proceeding.' });
+                    console.log(validationErrors);
+                    return null;
+                }
             }
 
-            updateDataObject(object_status, currIdObjDB);
-            setSelectedDocument(null);
-            setPointer(16);
-            return true;
+            if (pointer === 19) {
+
+
+                // Check if POA1 exists in the object_status
+                const poa2Exists = documentDOMData?.hasOwnProperty('POA2');
+                if (!poa2Exists) {
+                    setValidationErrors({ documentDOM: 'POA2 must be saved before proceeding.' });
+                    console.log(validationErrors);
+                    return null;
+                }
+            }
+            console.log(documentDOMData);
+
+            var errors = validate.documentDOM(documentDOMData);
+            if (Object.keys(errors).length > 0) {
+                setValidationErrors(errors)
+                console.log(validationErrors)
+                return null;
+            } else {
+                // Find the index of the existing documentDOM object
+                const documentDOMIndex = object_status.findIndex(obj => obj.hasOwnProperty('documentDOM'));
+
+                if (documentDOMIndex !== -1) {
+                    // If documentDOM exists, update it
+                    object_status[documentDOMIndex].documentDOM = newDocumentDOM;
+                } else {
+                    // If documentDOM doesn't exist, add it
+                    object_status.push({ documentDOM: newDocumentDOM });
+                }
+
+                updateDataObject(object_status, currIdObjDB);
+                setSelectedDocument(null);
+                setPointer(16);
+                return true;
+
+            }
+
+
         }
 
         const objectStatus = popInfo();
@@ -562,12 +612,28 @@ export default function Personal({ auth }) {
                     <Col>
                         <Button onClick={() => onSelect('POA2')} style={{ width: "100%" }} variant="outline-dark"> <i class="bi bi-hospital"></i> POA2 Health</Button>
                     </Col>
+
                 </Row>
+                {validationErrors.documentDOM && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.documentDOM}</p>}
             </Container >
         );
     };
 
     const handleExit = () => {
+
+        // Check if the necessary documents are present
+        const documentsNeeded = ["Will", "POA1", "POA2"];
+        const missingDocuments = documentsNeeded.filter(doc =>
+            !object_status.some(obj => obj.hasOwnProperty('documentDOM') && obj['documentDOM'][doc])
+        );
+
+        if (missingDocuments.length > 0) {
+            // Set validation error for documentDOM
+            setValidationErrors({
+                documentDOM: `Please save the following documents before exiting: ${missingDocuments.join(', ')}`
+            });
+            return;
+        }
         object_status = [];
         objectState = [];
         dupMarried = false;
@@ -689,11 +755,16 @@ export default function Personal({ auth }) {
                         }
                         {
                             pointer == 16 ? (
-                                <DocumentSelector onSelect={(doc) => {
-                                    setSelectedDocument(doc);
-                                    setPointer(17); // Move to the next pointer when a document is selected
-                                }} />
-                            ) : pointer == 17 || pointer == 18 ? (
+                                <DocumentSelector
+                                    errors={validationErrors}
+                                    onSelect={(doc) => {
+                                        setSelectedDocument(doc);
+                                        if (doc === "Will") { setPointer(17); }
+                                        if (doc === "POA1") { setPointer(18) }
+                                        if (doc === "POA2") { setPointer(19) }
+                                        setValidationErrors({})
+                                    }} />
+                            ) : pointer == 17 || pointer == 18 || pointer == 19 ? (
                                 selectedDocument ? (
                                     <PDFEditor
                                         ContentComponent={
@@ -703,6 +774,7 @@ export default function Personal({ auth }) {
                                         }
                                         datas={object_status}
                                         documentType={selectedDocument}
+                                        errors={validationErrors}
                                     />
                                 ) : null
                             ) : null
