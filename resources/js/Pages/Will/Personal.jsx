@@ -441,21 +441,21 @@ export default function Personal({ auth }) {
 
     }
     const pushMarried = function () {
-        console.log("1. pushMarried:" + object_status);
-        var object_to_push = {};
-        object_to_push.married = { ...getHumanData(false) };
-        object_status.push(object_to_push);
+
+        var emptyObject = {};
+        emptyObject.married = {};
+        object_status.push(emptyObject);
         dupMarried = true;
-        console.log("2. pushMarried:" + object_status);
+
 
     }
     const pushKid = function () {
-        console.log("1. pushKid:" + object_status);
-        var object_to_push = {};
-        object_to_push.kids = { ...getHumanData(false) };
-        object_status.push(object_to_push);
+
+        var emptyObject = {};
+        emptyObject.kids = {};
+        object_status.push(emptyObject);
         dupKids = true;
-        console.log("2. pushKid:" + object_status);
+
 
     }
     const nextStep = async function (nextStep) {
@@ -466,15 +466,23 @@ export default function Personal({ auth }) {
             return false;
         }
 
-        try {
-            // Skip spouse information if not married
-            if (pointer === 1 && objectStatus[1].marriedq !== undefined && objectStatus[1].marriedq?.selection === "false") {
-                nextStep = 3; // Skip to children question
+        const marriedqObject = objectStatus.find(obj => obj.marriedq !== undefined && (obj.marriedq.selection === "false" || obj.marriedq.selection === ""));
+        const kidsqObject = objectStatus.find(obj => obj.kidsq !== undefined && (obj.kidsq.selection === "false" || obj.kidsq.selection === ""));
+        try {// Encuentra el objeto que contiene 'marriedq' con la selección deseada
+
+
+            if (pointer === 1 && marriedqObject) {
+                pushMarried()
+                nextStep = 3; // Saltar a la pregunta sobre hijos
+                setPointer(3);
             }
 
+
             // Skip children information if no kids
-            if (pointer === 3 && objectStatus[3].kidsq !== undefined && objectStatus[3].kidsq?.selection === "false") {
+            if (pointer === 3 && kidsqObject) {
+                pushKid()
                 nextStep = 5; // Skip to executors step
+                setPointer(5)
             }
 
         } catch (error) {
@@ -573,16 +581,21 @@ export default function Personal({ auth }) {
 
         }
 
+
         const objectStatus = popInfo();
         var dupFlag = true;
 
         try {
-            if (pointer <= 3 && objectStatus[1].marriedq != undefined && objectStatus[1].marriedq.selection == "false") {
-                nextStep = nextStep - 1;
+
+            if (pointer === 3) {
+                nextStep = 1
+                setPointer(1)
                 popInfo();
             }
-            if (pointer >= 4 && pointer <= 5 && objectStatus[3].kidsq != undefined && objectStatus[3].kidsq.selection == "false") {
-                nextStep = nextStep - 1;
+            if (pointer === 5) {
+                nextStep = 3;
+                setPointer(3)
+
                 popInfo();
             }
         } catch (error) {
