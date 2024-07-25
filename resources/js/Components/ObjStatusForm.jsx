@@ -39,6 +39,26 @@ export async function updateDataObject(object, id) {
 
 }
 
+export async function searchDataByEmail(owner) {
+    try {
+        const response = await axios.get('/api/files/search', { params: { owner } });
+        const data = response.data;
+
+        function getMostUpdatedObject(data) {
+            return data.reduce((latest, current) => {
+                return new Date(latest.updated_at) > new Date(current.updated_at) ? latest : current;
+            });
+        }
+
+        const mostUpdatedObject = getMostUpdatedObject(data);
+        return mostUpdatedObject.information;
+    } catch (err) {
+        console.error('Error searching data:', err);
+        throw err;
+    }
+}
+
+
 const ObjStatusForm = () => {
     const [information, setInformation] = useState('');
     const [relatedId, setRelatedId] = useState('');
@@ -118,5 +138,6 @@ const ObjStatusForm = () => {
         </div><button onClick={handleUpdate}>Update shit</button></>
     );
 };
+
 
 export default ObjStatusForm;

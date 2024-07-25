@@ -141,6 +141,7 @@ const PDFEditor = ({ ContentComponent, datas, documentType, errors }) => {
 
   const saveDocumentDOM = useCallback(() => {
     setShowToast(true)
+    setValidationErrors({})
     const timestamp = new Date().toISOString();
     const currentVersions = documentVersions[documentType] || {};
     const versionNumber = Object.keys(currentVersions).length + 1;
