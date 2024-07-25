@@ -97,7 +97,7 @@ const View = () => {
             let owner = backendData.information[0].owner;
             let id = backendData.id;
             let name = backendData.information[0].personal.fullName;
-         
+
             var obj = {
                 "id": id,
                 "created": createdat,
@@ -143,6 +143,7 @@ const View = () => {
                                                 POA2Content
                                     }
                                     datas={finalSelection}
+                                    backendId={idSelected}
                                 />
                                 :
                                 <><Container style={{ padding: "10px" }}>
@@ -180,7 +181,14 @@ const View = () => {
                                             {ArrObj.map((item, index) => (
                                                 <tr key={index}>
                                                     <td>{item.id}</td>
-                                                    <td>{item.email}</td>
+                                                    <td>
+                                                        <Link
+                                                            href={route('profile.info', { email: item.email })}
+                                                        >
+                                                            {item.email}
+                                                        </Link>
+                                                    </td>
+
                                                     <td>{item.name}</td>
                                                     <td>{item.created}</td>
                                                     <td>{item.updated}</td>

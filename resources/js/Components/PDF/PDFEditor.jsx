@@ -8,6 +8,7 @@ import TextAlign from '@tiptap/extension-text-align';
 import { Container, Row, Col, Button, Toast } from 'react-bootstrap';
 import Toolbar from './Toolbar'
 import { useReactToPrint } from "react-to-print";
+import { updateDataObject } from '../ObjStatusForm';
 
 import './PDFEditor.css';
 import '@/Components/PDF/Content/content.css';
@@ -111,9 +112,9 @@ export function getDocumentDOMInfo() {
 
 
 
-const PDFEditor = ({ ContentComponent, datas, documentType, errors }) => {
+const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId }) => {
   var object_status = datas;
-
+  var id = backendId
 
   const [editorContent, setEditorContent] = useState('');
   const [documentVersions, setDocumentVersions] = useState({});
@@ -161,7 +162,6 @@ const PDFEditor = ({ ContentComponent, datas, documentType, errors }) => {
     };
 
     setDocumentVersions(updatedDocumentVersions);
-
     const lastObjectIndex = object_status.length - 1;
     const updatedLastObject = {
       ...object_status[lastObjectIndex],
@@ -176,7 +176,7 @@ const PDFEditor = ({ ContentComponent, datas, documentType, errors }) => {
     object_status = updatedObjectStatus;
 
     console.log(`Document ${documentType} saved. Version: v${versionNumber}`);
-    console.log(object_status)
+    console.log(getDocumentDOMInfo())
   }, [editorContent, documentVersions, documentType, object_status]);
 
   var componentRef = useRef();
