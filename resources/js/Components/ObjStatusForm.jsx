@@ -44,7 +44,6 @@ export async function searchDataByEmail(owner) {
         const response = await axios.get('/api/files/search', { params: { owner } });
         const data = response.data;
 
-        // Función para obtener el objeto más actualizado basado en updated_at
         function getMostUpdatedObject(data) {
             return data.reduce((latest, current) => {
                 return new Date(latest.updated_at) > new Date(current.updated_at) ? latest : current;
