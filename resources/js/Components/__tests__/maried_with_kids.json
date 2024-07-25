@@ -3,31 +3,31 @@
         "personal": {
             "step": 0,
             "title": "Please insert the personal information",
-            "city": "Toronto",
-            "telephone": "+1 000000",
+            "city": "Guatemala",
+            "telephone": "+1",
             "province": "Ontario",
-            "fullName": "Carlos Montiel",
-            "timestamp": 1720036111835
+            "fullName": "Henry Veliz",
+            "timestamp": 1720433920827
         }
     },
     {
         "marriedq": {
             "selection": "true",
-            "timestamp": 1720036117111
+            "timestamp": 1720433927978
         }
     },
     {
         "married": {
-            "firstName": "Maria",
-            "middleName": "Middle Name",
-            "lastName": "Becerra",
+            "firstName": "Jennifer",
+            "middleName": "Tatiana",
+            "lastName": "Salguero",
             "relative": "Spouse",
-            "email": "maria@email.com",
-            "phone": "+1 000000",
-            "city": "Toronto",
-            "province": "Ontario",
-            "country": "Canada",
-            "timestamp": 1720036247698
+            "email": "e@e.com",
+            "phone": "+1",
+            "city": "Poptun",
+            "province": "Peten",
+            "country": "Guatemala",
+            "timestamp": 1720433992957
         }
     },
     {
@@ -39,153 +39,209 @@
         "kids": {
             "0": {
                 "id": 1,
-                "firstName": "Katie",
-                "lastName": "Doe",
+                "firstName": "Eddie",
+                "lastName": "Véliz",
                 "relative": "Children",
-                "city": "Toronto",
-                "country": "Canada",
-                "province": "Ontario"
+                "city": "Poptun",
+                "country": "Guatemala",
+                "province": "Peten"
             },
             "1": {
                 "id": 2,
-                "firstName": "Junior",
-                "lastName": "Montiel",
+                "firstName": "Helen",
+                "lastName": "Veliz",
                 "relative": "Children",
-                "city": "Toronto",
-                "country": "Canada",
-                "province": "Ontario"
+                "city": "Poptun",
+                "country": "Guatemala",
+                "province": "Peten"
             }
         }
     },
     {
         "relatives": {
             "0": {
-                "firstName": "John",
-                "middleName": "MiddleName",
-                "lastName": "Doe",
+                "firstName": "Hector",
+                "middleName": "Abraham",
+                "lastName": "Veliz",
                 "relative": "Father",
-                "email": "john@email.com",
-                "phone": "+1 000000",
-                "city": "Toronto",
-                "province": "Ontario",
-                "country": "Canada"
-            },
-            "1": {
-                "firstName": "William",
-                "middleName": "Middlename",
-                "lastName": "Doe",
-                "relative": "Brother",
-                "email": "william@email.com",
-                "phone": "+1 000000",
-                "city": "Mississauga",
-                "province": "Ontario",
-                "country": "Canada"
+                "email": "e@e.com",
+                "phone": "+1",
+                "city": "Poptun",
+                "province": "Peten",
+                "country": "Guatemala"
             }
         },
         "executors": {
             "0": {
                 "id": 1,
-                "firstName": "John",
-                "lastName": "Doe",
+                "firstName": "Hector",
+                "lastName": "Veliz",
                 "relative": "Father",
-                "country": "Canada",
-                "city": "Toronto",
-                "province": "Ontario"
+                "country": "Guatemala",
+                "city": "Poptun",
+                "province": "Peten"
             },
             "1": {
                 "id": 2,
-                "firstName": "William",
-                "lastName": "Doe",
-                "relative": "Brother",
-                "country": "Canada",
-                "city": "Mississauga",
-                "province": "Ontario"
+                "firstName": "Helen",
+                "lastName": "Veliz",
+                "relative": "Children",
+                "country": "Guatemala",
+                "city": "Poptun",
+                "province": "Peten"
             }
         }
     },
     {
         "bequests": {
             "0": {
-                "id": 0,
-                "names": "Katie Doe",
-                "shares": "100",
-                "bequest": "Motorcycle - Harley"
-            },
-            "1": {
                 "id": 1,
-                "names": "Katie Doe",
+                "names": "Jennifer Salguero",
                 "shares": "100",
                 "bequest": "Gold Chain"
             },
-            "timestamp": 1720036728035
+            "1": {
+                "id": 3,
+                "names": "Eddie Véliz",
+                "shares": "50",
+                "bequest": "Silver Chain"
+            },
+            "2": {
+                "id": 4,
+                "names": "Helen Veliz",
+                "shares": "50",
+                "bequest": "Silver Chain"
+            },
+            "3": {
+                "id": 6,
+                "names": "Hector Veliz",
+                "shares": "100",
+                "bequest": "Bronce Chain"
+            },
+            "timestamp": 1720434130834
         }
     },
     {
         "residue": {
-            "selected": "NO SPOUSAL WILL: Have the residue go to spouse first then children per stirpes",
-            "timestamp": 1720036866493
+            "selected": "Specific Beneficiaries",
+            "beneficiary": [
+                {
+                    "id": 1,
+                    "beneficiary": "Jennifer Salguero",
+                    "backup": "Hector Veliz",
+                    "type": "Per Capita",
+                    "shares": 50
+                },
+                {
+                    "id": 2,
+                    "beneficiary": "Eddie Véliz",
+                    "backup": "Helen Veliz",
+                    "type": "Per Capita",
+                    "shares": 50
+                }
+            ],
+            "timestamp": 1720434202243
         }
     },
     {
         "wipeout": {
-            "0": {
-                "id": 0,
-                "names": "Select a recepient to continue...",
-                "shares": "100",
-                "backup": "Per Stirpes"
-            },
-            "timestamp": 1720037258052
+            "wipeout": [
+                {
+                    "id": 0,
+                    "names": "Jennifer Salguero",
+                    "shares": "50",
+                    "backup": "Per Capita"
+                },
+                {
+                    "id": 1,
+                    "names": "Hector Veliz",
+                    "shares": "50",
+                    "backup": "Per Capita"
+                }
+            ],
+            "timestamp": 1720434310716
         }
     },
     {
-        "trusting": {}
+        "trusting": {
+            "0": {
+                "id": 2,
+                "age": "25",
+                "shares": "50"
+            },
+            "1": {
+                "id": 3,
+                "age": "20",
+                "shares": "25"
+            },
+            "2": {
+                "id": 4,
+                "age": "18",
+                "shares": "25"
+            },
+            "timestamp": 1720434365209
+        }
     },
     {
         "guardians": {
             "0": {
-                "id": 0,
-                "guardian": null,
-                "position": 0
+                "id": 1,
+                "guardian": "Jennifer Salguero",
+                "position": "1"
             },
-            "timestamp": 1720037365674
+            "1": {
+                "id": 2,
+                "guardian": "Hector Veliz",
+                "position": "2"
+            },
+            "timestamp": 1720434380791
         },
-        "pets": {}
+        "pets": {
+            "timestamp": 1720434380791
+        }
     },
     {
         "pets": {
             "0": {
                 "id": 1,
-                "guardian": "Maria",
-                "backup": "Katie",
-                "amount": 100
-            }
+                "guardian": "Eddie Véliz",
+                "backup": "Helen Veliz",
+                "amount": 1000
+            },
+            "timestamp": 1720434391669
         }
     },
     {
         "additional": {
-            "0": false,
-            "timestamp": 1720037398156
+            "0": {
+                "Master": "standard",
+                "Slave": {
+                    "organdonation": true,
+                    "cremation": true,
+                    "buried": true
+                }
+            },
+            "1": {
+                "Master": "otherWishes",
+                "customClause": "Bury my dog next to me when he dies"
+            },
+            "2": {
+                "blendedFamily": true
+            },
+            "timestamp": 1720434424355
         }
     },
     {
         "poa": {
-            "0": "Junior Montiel",
-            "1": "Maria Becerra",
-            "2": "Junior Montiel",
-            "3": "Maria Becerra",
-            "5": "Junior Montiel",
-            "6": "Maria Becerra",
-            "7": "Katie Doe",
-            "8": "Junior Montiel",
-            "9": {
-                "organ": false,
-                "dnr": true
-            },
-            "10": {
-                "organ": false,
-                "dnr": true
-            },
-            "timestamp": 1720037416049
+            "0": "Helen Veliz",
+            "1": "Jennifer Salguero",
+            "2": "Eddie Véliz",
+            "3": "Hector Veliz",
+            "5": "Eddie Véliz",
+            "6": "Hector Veliz",
+            "7": "Eddie Véliz",
+            "8": "Hector Veliz",
+            "timestamp": 1720434450655
         }
     },
     {}

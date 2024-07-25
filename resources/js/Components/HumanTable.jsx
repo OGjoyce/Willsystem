@@ -1,7 +1,7 @@
 
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 
@@ -10,6 +10,7 @@ import Button from 'react-bootstrap/Button';
 
 import AddHuman from './AddHuman';
 import { getHumanData } from './AddHuman';
+import { validateAddHumanData } from './Validations';
 import Modal from 'react-bootstrap/Modal';
 
 
@@ -33,7 +34,7 @@ export function getExecutors() {
     return executorsObj;
 
 }
-function HumanTable({ id, datas }) {
+function HumanTable({ id, datas, errors }) {
 
     // var table_data = [];
     var table_spoon = [];
@@ -89,7 +90,7 @@ function HumanTable({ id, datas }) {
             for (let index = 0; index < largo; index++) {
                 const child = datas[4].kids[index];
                 console.log(child);
-            
+
                 var obj = {
                     "id": ids,
                     "firstName": child.firstName,
@@ -111,26 +112,47 @@ function HumanTable({ id, datas }) {
 
     const [show, setShow] = useState(false);
     const [showExecutor, setShowExecutor] = useState(false);
+    const [validationErrors, setValidationErrors] = useState(errors)
+
+    useEffect(() => {
+        setValidationErrors(errors)
+    }, [errors])
 
 
     //saves data for relatives table 
     const handleClose = () => {
-        setShow(false);
+
+
         const modalData = getHumanData();
-        const idpointer = ids;
-        var obj = {
-            "id": idpointer,
-            "firstName": modalData.firstName,
-            "lastName": modalData.lastName,
-            "relative": modalData.relative,
-            "city": modalData.city,
-            "province": modalData.province,
-            "country": modalData.country
+
+        // Realiza la validación
+        var errors = validateAddHumanData(modalData);
+
+
+        if (Object.keys(errors).length <= 0) {
+            // Si no hay errores, procede a añadir los datos
+            const idpointer = ids;
+            var obj = {
+                "id": idpointer,
+                "firstName": modalData.firstName,
+                "lastName": modalData.lastName,
+                "relative": modalData.relative,
+                "city": modalData.city,
+                "province": modalData.province,
+                "country": modalData.country
+            }
+            table_data.push(obj);
+            //  setDataTable(table_spoon);
+            relativesObj.push(modalData);
+            ids += 1;
+            setShow(false);
+            setValidationErrors({});
+        } else {
+            // Si hay errores, actualiza el estado de los errores
+            setValidationErrors(errors);
+            console.log(errors)
         }
-        table_data.push(obj);
-        //  setDataTable(table_spoon);
-        relativesObj.push(modalData);
-        ids += 1;
+
 
     }
     const handleShow = () => {
@@ -155,10 +177,10 @@ function HumanTable({ id, datas }) {
     const handleShowE = (exe) => {
 
 
-        
+
         selectedExecutor = exe;
         setShowExecutor(true);
-       
+
 
         const names = exe.firstName + " " + exe.lastName + " -> " + exe.relative;
         selected_executor = names;
@@ -169,7 +191,7 @@ function HumanTable({ id, datas }) {
     //function to get data from executor and place it in a table
 
     const handleCloseExecutor = () => {
-        
+
         setShowExecutor(false);
         const pointer = executorPriority;
 
@@ -179,7 +201,7 @@ function HumanTable({ id, datas }) {
             "lastName": selectedExecutor.lastName,
             "relative": selectedExecutor.relative,
             "country": selectedExecutor.country,
-            "city" : selectedExecutor.city,
+            "city": selectedExecutor.city,
             "province": selectedExecutor.province,
 
         }
@@ -190,6 +212,7 @@ function HumanTable({ id, datas }) {
         executorPriority += 1;
 
         setDataExecutor(1);
+        setValidationErrors({})
 
 
     }
@@ -278,7 +301,7 @@ function HumanTable({ id, datas }) {
             </Table>
 
 
-
+            {validationErrors.executors && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.executors}</p>}
 
             <Modal show={show} onHide={handleCloseNosave}>
                 <Modal.Header closeButton>
@@ -286,7 +309,7 @@ function HumanTable({ id, datas }) {
                 </Modal.Header>
                 <Modal.Body>
 
-                    <AddHuman human={true} />
+                    <AddHuman human={true} errors={validationErrors} />
 
 
                 </Modal.Body>

@@ -1,7 +1,7 @@
 
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 
@@ -21,11 +21,19 @@ export function getPetInfo() {
     return guardianDataStack
 }
 
-function Pets({ datas }) {
+function Pets({ datas, errors }) {
     const [selectedOptionGuardian, setSelectedOptionGuardian] = useState('');
     const [selectedOptionBackup, setSelectedOptionBackup] = useState('');
     var [petGuardianData, setPetGuardianData] = useState([]);
+    const [validationErrors, setValidationErrors] = useState(errors)
+
+
+    useEffect(() => {
+        setValidationErrors(errors)
+    }, [errors])
+
     const handleSubmit = (e) => {
+        setValidationErrors({})
         var amountid = document.getElementById('amountId').value;
         if (amountid != "" || amountid != null) {
             amountid = parseFloat(amountid);
@@ -36,13 +44,39 @@ function Pets({ datas }) {
             "backup": selectedOptionBackup,
             "amount": amountid
         }
-        if (guardianDataStack.length == 0) {
+
+        let newErrors = {}
+        if (!Number(amountid) || Number(amountid) <= 0 || selectedOptionGuardian === '' || selectedOptionBackup === '' || selectedOptionBackup === selectedOptionGuardian) {
+            if (!Number(amountid) || Number(amountid) <= 0) {
+                newErrors.amount = "A valid amount is required"
+            }
+
+            if (selectedOptionBackup === selectedOptionGuardian) {
+                newErrors.backup = "Guardian and Backupt can't be the same person"
+            }
+
+            if (selectedOptionGuardian === '') {
+                newErrors.guardian = "A relative selection for guardian is required"
+            }
+
+            if (selectedOptionBackup === '') {
+                newErrors.backup = "A relative selection for backup is required"
+            }
+
+            setValidationErrors(newErrors)
+            return null
+        }
+
+
+        if (obj) {
             guardianDataStack.push(obj);
             setPetGuardianData(guardianDataStack);
             idtable++;
 
         }
-
+        setSelectedOptionBackup('')
+        setSelectedOptionGuardian('')
+        document.getElementById('amountId').value = ''
 
     };
     const handleDelete = (id) => {
@@ -50,8 +84,6 @@ function Pets({ datas }) {
         guardianDataStack = guardianDataStack.filter(obj => obj.id !== id);
         var obj = guardianDataStack;
         setPetGuardianData(obj);
-
-        idtable -= 1;
 
 
 
@@ -137,11 +169,12 @@ function Pets({ datas }) {
                                 >
                                     <option value="">Choose...</option>
                                     {table_data.map((name, index) => (
-                                        <option key={index} value={name.firstName}>
-                                            {name.firstName}
+                                        <option key={index} value={`${name.firstName} ${name.lastName}`}>
+                                            {name.firstName + ' ' + name.lastName}
                                         </option>
                                     ))}
                                 </Form.Control>
+                                {validationErrors.guardian && <p className="mt-2 text-sm text-red-600">{validationErrors.guardian}</p>}
                             </Form.Group>
                             <Form.Group controlId="formBackup">
                                 <Form.Label>Select Backup </Form.Label>
@@ -153,18 +186,20 @@ function Pets({ datas }) {
                                 >
                                     <option disabled="true" value="" >Choose...</option>
                                     {table_data.map((name, index) => (
-                                        <option key={index} value={name.firstName}>
-                                            {name.firstName}
+                                        <option key={index} value={`${name.firstName} ${name.lastName}`}>
+                                            {name.firstName + ' ' + name.lastName}
                                         </option>
                                     ))}
                                 </Form.Control>
-
+                                {validationErrors.backup && <p className="mt-2 text-sm text-red-600">{validationErrors.backup}</p>}
                             </Form.Group>
                             <br></br>
                             <Form.Group controlId="formAmount">
                                 <FloatingLabel controlId="floatingNumber" label="Enter the Amount in $">
                                     <Form.Control size="sm" type="number" placeholder="0.00" id="amountId" />
                                 </FloatingLabel>
+
+                                {validationErrors.amount && <p className="mt-2 text-sm text-red-600">{validationErrors.amount}</p>}
                             </Form.Group>
                             <br></br>
                             <Button size="lg" variant="outline-primary" style={{ width: "100%" }} onClick={handleSubmit}>
@@ -173,6 +208,8 @@ function Pets({ datas }) {
                         </Form>
                     </Col>
                 </Row>
+
+                {validationErrors.pets && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.pets}</p>}
                 <br></br>
                 {
 

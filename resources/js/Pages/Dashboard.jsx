@@ -28,21 +28,21 @@ export default function Dashboard({ auth }) {
                                     <Link
                                         href={route('personal')}
                                     >
-                                        <Button style={{ width: "100%" }} variant="outline-dark"> <i style={{color:"green"}} className="bi bi-file-plus"></i>Create new will + 2 POA </Button>
+                                        <Button style={{ width: "100%" }} variant="outline-dark"> <i style={{ color: "green" }} className="bi bi-file-plus"></i>Create new will + 2 POA </Button>
                                     </Link>
                                 </Col>
                                 <Col sm={4}>
                                     <Link
                                         href={route('personal')}
                                     >
-                                        <Button style={{ width: "100%" }} variant="outline-dark"> <i  className="bi bi-send-check">Send Will to Client</i> </Button>
+                                        <Button style={{ width: "100%" }} variant="outline-dark"> <i className="bi bi-send-check">Send Will to Client</i> </Button>
                                     </Link>
                                 </Col>
                                 <Col sm={4}>
                                     <Link
-                                        href={route('personal')}
+                                        href={route('view')}
                                     >
-                                        <Button style={{ width: "100%" }} variant="outline-dark"> <i style={{color:"cyan"}} className="bi bi-search">Search Files</i> </Button>
+                                        <Button style={{ width: "100%" }} variant="outline-dark"> <i style={{ color: "cyan" }} className="bi bi-search">Search Files</i> </Button>
                                     </Link>
                                 </Col>
                             </Row>
@@ -53,8 +53,8 @@ export default function Dashboard({ auth }) {
                                     <Link
                                         href={route('personal')}
                                     >
-                                            <Button style={{ width: "100%" }} variant="outline-dark"> <i  className="bi bi-bar-chart-fill"> Admin Data Statitics</i> </Button>
-                                    
+                                        <Button style={{ width: "100%" }} variant="outline-dark"> <i className="bi bi-bar-chart-fill"> Admin Data Statitics</i> </Button>
+
 
                                     </Link>
                                 </Col>
@@ -62,8 +62,8 @@ export default function Dashboard({ auth }) {
                                     <Link
                                         href={route('personal')}
                                     >
-                                            <Button style={{ width: "100%" }} variant="outline-dark"> <i  className="bi bi-collection-fill"> Modify Will</i> </Button>
-                                    
+                                        <Button style={{ width: "100%" }} variant="outline-dark"> <i className="bi bi-collection-fill"> Modify Will</i> </Button>
+
 
                                     </Link>
                                 </Col>
@@ -71,8 +71,8 @@ export default function Dashboard({ auth }) {
                                     <Link
                                         href={route('personal')}
                                     >
-                                            <Button style={{ width: "100%" }} variant="outline-dark"> <i style={{color:"green"}} className="bi bi-person-plus-fill"> Add Internal User</i> </Button>
-                                    
+                                        <Button style={{ width: "100%" }} variant="outline-dark"> <i style={{ color: "green" }} className="bi bi-person-plus-fill"> Add Internal User</i> </Button>
+
 
                                     </Link>
                                 </Col>
@@ -80,7 +80,17 @@ export default function Dashboard({ auth }) {
 
 
                             </Row>
+                            <br /><br />
+                            <Row>
+                                <Col sm={4}>
+                                    <Link href={route('profile.info')}>
+                                        <Button style={{ width: "100%" }} variant="outline-dark">
+                                            <i className="bi bi-person-circle"> Profile Info</i>
+                                        </Button>
+                                    </Link>
+                                </Col>
 
+                            </Row>
                         </Container>
 
 

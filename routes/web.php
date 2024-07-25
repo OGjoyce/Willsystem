@@ -4,7 +4,12 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\ObjStatusController;
 
+
+
+
+Route::apiResource('obj-statuses', ObjStatusController::class);
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
@@ -26,9 +31,23 @@ Route::get('/landing', function () {
     return Inertia::render('Landing/Landing');
 });
 
+
+Route::get('/view', function () {
+    return Inertia::render('Admin/View');
+})->name("view");
+
 Route::get('/create', function () {
     return Inertia::render('Will/Create');
 });
+
+Route::get('/profile-info', function () {
+    return Inertia::render('Profile/ProfileInfo', [
+        'auth' => [
+            'user' => auth()->user(),
+        ],
+    ]);
+})->middleware(['auth', 'verified'])->name('profile.info');
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
