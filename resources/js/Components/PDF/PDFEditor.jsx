@@ -112,12 +112,12 @@ export function getDocumentDOMInfo() {
 
 
 
-const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId }) => {
+const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId, version }) => {
   var object_status = datas;
   var id = backendId
   var latestDocumentDOM = null
+  var preselectedVersion = version
 
-  //SET DOCUMENT DOM IF EXISTS
   if (object_status) {
 
     const data = object_status.reduce((acc, item) => ({ ...acc, ...item }), {});
@@ -128,7 +128,10 @@ const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId })
       let latestVersionKey = Object.keys(documentVersions).reduce((a, b) =>
         parseInt(a) > parseInt(b) ? a : b
       );
-      latestVersion = documentVersions[latestVersionKey];
+      latestVersion = preselectedVersion !== ''
+        ? documentVersions[preselectedVersion]
+        : documentVersions[latestVersionKey];
+
       latestDocumentDOM = latestVersion.content;
     }
   }
