@@ -5,7 +5,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
-import { Container, Row, Col, Button, Toast } from 'react-bootstrap';
+import { Container, Row, Col, Button, Toast, ToastContainer } from 'react-bootstrap';
 import Toolbar from './Toolbar'
 import { useReactToPrint } from "react-to-print";
 import { updateDataObject } from '../ObjStatusForm';
@@ -272,18 +272,7 @@ const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId })
       </Row>
       <Row className="button-row justify-content-center mt-3 mb-3">
         <Col xs={12} sm={6} md={4} lg={3} className="align-items-center">
-          <Toast show={showToast} onClose={() => { setShowToast(!showToast) }}>
-            <Toast.Header>
-              <img
-                src=""
-                className="rounded me-2"
-                alt=""
-              />
-              <strong className="me-auto">Will System</strong>
-              <small></small>
-            </Toast.Header>
-            <Toast.Body>Your {documentType ? documentType : 'Document'} has been saved Successfully!</Toast.Body>
-          </Toast>
+
         </Col>
       </Row>
 
@@ -292,6 +281,35 @@ const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId })
       <div style={{ display: 'none' }}>
         <PrintComponent ref={componentRef} content={editorContent} />
       </div>
+
+      <ToastContainer
+        position="top-end"
+        className="p-3"
+        style={{
+          zIndex: 1000,
+          position: 'fixed',
+          top: '1rem',
+          right: '1rem'
+        }}
+      >
+        <Toast
+          show={showToast}
+          onClose={() => setShowToast(false)}
+          delay={5000}
+          autohide
+          className="custom-toast"
+        >
+          <Toast.Header className="bg-success text-white">
+            <i className="bi bi-check-circle-fill me-2"></i>
+            <strong className="me-auto">Success</strong>
+            <small>just now</small>
+          </Toast.Header>
+          <Toast.Body className="bg-success-light">
+            Your {documentType ? documentType : 'Document'} has been saved Successfully!
+          </Toast.Body>
+        </Toast>
+      </ToastContainer>
+
     </Container>
 
   );
