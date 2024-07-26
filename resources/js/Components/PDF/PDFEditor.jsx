@@ -174,9 +174,9 @@ const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId })
     ];
 
     object_status = updatedObjectStatus;
-
+    updateDataObject(updatedObjectStatus, id)
     console.log(`Document ${documentType} saved. Version: v${versionNumber}`);
-    console.log(getDocumentDOMInfo())
+
   }, [editorContent, documentVersions, documentType, object_status]);
 
   var componentRef = useRef();

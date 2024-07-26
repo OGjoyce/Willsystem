@@ -144,6 +144,7 @@ const View = () => {
                                     }
                                     datas={finalSelection}
                                     backendId={idSelected}
+                                    documentType={docSelected}
                                 />
                                 :
                                 <><Container style={{ padding: "10px" }}>
