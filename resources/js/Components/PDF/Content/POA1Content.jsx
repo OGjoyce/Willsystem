@@ -12,16 +12,9 @@ const POA1Content = forwardRef((props, ref) => {
     }
 
     const datasObj = props.props.datas;
+    const documentDOM = props.props.latestDocumentDOM
     const statusObject = datasObj.reduce((acc, item) => ({ ...acc, ...item }), {});
-    console.log('DOMS: ', statusObject.documentDOM)
-    let poa1Versions = statusObject.documentDOM.POA1;
-    let latestVersion = Object.keys(poa1Versions).reduce((a, b) =>
-        a > b ? a : b
-    );
-    let mostRecentPOA1 = poa1Versions[latestVersion].content;
 
-    console.log('Most recent POA1 version:', latestVersion);
-    console.log('Content:', mostRecentPOA1);
     const personal = statusObject.personal || {};
     const spouseInfo = statusObject.married || {};
     const kids = Object.values(statusObject.kids || {});
@@ -66,8 +59,8 @@ const POA1Content = forwardRef((props, ref) => {
     return (
         <div ref={ref}>
             {
-                mostRecentPOA1
-                    ? <div dangerouslySetInnerHTML={{ __html: mostRecentPOA1 }} />
+                documentDOM !== null
+                    ? <div dangerouslySetInnerHTML={{ __html: documentDOM }} />
                     : (
                         <div className='document-container'>
                             <h2 className='document-header'>Continuing Power of Attorney for Property of {personal.fullName || ''}</h2>

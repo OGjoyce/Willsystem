@@ -85,7 +85,7 @@ const View = () => {
     }
     const handleSearch = async () => {
         const response = await axios.get('/api/files/search', {
-            params: { owner: packageValue }
+            params: { owner: 'henry@email.com' } //default: packageValue
         });
         console.log(response.data);
         allDataFetched = response.data;

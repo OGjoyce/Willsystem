@@ -115,6 +115,23 @@ export function getDocumentDOMInfo() {
 const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId }) => {
   var object_status = datas;
   var id = backendId
+  var latestDocumentDOM = null
+
+  //SET DOCUMENT DOM IF EXISTS
+  if (object_status) {
+
+    const data = object_status.reduce((acc, item) => ({ ...acc, ...item }), {});
+    let documentVersions = data.documentDOM[documentType];
+    let latestVersion = null;
+
+    if (documentVersions) {
+      let latestVersionKey = Object.keys(documentVersions).reduce((a, b) =>
+        parseInt(a) > parseInt(b) ? a : b
+      );
+      latestVersion = documentVersions[latestVersionKey];
+      latestDocumentDOM = latestVersion.content;
+    }
+  }
 
   const [editorContent, setEditorContent] = useState('');
   const [documentVersions, setDocumentVersions] = useState({});
@@ -197,7 +214,13 @@ const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId })
   useEffect(() => {
     try {
       const ContentComponentWithRef = React.forwardRef((props, ref) => (
-        <ContentComponent ref={ref} props={{ datas }} />
+        <ContentComponent
+          ref={ref}
+          props={{
+            datas,
+            latestDocumentDOM
+          }}
+        />
       ));
 
       const documentHtml = ReactDOMServer.renderToString(

@@ -11,22 +11,15 @@ const POA2Content = forwardRef((props, ref) => {
     }
 
     const datasObj = props.props.datas || [];
+    const documentDOM = props.props.latestDocumentDOM
+
     const statusObject = {};
-
-
     datasObj.forEach(item => {
         Object.entries(item).forEach(([key, value]) => {
             statusObject[key] = value;
         });
     });
 
-
-    const data = datasObj.reduce((acc, item) => ({ ...acc, ...item }), {});
-    let poa2Versions = data.documentDOM.POA2;
-    let latestVersion = Object.keys(poa2Versions).reduce((a, b) =>
-        a > b ? a : b
-    );
-    let mostRecentPOA2 = poa2Versions[latestVersion].content;
 
 
     const personal = statusObject.personal || {};
@@ -72,8 +65,8 @@ const POA2Content = forwardRef((props, ref) => {
     return (
 
         <div ref={ref}>
-            {mostRecentPOA2
-                ? <div dangerouslySetInnerHTML={{ __html: mostRecentPOA2 }} />
+            {documentDOM !== null
+                ? <div dangerouslySetInnerHTML={{ __html: documentDOM }} />
                 : (
                     <div className='document-container'>
                         <h2 className='document-header'>Power of Attorney for Personal Care of {personal.fullName}</h2>
