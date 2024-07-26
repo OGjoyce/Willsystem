@@ -9,7 +9,7 @@
     font-family: 'Times New Roman', Times, serif;
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 100%;
     margin-bottom: 248px;
 }
 
@@ -181,4 +181,62 @@
     text-align: right;
     font-size: 8px;
     font-weight: 600;
+}
+
+/*TOAST STYLES*/
+
+.custom-toast {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.custom-toast .toast-header {
+    border-bottom: none;
+    padding: 0.75rem 1rem;
+}
+
+.custom-toast .toast-body {
+    padding: 1rem;
+    font-size: 0.9rem;
+}
+
+.bg-success-light {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+/* Animación de entrada */
+.custom-toast.show {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Animación de salida */
+.custom-toast.hide {
+    animation: slideOut 0.3s ease-in;
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
 }

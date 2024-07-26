@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { Container, Row, Col, Card } from 'react-bootstrap';
 import styled from 'styled-components';
 import { searchDataByEmail } from '@/Components/ObjStatusForm';
@@ -53,7 +53,9 @@ const Value = styled.span`
   color: #212529;
 `;
 
-export default function ProfileInfo({ auth }) {
+export default function ProfileInfo({ auth, requestedEmail }) {
+    const email = requestedEmail;
+    console.log(email)
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -61,7 +63,7 @@ export default function ProfileInfo({ auth }) {
     useEffect(() => {
         async function fetchData() {
             try {
-                const result = await searchDataByEmail('henry@email.com');
+                const result = await searchDataByEmail(email);
                 setData(result);
                 setLoading(false);
             } catch (err) {
