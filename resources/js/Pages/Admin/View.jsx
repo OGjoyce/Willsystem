@@ -40,11 +40,10 @@ const View = () => {
                     if (documentDOMs[0] && documentDOMs[0][file]) {
                         const versionsObject = documentDOMs[0][file];
                         const versionsArray = Object.keys(versionsObject);
-                        console.log('versionsArray', versionsArray);
-                        setDocumentVersions(versionsArray); // Actualiza el estado con las versiones específicas
+                        setDocumentVersions(versionsArray);
 
                     } else {
-                        setDocumentVersions([]); // Si no hay versiones, establece un array vacío
+                        setDocumentVersions([]);
                     }
                 }
             }
@@ -60,7 +59,7 @@ const View = () => {
 
     const handleSearch = async () => {
         const response = await axios.get('/api/files/search', {
-            params: { owner: packageValue || "henry@email.com" }
+            params: { owner: packageValue }
         });
         setAllDataFetched(response.data);
         const newArrObj = response.data.map(element => ({
@@ -84,9 +83,6 @@ const View = () => {
             });
     }, []);
 
-    useEffect(() => {
-        console.log('documentVersions:', documentVersions);
-    }, [documentVersions]);
 
 
     return (
