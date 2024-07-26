@@ -33,6 +33,7 @@ const View = () => {
     const [show, setShow] = useState(false);
     const [docSelected, setDocSelected] = useState("");
     const [idSelected, setIdSelected] = useState("");
+    const [documentVersions, setDocumentVersions] = useState({});
     const handleClose = () => {
 
         setShow(false);
@@ -47,14 +48,25 @@ const View = () => {
         allDataFetched.forEach(function (arrayItem) {
             if (arrayItem.id == idSelected) {
                 selectedInformation = arrayItem.information;
+                console.log(selectedInformation)
             }
         });
         console.log("Selected information");
         console.log(selectedInformation);
         finalSelection = selectedInformation;
+
         setDocSelected(file);
 
 
+        if (file) {
+            const documentDOMs = finalSelection.map(object => object.documentDOM ? object.documentDOM : null).filter(dom => dom !== null);
+
+            if (documentDOMs[0] && documentDOMs[0][file]) {
+                const versionsObject = documentDOMs[0][file];
+                const versionsArray = Object.keys(versionsObject);
+                console.log('versionsArray', versionsArray); // Esto debería imprimir ['v1', 'v2', etc]
+            }
+        }
     }
 
     const handleShow = (id) => {
@@ -70,7 +82,7 @@ const View = () => {
         const dataFetchedLarge = allDataFetched.length;
         var obj = [];
         for (let i = 0; i < dataFetchedLarge; i++) {
-            if (allDataFetched[i].id == idItem) {
+            if (allDataFetche || d[i].id == idItem) {
                 obj = allDataFetched[i].information;
             }
         }
@@ -85,7 +97,7 @@ const View = () => {
     }
     const handleSearch = async () => {
         const response = await axios.get('/api/files/search', {
-            params: { owner: packageValue } //default: packageValue
+            params: { owner: "henry@email.com" } //default: packageValue
         });
         console.log(response.data);
         allDataFetched = response.data;
@@ -122,6 +134,7 @@ const View = () => {
                 console.error('There was an error fetching the data!', error);
             });
     }, []);
+
 
     return (
 
