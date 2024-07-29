@@ -37,6 +37,10 @@ Route::get('/view', function () {
     return Inertia::render('Admin/View');
 })->name("view");
 
+Route::get('/packages', function () {
+    return Inertia::render('Admin/Packages');
+})->name("packages");
+
 Route::get('/create', function () {
     return Inertia::render('Will/Create');
 });

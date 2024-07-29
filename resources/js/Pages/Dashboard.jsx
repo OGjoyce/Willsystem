@@ -80,17 +80,7 @@ export default function Dashboard({ auth }) {
 
 
                             </Row>
-                            <br /><br />
-                            <Row>
-                                <Col sm={4}>
-                                    <Link href={route('profile.info')}>
-                                        <Button style={{ width: "100%" }} variant="outline-dark">
-                                            <i className="bi bi-person-circle"> Profile Info</i>
-                                        </Button>
-                                    </Link>
-                                </Col>
 
-                            </Row>
                         </Container>
 
 

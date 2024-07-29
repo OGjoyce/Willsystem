@@ -28,6 +28,23 @@ const View = () => {
         setShow(true);
     };
 
+    const saveData = (idItem) => {
+        const dataFetchedLarge = allDataFetched.length;
+        var obj = [];
+        for (let i = 0; i < dataFetchedLarge; i++) {
+            if (allDataFetched[i].id == idItem) {
+                obj = allDataFetched[i].information;
+            }
+        }
+
+        localStorage.setItem('fullData', JSON.stringify(obj));
+        localStorage.setItem('currentPointer', obj.length.toString());
+        localStorage.setItem('currIdObjDB', idItem);
+
+        window.location.href = '/personal';
+
+
+    }
     const searchById = (file) => {
         console.log(file);
         let selectedInformation = {};
@@ -59,7 +76,7 @@ const View = () => {
 
     const handleSearch = async () => {
         const response = await axios.get('/api/files/search', {
-            params: { owner: packageValue }
+            params: { owner: packageValue || 'henry@email.com' }
         });
         setAllDataFetched(response.data);
         const newArrObj = response.data.map(element => ({
@@ -95,17 +112,33 @@ const View = () => {
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8" style={{ height: "inherit" }}>
                     <div className="bg-white overflow-visible shadow-sm sm:rounded-lg container" style={{ height: "inherit" }}>
                         {docSelected !== "" && selectedVersion !== "" ? (
-                            <PDFEditor
-                                ContentComponent={
-                                    docSelected === 'Will' ? WillContent :
-                                        docSelected === 'POA1' ? POA1Content :
-                                            POA2Content
-                                }
-                                datas={finalSelection}
-                                backendId={idSelected}
-                                documentType={docSelected}
-                                version={selectedVersion}
-                            />
+                            <>
+                                <PDFEditor
+                                    ContentComponent={
+                                        docSelected === 'Will' ? WillContent :
+                                            docSelected === 'POA1' ? POA1Content :
+                                                POA2Content
+                                    }
+                                    datas={finalSelection}
+                                    backendId={idSelected}
+                                    documentType={docSelected}
+                                    version={selectedVersion}
+                                />
+                                <Col sm={4}>
+                                    <Link
+                                        href={route('view')}
+                                    >
+                                        <Button
+                                            variant="outline-success"
+                                            size="lg"
+                                            style={{ width: "100%" }}
+                                            className={'mb-8'}
+                                        >
+                                            Back
+                                        </Button>
+                                    </Link>
+                                </Col>
+                            </>
                         ) : (
                             <>
                                 <Container style={{ padding: "10px" }}>
@@ -175,7 +208,7 @@ const View = () => {
                                     </Modal.Header>
                                     <Modal.Body>
                                         <Row className="mt-3">
-                                            {['Will', 'POA1', 'POA2'].map((docType) => (
+                                            {['Will', 'POA1', 'POA2', 'POA3'].map((docType) => (
                                                 <Col key={docType}>
                                                     <Dropdown>
                                                         <href onClick={() => searchById(docType, show)}>
@@ -194,9 +227,11 @@ const View = () => {
 
 
                                                         <Dropdown.Menu>
-                                                            {true ? (
+                                                            {documentVersions.length !== 0 ? (
                                                                 documentVersions.map((version, index) => (
                                                                     <Dropdown.Item
+                                                                        className={'text-center'}
+                                                                        style={{ width: "100%" }}
                                                                         key={index}
                                                                         onClick={() => handleVersionSelect(docType, version)}
                                                                     >
@@ -223,6 +258,7 @@ const View = () => {
                     </div>
                 </div>
             </div>
+
         </AuthenticatedLayout>
     );
 };
