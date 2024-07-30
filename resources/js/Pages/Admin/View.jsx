@@ -76,7 +76,7 @@ const View = () => {
 
     const handleSearch = async () => {
         const response = await axios.get('/api/files/search', {
-            params: { owner: packageValue || 'henry@email.com' }
+            params: { owner: packageValue }
         });
         setAllDataFetched(response.data);
         const newArrObj = response.data.map(element => ({

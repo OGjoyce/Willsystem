@@ -77,6 +77,7 @@ function AddHuman({ married, childrens, human, errors }) {
     const [relative, setRelative] = useState('');
     const [showOther, setShowOther] = useState(false);
     const [validationErrors, setValidationErrors] = useState(errors)
+    const [phone, setPhone] = useState('');
 
     useEffect(() => {
         setValidationErrors(errors);
@@ -88,13 +89,34 @@ function AddHuman({ married, childrens, human, errors }) {
         setShowOther(value === 'Other');
     };
 
+    const formatPhoneNumber = (value) => {
+        if (!value) return value;
+
+        const phoneNumber = value.replace(/[^\d]/g, '');
+
+        const phoneNumberLength = phoneNumber.length;
+        if (phoneNumberLength < 2) return `+${phoneNumber}`;
+        if (phoneNumberLength < 5) {
+            return `+${phoneNumber[0]} (${phoneNumber.slice(1, 4)}`;
+        }
+        if (phoneNumberLength < 8) {
+            return `+${phoneNumber[0]} (${phoneNumber.slice(1, 4)}) ${phoneNumber.slice(4, 7)}`;
+        }
+        return `+${phoneNumber[0]} (${phoneNumber.slice(1, 4)}) ${phoneNumber.slice(4, 7)}-${phoneNumber.slice(7, 11)}`;
+    };
+
+    const handlePhoneChange = (e) => {
+        const formattedPhoneNumber = formatPhoneNumber(e.target.value);
+        setPhone(formattedPhoneNumber);
+    };
+
     const isRelativeReadOnly = married || childrens;
     const defaultRelativeValue = married ? 'Spouse' : (childrens ? 'Children' : '');
 
 
     return (
         <>
-            <h1>Information details</h1>
+            {married ? <h1>Spouse Details</h1> : <h1>Information details</h1>}
             <Form>
                 <Form.Group className="mb-3" controlId="firstNameId">
                     <Form.Label>First Name</Form.Label>
@@ -123,7 +145,7 @@ function AddHuman({ married, childrens, human, errors }) {
                         <Form.Control as="select" value={relative} onChange={handleRelativeChange}>
                             <option value="">Select...</option>
                             <option value="Spouse">Spouse</option>
-                            <option value="Children">Children</option>
+                            <option value="Children">Child</option>
                             <option value="Brother">Brother</option>
                             <option value="Uncle">Uncle</option>
                             <option value="Other">Other</option>
@@ -152,7 +174,7 @@ function AddHuman({ married, childrens, human, errors }) {
                             </Form.Group>
                             <Form.Group className="mb-3" controlId="phoneId">
                                 <Form.Label>Phone</Form.Label>
-                                <Form.Control type="text" placeholder="+1(XXX)XXX-XXXX" />
+                                <Form.Control type="text" placeholder="+1(XXX)XXX-XXXX" value={phone} onChange={handlePhoneChange} />
                                 {!childrens && validationErrors.phone && <p className="mt-2 text-sm text-red-600">{validationErrors.phone}</p>}
                             </Form.Group>
                         </>
@@ -173,7 +195,7 @@ function AddHuman({ married, childrens, human, errors }) {
                             </Form.Group>
                             <Form.Group className="mb-3" controlId="phoneId">
                                 <Form.Label>Phone</Form.Label>
-                                <Form.Control type="text" placeholder="+1(XXX)XXX-XXXX" />
+                                <Form.Control type="text" placeholder="+1(XXX)XXX-XXXX" value={phone} onChange={handlePhoneChange} />
                                 {(married || human) && validationErrors.phone && <p className="mt-2 text-sm text-red-600">{validationErrors.phone}</p>}
                             </Form.Group>
                         </>

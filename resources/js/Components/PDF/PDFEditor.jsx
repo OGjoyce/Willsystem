@@ -118,24 +118,6 @@ const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId, v
   var latestDocumentDOM = null
   var preselectedVersion = version
 
-  if (object_status) {
-    const data = object_status.reduce((acc, item) => ({ ...acc, ...item }), {});
-    let documentVersions = data.documentDOM?.[documentType] || {};
-    let latestVersion = null;
-
-    if (Object.keys(documentVersions).length > 0) {
-      let latestVersionKey = Object.keys(documentVersions).reduce((a, b) =>
-        parseInt(a) > parseInt(b) ? a : b
-      );
-      latestVersion = preselectedVersion !== ''
-        ? documentVersions[preselectedVersion] || documentVersions[latestVersionKey]
-        : documentVersions[latestVersionKey];
-
-      latestDocumentDOM = latestVersion?.content || '';
-    } else {
-      latestDocumentDOM = '';
-    }
-  }
 
   const [editorContent, setEditorContent] = useState('');
   const [documentVersions, setDocumentVersions] = useState({});

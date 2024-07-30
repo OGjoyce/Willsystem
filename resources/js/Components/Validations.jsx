@@ -44,9 +44,6 @@ export const validateAddHumanData = (data) => {
     errors.firstName = 'First name is required';
   }
 
-  if (!data.middleName || data.middleName.trim() === '') {
-    errors.middleName = 'Middle name is required';
-  }
 
   if (!data.lastName || data.lastName.trim() === '') {
     errors.lastName = 'Last name is required';

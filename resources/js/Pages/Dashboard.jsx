@@ -79,7 +79,23 @@ export default function Dashboard({ auth }) {
 
 
 
+                            </Row> <br></br>
+                            <br></br>
+                            <Row >
+                                <Col sm={4}>
+                                    <Link
+                                        href={route('packages')}
+                                    >
+                                        <Button style={{ width: "100%" }} variant="outline-dark"> <i style={{ color: "black" }} className="bi bi-box-seam"> Packages</i> </Button>
+
+
+                                    </Link>
+                                </Col>
+
+
+
                             </Row>
+
 
                         </Container>
 
