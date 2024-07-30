@@ -201,6 +201,15 @@ const View = () => {
                                             ))}
                                         </tbody>
                                     </Table>
+                                    <Row className="mt-3">
+                                        <Col xs={6}>
+                                            <Link href={route('dashboard')}>
+                                                <Button variant="outline-success" size="lg" className="w-100">
+                                                    Back
+                                                </Button>
+                                            </Link>
+                                        </Col>
+                                    </Row>
                                 </Container>
                                 <Modal show={show} onHide={handleClose}>
                                     <Modal.Header closeButton>

@@ -192,7 +192,7 @@ const Packages = () => {
                                     </Col>
                                 </Row>
                                 <Row className="mt-3">
-                                    <Col>
+                                    <Col xs={6}>
                                         <Link href={route('dashboard')}>
                                             <Button variant="outline-success" size="lg" className="w-100">
                                                 Back
