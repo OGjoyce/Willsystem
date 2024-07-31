@@ -181,6 +181,9 @@ export default function Personal({ auth }) {
         switch (step) {
 
             case 0:
+
+                localStorage.removeItem('fullData');
+                localStorage.removeItem('currentPointer');
                 setValidationErrors({})
                 const personalData = getFormData();
 
