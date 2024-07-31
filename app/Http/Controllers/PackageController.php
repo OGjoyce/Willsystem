@@ -17,6 +17,7 @@ class PackageController extends Controller
         $validatedData = $request->validate([
             'name' => 'required|string',
             'price' => 'required|string',
+            'description' => 'required|string',
             'campaign' => 'required|string',
         ]);
 
@@ -35,6 +36,7 @@ class PackageController extends Controller
         $validatedData = $request->validate([
             'name' => 'required|string',
             'price' => 'required|string',
+            'description' => 'required|string',
             'campaign' => 'required|string',
         ]);
 

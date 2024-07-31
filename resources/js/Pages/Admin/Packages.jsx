@@ -26,6 +26,7 @@ const Packages = () => {
         id: null,
         name: '',
         price: '',
+        description: '',
         campaign: ''
     });
     const [showToast, setShowToast] = useState(false);
@@ -83,6 +84,9 @@ const Packages = () => {
         if (!currentPackage.price.trim() || isNaN(parseFloat(currentPackage.price.replace('$', '')))) {
             errors.price = 'Price must be a valid number';
         }
+        if (!currentPackage.description.trim()) {
+            errors.description = 'Description cannot be empty';
+        }
         if (!currentPackage.campaign.trim()) {
             errors.campaign = 'Campaign cannot be empty';
         }
@@ -121,7 +125,7 @@ const Packages = () => {
         } catch (error) {
             console.error('Error deleting package:', error);
         }
-        setCurrentPackage({ id: null, name: '', price: '', campaign: '' });
+        setCurrentPackage({ id: null, name: '', price: '', description: '', campaign: '' });
     };
 
     return (
@@ -151,6 +155,7 @@ const Packages = () => {
                                                         <th>ID</th>
                                                         <th>Name</th>
                                                         <th>Price</th>
+                                                        <th>Description</th>
                                                         <th>Campaign</th>
                                                         <th>Actions</th>
                                                     </tr>
@@ -161,6 +166,7 @@ const Packages = () => {
                                                             <td className="text-break">{pkg.id}</td>
                                                             <td className="text-break">{pkg.name}</td>
                                                             <td className="text-break">{pkg.price}</td>
+                                                            <td className="text-break">{pkg.description}</td>
                                                             <td className="text-break">{pkg.campaign}</td>
                                                             <td>
                                                                 <div className="d-flex flex-column flex-sm-row">
@@ -233,6 +239,17 @@ const Packages = () => {
 
                             />
                             {validationErrors.price && <p className="mt-2 text-sm text-red-600">{validationErrors.price}</p>}
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Description</Form.Label>
+                            <Form.Control
+                                as="textarea"
+                                rows={3}
+                                name="description"
+                                value={currentPackage.description}
+                                onChange={handleInputChange}
+                            />
+                            {validationErrors.description && <p className="mt-2 text-sm text-red-600">{validationErrors.description}</p>}
                         </Form.Group>
                         <Form.Group className="mb-3">
                             <Form.Label>Campaign</Form.Label>
