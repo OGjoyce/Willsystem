@@ -6,6 +6,8 @@ import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
 import { Container, Row, Col, Button, Toast, ToastContainer } from 'react-bootstrap';
+import CustomToast from '../CustomToast'
+
 import Toolbar from './Toolbar'
 import { useReactToPrint } from "react-to-print";
 import { updateDataObject } from '../ObjStatusForm';
@@ -267,35 +269,11 @@ const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId, v
       <div style={{ display: 'none' }}>
         <PrintComponent ref={componentRef} content={editorContent} />
       </div>
-
-      <ToastContainer
-        position="top-end"
-        className="p-3"
-        style={{
-          zIndex: 1000,
-          position: 'fixed',
-          top: '1rem',
-          right: '1rem'
-        }}
-      >
-        <Toast
-          show={showToast}
-          onClose={() => setShowToast(false)}
-          delay={5000}
-          autohide
-          className="custom-toast"
-        >
-          <Toast.Header className="bg-success text-white">
-            <i className="bi bi-check-circle-fill me-2"></i>
-            <strong className="me-auto">Success</strong>
-            <small>just now</small>
-          </Toast.Header>
-          <Toast.Body className="bg-success-light">
-            Your {documentType ? documentType : 'Document'} has been saved Successfully!
-          </Toast.Body>
-        </Toast>
-      </ToastContainer>
-
+      <CustomToast
+        show={showToast}
+        onClose={() => setShowToast(false)}
+        message={`Your ${documentType ? documentType : 'Document'} has been saved Successfully!`}
+      />
     </Container>
 
   );
