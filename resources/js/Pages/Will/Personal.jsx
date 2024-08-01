@@ -182,9 +182,6 @@ export default function Personal({ auth }) {
         switch (step) {
 
             case 0:
-
-                localStorage.removeItem('fullData');
-                localStorage.removeItem('currentPointer');
                 setValidationErrors({})
                 const personalData = getFormData();
 
@@ -221,9 +218,15 @@ export default function Personal({ auth }) {
                     return null;
                 }
 
+                const marriedIndex = object_status.findIndex(obj => obj.hasOwnProperty('married'));
+                if (marriedIndex !== -1) {
 
-                object_to_push.married = { ...getHumanData(), "timestamp": Date.now() };
-                object_to_push.married = { ...humanData, "timestamp": Date.now() };
+                    object_status[marriedIndex].married = { ...humanData, "timestamp": Date.now() };
+                } else {
+                    object_to_push.married = { ...humanData, "timestamp": Date.now() };
+                    object_status.push(object_to_push);
+                }
+
                 setFormData(prevData => ({ ...prevData, married: humanData }));
                 break;
 
@@ -423,7 +426,9 @@ export default function Personal({ auth }) {
         objectState = object_status;
         const objectStateFreezed = JSON.parse(JSON.stringify(object_status));
         if (!dupFlag) {
-            object_status.push(object_to_push);
+            if (step !== 2) { // Avoid pushing duplicate data for step 2
+                object_status.push(object_to_push);
+            }
             if (step != 0) {
                 updateDataObject(object_status, currIdObjDB);
 
@@ -474,26 +479,7 @@ export default function Personal({ auth }) {
 
         const marriedqObject = objectStatus.find(obj => obj.marriedq !== undefined && (obj.marriedq.selection === "false" || obj.marriedq.selection === ""));
         const kidsqObject = objectStatus.find(obj => obj.kidsq !== undefined && (obj.kidsq.selection === "false" || obj.kidsq.selection === ""));
-        try {// Encuentra el objeto que contiene 'marriedq' con la selección deseada
 
-
-            if (pointer === 1 && marriedqObject) {
-                pushMarried()
-                nextStep = 3; // Saltar a la pregunta sobre hijos
-                setPointer(3);
-            }
-
-
-            // Skip children information if no kids
-            if (pointer === 3 && kidsqObject) {
-                pushKid()
-                nextStep = 5; // Skip to executors step
-                setPointer(5)
-            }
-
-        } catch (error) {
-            console.error("Error in nextStep:", error);
-        }
 
         console.log("nb." + nextStep);
         setPointer(nextStep);

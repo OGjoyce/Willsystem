@@ -74,20 +74,27 @@ export function getHumanData(params) {
     }
 }
 
-function AddHuman({ married, childrens, human, errors, data, onDataChange }) {
+function AddHuman({ married, childrens, human, errors, data, onDataChange, relationType }) {
+    var relationType = null
+    if (married) { relationType = 'Spouse' }
+    if (childrens) { relationType = 'Child' }
+
     const [formValues, setFormValues] = useState(() => {
-        const savedValues = localStorage.getItem('formValues');
+        if (relationType === 'Child') return {};
+        const key = `formValues_${relationType}`;
+        const savedValues = localStorage.getItem(key);
         return savedValues ? JSON.parse(savedValues) : data;
     });
     const [relative, setRelative] = useState('');
     const [showOther, setShowOther] = useState(false);
-    const [validationErrors, setValidationErrors] = useState(errors)
+    const [validationErrors, setValidationErrors] = useState(errors);
     const [phone, setPhone] = useState('');
 
     useEffect(() => {
-        console.log(formValues)
-        localStorage.setItem('formValues', JSON.stringify(formValues));
-    }, [formValues]);
+        if (relationType === 'Child') return;
+        const key = `formValues_${relationType}`;
+        localStorage.setItem(key, JSON.stringify(formValues));
+    }, [formValues, relationType]);
 
     useEffect(() => {
         setValidationErrors(errors);
@@ -95,12 +102,18 @@ function AddHuman({ married, childrens, human, errors, data, onDataChange }) {
 
     const handleInputChange = (e) => {
         const { id, value } = e.target;
-        const propertyName = id.replace('Id' || 'Id0' || 'Id1', ''); // Remove 'Id' from the end
-        setFormValues(prevValues => {
-            const newValues = { ...prevValues, [propertyName]: value };
+        if (relationType !== 'Child') {
+            const propertyName = id.replace(/Id\d*$/, ''); // Remove 'Id', 'Id0', 'Id1', etc.
+            setFormValues((prevValues) => {
+                const newValues = { ...prevValues, [propertyName]: value };
+                onDataChange(newValues);
+                return newValues;
+            });
+        } else {
+            // Update the form values for children without saving to localStorage or state
+            const newValues = { ...formValues, [id]: value };
             onDataChange(newValues);
-            return newValues;
-        });
+        }
     };
 
     const handleRelativeChange = (e) => {
@@ -126,14 +139,21 @@ function AddHuman({ married, childrens, human, errors, data, onDataChange }) {
     };
 
     const handlePhoneChange = (e) => {
+        const { id } = e.target;
         const formattedPhoneNumber = formatPhoneNumber(e.target.value);
         setPhone(formattedPhoneNumber);
-        handleInputChange
+
+        if (relationType !== 'Child') {
+            setFormValues((prevValues) => {
+                const newValues = { ...prevValues, phone: formattedPhoneNumber };
+                onDataChange(newValues);
+                return newValues;
+            });
+        }
     };
 
     const isRelativeReadOnly = married || childrens;
-    const defaultRelativeValue = married ? 'Spouse' : (childrens ? 'Child' : '');
-
+    const defaultRelativeValue = married ? 'Spouse' : childrens ? 'Child' : '';
 
     return (
         <>
@@ -144,8 +164,8 @@ function AddHuman({ married, childrens, human, errors, data, onDataChange }) {
                     <Form.Control
                         type="text"
                         placeholder="First Name"
-                        value={formValues.firstName || ''}
-                        onChange={handleInputChange}
+                        value={formValues?.firstName || ''}
+
                     />
                     {validationErrors.firstName && <p className="mt-2 text-sm text-red-600">{validationErrors.firstName}</p>}
                 </Form.Group>
@@ -154,7 +174,7 @@ function AddHuman({ married, childrens, human, errors, data, onDataChange }) {
                     <Form.Control
                         type="text"
                         placeholder="Middle Name"
-                        value={formValues.middleName || ''}
+                        value={formValues?.middleName || ''}
                         onChange={handleInputChange}
                     />
                     {validationErrors.middleName && <p className="mt-2 text-sm text-red-600">{validationErrors.middleName}</p>}
@@ -164,7 +184,7 @@ function AddHuman({ married, childrens, human, errors, data, onDataChange }) {
                     <Form.Control
                         type="text"
                         placeholder="Last Name"
-                        value={formValues.lastName || ''}
+                        value={formValues?.lastName || ''}
                         onChange={handleInputChange}
                     />
                     {validationErrors.lastName && <p className="mt-2 text-sm text-red-600">{validationErrors.lastName}</p>}
@@ -172,32 +192,30 @@ function AddHuman({ married, childrens, human, errors, data, onDataChange }) {
                 <Form.Group className="mb-3" controlId="relativeId">
                     <Form.Label>Relative</Form.Label>
                     {isRelativeReadOnly ? (
-                        <Form.Control
-                            type="text"
-                            value={defaultRelativeValue}
-                            readOnly
-
-                        />
-                    ) : (<>
-                        <Form.Control as="select" value={relative} onChange={handleRelativeChange}>
-                            <option value="">Select...</option>
-                            <option value="Spouse">Spouse</option>
-                            <option value="Children">Child</option>
-                            <option value="Brother">Brother</option>
-                            <option value="Uncle">Uncle</option>
-                            <option value="Other">Other</option>
-
-                        </Form.Control>
-
-                        {!showOther && validationErrors.relative && <p className="mt-2 text-sm text-red-600">{validationErrors.relative}</p>}
-                    </>
-
+                        <Form.Control type="text" value={defaultRelativeValue} readOnly />
+                    ) : (
+                        <>
+                            <Form.Control as="select" value={relative} onChange={handleRelativeChange}>
+                                <option value="">Select...</option>
+                                <option value="Spouse">Spouse</option>
+                                <option value="Children">Child</option>
+                                <option value="Brother">Brother</option>
+                                <option value="Uncle">Uncle</option>
+                                <option value="Other">Other</option>
+                            </Form.Control>
+                            {!showOther && validationErrors.relative && <p className="mt-2 text-sm text-red-600">{validationErrors.relative}</p>}
+                        </>
                     )}
                     {showOther && !isRelativeReadOnly && (
                         <>
                             <Form.Group className="mt-3" controlId="otherRelativeId">
                                 <Form.Label>Specify Other</Form.Label>
-                                <Form.Control type="text" placeholder="Enter relation" />
+                                <Form.Control
+                                    type="text"
+                                    placeholder="Enter relation"
+                                    value={formValues?.otherRelative || ''}
+                                    onChange={handleInputChange}
+                                />
                             </Form.Group>
                             {validationErrors.otherRelative && <p className="mt-2 text-sm text-red-600">{validationErrors.otherRelative}</p>}
                         </>
@@ -209,7 +227,7 @@ function AddHuman({ married, childrens, human, errors, data, onDataChange }) {
                                 <Form.Control
                                     type="email"
                                     placeholder="example@dot.com"
-                                    value={formValues.email || ''}
+                                    value={formValues?.email || ''}
                                     onChange={handleInputChange}
                                 />
                                 {!childrens && validationErrors.email && <p className="mt-2 text-sm text-red-600">{validationErrors.email}</p>}
@@ -219,10 +237,8 @@ function AddHuman({ married, childrens, human, errors, data, onDataChange }) {
                                 <Form.Control
                                     type="text"
                                     placeholder="+1(XXX)XXX-XXXX"
-
                                     onChange={handlePhoneChange}
-                                    value={formValues.phone || phone}
-
+                                    value={formValues?.phone || phone}
                                 />
                                 {!childrens && validationErrors.phone && <p className="mt-2 text-sm text-red-600">{validationErrors.phone}</p>}
                             </Form.Group>
@@ -242,7 +258,7 @@ function AddHuman({ married, childrens, human, errors, data, onDataChange }) {
                                 <Form.Control
                                     type="email"
                                     placeholder="example@dot.com"
-                                    value={formValues.email || ''}
+                                    value={formValues?.email || ''}
                                     onChange={handleInputChange}
                                 />
                                 {(married || human) && validationErrors.email && <p className="mt-2 text-sm text-red-600">{validationErrors.email}</p>}
@@ -253,7 +269,7 @@ function AddHuman({ married, childrens, human, errors, data, onDataChange }) {
                                     type="text"
                                     placeholder="+1(XXX)XXX-XXXX"
                                     onChange={handlePhoneChange}
-                                    value={formValues.email || ''}
+                                    value={formValues?.phone || phone}
                                 />
                                 {(married || human) && validationErrors.phone && <p className="mt-2 text-sm text-red-600">{validationErrors.phone}</p>}
                             </Form.Group>
@@ -265,7 +281,7 @@ function AddHuman({ married, childrens, human, errors, data, onDataChange }) {
                     <Form.Control
                         type="text"
                         placeholder="..."
-                        value={formValues.city || ''}
+                        value={formValues?.city || ''}
                         onChange={handleInputChange}
                     />
                     {validationErrors.city && <p className="mt-2 text-sm text-red-600">{validationErrors.city}</p>}
@@ -275,7 +291,7 @@ function AddHuman({ married, childrens, human, errors, data, onDataChange }) {
                     <Form.Control
                         type="text"
                         placeholder="..."
-                        value={formValues.province || ''}
+                        value={formValues?.province || ''}
                         onChange={handleInputChange}
                     />
                     {validationErrors.province && <p className="mt-2 text-sm text-red-600">{validationErrors.province}</p>}
@@ -285,7 +301,7 @@ function AddHuman({ married, childrens, human, errors, data, onDataChange }) {
                     <Form.Control
                         type="text"
                         placeholder="..."
-                        value={formValues.country || ''}
+                        value={formValues?.country || ''}
                         onChange={handleInputChange}
                     />
                     {validationErrors.country && <p className="mt-2 text-sm text-red-600">{validationErrors.country}</p>}

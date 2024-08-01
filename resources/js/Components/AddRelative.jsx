@@ -125,7 +125,10 @@ function AddRelative({ relative, datas, errors }) {
                     <Modal.Title>Add Child</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <AddHuman childrens={true} errors={validationErrors} />
+                    <AddHuman
+                        childrens={true}
+                        errors={validationErrors}
+                    />
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" size="sm" onClick={handleCloseNosave}>
