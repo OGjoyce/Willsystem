@@ -67,7 +67,7 @@ export default function Personal({ auth }) {
         },
         {
             "step": 3,
-            "title": "Child Status"
+            "title": "Children"
         },
         {
             "step": 4,
