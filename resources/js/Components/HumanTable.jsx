@@ -268,7 +268,7 @@ function HumanTable({ id, datas, errors }) {
             </Table>
             <div className="d-grid gap-2">
                 <Button variant="success" size="lg" onClick={handleShow}>
-                    Add more relatives
+                    Add new Executor
                 </Button>
             </div>
 
@@ -305,7 +305,7 @@ function HumanTable({ id, datas, errors }) {
 
             <Modal show={show} onHide={handleCloseNosave}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Add New Person</Modal.Title>
+                    <Modal.Title>Add Person</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
 

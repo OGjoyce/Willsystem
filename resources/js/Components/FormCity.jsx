@@ -118,6 +118,7 @@ function FormCity({ auth, laravelVersion, phpVersion, errors }) {
 
     const [selected, setSelected] = useState(people[9])
     const [validationErrors, setValidationErrors] = useState(errors)
+    const [phone, setPhone] = useState('');
 
     useEffect(() => {
         setValidationErrors(errors);
@@ -129,6 +130,29 @@ function FormCity({ auth, laravelVersion, phpVersion, errors }) {
         setData(selected);
         return true;
     }
+
+
+    const formatPhoneNumber = (value) => {
+        if (!value) return value;
+
+        const phoneNumber = value.replace(/[^\d]/g, '');
+
+        const phoneNumberLength = phoneNumber.length;
+        if (phoneNumberLength < 2) return `+${phoneNumber}`;
+        if (phoneNumberLength < 5) {
+            return `+${phoneNumber[0]} (${phoneNumber.slice(1, 4)}`;
+        }
+        if (phoneNumberLength < 8) {
+            return `+${phoneNumber[0]} (${phoneNumber.slice(1, 4)}) ${phoneNumber.slice(4, 7)}`;
+        }
+        return `+${phoneNumber[0]} (${phoneNumber.slice(1, 4)}) ${phoneNumber.slice(4, 7)}-${phoneNumber.slice(7, 11)}`;
+    };
+
+    const handlePhoneChange = (e) => {
+        const formattedPhoneNumber = formatPhoneNumber(e.target.value);
+        setPhone(formattedPhoneNumber);
+    };
+
     return (
         <>
 
@@ -225,7 +249,10 @@ function FormCity({ auth, laravelVersion, phpVersion, errors }) {
                                     name="phone"
                                     id="phone"
                                     className="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                                    placeholder="+1 (XXX) XXX-XXXX" />
+                                    placeholder="+1 (XXX) XXX-XXXX"
+                                    value={phone}
+                                    onChange={handlePhoneChange}
+                                />
                             </div>
                             {validationErrors.telephone && <p className="mt-2 text-sm text-red-600">{validationErrors.telephone}</p>}
                         </div>
