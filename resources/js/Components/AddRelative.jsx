@@ -80,7 +80,7 @@ function AddRelative({ relative, datas, errors }) {
         <>
             <div className="d-grid gap-2">
                 <Button variant="outline-info" size="lg" onClick={handleShow}>
-                    Add more children
+                    Add Child
                 </Button>
 
                 <Table striped bordered hover responsive>
@@ -122,7 +122,7 @@ function AddRelative({ relative, datas, errors }) {
 
             <Modal show={show} onHide={handleCloseNosave}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Add New Child</Modal.Title>
+                    <Modal.Title>Add Child</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <AddHuman childrens={true} errors={validationErrors} />

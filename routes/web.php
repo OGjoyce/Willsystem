@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use Illuminate\Http\Request;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -36,15 +37,20 @@ Route::get('/view', function () {
     return Inertia::render('Admin/View');
 })->name("view");
 
+Route::get('/packages', function () {
+    return Inertia::render('Admin/Packages');
+})->name("packages");
+
 Route::get('/create', function () {
     return Inertia::render('Will/Create');
 });
 
-Route::get('/profile-info', function () {
+Route::get('/profile-info/{email?}', function (Request $request, $email = null) {
     return Inertia::render('Profile/ProfileInfo', [
         'auth' => [
             'user' => auth()->user(),
         ],
+        'requestedEmail' => $email,
     ]);
 })->middleware(['auth', 'verified'])->name('profile.info');
 

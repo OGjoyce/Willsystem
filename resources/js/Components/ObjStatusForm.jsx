@@ -11,8 +11,7 @@ export async function storeDataObject(object) {
             type: "",
         });
         console.log('Data submitted successfully:', response.data);
-        localStorage.setItem('objectStatus', JSON.stringify(object));
-        // Optionally reset form
+
         return response.data;
 
     } catch (err) {
@@ -29,9 +28,8 @@ export async function updateDataObject(object, id) {
             type: "",
         });
         console.log('Data submitted successfully:', response.data);
-        // Update localStorage
-        localStorage.setItem('objectStatus', JSON.stringify(object));
-        // Optionally reset form
+
+
     } catch (err) {
         console.error('Error submitting data:', err);
 
