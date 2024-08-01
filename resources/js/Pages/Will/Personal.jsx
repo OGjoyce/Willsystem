@@ -144,6 +144,7 @@ export default function Personal({ auth }) {
     var [pointer, setPointer] = useState(0);
     var [validationErrors, setValidationErrors] = useState({})
     const [selectedDocument, setSelectedDocument] = useState(null);
+    const [formData, setFormData] = useState({});
     var lastPointer = 0;
 
 
@@ -222,6 +223,8 @@ export default function Personal({ auth }) {
 
 
                 object_to_push.married = { ...getHumanData(), "timestamp": Date.now() };
+                object_to_push.married = { ...humanData, "timestamp": Date.now() };
+                setFormData(prevData => ({ ...prevData, married: humanData }));
                 break;
 
 
@@ -527,14 +530,11 @@ export default function Personal({ auth }) {
             setValidationErrors({})
             // If we're viewing a specific document, go back to document selection
 
-
             const newDocumentDOM = { ...getDocumentDOMInfo(), "timestamp": Date.now() };
 
             var documentDOMData = getDocumentDOMInfo();
 
             if (pointer === 18) {
-
-
                 // Check if POA1 exists in the object_status
                 const poa1Exists = documentDOMData?.hasOwnProperty('POA1');
                 if (!poa1Exists) {
@@ -545,8 +545,6 @@ export default function Personal({ auth }) {
             }
 
             if (pointer === 19) {
-
-
                 // Check if POA1 exists in the object_status
                 const poa2Exists = documentDOMData?.hasOwnProperty('POA2');
                 if (!poa2Exists) {
@@ -578,38 +576,21 @@ export default function Personal({ auth }) {
                 setSelectedDocument(null);
                 setPointer(16);
                 return true;
-
             }
-
-
         }
 
-
-        const objectStatus = popInfo();
+        // Instead of popping the last item, we'll keep it
+        // const objectStatus = popInfo();
         var dupFlag = true;
-
-        try {
-
-            if (pointer === 3) {
-                nextStep = 1
-                setPointer(1)
-                popInfo();
-            }
-            if (pointer === 5) {
-                nextStep = 3;
-                setPointer(3)
-
-                popInfo();
-            }
-        } catch (error) {
-            // Handle or log error if needed
-        }
 
         console.log("bb." + nextStep);
 
         setPointer(nextStep);
         localStorage.setItem('currentPointer', nextStep.toString());
 
+        // Update the UI to reflect the data from the previous step
+        // This assumes you have a state variable to hold form data
+        // setFormData(object_status[nextStep] || {});
 
         return true;
     }
@@ -681,7 +662,12 @@ export default function Personal({ auth }) {
                         }
                         {
                             pointer == 2 ?
-                                <AddHuman married={true} errors={validationErrors} />
+                                <AddHuman
+                                    married={true}
+                                    errors={validationErrors}
+                                    data={formData.married || {}}
+                                    onDataChange={(newData) => setFormData(prevData => ({ ...prevData, married: newData }))}
+                                />
                                 :
                                 null
                         }
