@@ -683,15 +683,9 @@ export default function Personal({ auth }) {
                         }
                         {
                             pointer == 4 ?
-                                <AddRelative
-                                    relative={"children"}
-                                    errors={validationErrors}
-                                    datas={object_status}
-                                />
+                                <AddRelative relative={"children"} errors={validationErrors} datas={object_status} />
                                 :
                                 null
-
-
                         }
                         {
                             pointer == 5 ?
