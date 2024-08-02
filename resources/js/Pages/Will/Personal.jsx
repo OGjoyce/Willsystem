@@ -43,7 +43,7 @@ import { getPetInfo } from '@/Components/Pets';
 import { getDocumentDOMInfo } from '@/Components/PDF/PDFEditor';
 import { storeDataObject } from '@/Components/ObjStatusForm';
 import { updateDataObject } from '@/Components/ObjStatusForm';
-import { validateFormData, validateAddHumanData, validate } from '@/Components/Validations.jsx';
+import { validate } from '@/Components/Validations.jsx';
 import { document } from 'postcss';
 
 var object_status = [];
@@ -173,8 +173,19 @@ export default function Personal({ auth }) {
         }
     }, []);
 
+
     const pushInfo = async function (step) {
 
+        var handleValidation = (validationFunction) => {
+            setValidationErrors({})
+
+            const errors = validationFunction
+            if (Object.keys(errors).length > 0) {
+                setValidationErrors(errors)
+                console.log(errors)
+                return null;
+            }
+        }
 
         var object_to_push = {};
         var dupFlag = false;
@@ -182,98 +193,67 @@ export default function Personal({ auth }) {
         switch (step) {
 
             case 0:
-                setValidationErrors({})
                 const personalData = getFormData();
 
-                var errors = await validateFormData(personalData);
-
-                if (Object.keys(errors).length > 0) {
-
-                    setValidationErrors(errors)
-                    console.log(validationErrors)
-                    return null;
+                if (handleValidation(validate.formData(personalData)) === null) {
+                    return null
+                } else {
+                    object_to_push.personal = { ...stepper[step], ...personalData, "timestamp": Date.now() };
+                    object_to_push.owner = personalData.email
+                    const dataFirstStore = await storeDataObject(object_to_push);
+                    currIdObjDB = dataFirstStore.id;
                 }
 
-                object_to_push.personal = { ...stepper[step], ...personalData, "timestamp": Date.now() };
-                object_to_push.owner = personalData.email
-                const dataFirstStore = await storeDataObject(object_to_push);
-                currIdObjDB = dataFirstStore.id;
                 break;
             case 1:
-
                 object_to_push.marriedq = { "selection": getMarriedData(), "timestamp": Date.now() };
-
 
                 break;
             case 2:
-                setValidationErrors({})
                 const humanData = getHumanData()
-
-                var errors = await validateAddHumanData(humanData);
-
-                if (Object.keys(errors).length > 0) {
-
-                    setValidationErrors(errors)
-                    console.log(validationErrors)
-                    return null;
-                }
-
-                const marriedIndex = object_status.findIndex(obj => obj.hasOwnProperty('married'));
-                if (marriedIndex !== -1) {
-
-                    object_status[marriedIndex].married = { ...humanData, "timestamp": Date.now() };
+                if (handleValidation(validate.addHumanData(humanData)) === null) {
+                    return null
                 } else {
-                    object_to_push.married = { ...humanData, "timestamp": Date.now() };
-                    object_status.push(object_to_push);
+                    const marriedIndex = object_status.findIndex(obj => obj.hasOwnProperty('married'));
+                    if (marriedIndex !== -1) {
+                        object_status[marriedIndex].married = { ...humanData, "timestamp": Date.now() };
+                    } else {
+                        object_to_push.married = { ...humanData, "timestamp": Date.now() };
+                        object_status.push(object_to_push);
+                    }
                 }
+
                 break;
-
-
             case 3:
                 object_to_push.kidsq = { "selection": getMarriedData() };
 
-
                 break;
             case 4:
-                setValidationErrors({})
                 if (!dupKids) {
 
-
                     const kidsData = getChildRelatives()
-
-                    var errors = await validate.kids(kidsData);
-
-                    if (Object.keys(errors).length > 0) {
-
-                        setValidationErrors(errors)
-                        console.log(validationErrors)
-                        return null;
-                    }
-                    const kidsIndex = object_status.findIndex(obj => obj.hasOwnProperty('kids'));
-                    if (kidsIndex !== -1) {
-
-                        object_status[kidsIndex].kids = { ...kidsData, "timestamp": Date.now() };
+                    if (handleValidation(validate.kids(kidsData)) === null) {
+                        return null
                     } else {
-                        object_to_push.kids = { ...kidsData, "timestamp": Date.now() };
-                        object_status.push(object_to_push);
+                        const kidsIndex = object_status.findIndex(obj => obj.hasOwnProperty('kids'));
+                        if (kidsIndex !== -1) {
+                            object_status[kidsIndex].kids = { ...kidsData, "timestamp": Date.now() };
+                        } else {
+                            object_to_push.kids = { ...kidsData, "timestamp": Date.now() };
+                            object_status.push(object_to_push);
+                        }
                     }
+
                 }
                 else {
                     dupFlag = true;
                 }
 
-
-                break;
-
+                break
             case 5:
-                setValidationErrors({})
                 const executorsData = getExecutors()
-                var errors = await validate.executors(executorsData)
-                if (Object.keys(errors).length > 0) {
-
-                    setValidationErrors(errors)
-                    console.log(validationErrors)
-                    return null;
+                if (handleValidation(validate.executors(executorsData)) === null) {
+                    return null
                 } else {
                     object_to_push.relatives = { ...getRelatives() };
                     object_to_push.executors = { ...getExecutors() };
@@ -281,147 +261,91 @@ export default function Personal({ auth }) {
 
                 break;
             case 6:
-
-                setValidationErrors({})
                 const bequestData = getBequestArrObj()
-                var errors = await validate.bequest(bequestData);
-                if (Object.keys(errors).length > 0) {
-
-                    setValidationErrors(errors)
-                    console.log(validationErrors)
-                    return null;
+                if (handleValidation(validate.bequest(bequestData)) === null) {
+                    return null
                 } else {
                     object_to_push.bequests = { ...getBequestArrObj(), "timestamp": Date.now() };
                 }
 
                 break;
             case 7:
-                setValidationErrors({})
                 const residueData = getOptObject()
-
-                var errors = await validate.residue(residueData);
-                if (Object.keys(errors).length > 0) {
-
-                    setValidationErrors(errors)
-                    console.log(validationErrors)
-                    return null;
+                if (handleValidation(validate.residue(residueData)) === null) {
+                    return null
                 } else {
                     object_to_push.residue = { ...getOptObject(), "timestamp": Date.now() };
                 }
 
-
                 break;
             case 8:
                 const wipeoutData = getWipeoutData()
-
-                var errors = await validate.wipeout(wipeoutData);
-                if (Object.keys(errors).length > 0) {
-
-                    setValidationErrors(errors)
-                    console.log(validationErrors)
-                    return null;
+                if (handleValidation(validate.wipeout(wipeoutData)) === null) {
+                    return null
                 } else {
                     object_to_push.wipeout = { ...getWipeoutData(), "timestamp": Date.now() };
                 }
 
                 break;
             case 9:
-                //DATA
                 const trustingData = getTableData()
-
-                var errors = await validate.trusting(trustingData);
-                if (Object.keys(errors).length > 0) {
-
-                    setValidationErrors(errors)
-                    console.log(validationErrors)
-                    return null;
+                if (handleValidation(validate.trusting(trustingData)) === null) {
+                    return null
                 } else {
                     object_to_push.trusting = { ...getTableData(), "timestamp": Date.now() };
                 }
 
                 break;
             case 10:
-
                 const guardiansData = getGuardiansForMinors()
-
-                var errors = await validate.guardians(guardiansData);
-                if (Object.keys(errors).length > 0) {
-                    setValidationErrors(errors)
-                    console.log(validationErrors)
-                    return null;
+                if (handleValidation(validate.guardians(guardiansData)) === null) {
+                    return null
                 } else {
                     object_to_push.guardians = { ...getGuardiansForMinors(), "timestamp": Date.now() }
                 }
+
                 break;
             case 11:
 
                 const petsData = getPetInfo()
-
-                var errors = await validate.pets(petsData);
-                if (Object.keys(errors).length > 0) {
-                    setValidationErrors(errors)
-                    console.log(validationErrors)
-                    return null;
+                if (handleValidation(validate.pets(petsData)) === null) {
+                    return null
                 } else {
                     object_to_push.pets = { ...getPetInfo(), "timestamp": Date.now() };
                 }
 
-
                 break;
-
             case 12:
-
                 const additionalData = getAdditionalInformation()
-
-                var errors = await validate.additional(additionalData);
-                console.log('data', additionalData)
-                if (Object.keys(errors).length > 0) {
-                    setValidationErrors(errors)
-                    console.log(validationErrors)
-                    return null;
+                if (handleValidation(validate.aditional(additionalData)) === null) {
+                    return null
                 } else {
                     object_to_push.additional = { ...getAdditionalInformation(), "timestamp": Date.now() };
                 }
 
                 break;
             case 13:
-
-
                 const poaData = getPoa()
-
-                var errors = await validate.poa(poaData);
-                if (Object.keys(errors).length > 0) {
-                    setValidationErrors(errors)
-                    console.log(validationErrors)
-                    return null;
+                if (handleValidation(validate.poa(poaData)) === null) {
+                    return null
                 } else {
                     object_to_push.poa = { ...getPoa(), "timestamp": Date.now() }
-
                 }
 
                 break;
             case 14:
                 object_to_push.finalDetails = { ...getFinalDetails(), "timestamp": Date.now() }
+
                 break;
             case 15:
-
                 const documentDOMData = getDocumentDOMInfo()
-
-                var errors = await validate.documentDOM(documentDOMData);
-                if (Object.keys(errors).length > 0) {
-                    setValidationErrors(errors)
-                    console.log(validationErrors)
-                    return null;
+                if (handleValidation(validate.documentDOM(documentDOMDData)) === null) {
+                    return null
                 } else {
                     object_to_push.documentDOM = { ...getDocumentDOMInfo(), "timestamp": Date.now() }
-
                 }
 
-
                 break;
-
-
-
 
             default:
                 break;

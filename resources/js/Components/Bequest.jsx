@@ -18,7 +18,7 @@ import DropdownButton from 'react-bootstrap/DropdownButton';
 import { Row, Col, DropdownToggle, DropdownMenu, DropdownItem } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Collapse from 'react-bootstrap/Collapse';
-import { validateAddHumanData } from './Validations';
+import { validate } from './Validations';
 
 var all_data = [];
 var identifiers_names = [];
@@ -140,11 +140,9 @@ function Bequest({ id, datas, errors }) {
     const handleClose = () => {
         const newrelative = getHumanData();
 
-        // Realiza la validación
-        var errors = validateAddHumanData(newrelative);
+        var errors = validate.addHumanData(newrelative);
 
         if (Object.keys(errors).length <= 0) {
-            // Si no hay errores, procede a añadir los datos
 
             const names = newrelative.firstName + " " + newrelative.lastName;
             identifiers_names.push(names);
@@ -157,7 +155,6 @@ function Bequest({ id, datas, errors }) {
             setValidationErrors({});
             setShow(false);
         } else {
-            // Si hay errores, actualiza el estado de los errores
             setValidationErrors(errors);
             console.log(errors)
         }

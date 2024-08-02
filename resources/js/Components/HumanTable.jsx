@@ -10,7 +10,7 @@ import Button from 'react-bootstrap/Button';
 
 import AddHuman from './AddHuman';
 import { getHumanData } from './AddHuman';
-import { validateAddHumanData } from './Validations';
+import { validate } from './Validations';
 import Modal from 'react-bootstrap/Modal';
 
 
@@ -122,15 +122,11 @@ function HumanTable({ id, datas, errors }) {
     //saves data for relatives table 
     const handleClose = () => {
 
-
         const modalData = getHumanData();
 
-        // Realiza la validación
-        var errors = validateAddHumanData(modalData);
-
+        var errors = validate.addHumanData(modalData);
 
         if (Object.keys(errors).length <= 0) {
-            // Si no hay errores, procede a añadir los datos
             const idpointer = ids;
             var obj = {
                 "id": idpointer,
@@ -142,13 +138,11 @@ function HumanTable({ id, datas, errors }) {
                 "country": modalData.country
             }
             table_data.push(obj);
-            //  setDataTable(table_spoon);
             relativesObj.push(modalData);
             ids += 1;
             setShow(false);
             setValidationErrors({});
         } else {
-            // Si hay errores, actualiza el estado de los errores
             setValidationErrors(errors);
             console.log(errors)
         }

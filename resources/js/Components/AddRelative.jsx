@@ -3,7 +3,7 @@ import { Link, Head } from '@inertiajs/react';
 import { useState, useEffect } from 'react'
 import { Dialog } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
-import { validateAddHumanData } from './Validations';
+import { validate } from './Validations';
 import Table from 'react-bootstrap/Table';
 import Button from 'react-bootstrap/Button';
 
@@ -50,12 +50,12 @@ function AddRelative({ relative, datas, errors, onDataChange }) {
         const modalData = getHumanData("childrens");
 
         // Realiza la validación
-        var errors = validateAddHumanData(modalData);
+        var errors = validate.addHumanData(modalData);
         const { email, phone, ...restErrors } = errors;
         errors = restErrors;
 
         if (Object.keys(errors).length <= 0) {
-            // Si no hay errores, procede a añadir los datos
+
             const newEntry = {
                 "id": ids,
                 "firstName": modalData.firstName,
@@ -76,7 +76,6 @@ function AddRelative({ relative, datas, errors, onDataChange }) {
             setShow(false);
             setValidationErrors({});
         } else {
-            // Si hay errores, actualiza el estado de los errores
             setValidationErrors(errors);
             console.log(errors);
         }
