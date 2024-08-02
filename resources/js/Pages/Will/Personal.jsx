@@ -312,8 +312,13 @@ export default function Personal({ auth }) {
 
             case 6:
                 const bequestData = getBequestArrObj()
+
                 if (checkValidation(validate.bequest(bequestData))) {
-                    object_to_push.bequests = { ...getBequestArrObj(), "timestamp": Date.now() };
+                    propertiesAndData = [
+                        { name: 'bequests', data: { ...getBequestArrObj(), "timestamp": Date.now() } },
+                    ];
+
+                    updateOrCreateProperty(propertiesAndData);
                 } else {
                     return null
                 }
@@ -321,8 +326,13 @@ export default function Personal({ auth }) {
                 break;
             case 7:
                 const residueData = getOptObject()
+
                 if (checkValidation(validate.residue(residueData))) {
-                    object_to_push.residue = { ...getOptObject(), "timestamp": Date.now() };
+                    propertiesAndData = [
+                        { name: 'residue', data: { ...getOptObject(), "timestamp": Date.now() } },
+                    ];
+
+                    updateOrCreateProperty(propertiesAndData);
                 } else {
                     return null
                 }
@@ -331,7 +341,11 @@ export default function Personal({ auth }) {
             case 8:
                 const wipeoutData = getWipeoutData()
                 if (checkValidation(validate.wipeout(wipeoutData))) {
-                    object_to_push.wipeout = { ...getWipeoutData(), "timestamp": Date.now() };
+                    propertiesAndData = [
+                        { name: 'wipeout', data: { ...getWipeoutData(), "timestamp": Date.now() } },
+                    ];
+
+                    updateOrCreateProperty(propertiesAndData);
                 } else {
                     return null
                 }
@@ -340,7 +354,11 @@ export default function Personal({ auth }) {
             case 9:
                 const trustingData = getTableData()
                 if (checkValidation(validate.trusting(trustingData))) {
-                    object_to_push.trusting = { ...getTableData(), "timestamp": Date.now() };
+                    propertiesAndData = [
+                        { name: 'trusting', data: { ...getTableData(), "timestamp": Date.now() } },
+                    ];
+
+                    updateOrCreateProperty(propertiesAndData);
                 } else {
                     return null
                 }
@@ -349,7 +367,11 @@ export default function Personal({ auth }) {
             case 10:
                 const guardiansData = getGuardiansForMinors()
                 if (checkValidation(validate.guardians(guardiansData))) {
-                    object_to_push.guardians = { ...getGuardiansForMinors(), "timestamp": Date.now() }
+                    propertiesAndData = [
+                        { name: 'guardians', data: { ...getGuardiansForMinors(), "timestamp": Date.now() } },
+                    ];
+
+                    updateOrCreateProperty(propertiesAndData);
                 } else {
                     return null
                 }
@@ -359,7 +381,11 @@ export default function Personal({ auth }) {
 
                 const petsData = getPetInfo()
                 if (checkValidation(validate.pets(petsData))) {
-                    object_to_push.pets = { ...getPetInfo(), "timestamp": Date.now() };
+                    propertiesAndData = [
+                        { name: 'pets', data: { ...getPetInfo(), "timestamp": Date.now() } },
+                    ];
+
+                    updateOrCreateProperty(propertiesAndData);
                 } else {
                     return null
                 }
@@ -368,7 +394,11 @@ export default function Personal({ auth }) {
             case 12:
                 const additionalData = getAdditionalInformation()
                 if (checkValidation(validate.aditional(additionalData))) {
-                    object_to_push.additional = { ...getAdditionalInformation(), "timestamp": Date.now() };
+                    propertiesAndData = [
+                        { name: 'additional', data: { ...getAdditionalInformation(), "timestamp": Date.now() } },
+                    ];
+
+                    updateOrCreateProperty(propertiesAndData);
                 } else {
                     return null
                 }
@@ -377,20 +407,32 @@ export default function Personal({ auth }) {
             case 13:
                 const poaData = getPoa()
                 if (checkValidation(validate.poa(poaData))) {
-                    object_to_push.poa = { ...getPoa(), "timestamp": Date.now() }
+                    propertiesAndData = [
+                        { name: 'poa', data: { ...getPoa(), "timestamp": Date.now() } },
+                    ];
+
+                    updateOrCreateProperty(propertiesAndData);
                 } else {
                     return null
                 }
 
                 break;
             case 14:
-                object_to_push.finalDetails = { ...getFinalDetails(), "timestamp": Date.now() }
+                propertiesAndData = [
+                    { name: 'finalDetails', data: { ...getFinalDetails(), "timestamp": Date.now() } },
+                ];
+
+                updateOrCreateProperty(propertiesAndData);
 
                 break;
             case 15:
                 const documentDOMData = getDocumentDOMInfo()
                 if (checkValidation(validate.documentDOM(documentDOMDData))) {
-                    object_to_push.documentDOM = { ...getDocumentDOMInfo(), "timestamp": Date.now() }
+                    propertiesAndData = [
+                        { name: 'documentDOM', data: { ...getDocumentDOMInfo(), "timestamp": Date.now() } },
+                    ];
+
+                    updateOrCreateProperty(propertiesAndData);
                 } else {
                     return null
                 }
