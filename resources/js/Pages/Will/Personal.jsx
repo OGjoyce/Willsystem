@@ -226,8 +226,6 @@ export default function Personal({ auth }) {
                     object_to_push.married = { ...humanData, "timestamp": Date.now() };
                     object_status.push(object_to_push);
                 }
-
-                setFormData(prevData => ({ ...prevData, married: humanData }));
                 break;
 
 
@@ -250,10 +248,15 @@ export default function Personal({ auth }) {
                         setValidationErrors(errors)
                         console.log(validationErrors)
                         return null;
-                    } else {
-                        object_to_push.kids = { ...getChildRelatives() };
                     }
+                    const kidsIndex = object_status.findIndex(obj => obj.hasOwnProperty('kids'));
+                    if (kidsIndex !== -1) {
 
+                        object_status[kidsIndex].kids = { ...kidsData, "timestamp": Date.now() };
+                    } else {
+                        object_to_push.kids = { ...kidsData, "timestamp": Date.now() };
+                        object_status.push(object_to_push);
+                    }
                 }
                 else {
                     dupFlag = true;
@@ -426,7 +429,7 @@ export default function Personal({ auth }) {
         objectState = object_status;
         const objectStateFreezed = JSON.parse(JSON.stringify(object_status));
         if (!dupFlag) {
-            if (step !== 2) { // Avoid pushing duplicate data for step 2
+            if (step !== 2 && step !== 4) { // Avoid pushing duplicate data
                 object_status.push(object_to_push);
             }
             if (step != 0) {
@@ -651,8 +654,6 @@ export default function Personal({ auth }) {
                                 <AddHuman
                                     married={true}
                                     errors={validationErrors}
-                                    data={formData.married || {}}
-                                    onDataChange={(newData) => setFormData(prevData => ({ ...prevData, married: newData }))}
                                 />
                                 :
                                 null
@@ -665,7 +666,11 @@ export default function Personal({ auth }) {
                         }
                         {
                             pointer == 4 ?
-                                <><AddRelative relative={"children"} datas={object_status} errors={validationErrors} /></>
+                                <AddRelative
+                                    relative={"children"}
+                                    errors={validationErrors}
+                                    datas={object_status}
+                                />
                                 :
                                 null
 

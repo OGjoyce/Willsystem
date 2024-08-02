@@ -74,7 +74,7 @@ export function getHumanData(params) {
     }
 }
 
-function AddHuman({ married, childrens, human, errors, data, onDataChange, relationType }) {
+function AddHuman({ married, childrens, human, errors, onDataChange }) {
     var relationType = null
     if (married) { relationType = 'Spouse' }
     if (childrens) { relationType = 'Child' }
@@ -83,7 +83,7 @@ function AddHuman({ married, childrens, human, errors, data, onDataChange, relat
         if (relationType === 'Child') return {};
         const key = `formValues_${relationType}`;
         const savedValues = localStorage.getItem(key);
-        return savedValues ? JSON.parse(savedValues) : data;
+        return savedValues ? JSON.parse(savedValues) : {};
     });
     const [relative, setRelative] = useState('');
     const [showOther, setShowOther] = useState(false);
@@ -91,9 +91,10 @@ function AddHuman({ married, childrens, human, errors, data, onDataChange, relat
     const [phone, setPhone] = useState('');
 
     useEffect(() => {
-        if (relationType === 'Child') return;
-        const key = `formValues_${relationType}`;
-        localStorage.setItem(key, JSON.stringify(formValues));
+        if (relationType !== 'Child') {
+            const key = `formValues_${relationType}`;
+            localStorage.setItem(key, JSON.stringify(formValues));
+        }
     }, [formValues, relationType]);
 
     useEffect(() => {
@@ -102,18 +103,10 @@ function AddHuman({ married, childrens, human, errors, data, onDataChange, relat
 
     const handleInputChange = (e) => {
         const { id, value } = e.target;
-        if (relationType !== 'Child') {
-            const propertyName = id.replace(/Id\d*$/, ''); // Remove 'Id', 'Id0', 'Id1', etc.
-            setFormValues((prevValues) => {
-                const newValues = { ...prevValues, [propertyName]: value };
-                onDataChange(newValues);
-                return newValues;
-            });
-        } else {
-            // Update the form values for children without saving to localStorage or state
-            const newValues = { ...formValues, [id]: value };
-            onDataChange(newValues);
-        }
+        const propertyName = id.replace(/Id\d*$/, ''); // Remove 'Id', 'Id0', 'Id1', etc.
+
+        const newValues = { ...formValues, [propertyName]: value };
+        setFormValues(newValues);
     };
 
     const handleRelativeChange = (e) => {
@@ -146,7 +139,6 @@ function AddHuman({ married, childrens, human, errors, data, onDataChange, relat
         if (relationType !== 'Child') {
             setFormValues((prevValues) => {
                 const newValues = { ...prevValues, phone: formattedPhoneNumber };
-                onDataChange(newValues);
                 return newValues;
             });
         }
@@ -165,6 +157,7 @@ function AddHuman({ married, childrens, human, errors, data, onDataChange, relat
                         type="text"
                         placeholder="First Name"
                         value={formValues?.firstName || ''}
+                        onChange={handleInputChange}
 
                     />
                     {validationErrors.firstName && <p className="mt-2 text-sm text-red-600">{validationErrors.firstName}</p>}

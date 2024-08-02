@@ -17,9 +17,13 @@ let ids = 1;
 var childRelatives
 
 
-function AddRelative({ relative, datas, errors }) {
+function AddRelative({ relative, datas, errors, onDataChange }) {
     const [show, setShow] = useState(false);
-    let [tableData, setTableData] = useState([]);
+    let [tableData, setTableData] = useState(() => {
+        const key = 'formValues_kids';
+        const savedValues = localStorage.getItem(key);
+        return savedValues ? JSON.parse(savedValues) : [];
+    });
     const [validationErrors, setValidationErrors] = useState(errors);
 
     useEffect(() => {
@@ -43,13 +47,13 @@ function AddRelative({ relative, datas, errors }) {
     }
 
     const handleClose = () => {
-
         const modalData = getHumanData("childrens");
 
         // Realiza la validación
         var errors = validateAddHumanData(modalData);
-        const { email, phone, ...restErrors } = errors
-        errors = restErrors
+        const { email, phone, ...restErrors } = errors;
+        errors = restErrors;
+
         if (Object.keys(errors).length <= 0) {
             // Si no hay errores, procede a añadir los datos
             const newEntry = {
@@ -61,20 +65,31 @@ function AddRelative({ relative, datas, errors }) {
                 "country": modalData.country,
                 "province": modalData.province
             };
-            setTableData(prevData => [...prevData, newEntry]);
+
+            setTableData(prevData => {
+                const updatedData = [...prevData, newEntry];
+                localStorage.setItem('formValues_kids', JSON.stringify(updatedData));
+                return updatedData;
+            });
+
             ids += 1;
             setShow(false);
             setValidationErrors({});
         } else {
             // Si hay errores, actualiza el estado de los errores
             setValidationErrors(errors);
-            console.log(errors)
+            console.log(errors);
         }
-    }
+    };
 
     const handleDelete = (id) => {
-        setTableData(prevData => prevData.filter(obj => obj.id !== id));
-    }
+        setTableData(prevData => {
+            const updatedData = prevData.filter(obj => obj.id !== id);
+            localStorage.setItem('formValues_kids', JSON.stringify(updatedData));
+            return updatedData;
+        });
+    };
+
 
     return (
         <>
