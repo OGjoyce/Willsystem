@@ -176,6 +176,7 @@ export default function Personal({ auth }) {
 
     const pushInfo = async function (step) {
         var object_to_push = {};
+        var propertiesAndData = [];
         var dupFlag = false;
 
         var checkValidation = (validation) => {
@@ -216,6 +217,7 @@ export default function Personal({ auth }) {
                 const personalData = getFormData();
 
                 if (checkValidation(validate.formData(personalData))) {
+
                     const dataObj = {
                         personal: {
                             ...stepper[step],
@@ -225,15 +227,14 @@ export default function Personal({ auth }) {
                         owner: personalData.email
                     };
 
-                    const properties = [
+                    propertiesAndData = [
                         { name: 'personal', data: dataObj.personal },
                         { name: 'owner', data: dataObj.owner }
                     ];
 
+                    updateOrCreateProperty(propertiesAndData);
 
-                    updateOrCreateProperty(properties);
-
-                    const dataFirstStore = await storeDataObject(data);
+                    const dataFirstStore = await storeDataObject(dataObj);
                     currIdObjDB = dataFirstStore.id;
 
                 } else {
@@ -242,27 +243,47 @@ export default function Personal({ auth }) {
 
                 break;
             case 1:
-                updateOrCreateProperty('marriedq', { "selection": getMarriedData(), "timestamp": Date.now() })
+                propertiesAndData = [
+                    { name: 'marriedq', data: { "selection": getMarriedData(), "timestamp": Date.now() } },
+                ];
+
+                updateOrCreateProperty(propertiesAndData)
 
                 break;
             case 2:
                 const humanData = getHumanData()
+
                 if (checkValidation(validate.addHumanData(humanData))) {
-                    updateOrCreateProperty('married', { ...humanData, "timestamp": Date.now() })
+
+                    propertiesAndData = [
+                        { name: 'married', data: { ...humanData, "timestamp": Date.now() } },
+                    ];
+
+                    updateOrCreateProperty(propertiesAndData)
                 } else {
                     return null
                 }
 
                 break;
             case 3:
-                updateOrCreateProperty('kidsq', { "selection": getMarriedData() })
+                propertiesAndData = [
+                    { name: 'kidsq', data: { "selection": getMarriedData() } },
+                ];
+
+                updateOrCreateProperty(propertiesAndData)
 
                 break;
             case 4:
                 if (!dupKids) {
                     const kidsData = getChildRelatives()
+
                     if (checkValidation(validate.kids(kidsData))) {
-                        updateOrCreateProperty('kids', [...kidsData])
+
+                        propertiesAndData = [
+                            { name: 'kids', data: [...kidsData] },
+                        ];
+
+                        updateOrCreateProperty(propertiesAndData)
                     } else {
                         return null
                     }
@@ -273,28 +294,16 @@ export default function Personal({ auth }) {
 
                 break
             case 5:
-
-                var updateOrCreateProperty = (property, data) => {
-                    const propertyIndex = object_status.findIndex(obj => obj.hasOwnProperty(property));
-                    if (propertyIndex !== -1) {
-                        if (Array.isArray(object_status[propertyIndex][property]) && Array.isArray(data)) {
-                            object_status[propertyIndex][property] = data;
-                        } else {
-                            object_status[propertyIndex][property] = data;
-                        }
-                    } else {
-                        const newObject = { [property]: data };
-                        object_status.push(newObject);
-                    }
-                }
                 const executorsData = [...getExecutors()];
                 const relativesData = [...getRelatives()];
 
-                object_to_push.relatives = { ...getRelatives() };
-                object_to_push.executors = { ...getExecutors() };
-
                 if (checkValidation(validate.executors(executorsData))) {
-                    updateOrCreateProperty('relatives', newObj.relatives);
+                    propertiesAndData = [
+                        { name: 'relatives', data: relativesData },
+                        { name: 'executors', data: executorsData }
+                    ];
+
+                    updateOrCreateProperty(propertiesAndData);
                 } else {
                     return null;
                 }
