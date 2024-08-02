@@ -212,9 +212,12 @@ export default function Personal({ auth }) {
                 const personalData = getFormData();
 
                 if (checkValidation(validate.formData(personalData))) {
-                    object_to_push.personal = { ...stepper[step], ...personalData, "timestamp": Date.now() };
-                    object_to_push.owner = personalData.email
-                    const dataFirstStore = await storeDataObject(object_to_push);
+                    updateOrCreateProperty('personal', { ...stepper[step], ...personalData, "timestamp": Date.now() })
+                    updateOrCreateProperty('owner', personalData.email)
+                    const newObj = {}
+                    newObj.personal = { ...stepper[step], ...personalData, "timestamp": Date.now() };
+                    newObj.owner = personalData.email
+                    const dataFirstStore = await storeDataObject(newObj);
                     currIdObjDB = dataFirstStore.id;
                 } else {
                     return null
