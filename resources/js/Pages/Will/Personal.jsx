@@ -191,16 +191,20 @@ export default function Personal({ auth }) {
             return true;
         }
 
-        var updateOrCreateProperty = (property, data) => {
-            const propertyIndex = object_status.findIndex(obj => obj.hasOwnProperty(property));
-            if (propertyIndex !== -1) {
-                if (Array.isArray(object_status[propertyIndex][property]) && Array.isArray(data)) {
-                    object_status[propertyIndex][property] = data;
-                } else {
-                    object_status[propertyIndex][property] = data;
-                }
+        var updateOrCreateProperty = (properties) => {
+            const existingIndex = object_status.findIndex(obj =>
+                properties.some(prop => obj.hasOwnProperty(prop.name))
+            );
+
+            if (existingIndex !== -1) {
+                properties.forEach(prop => {
+                    object_status[existingIndex][prop.name] = prop.data;
+                });
             } else {
-                const newObject = { [property]: data };
+                const newObject = {};
+                properties.forEach(prop => {
+                    newObject[prop.name] = prop.data;
+                });
                 object_status.push(newObject);
             }
         }
@@ -212,13 +216,26 @@ export default function Personal({ auth }) {
                 const personalData = getFormData();
 
                 if (checkValidation(validate.formData(personalData))) {
-                    updateOrCreateProperty('personal', { ...stepper[step], ...personalData, "timestamp": Date.now() })
-                    updateOrCreateProperty('owner', personalData.email)
-                    const newObj = {}
-                    newObj.personal = { ...stepper[step], ...personalData, "timestamp": Date.now() };
-                    newObj.owner = personalData.email
-                    const dataFirstStore = await storeDataObject(newObj);
+                    const dataObj = {
+                        personal: {
+                            ...stepper[step],
+                            ...personalData,
+                            timestamp: Date.now(),
+                        },
+                        owner: personalData.email
+                    };
+
+                    const properties = [
+                        { name: 'personal', data: dataObj.personal },
+                        { name: 'owner', data: dataObj.owner }
+                    ];
+
+
+                    updateOrCreateProperty(properties);
+
+                    const dataFirstStore = await storeDataObject(data);
                     currIdObjDB = dataFirstStore.id;
+
                 } else {
                     return null
                 }
@@ -256,16 +273,34 @@ export default function Personal({ auth }) {
 
                 break
             case 5:
-                const executorsData = getExecutors()
-                const relativesData = getRelatives()
+
+                var updateOrCreateProperty = (property, data) => {
+                    const propertyIndex = object_status.findIndex(obj => obj.hasOwnProperty(property));
+                    if (propertyIndex !== -1) {
+                        if (Array.isArray(object_status[propertyIndex][property]) && Array.isArray(data)) {
+                            object_status[propertyIndex][property] = data;
+                        } else {
+                            object_status[propertyIndex][property] = data;
+                        }
+                    } else {
+                        const newObject = { [property]: data };
+                        object_status.push(newObject);
+                    }
+                }
+                const executorsData = [...getExecutors()];
+                const relativesData = [...getRelatives()];
+
+                object_to_push.relatives = { ...getRelatives() };
+                object_to_push.executors = { ...getExecutors() };
+
                 if (checkValidation(validate.executors(executorsData))) {
-                    updateOrCreateProperty('relatives', [...relativesData])
-                    updateOrCreateProperty('executors', [...executorsData])
+                    updateOrCreateProperty('relatives', newObj.relatives);
                 } else {
-                    return null
+                    return null;
                 }
 
                 break;
+
             case 6:
                 const bequestData = getBequestArrObj()
                 if (checkValidation(validate.bequest(bequestData))) {

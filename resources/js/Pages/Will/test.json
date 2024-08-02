@@ -1,0 +1,97 @@
+[
+    {
+        "personal": {
+            "step": 0,
+            "title": "Please insert the personal information",
+            "city": "gt",
+            "telephone": "+1 (111) 111-1111",
+            "province": "Ontario",
+            "fullName": "e",
+            "email": "e@e.com",
+            "timestamp": 1722630307080
+        },
+        "owner": "e@e.com"
+    },
+    {
+        "marriedq": {
+            "selection": "true",
+            "timestamp": 1722630308726
+        }
+    },
+    {
+        "married": {
+            "firstName": "e",
+            "middleName": "e",
+            "lastName": "e",
+            "relative": "Spouse",
+            "email": "e@e.com",
+            "phone": "+1 (111) 111-1111",
+            "city": "gt",
+            "province": "gt",
+            "country": "gt",
+            "timestamp": 1722630339784
+        }
+    },
+    {
+        "kidsq": {
+            "selection": "true"
+        }
+    },
+    {
+        "kids": [
+            {
+                "id": 1,
+                "firstName": "r",
+                "lastName": "r",
+                "relative": "Child",
+                "city": "r",
+                "country": "r",
+                "province": "r"
+            },
+            {
+                "id": 2,
+                "firstName": "eee",
+                "lastName": "eee",
+                "relative": "Child",
+                "city": "ee",
+                "country": "ee",
+                "province": "ee"
+            }
+        ]
+    },
+    {
+        "relatives": [
+            {
+                "firstName": "uncle rrr",
+                "middleName": "bn",
+                "lastName": "bob",
+                "relative": "Uncle",
+                "email": "e@e.com",
+                "phone": "+1 (211) 111-1111",
+                "city": "gt",
+                "province": "gt",
+                "country": "gt"
+            }
+        ],
+        "executors": [
+            {
+                "id": 1,
+                "firstName": "eee",
+                "lastName": "eee",
+                "relative": "Child",
+                "country": "ee",
+                "city": "ee",
+                "province": "ee"
+            },
+            {
+                "id": 2,
+                "firstName": "uncle rrr",
+                "lastName": "bob",
+                "relative": "Uncle",
+                "country": "gt",
+                "city": "gt",
+                "province": "gt"
+            }
+        ]
+    }
+]
