@@ -175,75 +175,77 @@ export default function Personal({ auth }) {
 
 
     const pushInfo = async function (step) {
+        var object_to_push = {};
+        var dupFlag = false;
 
-        var handleValidation = (validationFunction) => {
+        var checkValidation = (validation) => {
             setValidationErrors({})
 
-            const errors = validationFunction
+            const errors = validation
             if (Object.keys(errors).length > 0) {
                 setValidationErrors(errors)
                 console.log(errors)
-                return null;
+                return false;
+            }
+
+            return true;
+        }
+
+        var updateOrCreateProperty = (property, data) => {
+            const propertyIndex = object_status.findIndex(obj => obj.hasOwnProperty(property));
+            if (propertyIndex !== -1) {
+                if (Array.isArray(object_status[propertyIndex][property]) && Array.isArray(data)) {
+                    object_status[propertyIndex][property] = data;
+                } else {
+                    object_status[propertyIndex][property] = data;
+                }
+            } else {
+                const newObject = { [property]: data };
+                object_status.push(newObject);
             }
         }
 
-        var object_to_push = {};
-        var dupFlag = false;
 
         switch (step) {
 
             case 0:
                 const personalData = getFormData();
 
-                if (handleValidation(validate.formData(personalData)) === null) {
-                    return null
-                } else {
+                if (checkValidation(validate.formData(personalData))) {
                     object_to_push.personal = { ...stepper[step], ...personalData, "timestamp": Date.now() };
                     object_to_push.owner = personalData.email
                     const dataFirstStore = await storeDataObject(object_to_push);
                     currIdObjDB = dataFirstStore.id;
+                } else {
+                    return null
                 }
 
                 break;
             case 1:
-                object_to_push.marriedq = { "selection": getMarriedData(), "timestamp": Date.now() };
+                updateOrCreateProperty('marriedq', { "selection": getMarriedData(), "timestamp": Date.now() })
 
                 break;
             case 2:
                 const humanData = getHumanData()
-                if (handleValidation(validate.addHumanData(humanData)) === null) {
-                    return null
+                if (checkValidation(validate.addHumanData(humanData))) {
+                    updateOrCreateProperty('married', { ...humanData, "timestamp": Date.now() })
                 } else {
-                    const marriedIndex = object_status.findIndex(obj => obj.hasOwnProperty('married'));
-                    if (marriedIndex !== -1) {
-                        object_status[marriedIndex].married = { ...humanData, "timestamp": Date.now() };
-                    } else {
-                        object_to_push.married = { ...humanData, "timestamp": Date.now() };
-                        object_status.push(object_to_push);
-                    }
+                    return null
                 }
 
                 break;
             case 3:
-                object_to_push.kidsq = { "selection": getMarriedData() };
+                updateOrCreateProperty('kidsq', { "selection": getMarriedData() })
 
                 break;
             case 4:
                 if (!dupKids) {
-
                     const kidsData = getChildRelatives()
-                    if (handleValidation(validate.kids(kidsData)) === null) {
-                        return null
+                    if (checkValidation(validate.kids(kidsData))) {
+                        updateOrCreateProperty('kids', [...kidsData])
                     } else {
-                        const kidsIndex = object_status.findIndex(obj => obj.hasOwnProperty('kids'));
-                        if (kidsIndex !== -1) {
-                            object_status[kidsIndex].kids = { ...kidsData, "timestamp": Date.now() };
-                        } else {
-                            object_to_push.kids = { ...kidsData, "timestamp": Date.now() };
-                            object_status.push(object_to_push);
-                        }
+                        return null
                     }
-
                 }
                 else {
                     dupFlag = true;
@@ -252,84 +254,85 @@ export default function Personal({ auth }) {
                 break
             case 5:
                 const executorsData = getExecutors()
-                if (handleValidation(validate.executors(executorsData)) === null) {
-                    return null
+                const relativesData = getRelatives()
+                if (checkValidation(validate.executors(executorsData))) {
+                    updateOrCreateProperty('relatives', [...relativesData])
+                    updateOrCreateProperty('executors', [...executorsData])
                 } else {
-                    object_to_push.relatives = { ...getRelatives() };
-                    object_to_push.executors = { ...getExecutors() };
+                    return null
                 }
 
                 break;
             case 6:
                 const bequestData = getBequestArrObj()
-                if (handleValidation(validate.bequest(bequestData)) === null) {
-                    return null
-                } else {
+                if (checkValidation(validate.bequest(bequestData))) {
                     object_to_push.bequests = { ...getBequestArrObj(), "timestamp": Date.now() };
+                } else {
+                    return null
                 }
 
                 break;
             case 7:
                 const residueData = getOptObject()
-                if (handleValidation(validate.residue(residueData)) === null) {
-                    return null
-                } else {
+                if (checkValidation(validate.residue(residueData))) {
                     object_to_push.residue = { ...getOptObject(), "timestamp": Date.now() };
+                } else {
+                    return null
                 }
 
                 break;
             case 8:
                 const wipeoutData = getWipeoutData()
-                if (handleValidation(validate.wipeout(wipeoutData)) === null) {
-                    return null
-                } else {
+                if (checkValidation(validate.wipeout(wipeoutData))) {
                     object_to_push.wipeout = { ...getWipeoutData(), "timestamp": Date.now() };
+                } else {
+                    return null
                 }
 
                 break;
             case 9:
                 const trustingData = getTableData()
-                if (handleValidation(validate.trusting(trustingData)) === null) {
-                    return null
-                } else {
+                if (checkValidation(validate.trusting(trustingData))) {
                     object_to_push.trusting = { ...getTableData(), "timestamp": Date.now() };
+                } else {
+                    return null
                 }
 
                 break;
             case 10:
                 const guardiansData = getGuardiansForMinors()
-                if (handleValidation(validate.guardians(guardiansData)) === null) {
-                    return null
-                } else {
+                if (checkValidation(validate.guardians(guardiansData))) {
                     object_to_push.guardians = { ...getGuardiansForMinors(), "timestamp": Date.now() }
+                } else {
+                    return null
                 }
 
                 break;
             case 11:
 
                 const petsData = getPetInfo()
-                if (handleValidation(validate.pets(petsData)) === null) {
-                    return null
-                } else {
+                if (checkValidation(validate.pets(petsData))) {
                     object_to_push.pets = { ...getPetInfo(), "timestamp": Date.now() };
+                } else {
+                    return null
                 }
 
                 break;
             case 12:
                 const additionalData = getAdditionalInformation()
-                if (handleValidation(validate.aditional(additionalData)) === null) {
-                    return null
-                } else {
+                if (checkValidation(validate.aditional(additionalData))) {
                     object_to_push.additional = { ...getAdditionalInformation(), "timestamp": Date.now() };
+                } else {
+                    return null
                 }
 
                 break;
             case 13:
                 const poaData = getPoa()
-                if (handleValidation(validate.poa(poaData)) === null) {
-                    return null
-                } else {
+                if (checkValidation(validate.poa(poaData))) {
                     object_to_push.poa = { ...getPoa(), "timestamp": Date.now() }
+                } else {
+                    return null
                 }
 
                 break;
@@ -339,10 +342,10 @@ export default function Personal({ auth }) {
                 break;
             case 15:
                 const documentDOMData = getDocumentDOMInfo()
-                if (handleValidation(validate.documentDOM(documentDOMDData)) === null) {
-                    return null
-                } else {
+                if (checkValidation(validate.documentDOM(documentDOMDData))) {
                     object_to_push.documentDOM = { ...getDocumentDOMInfo(), "timestamp": Date.now() }
+                } else {
+                    return null
                 }
 
                 break;
@@ -353,8 +356,8 @@ export default function Personal({ auth }) {
         objectState = object_status;
         const objectStateFreezed = JSON.parse(JSON.stringify(object_status));
         if (!dupFlag) {
-            if (step !== 2 && step !== 4) { // Avoid pushing duplicate data
-                object_status.push(object_to_push);
+            if (step !== 1 && step !== 2 && step !== 4) { // Avoid pushing duplicate data
+                //object_status.push(object_to_push);
             }
             if (step != 0) {
                 updateDataObject(object_status, currIdObjDB);
