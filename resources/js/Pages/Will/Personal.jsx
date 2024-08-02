@@ -192,18 +192,18 @@ export default function Personal({ auth }) {
             return true;
         }
 
-        var updateOrCreateProperty = (properties) => {
+        var updateOrCreateProperty = (propertiesAndData) => {
             const existingIndex = object_status.findIndex(obj =>
-                properties.some(prop => obj.hasOwnProperty(prop.name))
+                propertiesAndData.some(prop => obj.hasOwnProperty(prop.name))
             );
 
             if (existingIndex !== -1) {
-                properties.forEach(prop => {
+                propertiesAndData.forEach(prop => {
                     object_status[existingIndex][prop.name] = prop.data;
                 });
             } else {
                 const newObject = {};
-                properties.forEach(prop => {
+                propertiesAndData.forEach(prop => {
                     newObject[prop.name] = prop.data;
                 });
                 object_status.push(newObject);
@@ -393,7 +393,7 @@ export default function Personal({ auth }) {
                 break;
             case 12:
                 const additionalData = getAdditionalInformation()
-                if (checkValidation(validate.aditional(additionalData))) {
+                if (checkValidation(validate.additional(additionalData))) {
                     propertiesAndData = [
                         { name: 'additional', data: { ...getAdditionalInformation(), "timestamp": Date.now() } },
                     ];
@@ -427,7 +427,7 @@ export default function Personal({ auth }) {
                 break;
             case 15:
                 const documentDOMData = getDocumentDOMInfo()
-                if (checkValidation(validate.documentDOM(documentDOMDData))) {
+                if (checkValidation(validate.documentDOM(documentDOMData))) {
                     propertiesAndData = [
                         { name: 'documentDOM', data: { ...getDocumentDOMInfo(), "timestamp": Date.now() } },
                     ];
@@ -636,6 +636,7 @@ export default function Personal({ auth }) {
             });
             return;
         }
+
         object_status = [];
         objectState = [];
         dupMarried = false;
