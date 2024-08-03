@@ -76,24 +76,28 @@ export function getHumanData(params) {
 
 function AddHuman({ married, childrens, human, errors, onDataChange }) {
     var relationType = null
-    if (married) { relationType = 'Spouse' }
-    if (childrens) { relationType = 'Child' }
+    if (married) { relationType = 'spouse' }
+    if (childrens) { relationType = 'child' }
 
     const [formValues, setFormValues] = useState(() => {
-        if (relationType === 'Child') return {};
-        const key = `formValues_${relationType}`;
+        if (relationType !== 'spouse') return {};
+        const key = 'formValues';
         const savedValues = localStorage.getItem(key);
-        return savedValues ? JSON.parse(savedValues) : {};
+        const parsedValues = savedValues ? JSON.parse(savedValues) : {};
+        return parsedValues[relationType] || {};
     });
+
     const [relative, setRelative] = useState('');
     const [showOther, setShowOther] = useState(false);
     const [validationErrors, setValidationErrors] = useState(errors);
     const [phone, setPhone] = useState('');
 
     useEffect(() => {
-        if (relationType !== 'Child') {
-            const key = `formValues_${relationType}`;
-            localStorage.setItem(key, JSON.stringify(formValues));
+        if (relationType === 'spouse') {
+            const key = 'formValues';
+            const storedValues = JSON.parse(localStorage.getItem(key)) || {};
+            storedValues[relationType] = formValues;
+            localStorage.setItem(key, JSON.stringify(storedValues));
         }
     }, [formValues, relationType]);
 

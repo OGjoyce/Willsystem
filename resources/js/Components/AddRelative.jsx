@@ -1,8 +1,8 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
-import { useState, useEffect } from 'react'
-import { Dialog } from '@headlessui/react'
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
+import { useState, useEffect } from 'react';
+import { Dialog } from '@headlessui/react';
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { validate } from './Validations';
 import Table from 'react-bootstrap/Table';
 import Button from 'react-bootstrap/Button';
@@ -12,39 +12,36 @@ import { getHumanData } from './AddHuman';
 import Modal from 'react-bootstrap/Modal';
 import ResetPassword from '@/Pages/Auth/ResetPassword';
 
-
 let ids = 1;
-var childRelatives
-
+var childRelatives;
 
 function AddRelative({ relative, datas, errors, onDataChange }) {
     const [show, setShow] = useState(false);
-    let [tableData, setTableData] = useState(() => {
-        const key = 'formValues_kids';
+    const [tableData, setTableData] = useState(() => {
+        const key = 'formValues';
         const savedValues = localStorage.getItem(key);
-        return savedValues ? JSON.parse(savedValues) : [];
+        const parsedValues = savedValues ? JSON.parse(savedValues) : {};
+        return parsedValues.kids || [];
     });
     const [validationErrors, setValidationErrors] = useState(errors);
 
     useEffect(() => {
         childRelatives = tableData;
-        console.log(childRelatives)
+        console.log(childRelatives);
     }, [tableData]);
-
 
     useEffect(() => {
         setValidationErrors(errors);
-
     }, [errors]);
 
     const handleCloseNosave = () => {
         setShow(false);
         setValidationErrors({});
-    }
+    };
 
     const handleShow = () => {
         setShow(true);
-    }
+    };
 
     const handleClose = () => {
         const modalData = getHumanData("childrens");
@@ -55,20 +52,23 @@ function AddRelative({ relative, datas, errors, onDataChange }) {
         errors = restErrors;
 
         if (Object.keys(errors).length <= 0) {
-
             const newEntry = {
-                "id": ids,
-                "firstName": modalData.firstName,
-                "lastName": modalData.lastName,
-                "relative": modalData.relative,
-                "city": modalData.city,
-                "country": modalData.country,
-                "province": modalData.province
+                id: ids,
+                firstName: modalData.firstName,
+                lastName: modalData.lastName,
+                relative: modalData.relative,
+                city: modalData.city,
+                country: modalData.country,
+                province: modalData.province,
             };
 
-            setTableData(prevData => {
+            setTableData((prevData) => {
                 const updatedData = [...prevData, newEntry];
-                localStorage.setItem('formValues_kids', JSON.stringify(updatedData));
+                const key = 'formValues';
+                const savedValues = localStorage.getItem(key);
+                const parsedValues = savedValues ? JSON.parse(savedValues) : {};
+                parsedValues.kids = updatedData;
+                localStorage.setItem(key, JSON.stringify(parsedValues));
                 return updatedData;
             });
 
@@ -82,13 +82,16 @@ function AddRelative({ relative, datas, errors, onDataChange }) {
     };
 
     const handleDelete = (id) => {
-        setTableData(prevData => {
-            const updatedData = prevData.filter(obj => obj.id !== id);
-            localStorage.setItem('formValues_kids', JSON.stringify(updatedData));
+        setTableData((prevData) => {
+            const updatedData = prevData.filter((obj) => obj.id !== id);
+            const key = 'formValues';
+            const savedValues = localStorage.getItem(key);
+            const parsedValues = savedValues ? JSON.parse(savedValues) : {};
+            parsedValues.kids = updatedData;
+            localStorage.setItem(key, JSON.stringify(parsedValues));
             return updatedData;
         });
     };
-
 
     return (
         <>
@@ -139,10 +142,7 @@ function AddRelative({ relative, datas, errors, onDataChange }) {
                     <Modal.Title>Add Child</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <AddHuman
-                        childrens={true}
-                        errors={validationErrors}
-                    />
+                    <AddHuman childrens={true} errors={validationErrors} />
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" size="sm" onClick={handleCloseNosave}>
