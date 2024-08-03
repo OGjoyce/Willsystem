@@ -72,7 +72,10 @@ function HumanTable({ id, datas, errors }) {
             const kidsData = datas.find(item => item.kids);
             if (kidsData) {
                 kidsData.kids.forEach(kid => {
-                    newAllRelatives.push(kid);
+                    newAllRelatives.push({
+                        ...kid,
+                        uuid: kid.id
+                    });
                 });
             }
 
@@ -80,6 +83,18 @@ function HumanTable({ id, datas, errors }) {
             newAllRelatives.push(...relatives);
 
             setAllRelatives(newAllRelatives);
+
+            // Update executors to ensure spouse data is updated from relatives
+            setExecutors(prevExecutors => {
+                const updatedExecutors = prevExecutors.map(executor => {
+                    if (executor.relative === "Spouse") {
+                        const spouseFromRelatives = newAllRelatives.find(rel => rel.relative === "Spouse");
+                        return spouseFromRelatives ? { ...spouseFromRelatives, id: executor.id } : executor;
+                    }
+                    return executor;
+                });
+                return updatedExecutors;
+            });
         }
     }, [datas, relatives]);
 

@@ -85,7 +85,7 @@ function AddRelative({ relative, datas, errors, onDataChange }) {
         setTableData((prevData) => {
             const updatedData = prevData.filter((obj) => obj.id !== id);
 
-            // Update localStorage
+            // Get formValues from localStorage
             const key = 'formValues';
             const savedValues = localStorage.getItem(key);
             const parsedValues = savedValues ? JSON.parse(savedValues) : {};
@@ -96,7 +96,7 @@ function AddRelative({ relative, datas, errors, onDataChange }) {
             // Remove the child from executors if present
             if (parsedValues.executors) {
                 parsedValues.executors = parsedValues.executors.filter(
-                    executor => !(executor.id === id && executor.relative === "Child")
+                    executor => !(executor.uuid === id && executor.relative === "Child")
                 );
             }
 
