@@ -84,10 +84,22 @@ function AddRelative({ relative, datas, errors, onDataChange }) {
     const handleDelete = (id) => {
         setTableData((prevData) => {
             const updatedData = prevData.filter((obj) => obj.id !== id);
+
+            // Update localStorage
             const key = 'formValues';
             const savedValues = localStorage.getItem(key);
             const parsedValues = savedValues ? JSON.parse(savedValues) : {};
+
+            // Update kids in formValues
             parsedValues.kids = updatedData;
+
+            // Remove the child from executors if present
+            if (parsedValues.executors) {
+                parsedValues.executors = parsedValues.executors.filter(
+                    executor => !(executor.id === id && executor.relative === "Child")
+                );
+            }
+
             localStorage.setItem(key, JSON.stringify(parsedValues));
             return updatedData;
         });

@@ -65,30 +65,19 @@ function HumanTable({ id, datas, errors }) {
             // Add spouse if married
             const marriedData = datas.find(item => item.married);
             if (marriedData && marriedData.married.relative === "Spouse") {
-                newAllRelatives.push({
-                    id: nextId++,
-                    ...marriedData.married
-                });
+                newAllRelatives.push(marriedData.married);
             }
 
             // Add kids
             const kidsData = datas.find(item => item.kids);
             if (kidsData) {
                 kidsData.kids.forEach(kid => {
-                    newAllRelatives.push({
-                        id: nextId++,
-                        ...kid
-                    });
+                    newAllRelatives.push(kid);
                 });
             }
 
             // Add manually added relatives
-            relatives.forEach(relative => {
-                newAllRelatives.push({
-                    id: relative.id || nextId++,
-                    ...relative
-                });
-            });
+            newAllRelatives.push(...relatives);
 
             setAllRelatives(newAllRelatives);
         }
@@ -144,9 +133,9 @@ function HumanTable({ id, datas, errors }) {
                     </tr>
                 </thead>
                 <tbody>
-                    {allRelatives.map((relative) => (
-                        <tr key={relative.id}>
-                            <td>{relative.id}</td>
+                    {allRelatives.map((relative, index) => (
+                        <tr key={index + 1}>
+                            <td>{index + 1}</td>
                             <td>{relative.firstName}</td>
                             <td>{relative.lastName}</td>
                             <td>{relative.relative}</td>
