@@ -65,6 +65,63 @@ function Residue({ id, datas, errors }) {
   }, [errors])
 
   useEffect(() => {
+    // Recuperar datos del localStorage al cargar el componente
+    const savedData = JSON.parse(localStorage.getItem('residueData')) || {};
+
+    setSelectedCategory(savedData.selectedCategory || null);
+    setSelectedOption(savedData.selectedOption || null);
+    setClauseValue(savedData.clauseValue || '');
+    setCustom(savedData.custom || false);
+    setSpecific(savedData.specific || false);
+    setTable_dataBequest(savedData.table_dataBequest || []);
+    setAvailableShares(savedData.availableShares || 100);
+
+    if (savedData.obj) {
+      obj = savedData.obj;
+      setSelected(obj);
+    }
+
+    if (savedData.backupBeneficiaryData) {
+      backupBeneficiaryData = savedData.backupBeneficiaryData;
+      bequestindex = savedData.bequestindex || 1;
+    }
+
+    // Actualizar las opciones basadas en la categoría seleccionada
+    if (savedData.selectedCategory === 'Custom Selection') {
+      setOptions(['Custom Clause', 'Specific Beneficiaries']);
+    } else if (savedData.selectedCategory === 'Bloodline Selection') {
+      // Aquí mantenemos las opciones de Bloodline Selection
+      setOptions(bloodlineOptions);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedCategory === 'Custom Selection') {
+      setOptions(['Custom Clause', 'Specific Beneficiaries']);
+    } else if (selectedCategory === 'Bloodline Selection') {
+      setOptions(bloodlineOptions);
+    }
+  }, [selectedCategory, bloodlineOptions]);
+
+  useEffect(() => {
+    // Guardar datos en localStorage cada vez que cambien
+    const dataToSave = {
+      selectedCategory,
+      selectedOption: obj.selectedOption,
+      clauseValue,
+      custom,
+      specific,
+      table_dataBequest,
+      availableShares,
+      obj,
+      backupBeneficiaryData,
+      bequestindex
+    };
+    localStorage.setItem('residueData', JSON.stringify(dataToSave));
+  }, [selectedCategory, obj, clauseValue, custom, specific, table_dataBequest, availableShares]);
+
+
+  useEffect(() => {
     let newBloodlineOptions = [
       'Have the residue go to parents then siblings per stirpes',
       'Have the residue go to siblings per stirpes',
