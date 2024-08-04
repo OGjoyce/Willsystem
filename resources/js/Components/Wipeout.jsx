@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 import Table from 'react-bootstrap/Table';
 import Button from 'react-bootstrap/Button';
 import AddHuman from './AddHuman';
@@ -30,11 +30,23 @@ function Wipeout({ id, datas, errors }) {
     const [selectedOption, setSelectedOption] = useState('');
     const [fullWipeoutSelected, setFullWipeoutSelected] = useState(false);
     const [beneficiarySelected, setBeneficiarySelected] = useState(false);
-    const [validationErrors, setValidationErrors] = useState(errors)
+    const [validationErrors, setValidationErrors] = useState(errors);
 
     useEffect(() => {
-        setValidationErrors(errors)
-    }, [errors])
+        setValidationErrors(errors);
+    }, [errors]);
+
+    useEffect(() => {
+        const savedData = JSON.parse(localStorage.getItem('wipeoutData'));
+        if (savedData) {
+            setTable_dataBequest(savedData);
+            bequestindex = savedData.length;
+        }
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem('wipeoutData', JSON.stringify(table_dataBequest));
+    }, [table_dataBequest]);
 
     useEffect(() => {
         console.log("datas:", datas);
@@ -127,7 +139,7 @@ function Wipeout({ id, datas, errors }) {
         } else if (organization !== "") {
             beneficiary = organization;
         } else {
-            setValidationErrors({ name: "Please select a beneficiary or enter an organization name." })
+            setValidationErrors({ name: "Please select a beneficiary or enter an organization name." });
             return;
         }
 
@@ -135,19 +147,19 @@ function Wipeout({ id, datas, errors }) {
         const shares = parseFloat(document.getElementById('shares').value);
 
         if (isNaN(shares) || shares <= 0) {
-            setValidationErrors({ shares: "Please enter a valid positive number for shares percentage." })
+            setValidationErrors({ shares: "Please enter a valid positive number for shares percentage." });
             return;
         }
 
         const currentTotal = calculateTotalShares();
         if (currentTotal + shares > 100) {
-            setValidationErrors({ shares: `Cannot add ${shares}%. Current total is ${currentTotal}%. The sum cannot exceed 100%.` })
+            setValidationErrors({ shares: `Cannot add ${shares}%. Current total is ${currentTotal}%. The sum cannot exceed 100%.` });
             return;
         }
 
         if (selectedOption === '') {
-            setValidationErrors({ type: 'Backup type is required' })
-            return null
+            setValidationErrors({ type: 'Backup type is required' });
+            return null;
         }
         const newItem = {
             "id": bequestindex,
@@ -168,7 +180,7 @@ function Wipeout({ id, datas, errors }) {
         document.getElementById("shares").value = "";
         setSelectedOption('');
         setBeneficiarySelected(false);
-        setValidationErrors({})
+        setValidationErrors({});
     };
 
     const setCurrentRecepient = (eventKey) => {
@@ -176,7 +188,7 @@ function Wipeout({ id, datas, errors }) {
         setSelectedRecepient(eventKey);
         setBeneficiarySelected(true);
         document.getElementById("organization").value = "";
-        setValidationErrors({})
+        setValidationErrors({});
     };
 
     const handleOrganizationChange = (event) => {
@@ -184,12 +196,12 @@ function Wipeout({ id, datas, errors }) {
             setSelectedBeneficiary("Select a beneficiary");
             setSelectedRecepient("Select a recipient to continue...");
             setBeneficiarySelected(false);
-            setValidationErrors({})
+            setValidationErrors({});
         }
     };
 
     const handleSelect = (key) => {
-        setValidationErrors({})
+        setValidationErrors({});
         setSelected(prev => ({ ...prev, selectedOption: key }));
         if (key === "Specific Wipeout Beneficiary") {
             setCustom(true);
@@ -201,7 +213,6 @@ function Wipeout({ id, datas, errors }) {
             bequestindex = 0;
             returndata = { wipeout: key, timestamp: Date.now() };
         }
-
     };
 
     return (

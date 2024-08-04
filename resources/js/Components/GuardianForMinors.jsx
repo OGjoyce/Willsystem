@@ -1,68 +1,68 @@
-
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-
-import { useState, useEffect } from 'react'
-
+import { useState, useEffect } from 'react';
 import Table from 'react-bootstrap/Table';
 import Button from 'react-bootstrap/Button';
-
-import AddHuman from './AddHuman';
-import { getHumanData } from './AddHuman';
-import Modal from 'react-bootstrap/Modal';
-
-import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Dropdown from 'react-bootstrap/Dropdown';
-
-import DropdownButton from 'react-bootstrap/DropdownButton';
 import { Container, Row, Col, DropdownToggle, DropdownMenu, DropdownItem } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
-import Collapse from 'react-bootstrap/Collapse';
-import { InputGroup } from 'react-bootstrap';
-
 
 var identifiers_names = [];
-var priorityInformation = [1, 2, 3, 4, 5]
+var priorityInformation = [1, 2, 3, 4, 5];
 var bequestindex = 1;
-var backupBeneficiaryData = [];
-var all_data;
 
-export function getGuardiansForMinors() {
-    return backupBeneficiaryData;
+export function getFullData() {
+    // Recuperar datos de localStorage
+    const savedData = localStorage.getItem('fullData');
+    return savedData ? JSON.parse(savedData) : {};
 }
 
-export default function GuardianForMinors({ datas, errors }) {
+export function getGuardiansForMinors() {
+    // Recuperar datos de localStorage
+    const savedData = localStorage.getItem('formValues');
+    return savedData ? JSON.parse(savedData).guardians || [] : [];
+}
+
+export default function GuardianForMinors({ errors }) {
     const [firstRender, setFirstRender] = useState(true);
-    var [selected, setSelected] = useState(null);
-    var [priority, setPriority] = useState(0);
-    var [tableData, setTableData] = useState([]);
-    var [validationErrors, setValidationErrors] = useState(errors)
+    const [selected, setSelected] = useState(null);
+    const [priority, setPriority] = useState(0);
+    const [tableData, setTableData] = useState([]);
+    const [validationErrors, setValidationErrors] = useState(errors);
+
+    // Recuperar datos iniciales
+    useEffect(() => {
+        const savedData = getGuardiansForMinors();
+        setTableData(savedData.reduce((acc, item) => {
+            acc[item.id] = item;
+            return acc;
+        }, {}));
+    }, []);
+
+    // Guardar datos en localStorage
+    useEffect(() => {
+        const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
+        formValues.guardians = Object.values(tableData);
+        localStorage.setItem('formValues', JSON.stringify(formValues));
+    }, [tableData]);
 
     useEffect(() => {
-        setValidationErrors(errors)
-    }, [errors])
+        setValidationErrors(errors);
+    }, [errors]);
 
-    const handleSelectBeneficiary = (key, eventKey) => {
-        setValidationErrors({})
+    const handleSelectBeneficiary = (key) => {
+        setValidationErrors({});
         setSelected(key);
+    };
 
-    }
     const handleSelectPriority = (key) => {
-        setValidationErrors({})
+        setValidationErrors({});
         setPriority(key);
+    };
 
-    }
     const AddGuardianButton = () => {
-        setValidationErrors({})
-        var objtopush = {
-            "id": bequestindex,
-            "guardian": selected,
-            "position": parseInt(priority),
-
-        }
-
-
-        let newErrors = {};
+        setValidationErrors({});
         if (selected === null || priority === 0) {
+            const newErrors = {};
             if (selected === null) {
                 newErrors.selected = 'A relative selection is required';
             }
@@ -70,75 +70,63 @@ export default function GuardianForMinors({ datas, errors }) {
                 newErrors.priority = 'A priority selection is required';
             }
             setValidationErrors(newErrors);
-            return null;
+            return;
         }
 
+        const newGuardian = {
+            id: bequestindex,
+            guardian: selected,
+            position: parseInt(priority),
+        };
 
-        backupBeneficiaryData.push(objtopush);
-        setTableData({ ...tableData, [objtopush.id]: objtopush });
-        setPriority(0)
-        setSelected(null)
+        const updatedTableData = { ...tableData, [newGuardian.id]: newGuardian };
+        setTableData(updatedTableData);
+        setPriority(0);
+        setSelected(null);
         bequestindex += 1;
+    };
 
-    }
     const handleDelete = (itemId) => {
-        backupBeneficiaryData = backupBeneficiaryData.filter((obj) => obj.id !== itemId);
         const updatedTableData = { ...tableData };
         delete updatedTableData[itemId];
         setTableData(updatedTableData);
+    };
 
-    }
+    // Inicialización y llenado de identificadores
+    useEffect(() => {
+        if (firstRender) {
+            identifiers_names = []
+            const fullData = getFullData();
+            const married = fullData[2]?.married || {};
+            const kids = fullData[4]?.kids || [];
+            const relatives = fullData[5]?.relatives || [];
+            const kidsq = fullData[3]?.kidsq?.selection;
 
-    all_data = datas;
-
-    if (all_data != null && firstRender) {
-
-
-        const married = all_data[2].married;
-        const kids = all_data[4].kids;
-        const relatives = all_data[5].relatives;
-        const kidsq = all_data[3].kidsq?.selection;
-
-
-        var dataobj = {}
-        dataobj = {
-            married, kids, relatives
-        }
-
-        var married_names = married?.firstName + " " + married?.lastName;
-        if (kidsq == "true") {
-            var kids_names = kids?.firstName + " " + kids?.lastName;
-            for (let child in kids) {
-                const names = kids[child]?.firstName + " " + kids[child]?.lastName;
-                // identifiers_names.push(names);
+            const married_names = married.firstName + " " + married.lastName;
+            if (kidsq === "true") {
+                for (const child of kids) {
+                    const names = child?.firstName + " " + child?.lastName;
+                    identifiers_names.push(names);
+                }
             }
 
+            identifiers_names.push(married_names);
+            for (const key in relatives) {
+                const names = relatives[key]?.firstName + " " + relatives[key]?.lastName;
+                identifiers_names.push(names);
+            }
 
+            setFirstRender(false);
         }
-        else {
-
-
-        }
-        identifiers_names.push(married_names);
-
-
-
-        for (let key in relatives) {
-            const names = relatives[key].firstName + " " + relatives[key].lastName;
-            identifiers_names.push(names);
-        }
-
-        setFirstRender(false);
-    }
+    }, [firstRender]);
 
     const filteredIdentifiersNames = identifiers_names.filter(
-        (name) => !backupBeneficiaryData.some((item) => item.guardian === name)
+        (name) => !Object.values(tableData).some((item) => item.guardian === name)
     );
 
     const filteredPriorityInformation = priorityInformation.filter(
-        (priority) => !backupBeneficiaryData.some((item) => parseInt(item.position) === priority)
+        (priority) => !Object.values(tableData).some((item) => parseInt(item.position) === priority)
     );
-
 
     return (
         <>
@@ -146,12 +134,10 @@ export default function GuardianForMinors({ datas, errors }) {
                 <Form>
                     <Row>
                         <Col sm={12}>
-                            <p>Select the guardian for your childs</p>
+                            <p>Select the guardian for your children</p>
                         </Col>
                     </Row>
-                    <br>
-                    </br>
-                    <br></br>
+                    <br />
                     <Row>
                         <Col sm={12}>
                             <Dropdown onSelect={handleSelectBeneficiary} style={{ width: "100%" }}>
@@ -167,13 +153,9 @@ export default function GuardianForMinors({ datas, errors }) {
                                     ))}
                                 </Dropdown.Menu>
                             </Dropdown>
-
                         </Col>
                     </Row>
-
-                    <br>
-                    </br>
-                    <br></br>
+                    <br />
                     <Row>
                         <Col sm={12}>
                             <Dropdown onSelect={handleSelectPriority} style={{ width: "100%" }}>
@@ -181,7 +163,6 @@ export default function GuardianForMinors({ datas, errors }) {
                                     {priority !== 0 ? `Selected Priority: ${priority}` : 'Select Priority'}
                                 </Dropdown.Toggle>
                                 {validationErrors.priority && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.priority}</p>}
-
                                 <Dropdown.Menu>
                                     {filteredPriorityInformation.map((option, index) => (
                                         <Dropdown.Item key={index} eventKey={option}>
@@ -190,28 +171,18 @@ export default function GuardianForMinors({ datas, errors }) {
                                     ))}
                                 </Dropdown.Menu>
                             </Dropdown>
-
-
                         </Col>
                     </Row>
-                    <br>
-                    </br>
-                    <br></br>
+                    <br />
                     <Row>
                         <Col sm={12}>
-                            <Button style={{ width: "100%" }} variant="outline-success" onClick={() => AddGuardianButton()} >Add Guardian</Button>
+                            <Button style={{ width: "100%" }} variant="outline-success" onClick={AddGuardianButton}>Add Guardian</Button>
                         </Col>
                     </Row>
-                    <br>
-                    </br>
-                    <br></br>
-
-
-
+                    <br />
                 </Form>
                 {validationErrors.guardians && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.guardians}</p>}
             </Container>
-
             <Table striped bordered hover responsive>
                 <thead>
                     <tr>
@@ -222,15 +193,15 @@ export default function GuardianForMinors({ datas, errors }) {
                     </tr>
                 </thead>
                 <tbody>
-                    {backupBeneficiaryData.length === 0 ? (
+                    {Object.values(tableData).length === 0 ? (
                         <tr>
                             <td colSpan="4">
                                 No information added yet, press <b>"Add Guardian Button"</b> to add.
                             </td>
                         </tr>
                     ) : (
-                        backupBeneficiaryData.map((item, index) => (
-                            <tr key={index}>
+                        Object.values(tableData).map((item) => (
+                            <tr key={item.id}>
                                 <td>{item.id}</td>
                                 <td>{item.guardian}</td>
                                 <td>{item.position}</td>
