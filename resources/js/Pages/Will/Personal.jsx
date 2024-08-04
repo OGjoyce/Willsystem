@@ -445,6 +445,7 @@ export default function Personal({ auth }) {
         objectState = object_status;
         const objectStateFreezed = JSON.parse(JSON.stringify(object_status));
         if (!dupFlag) {
+            //will remove this soon as is useless
             if (step !== 1 && step !== 2 && step !== 4) { // Avoid pushing duplicate data
                 //object_status.push(object_to_push);
             }
