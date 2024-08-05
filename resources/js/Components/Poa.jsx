@@ -26,6 +26,7 @@ export default function Poa({ datas, errors }) {
     useEffect(() => {
         if (datas != null && firstRender) {
             const married = datas[2].married;
+            const kids = datas[4].kids;
             const relatives = datas[5].relatives;
 
             let names = [];
@@ -35,15 +36,34 @@ export default function Poa({ datas, errors }) {
             for (let key in relatives) {
                 names.push(`${relatives[key].firstName} ${relatives[key].lastName}`);
             }
+            for (let key in kids) {
+                names.push(`${kids[key].firstName} ${kids[key].lastName}`);
+            }
 
             setIdentifiersNames(names);
             setFirstRender(false);
+        }
+
+        // Cargar datos del localStorage
+        const storedFormValues = JSON.parse(localStorage.getItem('formValues')) || {};
+        if (storedFormValues.poa) {
+            poaData = storedFormValues.poa;
+            setCheckboxes({
+                organ: poaData.organDonation,
+                dnr: poaData.dnr
+            });
         }
     }, [datas, firstRender]);
 
     useEffect(() => {
         setValidationErrors(errors)
     }, [errors])
+
+    const updateLocalStorage = () => {
+        const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
+        formValues.poa = poaData;
+        localStorage.setItem('formValues', JSON.stringify(formValues));
+    };
 
     const handleCheckboxChange = (event) => {
         const { name, checked } = event.target;
@@ -52,7 +72,7 @@ export default function Poa({ datas, errors }) {
             [name]: checked,
         }));
         poaData[name === 'organ' ? 'organDonation' : 'dnr'] = checked;
-        console.log(poaData);
+        updateLocalStorage();
     };
 
     const setCurrentRecepient = (eventKey, event) => {
@@ -76,13 +96,13 @@ export default function Poa({ datas, errors }) {
                 poaData.poaHealth.join = name;
                 break;
         }
-        console.log(poaData);
+        updateLocalStorage();
     };
 
     const handleRestrictionChange = (type, event) => {
         setValidationErrors({})
         poaData[type].restrictions = event.target.value;
-        console.log(poaData);
+        updateLocalStorage();
     };
 
     return (
@@ -91,7 +111,7 @@ export default function Poa({ datas, errors }) {
                 <Col sm={12}>
                     <Dropdown style={{ width: "100%" }} onSelect={setCurrentRecepient}>
                         <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="poa0">
-                            Attorney for Property
+                            {poaData.poaProperty.attorney || "Attorney for Property"}
                         </Dropdown.Toggle>
                         <Dropdown.Menu style={{ width: "100%" }}>
                             {identifiers_names.map((name, index) => (
@@ -107,7 +127,7 @@ export default function Poa({ datas, errors }) {
                 <Col sm={12}>
                     <Dropdown style={{ width: "100%" }} onSelect={setCurrentRecepient}>
                         <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="poa1">
-                            Joint - Attorney for Property
+                            {poaData.poaProperty.join || "Joint - Attorney for Property"}
                         </Dropdown.Toggle>
                         <Dropdown.Menu style={{ width: "100%" }}>
                             {identifiers_names.map((name, index) => (
@@ -127,6 +147,7 @@ export default function Poa({ datas, errors }) {
                     <Form.Control
                         as="textarea"
                         id="property-restrictions"
+                        value={poaData.poaProperty.restrictions || ""}
                         onChange={(e) => handleRestrictionChange('poaProperty', e)}
                     />
                     {validationErrors.poaProperty?.restrictions && <p className="mt-2 text-sm text-red-600">{validationErrors.poaProperty?.restrictions}</p>}
@@ -137,7 +158,7 @@ export default function Poa({ datas, errors }) {
                 <Col sm={12}>
                     <Dropdown style={{ width: "100%" }} onSelect={setCurrentRecepient}>
                         <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="poa2">
-                            Attorney for Health
+                            {poaData.poaHealth.attorney || "Attorney for Health"}
                         </Dropdown.Toggle>
                         <Dropdown.Menu style={{ width: "100%" }}>
                             {identifiers_names.map((name, index) => (
@@ -153,7 +174,7 @@ export default function Poa({ datas, errors }) {
                 <Col sm={12}>
                     <Dropdown style={{ width: "100%" }} onSelect={setCurrentRecepient}>
                         <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="poa3">
-                            Joint - Attorney for Health
+                            {poaData.poaHealth.join || "Joint - Attorney for Health"}
                         </Dropdown.Toggle>
                         <Dropdown.Menu style={{ width: "100%" }}>
                             {identifiers_names.map((name, index) => (
@@ -173,6 +194,7 @@ export default function Poa({ datas, errors }) {
                     <Form.Control
                         as="textarea"
                         id="health-restrictions"
+                        value={poaData.poaHealth.restrictions || ""}
                         onChange={(e) => handleRestrictionChange('poaHealth', e)}
                     />
                     {validationErrors.poaHealth?.restrictions && <p className="mt-2 text-sm text-red-600">{validationErrors.poaHealth?.restrictions}</p>}
