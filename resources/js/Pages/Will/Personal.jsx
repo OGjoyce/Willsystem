@@ -274,23 +274,20 @@ export default function Personal({ auth }) {
 
                 break;
             case 4:
-                if (!dupKids) {
-                    const kidsData = getChildRelatives()
 
-                    if (checkValidation(validate.kids(kidsData))) {
+                const kidsData = getChildRelatives()
 
-                        propertiesAndData = [
-                            { name: 'kids', data: [...kidsData] },
-                        ];
+                if (checkValidation(validate.kids(kidsData))) {
 
-                        updateOrCreateProperty(propertiesAndData)
-                    } else {
-                        return null
-                    }
+                    propertiesAndData = [
+                        { name: 'kids', data: [...kidsData] },
+                    ];
+
+                    updateOrCreateProperty(propertiesAndData)
+                } else {
+                    return null
                 }
-                else {
-                    dupFlag = true;
-                }
+
 
                 break
             case 5:
