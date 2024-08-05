@@ -37,6 +37,21 @@ function Wipeout({ id, datas, errors }) {
     }, [errors]);
 
     useEffect(() => {
+        const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
+        const savedData = formValues.wipeout || [];
+        if (savedData.length > 0) {
+            setTable_dataBequest(savedData);
+            bequestindex = savedData.length;
+        }
+    }, []);
+
+    useEffect(() => {
+        const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
+        formValues.wipeout = table_dataBequest;
+        localStorage.setItem('formValues', JSON.stringify(formValues));
+    }, [table_dataBequest]);
+
+    useEffect(() => {
         const savedData = JSON.parse(localStorage.getItem('wipeoutData'));
         if (savedData) {
             setTable_dataBequest(savedData);
@@ -111,6 +126,7 @@ function Wipeout({ id, datas, errors }) {
 
     const handleOptionChange = (event) => {
         setSelectedOption(event.target.value);
+
     };
 
     const calculateTotalShares = () => {
@@ -122,6 +138,11 @@ function Wipeout({ id, datas, errors }) {
         setTable_dataBequest(updatedData);
         returndata = { wipeout: updatedData, timestamp: Date.now() };
         bequestindex--;
+
+        // Actualizar formValues en localStorage
+        const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
+        formValues.wipeout = updatedData;
+        localStorage.setItem('formValues', JSON.stringify(formValues));
     };
 
     const handleAddItem = () => {
@@ -168,11 +189,16 @@ function Wipeout({ id, datas, errors }) {
             "backup": backup,
         };
 
+
         const updatedData = [...table_dataBequest, newItem];
         setTable_dataBequest(updatedData);
         returndata = { wipeout: updatedData, timestamp: Date.now() };
         bequestindex++;
 
+        // Actualizar formValues en localStorage
+        const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
+        formValues.wipeout = updatedData;
+        localStorage.setItem('formValues', JSON.stringify(formValues));
         // Reset form
         setSelectedBeneficiary("Select a beneficiary");
         setSelectedRecepient("Select a recipient to continue...");
@@ -212,6 +238,17 @@ function Wipeout({ id, datas, errors }) {
             setTable_dataBequest([]);
             bequestindex = 0;
             returndata = { wipeout: key, timestamp: Date.now() };
+        }
+
+        if (key !== "Specific Wipeout Beneficiary") {
+            setTable_dataBequest([]);
+            bequestindex = 0;
+            returndata = { wipeout: key, timestamp: Date.now() };
+
+            // Actualizar formValues en localStorage
+            const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
+            formValues.wipeout = key;
+            localStorage.setItem('formValues', JSON.stringify(formValues));
         }
     };
 
