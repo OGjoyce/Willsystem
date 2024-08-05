@@ -81,9 +81,11 @@ function Additional({ datas, errors }) {
             if (newObj.Master === "standard" || newObj.Master === "custom") {
                 delete additionalInfo.additional.custom;
                 delete additionalInfo.additional.standard;
+
             }
 
             // Actualizar o agregar la nueva información
+            delete additionalInfo.additional.temp_custom
             additionalInfo.additional[newObj.Master] = newObj;
             updateLocalStorage();
         }
@@ -142,7 +144,7 @@ function Additional({ datas, errors }) {
             ) : dataPointer2 == 0 ? (
                 <OrganDonation callFunction={callFunction} />
             ) : dataPointer2 == 1 ? (
-                <ClauseArea callFunction={callFunction} />
+                <ClauseArea callFunction={callFunction} clause="custom" />
             ) : dataPointer2 == 3 ? (
                 <OtherWishes callFunction={callFunction} clause={"other"} />
             ) : null}
