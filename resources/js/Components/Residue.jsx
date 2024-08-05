@@ -146,7 +146,9 @@ function Residue({ id, datas, errors }) {
   }, [marriedStatus, hasKids, sosoStatus, selectedCategory]);
 
   useEffect(() => {
+
     if (firstRender && all_data != null) {
+      identifiers_names = []
       const married = all_data[2].married;
       const kids = all_data[4].kids;
       const relatives = all_data[5].relatives;
