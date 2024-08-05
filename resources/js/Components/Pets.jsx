@@ -52,6 +52,21 @@ function Pets({ datas, errors }) {
         }
     }, [datas]);
 
+    useEffect(() => {
+        const savedData = JSON.parse(localStorage.getItem('formValues'));
+        if (savedData && savedData.pets) {
+            guardianDataStack = savedData.pets;
+            setPetGuardianData(savedData.pets);
+            setIdTable(savedData.pets.length > 0 ? savedData.pets[savedData.pets.length - 1].id + 1 : 1);
+        }
+    }, []);
+
+    const saveToLocalStorage = (data) => {
+        const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
+        formValues.pets = data;
+        localStorage.setItem('formValues', JSON.stringify(formValues));
+    };
+
     const handleSubmit = (e) => {
         setValidationErrors({});
         var amountid = document.getElementById('amountId').value;
@@ -90,6 +105,7 @@ function Pets({ datas, errors }) {
         if (obj) {
             guardianDataStack.push(obj);
             setPetGuardianData([...guardianDataStack]);
+            saveToLocalStorage(guardianDataStack);
             setIdTable(prevId => prevId + 1);
         }
         setSelectedOptionBackup('');
@@ -100,6 +116,7 @@ function Pets({ datas, errors }) {
     const handleDelete = (id) => {
         guardianDataStack = guardianDataStack.filter(obj => obj.id !== id);
         setPetGuardianData([...guardianDataStack]);
+        saveToLocalStorage(guardianDataStack);
     };
 
     return (
