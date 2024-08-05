@@ -12,7 +12,7 @@ const POA1Content = forwardRef((props, ref) => {
     }
 
     const datasObj = props.props.datas;
-    const documentDOM = props.props.latestDocumentDOM
+    const documentDOM = props.props.selectedDOMVersion
     const statusObject = datasObj.reduce((acc, item) => ({ ...acc, ...item }), {});
 
     const personal = statusObject.personal || {};

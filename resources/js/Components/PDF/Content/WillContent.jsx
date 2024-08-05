@@ -9,7 +9,7 @@ var WillContent = forwardRef((props, ref) => {
     if (props != undefined) {
 
         var datasObj = props.props.datas;
-        var documentDOM = props.props.latestDocumentDOM
+        var documentDOM = props.props.selectedDOMVersion
         var statusObject = {};
         datasObj.forEach(item => {
             Object.entries(item).forEach(([key, value]) => {

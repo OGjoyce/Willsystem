@@ -11,7 +11,7 @@ const POA2Content = forwardRef((props, ref) => {
     }
 
     const datasObj = props.props.datas || [];
-    const documentDOM = props.props.latestDocumentDOM
+    const documentDOM = props.props.selectedDOMVersion
 
     const statusObject = {};
     datasObj.forEach(item => {

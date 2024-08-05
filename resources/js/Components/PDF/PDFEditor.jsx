@@ -112,23 +112,32 @@ export function getDocumentDOMInfo() {
   return updatedObjectStatus[updatedObjectStatus.length - 1]?.documentDOM;
 }
 
+function getDocumentContent(object_status, documentType, version) {
+  return object_status
+    .find(obj => obj.documentDOM && obj.documentDOM[documentType])
+    ?.documentDOM[documentType][version]?.content || null;
+}
 
 
 const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId, version }) => {
   var object_status = datas;
   var id = backendId
-  var latestDocumentDOM = null
-  var preselectedVersion = version
 
-
+  console.log(version)
+  console.log(object_status)
   const [editorContent, setEditorContent] = useState('');
   const [documentVersions, setDocumentVersions] = useState({});
   const [validationErrors, setValidationErrors] = useState(errors)
   const [showToast, setShowToast] = useState(false)
+  const [selectedDOMVersion, setSelectedDOMVersion] = useState(null)
 
   useEffect(() => {
     setValidationErrors(errors)
   }, [errors])
+
+  useEffect(() => {
+    setSelectedDOMVersion(getDocumentContent(object_status, documentType, version))
+  }, [documentType, version, object_status])
 
   const editor = useEditor({
     extensions: [
@@ -206,7 +215,7 @@ const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId, v
           ref={ref}
           props={{
             datas,
-            latestDocumentDOM
+            selectedDOMVersion
           }}
         />
       ));
