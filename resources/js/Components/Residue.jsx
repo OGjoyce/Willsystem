@@ -31,9 +31,7 @@ export function getOptObject() {
     };
   } else if (userSelection === null || undefined) {
     returnobject = {};
-  }
-
-  else {
+  } else {
     returnobject = {
       "selected": userSelection
     };
@@ -56,40 +54,40 @@ function Residue({ id, datas, errors }) {
   const [table_dataBequest, setTable_dataBequest] = useState([]);
   const [selectedOption, setSelectedOption] = useState(null);
   const [selected, setSelected] = useState(obj);
-  const [validationErrors, setValidationErrors] = useState(errors)
-  const [availableShares, setAvailableShares] = useState(100)
-
+  const [validationErrors, setValidationErrors] = useState(errors);
+  const [availableShares, setAvailableShares] = useState(100);
 
   useEffect(() => {
-    setValidationErrors(errors)
-  }, [errors])
+    setValidationErrors(errors);
+  }, [errors]);
 
   useEffect(() => {
     // Recuperar datos del localStorage al cargar el componente
-    const savedData = JSON.parse(localStorage.getItem('residueData')) || {};
+    const savedData = JSON.parse(localStorage.getItem('formValues')) || {};
 
-    setSelectedCategory(savedData.selectedCategory || null);
-    setSelectedOption(savedData.selectedOption || null);
-    setClauseValue(savedData.clauseValue || '');
-    setCustom(savedData.custom || false);
-    setSpecific(savedData.specific || false);
-    setTable_dataBequest(savedData.table_dataBequest || []);
-    setAvailableShares(savedData.availableShares || 100);
+    // Asignar valores a los estados desde el objeto formValues
+    setSelectedCategory(savedData.residue?.selectedCategory || null);
+    setSelectedOption(savedData.residue?.selectedOption || null);
+    setClauseValue(savedData.residue?.clauseValue || '');
+    setCustom(savedData.residue?.custom || false);
+    setSpecific(savedData.residue?.specific || false);
+    setTable_dataBequest(savedData.residue?.table_dataBequest || []);
+    setAvailableShares(savedData.residue?.availableShares || 100);
 
-    if (savedData.obj) {
-      obj = savedData.obj;
+    if (savedData.residue?.obj) {
+      obj = savedData.residue.obj;
       setSelected(obj);
     }
 
-    if (savedData.backupBeneficiaryData) {
-      backupBeneficiaryData = savedData.backupBeneficiaryData;
-      bequestindex = savedData.bequestindex || 1;
+    if (savedData.residue?.backupBeneficiaryData) {
+      backupBeneficiaryData = savedData.residue.backupBeneficiaryData;
+      bequestindex = savedData.residue.bequestindex || 1;
     }
 
     // Actualizar las opciones basadas en la categoría seleccionada
-    if (savedData.selectedCategory === 'Custom Selection') {
+    if (savedData.residue?.selectedCategory === 'Custom Selection') {
       setOptions(['Custom Clause', 'Specific Beneficiaries']);
-    } else if (savedData.selectedCategory === 'Bloodline Selection') {
+    } else if (savedData.residue?.selectedCategory === 'Bloodline Selection') {
       // Aquí mantenemos las opciones de Bloodline Selection
       setOptions(bloodlineOptions);
     }
@@ -105,7 +103,10 @@ function Residue({ id, datas, errors }) {
 
   useEffect(() => {
     // Guardar datos en localStorage cada vez que cambien
-    const dataToSave = {
+    const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
+
+    // Crear o actualizar el objeto residue dentro de formValues
+    formValues.residue = {
       selectedCategory,
       selectedOption: obj.selectedOption,
       clauseValue,
@@ -117,9 +118,9 @@ function Residue({ id, datas, errors }) {
       backupBeneficiaryData,
       bequestindex
     };
-    localStorage.setItem('residueData', JSON.stringify(dataToSave));
-  }, [selectedCategory, obj, clauseValue, custom, specific, table_dataBequest, availableShares]);
 
+    localStorage.setItem('formValues', JSON.stringify(formValues));
+  }, [selectedCategory, obj, clauseValue, custom, specific, table_dataBequest, availableShares]);
 
   useEffect(() => {
     let newBloodlineOptions = [
@@ -172,7 +173,7 @@ function Residue({ id, datas, errors }) {
 
   const handleCategorySelect = (category) => {
     setSelectedCategory(category);
-    setValidationErrors({})
+    setValidationErrors({});
     if (category === 'Custom Selection') {
       setOptions(['Custom Clause', 'Specific Beneficiaries']);
     } else {
@@ -198,7 +199,7 @@ function Residue({ id, datas, errors }) {
     }
     obj = { ...obj, selectedOption: option };
     setSelected(obj);
-    setValidationErrors({})
+    setValidationErrors({});
   };
 
   const handleSelectBeneficiary = (key) => {
@@ -217,55 +218,52 @@ function Residue({ id, datas, errors }) {
     bequestindex -= 1;
     var totalShares = backupBeneficiaryData.length > 0
       ? 100 - backupBeneficiaryData?.map(backup => backup.shares).reduce((a, b) => a + b)
-      : 100
-    setAvailableShares(totalShares)
+      : 100;
+    setAvailableShares(totalShares);
   };
 
   const AddBackupButton = () => {
-    setValidationErrors({})
+    setValidationErrors({});
     var shares = document.getElementById('basic-url').value;
     shares = Number(shares);
     var totalShares = backupBeneficiaryData.length > 0
       ? shares + backupBeneficiaryData?.map(backup => backup.shares).reduce((a, b) => a + b)
-      : shares
+      : shares;
 
     var beneficiary = selected.selectedBeneficiary || null;
     var backup = selected.selectedBackup || null;
-    var selectedType = selectedOption === 'A' ? "Per Stirpes" : null || selectedOption === 'B' ? "Per Capita" : null;
+    var selectedType = selectedOption === 'A' ? 'per stirpes' : (selectedOption === 'B' ? 'per capita' : null);
 
-    var newErrors = {}
+    let newErrors = {};
 
-    if (beneficiary === null || backup === null || beneficiary === backup || selectedType === null || shares === 0 || !Number(shares) || shares > 100 || totalShares > 100) {
-
-      if (beneficiary === backup) {
-        newErrors.identifiers = "Beneficiary and backup can't be the same person"
-      }
-
-      if (beneficiary === null || backup === null) {
-        newErrors.identifiers = 'Beneficiary and backup are required'
-      }
-
-      if (selectedType === null) {
-        newErrors.backupType = 'Backup type is required'
-
-      }
-
-      if (shares === 0) {
-        newErrors.shares = 'Shares for backup must be a valid percent'
-      }
-
-      if (!Number(shares)) {
-        newErrors.shares = 'Shares for backup must be a Number'
-      }
-
-      if (shares > 100 || totalShares > 100) {
-        newErrors.shares = 'Shares for backup must be equal to 100%'
-      }
-
-      setValidationErrors(newErrors)
-      return null
+    if (beneficiary === backup) {
+      newErrors.identifiers = "Beneficiary and backup can't be the same person";
     }
 
+    if (beneficiary === null || backup === null) {
+      newErrors.identifiers = 'Beneficiary and backup are required';
+    }
+
+    if (selectedType === null) {
+      newErrors.backupType = 'Backup type is required';
+    }
+
+    if (shares === 0) {
+      newErrors.shares = 'Shares for backup must be a valid percent';
+    }
+
+    if (!Number(shares)) {
+      newErrors.shares = 'Shares for backup must be a Number';
+    }
+
+    if (shares > 100 || totalShares > 100) {
+      newErrors.shares = 'Shares for backup must be equal to 100%';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setValidationErrors(newErrors);
+      return null;
+    }
 
     var objtopush = {
       "id": bequestindex,
@@ -278,12 +276,10 @@ function Residue({ id, datas, errors }) {
     backupBeneficiaryData.push(objtopush);
     setTable_dataBequest([...backupBeneficiaryData]);
     bequestindex++;
-    setAvailableShares(100 - totalShares)
-    obj = { ...obj, selectedBeneficiary: null };
-    obj = { ...obj, selectedBackup: null };
+    setAvailableShares(100 - totalShares);
+    obj = { ...obj, selectedBeneficiary: null, selectedBackup: null };
     setSelected(obj);
     document.getElementById('basic-url').value = '';
-
   };
 
   all_data = datas;
@@ -291,7 +287,6 @@ function Residue({ id, datas, errors }) {
   return (
     <Container>
       <Form>
-
         <Row>
           <Col sm={12}>
             <Dropdown onSelect={handleCategorySelect} style={{ width: "100%" }}>
@@ -303,7 +298,6 @@ function Residue({ id, datas, errors }) {
                 <Dropdown.Item eventKey="Custom Selection">Custom Selection</Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>
-
           </Col>
         </Row>
         {selectedCategory && (
@@ -324,7 +318,6 @@ function Residue({ id, datas, errors }) {
             </Col>
           </Row>
         )}
-
         {specific && (
           <>
             <Row>
@@ -400,7 +393,7 @@ function Residue({ id, datas, errors }) {
                   />
                   {validationErrors.backupType && <p className="mt-2 text-sm text-red-600">{validationErrors.backupType}</p>}
                   <InputGroup className="mb-3">
-                    <InputGroup.Text id="basic-addon3" >
+                    <InputGroup.Text id="basic-addon3">
                       Shares for Backup  ( Available: {availableShares}% )
                     </InputGroup.Text>
                     <Form.Control id="basic-url" aria-describedby="basic-addon3" />
@@ -452,7 +445,6 @@ function Residue({ id, datas, errors }) {
             </Row>
           </>
         )}
-
         {custom && (
           <Row>
             <Col sm={12}>
@@ -476,8 +468,7 @@ function Residue({ id, datas, errors }) {
         )}
         {validationErrors.residue && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.residue}</p>}
       </Form>
-    </Container >
-
+    </Container>
   );
 }
 
