@@ -75,7 +75,10 @@ function Residue({ id, datas, errors }) {
     setAvailableShares(savedData.residue?.availableShares || 100);
 
     if (savedData.residue?.obj) {
+
       obj = savedData.residue.obj;
+      obj.selectedBeneficiary = null
+      obj.selectedBackup = null
       setSelected(obj);
     }
 
