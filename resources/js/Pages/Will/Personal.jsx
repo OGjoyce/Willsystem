@@ -494,9 +494,16 @@ export default function Personal({ auth }) {
             return false;
         }
 
-        const marriedqObject = objectStatus.find(obj => obj.marriedq !== undefined && (obj.marriedq.selection === "false" || obj.marriedq.selection === ""));
-        const kidsqObject = objectStatus.find(obj => obj.kidsq !== undefined && (obj.kidsq.selection === "false" || obj.kidsq.selection === ""));
-
+        const noSpuse = objectStatus.find(obj => obj.marriedq !== undefined && (obj.marriedq.selection === "false" || obj.marriedq.selection === ""));
+        const noKids = objectStatus.find(obj => obj.kidsq !== undefined && (obj.kidsq.selection === "false" || obj.kidsq.selection === ""));
+        if (pointer === 1 && noSpuse) {
+            nextStep = 3
+            setPointer(3)
+        }
+        if (pointer === 3 && noKids) {
+            nextStep = 5
+            setPointer(5)
+        }
 
         console.log("nb." + nextStep);
         setPointer(nextStep);
@@ -529,6 +536,20 @@ export default function Personal({ auth }) {
         console.log("ab." + nextStep);
         console.log("pointer --" + pointer);
 
+        const objectStatus = JSON.parse(localStorage.getItem('fullData'));
+        const noSpuse = objectStatus.find(obj => obj.marriedq !== undefined && (obj.marriedq.selection === "false" || obj.marriedq.selection === ""));
+        const noKids = objectStatus.find(obj => obj.kidsq !== undefined && (obj.kidsq.selection === "false" || obj.kidsq.selection === ""));
+
+        if (pointer === 3 && noSpuse) {
+
+            nextStep = 1
+            setPointer(1)
+        }
+        if (pointer === 5 && noKids) {
+
+            nextStep = 3
+            setPointer(3)
+        }
         if (pointer === 17 || pointer === 18 || pointer === 19) {
             setValidationErrors({})
             // If we're viewing a specific document, go back to document selection
