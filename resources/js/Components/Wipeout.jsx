@@ -116,17 +116,25 @@ function Wipeout({ id, datas, errors }) {
         setIdentifiersNames(names);
 
         var options = [
-            `${marriedStatus | sosoStatus ? "50% to parents and siblings and 50% to parents and siblings of spouse" : "100% to parents and siblings"}`,
-            `${marriedStatus | sosoStatus ? "50% to siblings and 50% to siblings of spouse" : "100% to siblings"}`,
+            `${marriedStatus || sosoStatus ? "50% to parents and siblings and 50% to parents and siblings of spouse" : "100% to parents and siblings"}`,
+            `${marriedStatus || sosoStatus ? "50% to siblings and 50% to siblings of spouse" : "100% to siblings"}`,
             'Specific Wipeout Beneficiary'
         ];
 
         setSelected({ options, selectedOption: null });
+
+        // Retrieve and set saved wipeout option from localStorage
+        const savedOption = JSON.parse(localStorage.getItem('selectedWipeoutOption'));
+        if (savedOption) {
+            setSelectedOption(savedOption);
+            if (options.includes(savedOption)) {
+                handleSelect(savedOption);
+            }
+        }
     }, [datas]);
 
     const handleOptionChange = (event) => {
         setSelectedOption(event.target.value);
-
     };
 
     const calculateTotalShares = () => {
@@ -189,7 +197,6 @@ function Wipeout({ id, datas, errors }) {
             "backup": backup,
         };
 
-
         const updatedData = [...table_dataBequest, newItem];
         setTable_dataBequest(updatedData);
         returndata = { wipeout: updatedData, timestamp: Date.now() };
@@ -250,6 +257,9 @@ function Wipeout({ id, datas, errors }) {
             formValues.wipeout = key;
             localStorage.setItem('formValues', JSON.stringify(formValues));
         }
+
+        // Save selected wipeout option to localStorage
+        localStorage.setItem('selectedWipeoutOption', JSON.stringify(key));
     };
 
     return (
