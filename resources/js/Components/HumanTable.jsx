@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import Table from 'react-bootstrap/Table';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
+import Pagination from 'react-bootstrap/Pagination';
 import AddHuman from './AddHuman';
 import { getHumanData } from './AddHuman';
 import { validate } from './Validations';
+import './HumanTable.css'; // Asegúrate de tener este archivo para estilos personalizados
 
 let nextId = 1;
 
@@ -37,6 +39,14 @@ function HumanTable({ id, datas, errors }) {
     const [validationErrors, setValidationErrors] = useState(errors);
     const [selectedExecutor, setSelectedExecutor] = useState(null);
     const [allRelatives, setAllRelatives] = useState([]);
+    const [executorPriority, setExecutorPriority] = useState(null); // Cambiado a null para validar si se ha seleccionado
+    const [priorityError, setPriorityError] = useState(''); // Error de prioridad
+    const maxPriority = 5;
+
+    const handlePriorityChange = (number) => {
+        setExecutorPriority(number);
+        setPriorityError(''); // Limpiar el error cuando se selecciona una prioridad
+    };
 
     useEffect(() => {
         setValidationErrors(errors);
@@ -89,7 +99,7 @@ function HumanTable({ id, datas, errors }) {
                 const updatedExecutors = prevExecutors.map(executor => {
                     if (executor.relative === "Spouse") {
                         const spouseFromRelatives = newAllRelatives.find(rel => rel.relative === "Spouse");
-                        return spouseFromRelatives ? { ...spouseFromRelatives, id: executor.id } : executor;
+                        return spouseFromRelatives ? { ...spouseFromRelatives, id: executor.id, priority: executor.priority } : executor;
                     }
                     return executor;
                 });
@@ -100,7 +110,7 @@ function HumanTable({ id, datas, errors }) {
 
     const handleClose = () => {
         const modalData = getHumanData();
-        var errors = validate.addHumanData(modalData);
+        const errors = validate.addHumanData(modalData);
 
         if (Object.keys(errors).length <= 0) {
             const newRelative = {
@@ -125,10 +135,26 @@ function HumanTable({ id, datas, errors }) {
 
     const handleCloseExecutor = () => {
         if (selectedExecutor) {
-            setExecutors(prevExecutors => [...prevExecutors, { ...selectedExecutor, id: nextId++ }]);
+            if (executorPriority) {
+                const newExecutor = {
+                    ...selectedExecutor,
+                    priority: executorPriority,
+                    id: nextId++ // Asigna un ID único a cada nuevo executor
+                };
+
+                setExecutors(prevExecutors => [
+                    ...prevExecutors,
+                    newExecutor
+                ]);
+
+                setPriorityError('');
+                setShowExecutor(false);
+                setSelectedExecutor(null);
+                setExecutorPriority(null);
+            } else {
+                setPriorityError('Priority must be selected.');
+            }
         }
-        setShowExecutor(false);
-        setSelectedExecutor(null);
     };
 
     const handleDeleteExecutor = (id) => {
@@ -137,7 +163,7 @@ function HumanTable({ id, datas, errors }) {
 
     return (
         <>
-            <Table striped bordered hover responsive>
+            <Table striped bordered hover responsive className="custom-table">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -164,13 +190,13 @@ function HumanTable({ id, datas, errors }) {
                 </tbody>
             </Table>
 
-            <div className="d-grid gap-2">
+            <div className="d-grid gap-2 mb-3">
                 <Button variant="success" size="lg" onClick={handleShow}>
-                    Add new Relative
+                    Add New Relative
                 </Button>
             </div>
 
-            <Table striped bordered hover responsive>
+            <Table striped bordered hover responsive className="custom-table">
                 <thead>
                     <tr>
                         <th>Priority</th>
@@ -181,9 +207,9 @@ function HumanTable({ id, datas, errors }) {
                     </tr>
                 </thead>
                 <tbody>
-                    {executors.map((executor, index) => (
+                    {executors.map((executor) => (
                         <tr key={executor.id}>
-                            <td>{index + 1}</td>
+                            <td>{executor.priority !== undefined ? executor.priority : 'N/A'}</td> {/* Manejar valor vacío */}
                             <td>{executor.firstName}</td>
                             <td>{executor.lastName}</td>
                             <td>{executor.relative}</td>
@@ -198,10 +224,10 @@ function HumanTable({ id, datas, errors }) {
             </Table>
 
             {validationErrors.executors && (
-                <p className="mt-2 text-sm text-center text-red-600">{validationErrors.executors}</p>
+                <p className="mt-2 text-center text-danger">{validationErrors.executors}</p>
             )}
 
-            <Modal show={show} onHide={handleCloseNosave}>
+            <Modal show={show} onHide={handleCloseNosave} dialogClassName="modal-90w">
                 <Modal.Header closeButton>
                     <Modal.Title>Add Person</Modal.Title>
                 </Modal.Header>
@@ -209,30 +235,46 @@ function HumanTable({ id, datas, errors }) {
                     <AddHuman human={true} errors={validationErrors} />
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" size="sm" onClick={handleCloseNosave}>
+                    <Button variant="secondary" onClick={handleCloseNosave}>
                         Close
                     </Button>
-                    <Button variant="primary" size="sm" onClick={handleClose}>
+                    <Button variant="primary" onClick={handleClose}>
                         Save Changes
                     </Button>
                 </Modal.Footer>
             </Modal>
 
-            <Modal show={showExecutor} onHide={() => setShowExecutor(false)}>
+            <Modal show={showExecutor} onHide={() => setShowExecutor(false)} dialogClassName="modal-60w">
                 <Modal.Header closeButton>
                     <Modal.Title>Selecting Executor</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <p>Are you sure you want to add the following executor?</p>
-                    {selectedExecutor && (
-                        <p>{`${selectedExecutor.firstName} ${selectedExecutor.lastName} -> ${selectedExecutor.relative}`}</p>
-                    )}
+                    <div className="executor-modal-content">
+                        <p>Are you sure you want to add the following executor?</p>
+                        {selectedExecutor && (
+                            <p><strong>{`${selectedExecutor.firstName} ${selectedExecutor.lastName}`}</strong> - {selectedExecutor.relative}</p>
+                        )}
+
+                        <p>Select priority:</p>
+                        <Pagination className="priority-pagination">
+                            {[...Array(maxPriority)].map((_, index) => (
+                                <Pagination.Item
+                                    key={index + 1}
+                                    active={index + 1 === executorPriority}
+                                    onClick={() => handlePriorityChange(index + 1)}
+                                >
+                                    {index + 1}
+                                </Pagination.Item>
+                            ))}
+                        </Pagination>
+                        {priorityError && <p className="mt-2 text-center text-danger">{priorityError}</p>}
+                    </div>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" size="sm" onClick={() => setShowExecutor(false)}>
+                    <Button variant="secondary" onClick={() => setShowExecutor(false)}>
                         Close
                     </Button>
-                    <Button variant="primary" size="sm" onClick={handleCloseExecutor}>
+                    <Button variant="primary" onClick={handleCloseExecutor}>
                         Save Changes
                     </Button>
                 </Modal.Footer>
