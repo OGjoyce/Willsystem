@@ -6,7 +6,6 @@ import Pagination from 'react-bootstrap/Pagination';
 import AddHuman from './AddHuman';
 import { getHumanData } from './AddHuman';
 import { validate } from './Validations';
-import './HumanTable.css'; // Asegúrate de tener este archivo para estilos personalizados
 
 let nextId = 1;
 
@@ -125,15 +124,24 @@ function HumanTable({ id, datas, errors }) {
         }
     };
 
-    const handleShow = () => setShow(true);
-    const handleCloseNosave = () => setShow(false);
+    const handleShow = () => {
+        setPriorityError('')
+        setShow(true)
+
+    };
+    const handleCloseNosave = () => {
+        setPriorityError('')
+        setShow(false);
+    }
 
     const handleShowExecutor = (relative) => {
+        setPriorityError('')
         setSelectedExecutor(relative);
         setShowExecutor(true);
     };
 
     const handleCloseExecutor = () => {
+        setPriorityError('')
         if (selectedExecutor) {
             if (executorPriority) {
                 const newExecutor = {
@@ -163,7 +171,7 @@ function HumanTable({ id, datas, errors }) {
 
     return (
         <>
-            <Table striped bordered hover responsive className="custom-table">
+            <Table striped bordered hover responsive className="text-center">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -196,7 +204,7 @@ function HumanTable({ id, datas, errors }) {
                 </Button>
             </div>
 
-            <Table striped bordered hover responsive className="custom-table">
+            <Table striped bordered hover responsive className="text-center">
                 <thead>
                     <tr>
                         <th>Priority</th>
@@ -249,14 +257,14 @@ function HumanTable({ id, datas, errors }) {
                     <Modal.Title>Selecting Executor</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <div className="executor-modal-content">
+                    <div className="text-center">
                         <p>Are you sure you want to add the following executor?</p>
                         {selectedExecutor && (
                             <p><strong>{`${selectedExecutor.firstName} ${selectedExecutor.lastName}`}</strong> - {selectedExecutor.relative}</p>
                         )}
 
                         <p>Select priority:</p>
-                        <Pagination className="priority-pagination">
+                        <Pagination className="d-inline-flex justify-content-center">
                             {[...Array(maxPriority)].map((_, index) => (
                                 <Pagination.Item
                                     key={index + 1}
@@ -267,7 +275,7 @@ function HumanTable({ id, datas, errors }) {
                                 </Pagination.Item>
                             ))}
                         </Pagination>
-                        {priorityError && <p className="mt-2 text-center text-danger">{priorityError}</p>}
+                        {priorityError && <p className="mt-2 text-danger">{priorityError}</p>}
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
