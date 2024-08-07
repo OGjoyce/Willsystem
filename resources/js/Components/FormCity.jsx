@@ -1,15 +1,13 @@
 
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 
 import { Fragment } from 'react'
 import { Listbox, Transition } from '@headlessui/react'
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
-
-import { useEffect } from 'react';
 
 const people = [
 
@@ -87,6 +85,9 @@ const people = [
             'https://upload.wikimedia.org/wikipedia/commons/6/69/Flag_of_Yukon.svg',
     },
 ]
+
+
+
 var dropdown_selected = "";
 var ErrorFullName = () => { }
 function classNames(...classes) {

@@ -6,6 +6,8 @@ import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
 import { Container, Row, Col, Button, Toast, ToastContainer } from 'react-bootstrap';
+import CustomToast from '../CustomToast'
+
 import Toolbar from './Toolbar'
 import { useReactToPrint } from "react-to-print";
 import { updateDataObject } from '../ObjStatusForm';
@@ -110,23 +112,32 @@ export function getDocumentDOMInfo() {
   return updatedObjectStatus[updatedObjectStatus.length - 1]?.documentDOM;
 }
 
+function getDocumentContent(object_status, documentType, version) {
+  return object_status
+    .find(obj => obj.documentDOM && obj.documentDOM[documentType])
+    ?.documentDOM[documentType][version]?.content || null;
+}
 
 
 const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId, version }) => {
   var object_status = datas;
   var id = backendId
-  var latestDocumentDOM = null
-  var preselectedVersion = version
 
-
+  console.log(version)
+  console.log(object_status)
   const [editorContent, setEditorContent] = useState('');
   const [documentVersions, setDocumentVersions] = useState({});
   const [validationErrors, setValidationErrors] = useState(errors)
   const [showToast, setShowToast] = useState(false)
+  const [selectedDOMVersion, setSelectedDOMVersion] = useState(null)
 
   useEffect(() => {
     setValidationErrors(errors)
   }, [errors])
+
+  useEffect(() => {
+    setSelectedDOMVersion(getDocumentContent(object_status, documentType, version))
+  }, [documentType, version, object_status])
 
   const editor = useEditor({
     extensions: [
@@ -204,7 +215,7 @@ const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId, v
           ref={ref}
           props={{
             datas,
-            latestDocumentDOM
+            selectedDOMVersion
           }}
         />
       ));
@@ -267,35 +278,11 @@ const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId, v
       <div style={{ display: 'none' }}>
         <PrintComponent ref={componentRef} content={editorContent} />
       </div>
-
-      <ToastContainer
-        position="top-end"
-        className="p-3"
-        style={{
-          zIndex: 1000,
-          position: 'fixed',
-          top: '1rem',
-          right: '1rem'
-        }}
-      >
-        <Toast
-          show={showToast}
-          onClose={() => setShowToast(false)}
-          delay={5000}
-          autohide
-          className="custom-toast"
-        >
-          <Toast.Header className="bg-success text-white">
-            <i className="bi bi-check-circle-fill me-2"></i>
-            <strong className="me-auto">Success</strong>
-            <small>just now</small>
-          </Toast.Header>
-          <Toast.Body className="bg-success-light">
-            Your {documentType ? documentType : 'Document'} has been saved Successfully!
-          </Toast.Body>
-        </Toast>
-      </ToastContainer>
-
+      <CustomToast
+        show={showToast}
+        onClose={() => setShowToast(false)}
+        message={`Your ${documentType ? documentType : 'Document'} has been saved Successfully!`}
+      />
     </Container>
 
   );

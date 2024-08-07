@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 import Table from 'react-bootstrap/Table';
 import Button from 'react-bootstrap/Button';
 import AddHuman from './AddHuman';
@@ -30,11 +30,28 @@ function Wipeout({ id, datas, errors }) {
     const [selectedOption, setSelectedOption] = useState('');
     const [fullWipeoutSelected, setFullWipeoutSelected] = useState(false);
     const [beneficiarySelected, setBeneficiarySelected] = useState(false);
-    const [validationErrors, setValidationErrors] = useState(errors)
+    const [validationErrors, setValidationErrors] = useState(errors);
+
 
     useEffect(() => {
-        setValidationErrors(errors)
-    }, [errors])
+        setValidationErrors(errors);
+    }, [errors]);
+
+    useEffect(() => {
+        const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
+        const savedData = formValues.wipeout || [];
+        if (savedData.length > 0) {
+            setTable_dataBequest(savedData);
+            bequestindex = savedData.length;
+        }
+    }, []);
+
+    useEffect(() => {
+        const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
+        formValues.wipeout = table_dataBequest;
+        localStorage.setItem('formValues', JSON.stringify(formValues));
+        returndata = { wipeout: formValues.wipeout, timestamp: Date.now() };
+    }, [table_dataBequest]);
 
     useEffect(() => {
         console.log("datas:", datas);
@@ -49,7 +66,7 @@ function Wipeout({ id, datas, errors }) {
         const kidsq = datas[3].kidsq?.selection;
 
         let names = [];
-        const married_names = `${married?.firstName} ${married?.lastName}`;
+        const married_names = married?.firstName && married?.lastName ? `${married?.firstName} ${married?.lastName}` : null;
         names.push(married_names);
 
         if (kidsq === "true" && kids) {
@@ -89,12 +106,22 @@ function Wipeout({ id, datas, errors }) {
         setIdentifiersNames(names);
 
         var options = [
-            `${marriedStatus | sosoStatus ? "50% to parents and siblings and 50% to parents and siblings of spouse" : "100% to parents and siblings"}`,
-            `${marriedStatus | sosoStatus ? "50% to siblings and 50% to siblings of spouse" : "100% to siblings"}`,
+            `${marriedStatus || sosoStatus ? "50% to parents and siblings and 50% to parents and siblings of spouse" : "100% to parents and siblings"}`,
+            `${marriedStatus || sosoStatus ? "50% to siblings and 50% to siblings of spouse" : "100% to siblings"}`,
             'Specific Wipeout Beneficiary'
         ];
 
         setSelected({ options, selectedOption: null });
+
+        // Retrieve and set saved wipeout option from localStorage
+        const savedOption = JSON.parse(localStorage.getItem('formValues')) || {};
+        console.log('selected', savedOption.selectedWipeoutOption)
+        if (savedOption.selectedWipeoutOption) {
+            setSelectedOption(savedOption.selectedWipeoutOption);
+            if (options.includes(savedOption.selectedWipeoutOption)) {
+                handleSelect(savedOption.selectedWipeoutOption);
+            }
+        }
     }, [datas]);
 
     const handleOptionChange = (event) => {
@@ -110,6 +137,11 @@ function Wipeout({ id, datas, errors }) {
         setTable_dataBequest(updatedData);
         returndata = { wipeout: updatedData, timestamp: Date.now() };
         bequestindex--;
+
+        // Actualizar formValues en localStorage
+        const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
+        formValues.wipeout = updatedData;
+        localStorage.setItem('formValues', JSON.stringify(formValues));
     };
 
     const handleAddItem = () => {
@@ -127,7 +159,7 @@ function Wipeout({ id, datas, errors }) {
         } else if (organization !== "") {
             beneficiary = organization;
         } else {
-            setValidationErrors({ name: "Please select a beneficiary or enter an organization name." })
+            setValidationErrors({ name: "Please select a beneficiary or enter an organization name." });
             return;
         }
 
@@ -135,19 +167,19 @@ function Wipeout({ id, datas, errors }) {
         const shares = parseFloat(document.getElementById('shares').value);
 
         if (isNaN(shares) || shares <= 0) {
-            setValidationErrors({ shares: "Please enter a valid positive number for shares percentage." })
+            setValidationErrors({ shares: "Please enter a valid positive number for shares percentage." });
             return;
         }
 
         const currentTotal = calculateTotalShares();
         if (currentTotal + shares > 100) {
-            setValidationErrors({ shares: `Cannot add ${shares}%. Current total is ${currentTotal}%. The sum cannot exceed 100%.` })
+            setValidationErrors({ shares: `Cannot add ${shares}%. Current total is ${currentTotal}%. The sum cannot exceed 100%.` });
             return;
         }
 
         if (selectedOption === '') {
-            setValidationErrors({ type: 'Backup type is required' })
-            return null
+            setValidationErrors({ type: 'Backup type is required' });
+            return null;
         }
         const newItem = {
             "id": bequestindex,
@@ -161,6 +193,10 @@ function Wipeout({ id, datas, errors }) {
         returndata = { wipeout: updatedData, timestamp: Date.now() };
         bequestindex++;
 
+        // Actualizar formValues en localStorage
+        const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
+        formValues.wipeout = updatedData;
+        localStorage.setItem('formValues', JSON.stringify(formValues));
         // Reset form
         setSelectedBeneficiary("Select a beneficiary");
         setSelectedRecepient("Select a recipient to continue...");
@@ -168,7 +204,7 @@ function Wipeout({ id, datas, errors }) {
         document.getElementById("shares").value = "";
         setSelectedOption('');
         setBeneficiarySelected(false);
-        setValidationErrors({})
+        setValidationErrors({});
     };
 
     const setCurrentRecepient = (eventKey) => {
@@ -176,7 +212,7 @@ function Wipeout({ id, datas, errors }) {
         setSelectedRecepient(eventKey);
         setBeneficiarySelected(true);
         document.getElementById("organization").value = "";
-        setValidationErrors({})
+        setValidationErrors({});
     };
 
     const handleOrganizationChange = (event) => {
@@ -184,12 +220,12 @@ function Wipeout({ id, datas, errors }) {
             setSelectedBeneficiary("Select a beneficiary");
             setSelectedRecepient("Select a recipient to continue...");
             setBeneficiarySelected(false);
-            setValidationErrors({})
+            setValidationErrors({});
         }
     };
 
     const handleSelect = (key) => {
-        setValidationErrors({})
+        setValidationErrors({});
         setSelected(prev => ({ ...prev, selectedOption: key }));
         if (key === "Specific Wipeout Beneficiary") {
             setCustom(true);
@@ -201,6 +237,23 @@ function Wipeout({ id, datas, errors }) {
             bequestindex = 0;
             returndata = { wipeout: key, timestamp: Date.now() };
         }
+
+        if (key !== "Specific Wipeout Beneficiary") {
+            setTable_dataBequest([]);
+            bequestindex = 0;
+            returndata = { wipeout: key, timestamp: Date.now() };
+
+            // Actualizar formValues en localStorage
+            const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
+            formValues.wipeout = key;
+            localStorage.setItem('formValues', JSON.stringify(formValues));
+        }
+
+        // Save selected wipeout option to localStorage
+        const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
+        formValues.selectedWipeoutOption = key;
+        localStorage.setItem('formValues', JSON.stringify(formValues));
+
 
     };
 
