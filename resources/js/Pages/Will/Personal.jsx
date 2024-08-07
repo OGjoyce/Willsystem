@@ -173,7 +173,23 @@ export default function Personal({ auth }) {
         }
     }, []);
 
+    var updateOrCreateProperty = (propertiesAndData) => {
+        const existingIndex = object_status.findIndex(obj =>
+            propertiesAndData.some(prop => obj.hasOwnProperty(prop.name))
+        );
 
+        if (existingIndex !== -1) {
+            propertiesAndData.forEach(prop => {
+                object_status[existingIndex][prop.name] = prop.data;
+            });
+        } else {
+            const newObject = {};
+            propertiesAndData.forEach(prop => {
+                newObject[prop.name] = prop.data;
+            });
+            object_status.push(newObject);
+        }
+    }
     const pushInfo = async function (step) {
         var object_to_push = {};
         var propertiesAndData = [];
@@ -192,23 +208,7 @@ export default function Personal({ auth }) {
             return true;
         }
 
-        var updateOrCreateProperty = (propertiesAndData) => {
-            const existingIndex = object_status.findIndex(obj =>
-                propertiesAndData.some(prop => obj.hasOwnProperty(prop.name))
-            );
 
-            if (existingIndex !== -1) {
-                propertiesAndData.forEach(prop => {
-                    object_status[existingIndex][prop.name] = prop.data;
-                });
-            } else {
-                const newObject = {};
-                propertiesAndData.forEach(prop => {
-                    newObject[prop.name] = prop.data;
-                });
-                object_status.push(newObject);
-            }
-        }
 
 
         switch (step) {
@@ -497,10 +497,22 @@ export default function Personal({ auth }) {
         const noSpuse = objectStatus.find(obj => obj.marriedq !== undefined && (obj.marriedq.selection === "false" || obj.marriedq.selection === ""));
         const noKids = objectStatus.find(obj => obj.kidsq !== undefined && (obj.kidsq.selection === "false" || obj.kidsq.selection === ""));
         if (pointer === 1 && noSpuse) {
+            const propertiesAndData = [
+                { name: 'married', data: { ...{}, "timestamp": Date.now() } },
+            ];
+
+            updateOrCreateProperty(propertiesAndData);
+
             nextStep = 3
             setPointer(3)
         }
         if (pointer === 3 && noKids) {
+            const propertiesAndData = [
+                { name: 'kids', data: [...[]] },
+            ];
+
+            updateOrCreateProperty(propertiesAndData);
+
             nextStep = 5
             setPointer(5)
         }

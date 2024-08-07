@@ -1,15 +1,13 @@
 
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 
 import { Fragment } from 'react'
 import { Listbox, Transition } from '@headlessui/react'
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
-
-import { useEffect } from 'react';
 
 const people = [
 
@@ -122,6 +120,13 @@ function FormCity({ auth, laravelVersion, phpVersion, errors }) {
     const [selected, setSelected] = useState(people[9])
     const [validationErrors, setValidationErrors] = useState(errors)
     const [phone, setPhone] = useState('');
+
+    useEffect(() => {
+        localStorage.removeItem('currIdObjDB');
+        localStorage.removeItem('currentPointer');
+        localStorage.removeItem('fullData');
+        localStorage.removeItem('formValues');
+    }, [])
 
     useEffect(() => {
         setValidationErrors(errors);
