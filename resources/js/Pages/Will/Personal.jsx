@@ -147,7 +147,6 @@ export default function Personal({ auth }) {
     const [formData, setFormData] = useState({});
     var lastPointer = 0;
 
-
     useEffect(() => {
         const savedData = localStorage.getItem('fullData');
         const savedPointer = localStorage.getItem('currentPointer');
@@ -672,7 +671,10 @@ export default function Personal({ auth }) {
         objectState = [];
         dupMarried = false;
         dupKids = false;
+        localStorage.removeItem('currIdObjDB');
+        localStorage.removeItem('currentPointer');
         localStorage.removeItem('fullData');
+        localStorage.removeItem('formValues');
         router.get(route('dashboard'));
     }
 

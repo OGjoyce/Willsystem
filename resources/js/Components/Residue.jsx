@@ -157,7 +157,7 @@ function Residue({ id, datas, errors }) {
       const relatives = all_data[5].relatives;
       const kidsq = all_data[3].kidsq?.selection;
 
-      var married_names = married?.firstName + " " + married?.lastName;
+      var married_names = married.length > 0 ? married?.firstName + " " + married?.lastName : null;
       identifiers_names.push(married_names);
 
       if (kidsq === "true") {

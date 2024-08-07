@@ -31,7 +31,9 @@ export default function Poa({ datas, errors }) {
 
             let names = [];
 
-            names.push(`${married.firstName} ${married.lastName}`);
+            if (married.length > 0) {
+                names.push(`${married.firstName} ${married.lastName}`);
+            }
 
             for (let key in relatives) {
                 names.push(`${relatives[key].firstName} ${relatives[key].lastName}`);

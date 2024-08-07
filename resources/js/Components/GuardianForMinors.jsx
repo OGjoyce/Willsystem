@@ -102,7 +102,7 @@ export default function GuardianForMinors({ errors }) {
             const relatives = fullData[5]?.relatives || [];
             const kidsq = fullData[3]?.kidsq?.selection;
 
-            const married_names = married.firstName + " " + married.lastName;
+            const married_names = married.length > 0 ? married.firstName + " " + married.lastName : null;
             if (kidsq === "true") {
                 for (const child of kids) {
                     const names = child?.firstName + " " + child?.lastName;

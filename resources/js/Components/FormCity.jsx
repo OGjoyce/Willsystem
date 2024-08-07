@@ -122,13 +122,6 @@ function FormCity({ auth, laravelVersion, phpVersion, errors }) {
     const [phone, setPhone] = useState('');
 
     useEffect(() => {
-        localStorage.removeItem('currIdObjDB');
-        localStorage.removeItem('currentPointer');
-        localStorage.removeItem('fullData');
-        localStorage.removeItem('formValues');
-    }, [])
-
-    useEffect(() => {
         setValidationErrors(errors);
     }, [errors]);
 

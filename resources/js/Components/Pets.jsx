@@ -26,7 +26,7 @@ function Pets({ datas, errors }) {
             let newId = 1;
 
             datas.forEach(element => {
-                if (element.married && element.married.relative !== "NA") {
+                if (element.married?.firstName && element.married.relative !== "NA") {
                     newTableData.push({
                         id: newId++,
                         firstName: element.married.firstName,
@@ -34,7 +34,18 @@ function Pets({ datas, errors }) {
                         relative: element.married.relative
                     });
                 }
+                if (element.relatives) {
+                    element.relatives.map(relative => {
+                        newTableData.push({
+                            id: newId++,
+                            firstName: relative.firstName,
+                            lastName: relative.lastName,
+                            relative: relative.relative
+                        });
+                    })
+                }
             });
+
 
             if (datas[3].kidsq.selection === "true") {
                 Object.values(datas[4].kids).forEach(child => {
