@@ -25,12 +25,15 @@ const CustomCard = styled(Card)`
 `;
 
 const CardImg = styled(Card.Img)`
-  object-fit: cover;
-  height: 180px;
+  object-fit: fill;
+  height: 100%;
+  width: 100%
   transition: transform 0.3s ease;
+  margin-top: 24px;
 
   ${CustomCard}:hover & {
-    transform: scale(1.1);
+    transform: scale(1.2);
+   transition: all 0.3s ease-out;
   }
 `;
 
@@ -38,14 +41,14 @@ const CardBody = styled(Card.Body)`
   display: flex;
   flex-direction: column;
   padding: 1.5rem;
-  background: #f9f9f9;
+  background: #f1f5f9;
 `;
 
 const CardTitle = styled(Card.Title)`
   font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 0.75rem;
-  color: #333;
+  color: #002C42;
 `;
 
 const CardText = styled(Card.Text)`
@@ -58,7 +61,7 @@ const CardText = styled(Card.Text)`
 const StyledButton = styled(Button)`
   width: 100%;
   border: none;
-  background: linear-gradient(45deg, #007bff, #00bcd4);
+  background: linear-gradient(45deg, #004060, #006080);
   color: white;
   margin-top: auto;
   padding: 0.75rem;
@@ -66,16 +69,16 @@ const StyledButton = styled(Button)`
   transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
 
   &:hover {
-    background: linear-gradient(45deg, #0056b3, #008ba3);
+    background: linear-gradient(45deg, #002C42, #004060);
     transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(0, 123, 255, 0.4);
+    box-shadow: 0 6px 18px rgba(0, 44, 66, 0.4);
   }
 `;
 
 const IconWrapper = styled.div`
   font-size: 2.5rem;
   margin-bottom: 1rem;
-  color: #007bff;
+  color: #002C42;
 `;
 
 export default function Dashboard({ auth }) {
@@ -157,7 +160,7 @@ export default function Dashboard({ auth }) {
                         <Row xs={1} md={2} lg={4} className="g-4">
                             <Col>
                                 <CustomCard>
-                                    <CardImg variant="top" src="/images/will-document.jpg" />
+                                    <CardImg variant="top" src="/images/continue-will.webp" />
                                     <CardBody>
                                         <IconWrapper>
                                             <i className="bi bi-file-earmark-text"></i>
@@ -175,7 +178,7 @@ export default function Dashboard({ auth }) {
 
                             <Col>
                                 <CustomCard>
-                                    <CardImg variant="top" src="/images/poa-document.jpeg" />
+                                    <CardImg variant="top" src="/images/new-will.webp" />
                                     <CardBody>
                                         <IconWrapper>
                                             <i className="bi bi-files"></i>
@@ -193,7 +196,7 @@ export default function Dashboard({ auth }) {
 
                             <Col>
                                 <CustomCard>
-                                    <CardImg variant="top" src="/images/search-files.jpg" />
+                                    <CardImg variant="top" src="/images/search.webp" />
                                     <CardBody>
                                         <IconWrapper>
                                             <i className="bi bi-search"></i>
@@ -211,7 +214,7 @@ export default function Dashboard({ auth }) {
 
                             <Col>
                                 <CustomCard>
-                                    <CardImg variant="top" src="/images/packages.png" />
+                                    <CardImg variant="top" src="/images/packages.webp" />
                                     <CardBody>
                                         <IconWrapper>
                                             <i className="bi bi-box-seam"></i>
