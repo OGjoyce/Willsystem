@@ -31,7 +31,7 @@ export default function Poa({ datas, errors }) {
 
             let names = [];
 
-            if (married.length > 0) {
+            if (married?.firstName && married?.lastName) {
                 names.push(`${married.firstName} ${married.lastName}`);
             }
 

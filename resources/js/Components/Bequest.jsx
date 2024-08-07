@@ -217,7 +217,7 @@ function Bequest({ id, datas, errors }) {
 
         var dataobj = { married, kids, relatives }
 
-        var married_names = married.length > 0 ? married?.firstName + " " + married?.lastName : null;
+        var married_names = married?.firstName && married?.lastName ? married?.firstName + " " + married?.lastName : null;
         if (kidsq == "true") {
             var kids_names = kids?.firstName + " " + kids?.lastName;
             for (let child in kids) {

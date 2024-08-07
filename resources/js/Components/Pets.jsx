@@ -26,7 +26,7 @@ function Pets({ datas, errors }) {
             let newId = 1;
 
             datas.forEach(element => {
-                if (element.married?.firstName && element.married.relative !== "NA") {
+                if (element.married?.firstName && element.married?.lastName && element.married?.relative !== "NA") {
                     newTableData.push({
                         id: newId++,
                         firstName: element.married.firstName,

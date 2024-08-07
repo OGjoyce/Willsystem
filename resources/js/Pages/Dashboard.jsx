@@ -13,7 +13,7 @@ const CustomCard = styled(Card)`
   border: none;
   border-radius: 12px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
   overflow: hidden;
   height: 100%;
   background: #ffffff;
@@ -29,11 +29,12 @@ const CardImg = styled(Card.Img)`
   object-fit: fill;
   height: 100%; 
   width: 50%;
-  transition: transform 0.4s ease;
+  transition: transform 0.2s ease;
   margin: auto;
   margin-top: 24px;
   
   ${CustomCard}:hover & {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
     transform: scale(1.3);
   
   }
@@ -68,7 +69,7 @@ const StyledButton = styled(Button)`
   margin-top: auto;
   padding: 0.75rem;
   font-weight: 600;
-  transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
     background: linear-gradient(45deg, #002C42, #004060);
@@ -81,7 +82,7 @@ const IconWrapper = styled.div`
   font-size: 2.5rem;
   margin-bottom: 1rem;
   color: #002C42;
-  transition: transform 0.3s ease, color 0.3s ease;
+  transition: transform 0.2s ease, color 0.2s ease;
 
   ${CustomCard}:hover & {
     transform: scale(1.1);
@@ -116,7 +117,7 @@ export default function Dashboard({ auth }) {
                 if (!object_status) {
                     window.location.href = route('view');
                 } else {
-                    setToastMessage(`Recovering data for ${object_status[0].owner}`);
+                    setToastMessage(`Recovering data for ${object_status[0].personal.email}`);
                     setToastTitle('Notification');
                     setShowToast(true);
                     setRedirectUrl(url);
