@@ -32,6 +32,7 @@ function Wipeout({ id, datas, errors }) {
     const [beneficiarySelected, setBeneficiarySelected] = useState(false);
     const [validationErrors, setValidationErrors] = useState(errors);
 
+
     useEffect(() => {
         setValidationErrors(errors);
     }, [errors]);
@@ -49,18 +50,7 @@ function Wipeout({ id, datas, errors }) {
         const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
         formValues.wipeout = table_dataBequest;
         localStorage.setItem('formValues', JSON.stringify(formValues));
-    }, [table_dataBequest]);
-
-    useEffect(() => {
-        const savedData = JSON.parse(localStorage.getItem('wipeoutData'));
-        if (savedData) {
-            setTable_dataBequest(savedData);
-            bequestindex = savedData.length;
-        }
-    }, []);
-
-    useEffect(() => {
-        localStorage.setItem('wipeoutData', JSON.stringify(table_dataBequest));
+        returndata = { wipeout: formValues.wipeout, timestamp: Date.now() };
     }, [table_dataBequest]);
 
     useEffect(() => {
@@ -124,11 +114,12 @@ function Wipeout({ id, datas, errors }) {
         setSelected({ options, selectedOption: null });
 
         // Retrieve and set saved wipeout option from localStorage
-        const savedOption = JSON.parse(localStorage.getItem('selectedWipeoutOption'));
-        if (savedOption) {
-            setSelectedOption(savedOption);
-            if (options.includes(savedOption)) {
-                handleSelect(savedOption);
+        const savedOption = JSON.parse(localStorage.getItem('formValues')) || {};
+        console.log('selected', savedOption.selectedWipeoutOption)
+        if (savedOption.selectedWipeoutOption) {
+            setSelectedOption(savedOption.selectedWipeoutOption);
+            if (options.includes(savedOption.selectedWipeoutOption)) {
+                handleSelect(savedOption.selectedWipeoutOption);
             }
         }
     }, [datas]);
@@ -259,7 +250,11 @@ function Wipeout({ id, datas, errors }) {
         }
 
         // Save selected wipeout option to localStorage
-        localStorage.setItem('selectedWipeoutOption', JSON.stringify(key));
+        const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
+        formValues.selectedWipeoutOption = key;
+        localStorage.setItem('formValues', JSON.stringify(formValues));
+
+
     };
 
     return (

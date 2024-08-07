@@ -13,27 +13,29 @@ const CustomCard = styled(Card)`
   border: none;
   border-radius: 12px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
   overflow: hidden;
   height: 100%;
   background: #ffffff;
 
   &:hover {
-    transform: translateY(-10px);
+    transform: translateY(-10px) rotate(1deg);
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15);
+    opacity: 0.9;
   }
 `;
 
 const CardImg = styled(Card.Img)`
   object-fit: fill;
-  height: 100%;
-  width: 100%
-  transition: transform 0.3s ease;
+  height: 100%; 
+  width: 50%;
+  transition: transform 0.4s ease;
+  margin: auto;
   margin-top: 24px;
-
+  
   ${CustomCard}:hover & {
-    transform: scale(1.2);
-   transition: all 0.3s ease-out;
+    transform: scale(1.3);
+  
   }
 `;
 
@@ -70,8 +72,8 @@ const StyledButton = styled(Button)`
 
   &:hover {
     background: linear-gradient(45deg, #002C42, #004060);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(0, 44, 66, 0.4);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(0, 44, 66, 0.4);
   }
 `;
 
@@ -79,6 +81,12 @@ const IconWrapper = styled.div`
   font-size: 2.5rem;
   margin-bottom: 1rem;
   color: #002C42;
+  transition: transform 0.3s ease, color 0.3s ease;
+
+  ${CustomCard}:hover & {
+    transform: scale(1.1);
+    color: #004060;
+  }
 `;
 
 export default function Dashboard({ auth }) {
@@ -120,7 +128,11 @@ export default function Dashboard({ auth }) {
                 break;
 
             case 'new-will':
-                localStorage.clear();
+                localStorage.removeItem('currIdObjDB');
+                localStorage.removeItem('currentPointer');
+                localStorage.removeItem('fullData');
+                localStorage.removeItem('formValues');
+
                 window.location.href = url;
                 break;
 
@@ -203,7 +215,7 @@ export default function Dashboard({ auth }) {
                                         </IconWrapper>
                                         <CardTitle>Search Files</CardTitle>
                                         <CardText>
-                                            Quickly locate and access your important documents.
+                                            Quickly locate and access all documents for specific users.
                                         </CardText>
                                         <StyledButton onClick={(e) => handleLinkClick(e, route('view'), "view")}>
                                             Search Now
