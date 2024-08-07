@@ -149,7 +149,8 @@ function AddHuman({ married, childrens, human, errors, onDataChange }) {
     };
 
     const isRelativeReadOnly = married || childrens;
-    const defaultRelativeValue = married ? 'Spouse' : childrens ? 'Child' : '';
+
+    const defaultRelativeValue = married ? 'Spouse' : (childrens ? 'Child' : '');
 
     return (
         <>
