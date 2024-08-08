@@ -19,7 +19,7 @@ export default function Dashboard({ auth }) {
         if (actionTriggered && redirectUrl) {
             const timer = setTimeout(() => {
                 window.location.href = redirectUrl;
-            }, 5000);
+            }, 1500);
 
             return () => clearTimeout(timer);
         }
@@ -39,13 +39,8 @@ export default function Dashboard({ auth }) {
                             alignItems: 'center',
                             backgroundColor: '#d4edda',
                             color: '#155724',
-                            border: '1px solid #c3e6cb',
                             borderRadius: '0.25rem',
-                            padding: '1rem',
-                            boxShadow: '0 0 0.125rem rgba(0,0,0,0.075)',
-                            fontFamily: 'Arial, sans-serif',
                             fontSize: '1rem',
-                            fontWeight: 'bold',
                             maxWidth: '400px',
                             margin: '0 auto'
                         }}>
@@ -64,7 +59,7 @@ export default function Dashboard({ auth }) {
                     setActionTriggered(true);
                     setTimeout(() => {
                         setShowToast(false);
-                    }, 5000);
+                    }, 1500);
                 }
                 break;
 
@@ -120,9 +115,6 @@ export default function Dashboard({ auth }) {
                                     <Card.Body>
                                         <i className="bi bi-file-earmark-text"></i>
                                         <Card.Title>Continue Will</Card.Title>
-                                        <Card.Text>
-                                            Resume your will creation process where you left off.
-                                        </Card.Text>
                                         <Button className='mt-3' onClick={(e) => handleLinkClick(e, route('personal'), "continue-will")} variant="outline-dark">Continue</Button>
                                     </Card.Body>
                                 </Card>
@@ -133,9 +125,6 @@ export default function Dashboard({ auth }) {
                                     <Card.Body>
                                         <i className="bi bi-files"></i>
                                         <Card.Title>Create Will + 2 POA</Card.Title>
-                                        <Card.Text>
-                                            Start a new will and create two Power of Attorney documents.
-                                        </Card.Text>
                                         <Button className='mt-3' onClick={(e) => handleLinkClick(e, route('personal'), "new-will")} variant="outline-dark">Get Started</Button>
                                     </Card.Body>
                                 </Card>
@@ -146,9 +135,6 @@ export default function Dashboard({ auth }) {
                                     <Card.Body>
                                         <i className="bi bi-search"></i>
                                         <Card.Title>Search Files</Card.Title>
-                                        <Card.Text>
-                                            Quickly locate and access all documents for specific users.
-                                        </Card.Text>
                                         <Button className='mt-3' onClick={(e) => handleLinkClick(e, route('view'), "view")} variant="outline-dark">Search Now</Button>
                                     </Card.Body>
                                 </Card>
@@ -159,9 +145,6 @@ export default function Dashboard({ auth }) {
                                     <Card.Body>
                                         <i className="bi bi-box-seam"></i>
                                         <Card.Title>Packages</Card.Title>
-                                        <Card.Text>
-                                            Explore our comprehensive legal document packages.
-                                        </Card.Text>
                                         <Button className='mt-3' onClick={(e) => handleLinkClick(e, route('packages'), "packages")} variant="outline-dark">View Packages</Button>
                                     </Card.Body>
                                 </Card>
