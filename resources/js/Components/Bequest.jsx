@@ -100,15 +100,24 @@ function Bequest({ id, datas, errors }) {
                 if (shares < 100) {
                     setIsSharedBequest(true);
                     setPendingShares(pendingShares - shares);
-                    document.getElementById('sharesID').placeholder = `Pending shares for this bequest: ${pendingShares - shares}%`;
-                    document.getElementById('sharesID').value = "";
-                    document.getElementById('bequestTextArea').value = bequest;
+                    if (pendingShares - shares > 0) {
+                        document.getElementById('sharesID').placeholder = `Pending shares for this bequest: ${pendingShares - shares}%`;
+                        document.getElementById('sharesID').value = "";
+                        document.getElementById('bequestTextArea').value = bequest;
+                        newErrors.sharedBequest = "Please select beneficiary or backup and shares for current bequest";
 
-                    newErrors.sharedBequest = "Please select beneficiary or backup and shares for current bequest";
-
-                    if (Object.keys(newErrors).length > 0) {
-                        setValidationErrors(newErrors);
+                        if (Object.keys(newErrors).length > 0) {
+                            setValidationErrors(newErrors);
+                        }
+                    } else if (pendingShares - shares <= 0) {
+                        document.getElementById('sharesID').placeholder = 100;
+                        document.getElementById('sharesID').value = "";
+                        document.getElementById('bequestTextArea').value = "";
+                        setIsSharedBequest(false)
+                        setValidationErrors({})
                     }
+
+
                 } else {
                     setValidationErrors({});
                     document.getElementById('sharesID').values = "";
