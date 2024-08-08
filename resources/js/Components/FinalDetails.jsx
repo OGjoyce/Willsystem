@@ -1,108 +1,96 @@
-
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Link, Head } from '@inertiajs/react';
-import { useState } from 'react'
-import { Dialog } from '@headlessui/react'
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
-import { Fragment } from 'react'
-import { Listbox, Transition } from '@headlessui/react'
-import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
-
-import { Form, Button, Container, Row, Col, Table } from 'react-bootstrap';
-import InputGroup from 'react-bootstrap/InputGroup';
+import React, { useState, useEffect } from 'react';
+import { Form, Button, Container, Row, Col, InputGroup } from 'react-bootstrap';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import Dropdown from 'react-bootstrap/Dropdown';
-import DropdownToggle from 'react-bootstrap/DropdownToggle';
-import DropdownButton from 'react-bootstrap/DropdownButton';
-import DropdownMenu from 'react-bootstrap/DropdownMenu';
-import DropdownItem from 'react-bootstrap/DropdownItem';
-import Image from 'react-bootstrap/Image';
-
-var all_data;
-var identifiers_names = [];
-var pickup = false;
 
 export function getFinalDetails() {
-    var textArea = document.getElementById('textArea').value;
-    var obj = {
-        "specialInstructions": textArea,
-        "pickup": pickup
-    };
-    return obj;
+    const storedFormValues = JSON.parse(localStorage.getItem('formValues')) || {};
+    return storedFormValues.finalDetails || {};
 }
-export default function FinalDetails({ datas }) {
-    const [checkboxes, setCheckboxes] = useState({
-        officePick: false,
 
+export default function FinalDetails({ datas }) {
+    const [finalDetails, setFinalDetails] = useState({
+        specialInstructions: '',
+        pickup: false
     });
 
-    const handleCheckboxChange = (event) => {
-        const { name, checked } = event.target;
-        setCheckboxes({
-            ...checkboxes,
-            [name]: checked,
-        });
-        pickup = checked;
+    useEffect(() => {
+        // Cargar datos del localStorage cuando el componente se monta
+        const storedFormValues = JSON.parse(localStorage.getItem('formValues')) || {};
+        if (storedFormValues.finalDetails) {
+            setFinalDetails(storedFormValues.finalDetails);
+        }
+    }, []);
 
+    const updateLocalStorage = (newDetails) => {
+        const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
+        formValues.finalDetails = newDetails;
+        localStorage.setItem('formValues', JSON.stringify(formValues));
     };
 
+    const handleSpecialInstructionsChange = (event) => {
+        const newDetails = {
+            ...finalDetails,
+            specialInstructions: event.target.value
+        };
+        setFinalDetails(newDetails);
+        updateLocalStorage(newDetails);
+    };
 
-    var initialTimeStamp = datas[0].personal.timestamp;
-    var finalTimeStamp = datas[13].poa.timestamp;
+    const handleCheckboxChange = (event) => {
+        const { checked } = event.target;
+        const newDetails = {
+            ...finalDetails,
+            pickup: checked
+        };
+        setFinalDetails(newDetails);
+        updateLocalStorage(newDetails);
+    };
 
+    // Cálculo del tiempo transcurrido
+    const initialTimeStamp = datas[0].personal.timestamp;
+    const finalTimeStamp = datas[13].poa.timestamp;
     const actualTimeStamp = finalTimeStamp - initialTimeStamp;
     const totalMinutes = Math.floor(actualTimeStamp / 1000 / 60);
-
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
 
-    console.log(`Time passed: ${hours} hour(s) and ${minutes} minute(s)`);
-
     return (
-        <>
-            <Container>
-                <Form>
-                    <Row>
-                        <Col sm={12}>
-                            <p>Elapsed time:  Hours {hours} , minutes {minutes}</p>
+        <Container>
+            <Form>
+                <Row>
+                    <Col sm={12}>
+                        <p>Elapsed time: {hours} hour(s) and {minutes} minute(s)</p>
+                    </Col>
+                </Row>
+                <Row>
+                    <InputGroup>
+                        <Col sm={3}>
+                            <Form.Label>Special Request for lawyer</Form.Label>
                         </Col>
-                    </Row>
-                    <Row>
-
-                        <InputGroup>
-                            <Col sm={3}>
-                                <Form.Label> Special Request for lawyer </Form.Label>
-                            </Col>
-                            <Col sm={9}>
-                                <Form.Control as="textarea" aria-label="With textarea" id="textArea" />
-                            </Col>
-
-                        </InputGroup>
-
-
-                    </Row>
-                    <Row>
-                        <Col sm={12}>
-                            <Form.Check
-                                type="checkbox"
-                                id="checkbox1"
-                                name="officePick"
-                                label="Client Wants To Pick Up Wills & POAs at Office"
-                                checked={checkboxes.officePick}
-                                onChange={handleCheckboxChange}
+                        <Col sm={9}>
+                            <Form.Control
+                                as="textarea"
+                                aria-label="With textarea"
+                                id="textArea"
+                                value={finalDetails.specialInstructions}
+                                onChange={handleSpecialInstructionsChange}
                             />
                         </Col>
-                    </Row>
-                </Form>
-
-
-
-            </Container >
-
-
-
-
-        </>
+                    </InputGroup>
+                </Row>
+                <Row>
+                    <Col sm={12}>
+                        <Form.Check
+                            type="checkbox"
+                            id="checkbox1"
+                            name="officePick"
+                            label="Client Wants To Pick Up Wills & POAs at Office"
+                            checked={finalDetails.pickup}
+                            onChange={handleCheckboxChange}
+                        />
+                    </Col>
+                </Row>
+            </Form>
+        </Container>
     );
-
 }

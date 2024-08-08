@@ -43,7 +43,7 @@ import { getPetInfo } from '@/Components/Pets';
 import { getDocumentDOMInfo } from '@/Components/PDF/PDFEditor';
 import { storeDataObject } from '@/Components/ObjStatusForm';
 import { updateDataObject } from '@/Components/ObjStatusForm';
-import { validateFormData, validateAddHumanData, validate } from '@/Components/Validations.jsx';
+import { validate } from '@/Components/Validations.jsx';
 import { document } from 'postcss';
 
 var object_status = [];
@@ -67,7 +67,7 @@ export default function Personal({ auth }) {
         },
         {
             "step": 3,
-            "title": "Child Status"
+            "title": "Children"
         },
         {
             "step": 4,
@@ -144,8 +144,8 @@ export default function Personal({ auth }) {
     var [pointer, setPointer] = useState(0);
     var [validationErrors, setValidationErrors] = useState({})
     const [selectedDocument, setSelectedDocument] = useState(null);
+    const [formData, setFormData] = useState({});
     var lastPointer = 0;
-
 
     useEffect(() => {
         const savedData = localStorage.getItem('fullData');
@@ -172,247 +172,268 @@ export default function Personal({ auth }) {
         }
     }, []);
 
+    var updateOrCreateProperty = (propertiesAndData) => {
+        const existingIndex = object_status.findIndex(obj =>
+            propertiesAndData.some(prop => obj.hasOwnProperty(prop.name))
+        );
+
+        if (existingIndex !== -1) {
+            propertiesAndData.forEach(prop => {
+                object_status[existingIndex][prop.name] = prop.data;
+            });
+        } else {
+            const newObject = {};
+            propertiesAndData.forEach(prop => {
+                newObject[prop.name] = prop.data;
+            });
+            object_status.push(newObject);
+        }
+    }
     const pushInfo = async function (step) {
-
-
         var object_to_push = {};
+        var propertiesAndData = [];
         var dupFlag = false;
+
+        var checkValidation = (validation) => {
+            setValidationErrors({})
+
+            const errors = validation
+            if (Object.keys(errors).length > 0) {
+                setValidationErrors(errors)
+                console.log(errors)
+                return false;
+            }
+
+            return true;
+        }
+
+
+
 
         switch (step) {
 
             case 0:
-
-                localStorage.removeItem('fullData');
-                localStorage.removeItem('currentPointer');
-                setValidationErrors({})
                 const personalData = getFormData();
 
-                var errors = await validateFormData(personalData);
+                if (checkValidation(validate.formData(personalData))) {
 
-                if (Object.keys(errors).length > 0) {
+                    const dataObj = {
+                        personal: {
+                            ...stepper[step],
+                            ...personalData,
+                            timestamp: Date.now(),
+                        },
+                        owner: personalData.email
+                    };
 
-                    setValidationErrors(errors)
-                    console.log(validationErrors)
-                    return null;
+                    propertiesAndData = [
+                        { name: 'personal', data: dataObj.personal },
+                        { name: 'owner', data: dataObj.owner }
+                    ];
+
+                    updateOrCreateProperty(propertiesAndData);
+
+                    const dataFirstStore = await storeDataObject(dataObj);
+                    currIdObjDB = dataFirstStore.id;
+
+                } else {
+                    return null
                 }
 
-                object_to_push.personal = { ...stepper[step], ...personalData, "timestamp": Date.now() };
-                object_to_push.owner = personalData.email
-                const dataFirstStore = await storeDataObject(object_to_push);
-                currIdObjDB = dataFirstStore.id;
                 break;
             case 1:
+                propertiesAndData = [
+                    { name: 'marriedq', data: { "selection": getMarriedData(), "timestamp": Date.now() } },
+                ];
 
-                object_to_push.marriedq = { "selection": getMarriedData(), "timestamp": Date.now() };
-
+                updateOrCreateProperty(propertiesAndData)
 
                 break;
             case 2:
-                setValidationErrors({})
                 const humanData = getHumanData()
 
-                var errors = await validateAddHumanData(humanData);
+                if (checkValidation(validate.addHumanData(humanData))) {
 
-                if (Object.keys(errors).length > 0) {
+                    propertiesAndData = [
+                        { name: 'married', data: { ...humanData, "timestamp": Date.now() } },
+                    ];
 
-                    setValidationErrors(errors)
-                    console.log(validationErrors)
-                    return null;
+                    updateOrCreateProperty(propertiesAndData)
+                } else {
+                    return null
                 }
 
-
-                object_to_push.married = { ...getHumanData(), "timestamp": Date.now() };
                 break;
-
-
             case 3:
-                object_to_push.kidsq = { "selection": getMarriedData() };
+                propertiesAndData = [
+                    { name: 'kidsq', data: { "selection": getMarriedData() } },
+                ];
 
+                updateOrCreateProperty(propertiesAndData)
 
                 break;
             case 4:
-                setValidationErrors({})
-                if (!dupKids) {
 
+                const kidsData = getChildRelatives()
 
-                    const kidsData = getChildRelatives()
+                if (checkValidation(validate.kids(kidsData))) {
 
-                    var errors = await validate.kids(kidsData);
+                    propertiesAndData = [
+                        { name: 'kids', data: [...kidsData] },
+                    ];
 
-                    if (Object.keys(errors).length > 0) {
-
-                        setValidationErrors(errors)
-                        console.log(validationErrors)
-                        return null;
-                    } else {
-                        object_to_push.kids = { ...getChildRelatives() };
-                    }
-
-                }
-                else {
-                    dupFlag = true;
+                    updateOrCreateProperty(propertiesAndData)
+                } else {
+                    return null
                 }
 
 
-                break;
-
+                break
             case 5:
-                setValidationErrors({})
-                const executorsData = getExecutors()
-                var errors = await validate.executors(executorsData)
-                if (Object.keys(errors).length > 0) {
+                const executorsData = [...getExecutors()];
+                const relativesData = [...getRelatives()];
 
-                    setValidationErrors(errors)
-                    console.log(validationErrors)
-                    return null;
+                if (checkValidation(validate.executors(executorsData))) {
+                    propertiesAndData = [
+                        { name: 'relatives', data: relativesData },
+                        { name: 'executors', data: executorsData }
+                    ];
+
+                    updateOrCreateProperty(propertiesAndData);
                 } else {
-                    object_to_push.relatives = { ...getRelatives() };
-                    object_to_push.executors = { ...getExecutors() };
+                    return null;
                 }
 
                 break;
+
             case 6:
-
-                setValidationErrors({})
                 const bequestData = getBequestArrObj()
-                var errors = await validate.bequest(bequestData);
-                if (Object.keys(errors).length > 0) {
 
-                    setValidationErrors(errors)
-                    console.log(validationErrors)
-                    return null;
+                if (checkValidation(validate.bequest(bequestData))) {
+                    propertiesAndData = [
+                        { name: 'bequests', data: { ...getBequestArrObj(), "timestamp": Date.now() } },
+                    ];
+
+                    updateOrCreateProperty(propertiesAndData);
                 } else {
-                    object_to_push.bequests = { ...getBequestArrObj(), "timestamp": Date.now() };
+                    return null
                 }
 
                 break;
             case 7:
-                setValidationErrors({})
                 const residueData = getOptObject()
 
-                var errors = await validate.residue(residueData);
-                if (Object.keys(errors).length > 0) {
+                if (checkValidation(validate.residue(residueData))) {
+                    propertiesAndData = [
+                        { name: 'residue', data: { ...getOptObject(), "timestamp": Date.now() } },
+                    ];
 
-                    setValidationErrors(errors)
-                    console.log(validationErrors)
-                    return null;
+                    updateOrCreateProperty(propertiesAndData);
                 } else {
-                    object_to_push.residue = { ...getOptObject(), "timestamp": Date.now() };
+                    return null
                 }
-
 
                 break;
             case 8:
                 const wipeoutData = getWipeoutData()
+                if (checkValidation(validate.wipeout(wipeoutData))) {
+                    propertiesAndData = [
+                        { name: 'wipeout', data: { ...getWipeoutData(), "timestamp": Date.now() } },
+                    ];
 
-                var errors = await validate.wipeout(wipeoutData);
-                if (Object.keys(errors).length > 0) {
-
-                    setValidationErrors(errors)
-                    console.log(validationErrors)
-                    return null;
+                    updateOrCreateProperty(propertiesAndData);
                 } else {
-                    object_to_push.wipeout = { ...getWipeoutData(), "timestamp": Date.now() };
+                    return null
                 }
 
                 break;
             case 9:
-                //DATA
                 const trustingData = getTableData()
+                if (checkValidation(validate.trusting(trustingData))) {
+                    propertiesAndData = [
+                        { name: 'trusting', data: { ...getTableData(), "timestamp": Date.now() } },
+                    ];
 
-                var errors = await validate.trusting(trustingData);
-                if (Object.keys(errors).length > 0) {
-
-                    setValidationErrors(errors)
-                    console.log(validationErrors)
-                    return null;
+                    updateOrCreateProperty(propertiesAndData);
                 } else {
-                    object_to_push.trusting = { ...getTableData(), "timestamp": Date.now() };
+                    return null
                 }
 
                 break;
             case 10:
-
                 const guardiansData = getGuardiansForMinors()
+                if (checkValidation(validate.guardians(guardiansData))) {
+                    propertiesAndData = [
+                        { name: 'guardians', data: { ...getGuardiansForMinors(), "timestamp": Date.now() } },
+                    ];
 
-                var errors = await validate.guardians(guardiansData);
-                if (Object.keys(errors).length > 0) {
-                    setValidationErrors(errors)
-                    console.log(validationErrors)
-                    return null;
+                    updateOrCreateProperty(propertiesAndData);
                 } else {
-                    object_to_push.guardians = { ...getGuardiansForMinors(), "timestamp": Date.now() }
+                    return null
                 }
+
                 break;
             case 11:
 
                 const petsData = getPetInfo()
+                if (checkValidation(validate.pets(petsData))) {
+                    propertiesAndData = [
+                        { name: 'pets', data: { ...getPetInfo(), "timestamp": Date.now() } },
+                    ];
 
-                var errors = await validate.pets(petsData);
-                if (Object.keys(errors).length > 0) {
-                    setValidationErrors(errors)
-                    console.log(validationErrors)
-                    return null;
+                    updateOrCreateProperty(propertiesAndData);
                 } else {
-                    object_to_push.pets = { ...getPetInfo(), "timestamp": Date.now() };
+                    return null
                 }
 
-
                 break;
-
             case 12:
-
                 const additionalData = getAdditionalInformation()
+                if (checkValidation(validate.additional(additionalData))) {
+                    propertiesAndData = [
+                        { name: 'additional', data: { ...getAdditionalInformation(), "timestamp": Date.now() } },
+                    ];
 
-                var errors = await validate.additional(additionalData);
-                console.log('data', additionalData)
-                if (Object.keys(errors).length > 0) {
-                    setValidationErrors(errors)
-                    console.log(validationErrors)
-                    return null;
+                    updateOrCreateProperty(propertiesAndData);
                 } else {
-                    object_to_push.additional = { ...getAdditionalInformation(), "timestamp": Date.now() };
+                    return null
                 }
 
                 break;
             case 13:
-
-
                 const poaData = getPoa()
+                if (checkValidation(validate.poa(poaData))) {
+                    propertiesAndData = [
+                        { name: 'poa', data: { ...getPoa(), "timestamp": Date.now() } },
+                    ];
 
-                var errors = await validate.poa(poaData);
-                if (Object.keys(errors).length > 0) {
-                    setValidationErrors(errors)
-                    console.log(validationErrors)
-                    return null;
+                    updateOrCreateProperty(propertiesAndData);
                 } else {
-                    object_to_push.poa = { ...getPoa(), "timestamp": Date.now() }
-
+                    return null
                 }
 
                 break;
             case 14:
-                object_to_push.finalDetails = { ...getFinalDetails(), "timestamp": Date.now() }
+                propertiesAndData = [
+                    { name: 'finalDetails', data: { ...getFinalDetails(), "timestamp": Date.now() } },
+                ];
+
+                updateOrCreateProperty(propertiesAndData);
+
                 break;
             case 15:
-
                 const documentDOMData = getDocumentDOMInfo()
+                if (checkValidation(validate.documentDOM(documentDOMData))) {
+                    propertiesAndData = [
+                        { name: 'documentDOM', data: { ...getDocumentDOMInfo(), "timestamp": Date.now() } },
+                    ];
 
-                var errors = await validate.documentDOM(documentDOMData);
-                if (Object.keys(errors).length > 0) {
-                    setValidationErrors(errors)
-                    console.log(validationErrors)
-                    return null;
+                    updateOrCreateProperty(propertiesAndData);
                 } else {
-                    object_to_push.documentDOM = { ...getDocumentDOMInfo(), "timestamp": Date.now() }
-
+                    return null
                 }
 
-
                 break;
-
-
-
 
             default:
                 break;
@@ -420,7 +441,10 @@ export default function Personal({ auth }) {
         objectState = object_status;
         const objectStateFreezed = JSON.parse(JSON.stringify(object_status));
         if (!dupFlag) {
-            object_status.push(object_to_push);
+            //will remove this soon as is useless
+            if (step !== 1 && step !== 2 && step !== 4) { // Avoid pushing duplicate data
+                //object_status.push(object_to_push);
+            }
             if (step != 0) {
                 updateDataObject(object_status, currIdObjDB);
 
@@ -469,27 +493,27 @@ export default function Personal({ auth }) {
             return false;
         }
 
-        const marriedqObject = objectStatus.find(obj => obj.marriedq !== undefined && (obj.marriedq.selection === "false" || obj.marriedq.selection === ""));
-        const kidsqObject = objectStatus.find(obj => obj.kidsq !== undefined && (obj.kidsq.selection === "false" || obj.kidsq.selection === ""));
-        try {// Encuentra el objeto que contiene 'marriedq' con la selección deseada
+        const noSpuse = objectStatus.find(obj => obj.marriedq !== undefined && (obj.marriedq.selection === "false" || obj.marriedq.selection === ""));
+        const noKids = objectStatus.find(obj => obj.kidsq !== undefined && (obj.kidsq.selection === "false" || obj.kidsq.selection === ""));
+        if (pointer === 1 && noSpuse) {
+            const propertiesAndData = [
+                { name: 'married', data: { ...{}, "timestamp": Date.now() } },
+            ];
 
+            updateOrCreateProperty(propertiesAndData);
 
-            if (pointer === 1 && marriedqObject) {
-                pushMarried()
-                nextStep = 3; // Saltar a la pregunta sobre hijos
-                setPointer(3);
-            }
+            nextStep = 3
+            setPointer(3)
+        }
+        if (pointer === 3 && noKids) {
+            const propertiesAndData = [
+                { name: 'kids', data: [...[]] },
+            ];
 
+            updateOrCreateProperty(propertiesAndData);
 
-            // Skip children information if no kids
-            if (pointer === 3 && kidsqObject) {
-                pushKid()
-                nextStep = 5; // Skip to executors step
-                setPointer(5)
-            }
-
-        } catch (error) {
-            console.error("Error in nextStep:", error);
+            nextStep = 5
+            setPointer(5)
         }
 
         console.log("nb." + nextStep);
@@ -523,18 +547,29 @@ export default function Personal({ auth }) {
         console.log("ab." + nextStep);
         console.log("pointer --" + pointer);
 
+        const objectStatus = JSON.parse(localStorage.getItem('fullData'));
+        const noSpuse = objectStatus.find(obj => obj.marriedq !== undefined && (obj.marriedq.selection === "false" || obj.marriedq.selection === ""));
+        const noKids = objectStatus.find(obj => obj.kidsq !== undefined && (obj.kidsq.selection === "false" || obj.kidsq.selection === ""));
+
+        if (pointer === 3 && noSpuse) {
+
+            nextStep = 1
+            setPointer(1)
+        }
+        if (pointer === 5 && noKids) {
+
+            nextStep = 3
+            setPointer(3)
+        }
         if (pointer === 17 || pointer === 18 || pointer === 19) {
             setValidationErrors({})
             // If we're viewing a specific document, go back to document selection
-
 
             const newDocumentDOM = { ...getDocumentDOMInfo(), "timestamp": Date.now() };
 
             var documentDOMData = getDocumentDOMInfo();
 
             if (pointer === 18) {
-
-
                 // Check if POA1 exists in the object_status
                 const poa1Exists = documentDOMData?.hasOwnProperty('POA1');
                 if (!poa1Exists) {
@@ -545,8 +580,6 @@ export default function Personal({ auth }) {
             }
 
             if (pointer === 19) {
-
-
                 // Check if POA1 exists in the object_status
                 const poa2Exists = documentDOMData?.hasOwnProperty('POA2');
                 if (!poa2Exists) {
@@ -578,38 +611,21 @@ export default function Personal({ auth }) {
                 setSelectedDocument(null);
                 setPointer(16);
                 return true;
-
             }
-
-
         }
 
-
-        const objectStatus = popInfo();
+        // Instead of popping the last item, we'll keep it
+        // const objectStatus = popInfo();
         var dupFlag = true;
-
-        try {
-
-            if (pointer === 3) {
-                nextStep = 1
-                setPointer(1)
-                popInfo();
-            }
-            if (pointer === 5) {
-                nextStep = 3;
-                setPointer(3)
-
-                popInfo();
-            }
-        } catch (error) {
-            // Handle or log error if needed
-        }
 
         console.log("bb." + nextStep);
 
         setPointer(nextStep);
         localStorage.setItem('currentPointer', nextStep.toString());
 
+        // Update the UI to reflect the data from the previous step
+        // This assumes you have a state variable to hold form data
+        // setFormData(object_status[nextStep] || {});
 
         return true;
     }
@@ -650,11 +666,15 @@ export default function Personal({ auth }) {
             });
             return;
         }
+
         object_status = [];
         objectState = [];
         dupMarried = false;
         dupKids = false;
+        localStorage.removeItem('currIdObjDB');
+        localStorage.removeItem('currentPointer');
         localStorage.removeItem('fullData');
+        localStorage.removeItem('formValues');
         router.get(route('dashboard'));
     }
 
@@ -681,7 +701,10 @@ export default function Personal({ auth }) {
                         }
                         {
                             pointer == 2 ?
-                                <AddHuman married={true} errors={validationErrors} />
+                                <AddHuman
+                                    married={true}
+                                    errors={validationErrors}
+                                />
                                 :
                                 null
                         }
@@ -693,11 +716,9 @@ export default function Personal({ auth }) {
                         }
                         {
                             pointer == 4 ?
-                                <><AddRelative relative={"children"} datas={object_status} errors={validationErrors} /></>
+                                <AddRelative relative={"children"} errors={validationErrors} datas={object_status} />
                                 :
                                 null
-
-
                         }
                         {
                             pointer == 5 ?

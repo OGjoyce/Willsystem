@@ -1,145 +1,124 @@
-
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
-import { useState, useEffect } from 'react'
-import { Dialog } from '@headlessui/react'
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
-
-import { Fragment } from 'react'
-import { Listbox, Transition } from '@headlessui/react'
+import { useState, useEffect } from 'react';
+import { Dialog } from '@headlessui/react';
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Fragment } from 'react';
+import { Listbox, Transition } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import Form from 'react-bootstrap/Form';
-
 import Table from 'react-bootstrap/Table';
 import Button from 'react-bootstrap/Button';
 import Collapse from 'react-bootstrap/Collapse';
 
-var selected_value = "";
+// Create a ref to hold the tableData array
+const tableDataRef = { current: [] };
 
-var tableData = [];
-var pointer = 1;
-var sharescounter = 0;
 export function getTableData() {
-    return tableData;
+    return tableDataRef.current;
 }
+
 function Trusting({ datas, errors }) {
+    const [localTableData, setLocalTableData] = useState([]);
+    const [localPointer, setLocalPointer] = useState(1);
+    const [localSharescounter, setLocalSharescounter] = useState(0);
+    const [validationErrors, setValidationErrors] = useState(errors);
+    const [age, setAge] = useState('');
+    const [shares, setShares] = useState('');
 
-    const [open, setOpen] = useState(false);
-    const [validationErrors, setValidationErrors] = useState(errors)
-    var [objStats, setObjStats] = useState({});
-
+    // Initialize table data from localStorage on component mount
     useEffect(() => {
-        setValidationErrors(errors)
-    }, [errors])
+        const formValues = localStorage.getItem('formValues');
+        if (formValues) {
+            const parsedFormValues = JSON.parse(formValues);
+            if (parsedFormValues.trusting) {
+                const parsedData = parsedFormValues.trusting;
+                setLocalTableData(parsedData);
+                tableDataRef.current = parsedData; // Update ref
+                setLocalPointer(parsedData.length ? parsedData[parsedData.length - 1].id + 1 : 1);
+                const totalShares = parsedData.reduce((acc, item) => acc + parseFloat(item.shares), 0);
+                setLocalSharescounter(totalShares);
+            }
+        }
+    }, []);
+
+    // Update localStorage whenever localTableData changes
+    useEffect(() => {
+        const formValues = localStorage.getItem('formValues') ? JSON.parse(localStorage.getItem('formValues')) : {};
+        formValues.trusting = localTableData;
+        localStorage.setItem('formValues', JSON.stringify(formValues));
+        tableDataRef.current = localTableData; // Update ref
+    }, [localTableData]);
 
     const handleAdd = () => {
-        setValidationErrors({})
-        const age = document.getElementById('age').value;
-        const shares = document.getElementById('shares').value;
-        var floatshares = parseFloat(shares);
-        var flag = false;
+        setValidationErrors({});
+        const floatShares = parseFloat(shares);
+        let flag = false;
 
-
-        if (!age || age > 100 || age === null || age === 0) {
-            setValidationErrors({ age: 'A valid age is required' })
-            return null
+        // Validate age
+        if (!age || age > 100 || age <= 0) {
+            setValidationErrors(prevErrors => ({ ...prevErrors, age: 'A valid age is required' }));
+            return;
         }
 
-        if (!shares || shares === 0 || shares > 100) {
-            setValidationErrors({ shares: 'Valid percent is required for shares' })
-            return null
+        // Validate shares
+        if (!shares || shares <= 0 || shares > 100) {
+            setValidationErrors(prevErrors => ({ ...prevErrors, shares: 'Valid percent is required for shares' }));
+            return;
         }
 
+        // Check if the age already exists
+        const addedAge = localTableData.filter(i => i.age === age);
 
-
-
-
-
-
-
-        const addedAge = tableData?.length > 0
-            ? tableData.filter(i => i.age === age)
-            : null
-
-        if (addedAge !== null && addedAge.length > 0) {
-            setValidationErrors({ age: 'Age already set, delete the anterior selection or change the actual age to proceed ' })
-            flag = true
-            return null
-        } else {
-
-            var obj = {
-                "id": pointer,
-                "age": age,
-                "shares": shares
-            }
-
-            if (floatshares > 100) {
-
-            }
-            else if (floatshares == 100) {
-                if (sharescounter == 0) {
-                    sharescounter += floatshares;
-                }
-            }
-            else if (floatshares <= 100) {
-                if ((sharescounter + floatshares) <= 100) {
-                    sharescounter += floatshares;
-                } else if (sharescounter > 100) {
-                    setValidationErrors({ shares: `Cannot add ${shares}%. Current total is ${sharescounter}%. The sum cannot exceed 100%.` })
-                    return null;
-                }
-                else {
-                    setValidationErrors({ shares: `Cannot add ${shares}%. Current total is ${sharescounter}%. The sum cannot exceed 100%.` })
-                    return null
-                }
-
-            }
-
-
-            if (!flag) {
-                tableData.push(obj);
-                setObjStats(obj);
-                pointer++;
-            }
-
-
+        if (addedAge.length > 0) {
+            setValidationErrors(prevErrors => ({ ...prevErrors, age: 'Age already set, delete the previous selection or change the age to proceed' }));
+            return;
         }
 
+        // Check if shares exceed 100%
+        if ((localSharescounter + floatShares) > 100) {
+            setValidationErrors(prevErrors => ({ ...prevErrors, shares: `Cannot add ${shares}%. Current total is ${localSharescounter}%. The sum cannot exceed 100%` }));
+            return;
+        }
 
+        const newEntry = {
+            id: localPointer,
+            age: age,
+            shares: shares
+        };
 
-
-    }
+        setLocalTableData(prevData => [...prevData, newEntry]);
+        setLocalPointer(prevPointer => prevPointer + 1);
+        setLocalSharescounter(prevCounter => prevCounter + floatShares);
+        setAge('');
+        setShares('');
+    };
 
     const handleDelete = (itemid) => {
-        tableData = tableData.filter(obj => obj.id !== itemid);
-        var sumador = 0;
-        for (const key in tableData) {
-            const value = parseFloat(tableData[key].shares);
-            sumador += value;
-        }
+        const newData = localTableData.filter(obj => obj.id !== itemid);
+        const totalShares = newData.reduce((acc, item) => acc + parseFloat(item.shares), 0);
 
-        sharescounter = sumador;
-        var obj = tableData;
-        setObjStats(obj);
+        setLocalTableData(newData);
+        setLocalSharescounter(totalShares);
+        setLocalPointer(prevPointer => prevPointer - 1);
+    };
 
-
-        pointer--;
-
-    }
     return (
-        <><h1>Testamentary Trust</h1><p> Designate amounts recived by minors and ages</p><p>! Remember that the sum of the shares should be equal to 100%, see table below</p>
+        <>
+            <h1>Testamentary Trust</h1>
+            <p>Designate amounts received by minors and ages</p>
+            <p>! Remember that the sum of the shares should be equal to 100%, see the table below</p>
             <Form>
                 <Form.Group controlId="age">
                     <Form.Label>Age</Form.Label>
-                    <Form.Control type="number" />
+                    <Form.Control type="number" value={age} onChange={(e) => setAge(e.target.value)} />
                     {validationErrors.age && <p className="mt-2 text-sm text-red-600">{validationErrors.age}</p>}
                 </Form.Group>
                 <Form.Group controlId="shares">
                     <Form.Label>Shares %</Form.Label>
-                    <Form.Control type="number" />
+                    <Form.Control type="number" value={shares} onChange={(e) => setShares(e.target.value)} />
                     {validationErrors.shares && <p className="mt-2 text-sm text-red-600">{validationErrors.shares}</p>}
                 </Form.Group>
-
             </Form>
             <Button variant="success" size="sm" onClick={handleAdd}>Add new Share</Button>
             <div id="example-collapse-text">
@@ -154,14 +133,12 @@ function Trusting({ datas, errors }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {tableData.length === 0 ? (
+                        {localTableData.length === 0 ? (
                             <tr>
-                                <td colSpan="4">
-                                    No information added yet, press "Add New Share" to add.
-                                </td>
+                                <td colSpan="4">No information added yet, press "Add New Share" to add.</td>
                             </tr>
                         ) : (
-                            tableData.map((item, index) => (
+                            localTableData.map((item, index) => (
                                 <tr key={index}>
                                     <td>{item.id}</td>
                                     <td>{item.age}</td>
@@ -176,16 +153,10 @@ function Trusting({ datas, errors }) {
                 </Table>
             </div>
             <div>
-                <p><b><u>Total: {sharescounter} </u></b></p>
+                <p><b><u>Total: {localSharescounter} %</u></b></p>
             </div>
         </>
-
-
-
-
-
-
-
     );
 }
+
 export default Trusting;

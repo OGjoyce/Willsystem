@@ -37,13 +37,31 @@ function Additional({ datas, errors }) {
         setValidationErrors(errors)
     }, [errors])
 
+    useEffect(() => {
+        // Cargar datos del localStorage al iniciar
+        const storedFormValues = JSON.parse(localStorage.getItem('formValues')) || {};
+        if (storedFormValues.additional) {
+            additionalInfo.additional = storedFormValues.additional;
+            setCheckedState(prevState => ({
+                ...prevState,
+                blendedFamily: additionalInfo.additional.blendedFamily || false
+            }));
+        }
+    }, []);
+
+    const updateLocalStorage = () => {
+        const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
+        formValues.additional = additionalInfo.additional;
+        localStorage.setItem('formValues', JSON.stringify(formValues));
+    };
+
+
     const handleCheckboxChange = (event) => {
         const { name, checked } = event.target;
         setCheckedState(prevState => {
             const newState = { ...prevState, [name]: checked };
-            additionalInfo.additional[Object.keys(additionalInfo.additional).length] = {
-                [name]: checked
-            };
+            additionalInfo.additional[name] = checked;
+            updateLocalStorage();
             return newState;
         });
     };
@@ -58,7 +76,18 @@ function Additional({ datas, errors }) {
                 Master: dataPointer2 === 0 ? "standard" : dataPointer2 === 1 ? "custom" : dataPointer2 === 3 ? "otherWishes" : "",
                 ...obj
             };
-            additionalInfo.additional[Object.keys(additionalInfo.additional).length] = newObj;
+
+            // Eliminar la cláusula opuesta si existe
+            if (newObj.Master === "standard" || newObj.Master === "custom") {
+                delete additionalInfo.additional.custom;
+                delete additionalInfo.additional.standard;
+
+            }
+
+            // Actualizar o agregar la nueva información
+            delete additionalInfo.additional.temp_custom
+            additionalInfo.additional[newObj.Master] = newObj;
+            updateLocalStorage();
         }
     }
 
@@ -115,7 +144,7 @@ function Additional({ datas, errors }) {
             ) : dataPointer2 == 0 ? (
                 <OrganDonation callFunction={callFunction} />
             ) : dataPointer2 == 1 ? (
-                <ClauseArea callFunction={callFunction} />
+                <ClauseArea callFunction={callFunction} clause="custom" />
             ) : dataPointer2 == 3 ? (
                 <OtherWishes callFunction={callFunction} clause={"other"} />
             ) : null}

@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Fragment } from 'react';
@@ -14,8 +14,30 @@ export function getMarriedData() {
 }
 
 function Married({ humanSelector }) {
-    const [selected, setSelected] = useState("false"); // "No estoy casado" por defecto
+    const [selected, setSelected] = useState(() => {
+        const key = 'formValues';
+        const savedValues = localStorage.getItem(key);
+        const parsedValues = savedValues ? JSON.parse(savedValues) : {};
+        if (humanSelector === "spouse") {
+            return parsedValues.marriedq || "false";
+        } else if (humanSelector === "children") {
+            return parsedValues.kidsq || "false";
+        } else {
+            return "false";
+        }
+    });
 
+    useEffect(() => {
+        const key = 'formValues';
+        const savedValues = localStorage.getItem(key);
+        const parsedValues = savedValues ? JSON.parse(savedValues) : {};
+        if (humanSelector === "spouse") {
+            parsedValues.marriedq = selected;
+        } else if (humanSelector === "children") {
+            parsedValues.kidsq = selected;
+        }
+        localStorage.setItem(key, JSON.stringify(parsedValues));
+    }, [selected, humanSelector]);
     const handleOptionChange = (e) => {
         const { value } = e.target;
         setSelected(value);
