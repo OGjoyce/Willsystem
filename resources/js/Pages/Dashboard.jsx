@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
-import { Container, Row, Col, Card, Button } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Spinner } from 'react-bootstrap';
 import styled from 'styled-components';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import CustomToast from '@/Components/CustomToast';
@@ -25,18 +25,16 @@ const CustomCard = styled(Card)`
   }
 `;
 
-const CardImg = styled(Card.Img)`
-  object-fit: fill;
-  height: 100%; 
-  width: 50%;
-  transition: transform 0.2s ease;
+const IconWrapper = styled.div`
+  font-size: 4rem; /* Adjust size as needed */
   margin: auto;
-  margin-top: 24px;
-  
+  margin-bottom: 1rem;
+  color: #002C42;
+  transition: transform 0.2s ease, color 0.2s ease;
+
   ${CustomCard}:hover & {
-    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
-    transform: scale(1.3);
-  
+    transform: scale(1.1);
+    color: #004060;
   }
 `;
 
@@ -48,6 +46,7 @@ const CardBody = styled(Card.Body)`
 `;
 
 const CardTitle = styled(Card.Title)`
+text-align: center;
   font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 0.75rem;
@@ -63,30 +62,19 @@ const CardText = styled(Card.Text)`
 
 const StyledButton = styled(Button)`
   width: 100%;
-  border: none;
-  background: linear-gradient(45deg, #004060, #006080);
-  color: white;
+  border: 2px solid #004060; /* Outline button */
+  background: transparent;
+  color: #004060;
   margin-top: auto;
   padding: 0.75rem;
   font-weight: 600;
   transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
-    background: linear-gradient(45deg, #002C42, #004060);
+    background: #004060;
+    color: white;
     transform: translateY(-2px) scale(1.02);
     box-shadow: 0 8px 24px rgba(0, 44, 66, 0.4);
-  }
-`;
-
-const IconWrapper = styled.div`
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-  color: #002C42;
-  transition: transform 0.2s ease, color 0.2s ease;
-
-  ${CustomCard}:hover & {
-    transform: scale(1.1);
-    color: #004060;
   }
 `;
 
@@ -117,7 +105,31 @@ export default function Dashboard({ auth }) {
                 if (!object_status) {
                     window.location.href = route('view');
                 } else {
-                    setToastMessage(`Recovering data for ${object_status[0].personal.email}`);
+                    setToastMessage(
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            backgroundColor: '#d4edda',
+                            color: '#155724',
+                            border: '1px solid #c3e6cb',
+                            borderRadius: '0.25rem',
+                            padding: '1rem',
+                            boxShadow: '0 0 0.125rem rgba(0,0,0,0.075)',
+                            fontFamily: 'Arial, sans-serif',
+                            fontSize: '1rem',
+                            fontWeight: 'bold',
+                            maxWidth: '400px',
+                            margin: '0 auto'
+                        }}>
+                            <Spinner animation="border" role="status" style={{ marginRight: '0.5rem' }}>
+                                <span className="visually-hidden">Cargando...</span>
+                            </Spinner>
+                            <p style={{ margin: 0 }}>
+                                Recovering data for {object_status[0].personal.email}
+                            </p>
+                        </div>
+                    );
+
                     setToastTitle('Notification');
                     setShowToast(true);
                     setRedirectUrl(url);
@@ -138,6 +150,10 @@ export default function Dashboard({ auth }) {
                 break;
 
             case 'view':
+                localStorage.removeItem('currIdObjDB');
+                localStorage.removeItem('currentPointer');
+                localStorage.removeItem('fullData');
+                localStorage.removeItem('formValues');
                 window.location.href = url;
                 break;
             case 'packages':
@@ -173,7 +189,6 @@ export default function Dashboard({ auth }) {
                         <Row xs={1} md={2} lg={4} className="g-4">
                             <Col>
                                 <CustomCard>
-                                    <CardImg variant="top" src="/images/continue-will.webp" />
                                     <CardBody>
                                         <IconWrapper>
                                             <i className="bi bi-file-earmark-text"></i>
@@ -182,16 +197,13 @@ export default function Dashboard({ auth }) {
                                         <CardText>
                                             Resume your will creation process where you left off.
                                         </CardText>
-                                        <StyledButton onClick={(e) => handleLinkClick(e, route('personal'), "continue-will")}>
-                                            Continue
-                                        </StyledButton>
+                                        <Button onClick={(e) => handleLinkClick(e, route('personal'), "continue-will")} variant="outline-dark">Continue</Button>
                                     </CardBody>
                                 </CustomCard>
                             </Col>
 
                             <Col>
                                 <CustomCard>
-                                    <CardImg variant="top" src="/images/new-will.webp" />
                                     <CardBody>
                                         <IconWrapper>
                                             <i className="bi bi-files"></i>
@@ -200,16 +212,13 @@ export default function Dashboard({ auth }) {
                                         <CardText>
                                             Start a new will and create two Power of Attorney documents.
                                         </CardText>
-                                        <StyledButton onClick={(e) => handleLinkClick(e, route('personal'), "new-will")}>
-                                            Get Started
-                                        </StyledButton>
+                                        <Button onClick={(e) => handleLinkClick(e, route('personal'), "new-will")} variant="outline-dark">Get Started</Button>
                                     </CardBody>
                                 </CustomCard>
                             </Col>
 
                             <Col>
                                 <CustomCard>
-                                    <CardImg variant="top" src="/images/search.webp" />
                                     <CardBody>
                                         <IconWrapper>
                                             <i className="bi bi-search"></i>
@@ -218,16 +227,13 @@ export default function Dashboard({ auth }) {
                                         <CardText>
                                             Quickly locate and access all documents for specific users.
                                         </CardText>
-                                        <StyledButton onClick={(e) => handleLinkClick(e, route('view'), "view")}>
-                                            Search Now
-                                        </StyledButton>
+                                        <Button onClick={(e) => handleLinkClick(e, route('view'), "view")} variant="outline-dark">Search Now</Button>
                                     </CardBody>
                                 </CustomCard>
                             </Col>
 
                             <Col>
                                 <CustomCard>
-                                    <CardImg variant="top" src="/images/packages.webp" />
                                     <CardBody>
                                         <IconWrapper>
                                             <i className="bi bi-box-seam"></i>
@@ -236,9 +242,7 @@ export default function Dashboard({ auth }) {
                                         <CardText>
                                             Explore our comprehensive legal document packages.
                                         </CardText>
-                                        <StyledButton onClick={(e) => handleLinkClick(e, route('packages'), "packages")}>
-                                            View Packages
-                                        </StyledButton>
+                                        <Button onClick={(e) => handleLinkClick(e, route('packages'), "packages")} variant="outline-dark">View Packages</Button>
                                     </CardBody>
                                 </CustomCard>
                             </Col>
