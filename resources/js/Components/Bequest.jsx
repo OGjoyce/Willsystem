@@ -18,7 +18,7 @@ import DropdownButton from 'react-bootstrap/DropdownButton';
 import { Row, Col, DropdownToggle, DropdownMenu, DropdownItem } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Collapse from 'react-bootstrap/Collapse';
-import { validateAddHumanData } from './Validations';
+import { validate } from './Validations';
 
 var all_data = [];
 var identifiers_names = [];
@@ -43,6 +43,13 @@ function Bequest({ id, datas, errors }) {
 
     useEffect(() => {
         setValidationErrors(errors)
+        // Load formValues from localStorage
+        const storedValues = JSON.parse(localStorage.getItem('formValues')) || {};
+        if (storedValues.bequests) {
+            setTable_dataBequest(storedValues.bequests);
+            bequestArrObj = storedValues.bequests;
+            bequestindex = storedValues.bequests.length > 0 ? Math.max(...storedValues.bequests.map(b => b.id)) : 0;
+        }
     }, [errors])
 
     const reviewBequestSum = (index) => {
@@ -58,7 +65,7 @@ function Bequest({ id, datas, errors }) {
 
         if (bequest != "" && (isCustomBequest || (selected != "false" && shares != "" && shares > 0 && shares <= 100))) {
             var obj = {
-                "id": bequestindex += 1,
+                "id": bequestindex + 1,
                 "names": selected,
                 "shares": shares,
                 "bequest": bequest,
@@ -70,11 +77,11 @@ function Bequest({ id, datas, errors }) {
                 setSelectedRecepient("Select other Recepient...");
             }
 
+            let shouldAddBequest = false;
+
             if (isCustomBequest) {
-                table_dataBequest.push(obj);
-                bequestArrObj.push(obj);
+                shouldAddBequest = true;
                 setReadOnly(false);
-                bequestindex += 1;
             } else {
                 var globalSemaphore = globalCounter;
                 globalCounter += Number(shares);
@@ -83,22 +90,32 @@ function Bequest({ id, datas, errors }) {
                     console.log("Amount of shares should be less or equal than 100");
                     globalCounter = globalSemaphore;
                 } else if (globalCounter <= 100) {
+                    shouldAddBequest = true;
                     setReadOnly(true);
                     if (!open) {
                         setOpen(true);
                     }
-                    table_dataBequest.push(obj);
-                    bequestArrObj.push(obj);
 
                     if (globalCounter == 100) {
                         setReadOnly(false);
                         globalCounter = 0;
-                        bequestindex += 1;
                     }
                 }
             }
-            setValidationErrors({})
-            setTable_dataBequest([...table_dataBequest]);
+
+            if (shouldAddBequest) {
+                const updatedBequests = [...table_dataBequest, obj];
+                setTable_dataBequest(updatedBequests);
+                bequestArrObj = updatedBequests;
+                bequestindex += 1;
+
+                setValidationErrors({})
+
+                // Save to localStorage
+                const storedValues = JSON.parse(localStorage.getItem('formValues')) || {};
+                storedValues.bequests = updatedBequests;
+                localStorage.setItem('formValues', JSON.stringify(storedValues));
+            }
         }
     }
 
@@ -140,11 +157,9 @@ function Bequest({ id, datas, errors }) {
     const handleClose = () => {
         const newrelative = getHumanData();
 
-        // Realiza la validación
-        var errors = validateAddHumanData(newrelative);
+        var errors = validate.addHumanData(newrelative);
 
         if (Object.keys(errors).length <= 0) {
-            // Si no hay errores, procede a añadir los datos
 
             const names = newrelative.firstName + " " + newrelative.lastName;
             identifiers_names.push(names);
@@ -157,7 +172,6 @@ function Bequest({ id, datas, errors }) {
             setValidationErrors({});
             setShow(false);
         } else {
-            // Si hay errores, actualiza el estado de los errores
             setValidationErrors(errors);
             console.log(errors)
         }
@@ -174,16 +188,28 @@ function Bequest({ id, datas, errors }) {
     }
 
     const handleDelete = (itemId) => {
-        table_dataBequest = table_dataBequest.filter(obj => obj.id !== itemId);
-        var obj = table_dataBequest;
-        setTable_dataBequest(obj);
-        bequestArrObj = obj
+        // Filter out the deleted item
+        const updatedBequests = table_dataBequest.filter(obj => obj.id !== itemId);
+
+        // Update the state
+        setTable_dataBequest(updatedBequests);
+
+        // Update the global variable
+        bequestArrObj = updatedBequests;
+
+        // Decrease the index
         bequestindex -= 1;
-    }
+
+        // Update localStorage
+        const storedValues = JSON.parse(localStorage.getItem('formValues')) || {};
+        storedValues.bequests = updatedBequests;
+        localStorage.setItem('formValues', JSON.stringify(storedValues));
+    };
 
     all_data = datas;
 
     if (all_data != null && firstRender) {
+        identifiers_names = []
         const married = all_data[2].married;
         const kids = all_data[4].kids;
         const relatives = all_data[5].relatives;
@@ -191,7 +217,7 @@ function Bequest({ id, datas, errors }) {
 
         var dataobj = { married, kids, relatives }
 
-        var married_names = married?.firstName + " " + married?.lastName;
+        var married_names = married?.firstName && married?.lastName ? married?.firstName + " " + married?.lastName : null;
         if (kidsq == "true") {
             var kids_names = kids?.firstName + " " + kids?.lastName;
             for (let child in kids) {

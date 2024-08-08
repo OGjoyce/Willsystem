@@ -5,9 +5,12 @@ import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
-import { Container, Row, Col, Button, Toast } from 'react-bootstrap';
+import { Container, Row, Col, Button, Toast, ToastContainer } from 'react-bootstrap';
+import CustomToast from '../CustomToast'
+
 import Toolbar from './Toolbar'
 import { useReactToPrint } from "react-to-print";
+import { updateDataObject } from '../ObjStatusForm';
 
 import './PDFEditor.css';
 import '@/Components/PDF/Content/content.css';
@@ -109,20 +112,32 @@ export function getDocumentDOMInfo() {
   return updatedObjectStatus[updatedObjectStatus.length - 1]?.documentDOM;
 }
 
+function getDocumentContent(object_status, documentType, version) {
+  return object_status
+    .find(obj => obj.documentDOM && obj.documentDOM[documentType])
+    ?.documentDOM[documentType][version]?.content || null;
+}
 
 
-const PDFEditor = ({ ContentComponent, datas, documentType, errors }) => {
+const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId, version }) => {
   var object_status = datas;
+  var id = backendId
 
-
+  console.log(version)
+  console.log(object_status)
   const [editorContent, setEditorContent] = useState('');
   const [documentVersions, setDocumentVersions] = useState({});
   const [validationErrors, setValidationErrors] = useState(errors)
   const [showToast, setShowToast] = useState(false)
+  const [selectedDOMVersion, setSelectedDOMVersion] = useState(null)
 
   useEffect(() => {
     setValidationErrors(errors)
   }, [errors])
+
+  useEffect(() => {
+    setSelectedDOMVersion(getDocumentContent(object_status, documentType, version))
+  }, [documentType, version, object_status])
 
   const editor = useEditor({
     extensions: [
@@ -161,7 +176,6 @@ const PDFEditor = ({ ContentComponent, datas, documentType, errors }) => {
     };
 
     setDocumentVersions(updatedDocumentVersions);
-
     const lastObjectIndex = object_status.length - 1;
     const updatedLastObject = {
       ...object_status[lastObjectIndex],
@@ -174,9 +188,9 @@ const PDFEditor = ({ ContentComponent, datas, documentType, errors }) => {
     ];
 
     object_status = updatedObjectStatus;
-
+    updateDataObject(updatedObjectStatus, id)
     console.log(`Document ${documentType} saved. Version: v${versionNumber}`);
-    console.log(object_status)
+
   }, [editorContent, documentVersions, documentType, object_status]);
 
   var componentRef = useRef();
@@ -197,7 +211,13 @@ const PDFEditor = ({ ContentComponent, datas, documentType, errors }) => {
   useEffect(() => {
     try {
       const ContentComponentWithRef = React.forwardRef((props, ref) => (
-        <ContentComponent ref={ref} props={{ datas }} />
+        <ContentComponent
+          ref={ref}
+          props={{
+            datas,
+            selectedDOMVersion
+          }}
+        />
       ));
 
       const documentHtml = ReactDOMServer.renderToString(
@@ -249,18 +269,7 @@ const PDFEditor = ({ ContentComponent, datas, documentType, errors }) => {
       </Row>
       <Row className="button-row justify-content-center mt-3 mb-3">
         <Col xs={12} sm={6} md={4} lg={3} className="align-items-center">
-          <Toast show={showToast} onClose={() => { setShowToast(!showToast) }}>
-            <Toast.Header>
-              <img
-                src=""
-                className="rounded me-2"
-                alt=""
-              />
-              <strong className="me-auto">Will System</strong>
-              <small></small>
-            </Toast.Header>
-            <Toast.Body>Your {documentType ? documentType : 'Document'} has been saved Successfully!</Toast.Body>
-          </Toast>
+
         </Col>
       </Row>
 
@@ -269,6 +278,11 @@ const PDFEditor = ({ ContentComponent, datas, documentType, errors }) => {
       <div style={{ display: 'none' }}>
         <PrintComponent ref={componentRef} content={editorContent} />
       </div>
+      <CustomToast
+        show={showToast}
+        onClose={() => setShowToast(false)}
+        message={`Your ${documentType ? documentType : 'Document'} has been saved Successfully!`}
+      />
     </Container>
 
   );

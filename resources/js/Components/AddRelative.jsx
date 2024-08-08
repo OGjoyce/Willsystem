@@ -1,9 +1,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
-import { useState, useEffect } from 'react'
-import { Dialog } from '@headlessui/react'
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
-import { validateAddHumanData } from './Validations';
+import { useState, useEffect } from 'react';
+import { Dialog } from '@headlessui/react';
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { validate } from './Validations';
 import Table from 'react-bootstrap/Table';
 import Button from 'react-bootstrap/Button';
 
@@ -12,75 +12,104 @@ import { getHumanData } from './AddHuman';
 import Modal from 'react-bootstrap/Modal';
 import ResetPassword from '@/Pages/Auth/ResetPassword';
 
-
 let ids = 1;
-var childRelatives
+var childRelatives;
 
-
-function AddRelative({ relative, datas, errors }) {
+function AddRelative({ relative, datas, errors, onDataChange }) {
     const [show, setShow] = useState(false);
-    let [tableData, setTableData] = useState([]);
+    const [tableData, setTableData] = useState(() => {
+        const key = 'formValues';
+        const savedValues = localStorage.getItem(key);
+        const parsedValues = savedValues ? JSON.parse(savedValues) : {};
+        return parsedValues.kids || [];
+    });
     const [validationErrors, setValidationErrors] = useState(errors);
 
     useEffect(() => {
         childRelatives = tableData;
-        console.log(childRelatives)
+        console.log(childRelatives);
     }, [tableData]);
-
 
     useEffect(() => {
         setValidationErrors(errors);
-
     }, [errors]);
 
     const handleCloseNosave = () => {
         setShow(false);
         setValidationErrors({});
-    }
+    };
 
     const handleShow = () => {
         setShow(true);
-    }
+    };
 
     const handleClose = () => {
-
         const modalData = getHumanData("childrens");
 
         // Realiza la validación
-        var errors = validateAddHumanData(modalData);
-        const { email, phone, ...restErrors } = errors
-        errors = restErrors
+        var errors = validate.addHumanData(modalData);
+        const { email, phone, ...restErrors } = errors;
+        errors = restErrors;
+
         if (Object.keys(errors).length <= 0) {
-            // Si no hay errores, procede a añadir los datos
             const newEntry = {
-                "id": ids,
-                "firstName": modalData.firstName,
-                "lastName": modalData.lastName,
-                "relative": modalData.relative,
-                "city": modalData.city,
-                "country": modalData.country,
-                "province": modalData.province
+                id: ids,
+                firstName: modalData.firstName,
+                lastName: modalData.lastName,
+                relative: modalData.relative,
+                city: modalData.city,
+                country: modalData.country,
+                province: modalData.province,
             };
-            setTableData(prevData => [...prevData, newEntry]);
+
+            setTableData((prevData) => {
+                const updatedData = [...prevData, newEntry];
+                const key = 'formValues';
+                const savedValues = localStorage.getItem(key);
+                const parsedValues = savedValues ? JSON.parse(savedValues) : {};
+                parsedValues.kids = updatedData;
+                localStorage.setItem(key, JSON.stringify(parsedValues));
+                return updatedData;
+            });
+
             ids += 1;
             setShow(false);
             setValidationErrors({});
         } else {
-            // Si hay errores, actualiza el estado de los errores
             setValidationErrors(errors);
-            console.log(errors)
+            console.log(errors);
         }
-    }
+    };
 
     const handleDelete = (id) => {
-        setTableData(prevData => prevData.filter(obj => obj.id !== id));
-    }
+        setTableData((prevData) => {
+            const updatedData = prevData.filter((obj) => obj.id !== id);
+
+            // Get formValues from localStorage
+            const key = 'formValues';
+            const savedValues = localStorage.getItem(key);
+            const parsedValues = savedValues ? JSON.parse(savedValues) : {};
+
+            // Update kids in formValues
+            parsedValues.kids = updatedData;
+
+            // Remove the child from executors if present
+            if (parsedValues.executors) {
+                parsedValues.executors = parsedValues.executors.filter(
+                    executor => !(executor.uuid === id && executor.relative === "Child")
+                );
+            }
+
+            localStorage.setItem(key, JSON.stringify(parsedValues));
+            return updatedData;
+        });
+    };
 
     return (
         <>
             <div className="d-grid gap-2">
                 <Button variant="outline-info" size="lg" onClick={handleShow}>
-                    Add more children
+                    Add Child
                 </Button>
 
                 <Table striped bordered hover responsive>
@@ -122,7 +151,7 @@ function AddRelative({ relative, datas, errors }) {
 
             <Modal show={show} onHide={handleCloseNosave}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Add New Child</Modal.Title>
+                    <Modal.Title>Add Child</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <AddHuman childrens={true} errors={validationErrors} />

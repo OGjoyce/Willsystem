@@ -11,8 +11,7 @@ export async function storeDataObject(object) {
             type: "",
         });
         console.log('Data submitted successfully:', response.data);
-        localStorage.setItem('objectStatus', JSON.stringify(object));
-        // Optionally reset form
+
         return response.data;
 
     } catch (err) {
@@ -29,9 +28,8 @@ export async function updateDataObject(object, id) {
             type: "",
         });
         console.log('Data submitted successfully:', response.data);
-        // Update localStorage
-        localStorage.setItem('objectStatus', JSON.stringify(object));
-        // Optionally reset form
+
+
     } catch (err) {
         console.error('Error submitting data:', err);
 
@@ -44,7 +42,6 @@ export async function searchDataByEmail(owner) {
         const response = await axios.get('/api/files/search', { params: { owner } });
         const data = response.data;
 
-        // Función para obtener el objeto más actualizado basado en updated_at
         function getMostUpdatedObject(data) {
             return data.reduce((latest, current) => {
                 return new Date(latest.updated_at) > new Date(current.updated_at) ? latest : current;
