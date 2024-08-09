@@ -400,7 +400,7 @@ function Residue({ id, datas, errors }) {
                     {
                       selected.selectedBeneficiary != null
                         ? <><strong>Selected Beneficiary:</strong> {selected.selectedBeneficiary}</>
-                        : 'Select the beneficiary'
+                        : 'Select beneficiary'
                     }
                   </Dropdown.Toggle>
                   <Dropdown.Menu className={'text-center'} style={{ width: '100%' }}>
@@ -421,7 +421,7 @@ function Residue({ id, datas, errors }) {
                     {
                       selected.selectedBackup != null
                         ? <><strong>Selected Backup:</strong> {selected.selectedBackup}</>
-                        : 'Select the beneficiary'
+                        : 'Select backup'
                     }
                   </Dropdown.Toggle>
                   <Dropdown.Menu className={'text-center'} style={{ width: '100%' }}>
@@ -433,7 +433,7 @@ function Residue({ id, datas, errors }) {
                   </Dropdown.Menu>
                 </Dropdown>
 
-                {validationErrors.identifiers && <p className="mt-2 text-sm text-red-600">{validationErrors.identifiers}</p>}
+                {validationErrors.identifiers && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.identifiers}</p>}
               </Col>
 
             </Row>
@@ -466,7 +466,7 @@ function Residue({ id, datas, errors }) {
                     <Form.Control id="basic-url" aria-describedby="basic-addon3" />
                   </InputGroup>
                 </Form>
-                {validationErrors.shares && <p className="mt-2 text-sm text-red-600">{validationErrors.shares}</p>}
+                {validationErrors.shares && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.shares}</p>}
               </Col>
             </Row>
             <Row>
