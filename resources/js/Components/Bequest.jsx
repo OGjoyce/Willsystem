@@ -604,7 +604,7 @@ function Bequest({ id, datas, errors }) {
                                                 {editingRow === index ? (
                                                     <Form.Control
                                                         as="textarea"
-                                                        rows={3}
+                                                        rows={1}
                                                         value={item.bequest}
                                                         onChange={(e) => handleDropdownSelect(index, 'bequest', e.target.value)}
                                                     />
