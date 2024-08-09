@@ -159,7 +159,7 @@ const View = () => {
                                         </Row>
                                     </Form>
                                     <br />
-                                    <p>Please, search by email of the owner of the will, then search it on the table</p>
+                                    <p class="text-center">Please, search by email of the owner of the will, then search it on the table</p>
                                     <Table striped bordered hover responsive>
                                         <thead>
                                             <tr>

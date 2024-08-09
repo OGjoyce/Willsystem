@@ -342,7 +342,7 @@ function Bequest({ id, datas, errors }) {
                 </Form.Group>
 
                 <Form.Check
-                    className='mb-4'
+                    className='mb-6'
                     type="checkbox"
                     id="custom-bequest-checkbox"
                     label="Custom Bequest"
@@ -351,7 +351,13 @@ function Bequest({ id, datas, errors }) {
                     disabled={isSharedBequest ? true : false}
                     active={isSharedBequest ? true : false}
                 />
-
+                {isCustomBequest && (
+                    <Row>
+                        <Col sm={12}>
+                            <Button style={{ width: "80%", margin: "5%" }} variant="outline-success" onClick={() => addRecepient()} >Add Custom Bequest</Button>
+                        </Col>
+                    </Row>
+                )}
                 {!isCustomBequest && (
                     <>
                         <Row >
