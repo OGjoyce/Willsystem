@@ -476,7 +476,7 @@ function Residue({ id, datas, errors }) {
             </Row>
             <Row>
               <Col sm={12}>
-                <Table striped bordered hover responsive>
+                <Table striped bordered hover responsive style={{ margin: "auto auto 148px auto" }}>
                   <thead>
                     <tr>
                       <th>id</th>
@@ -487,7 +487,7 @@ function Residue({ id, datas, errors }) {
                       <th>Options</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody >
                     {backupBeneficiaryData.length === 0 ? (
                       <tr>
                         <td colSpan="6">
