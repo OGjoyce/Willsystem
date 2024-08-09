@@ -4,7 +4,7 @@ import { Head, usePage } from '@inertiajs/react';
 import { Container, Row, Col, Card } from 'react-bootstrap';
 import styled from 'styled-components';
 import { searchDataByEmail } from '@/Components/ObjStatusForm';
-import object_status from '@/Components/__tests__/maried_with_kids'
+
 
 const StyledCard = styled(Card)`
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
