@@ -99,9 +99,8 @@ function Bequest({ id, datas, errors }) {
         selected = isCustomBequest ? 'NA' : selectedRecepient;
         backup = isCustomBequest ? 'NA' : selectedBackup;
         shares = isCustomBequest || isSpouseFirst ? 100 : document.getElementById('sharesID').value;
-        console.log('selected', selected, 'backup', backup)
 
-        if (bequest === "" || selected === null || backup === null || shares === "" || shares > 100 || shares <= 0) {
+        if (bequest === "" || selected === null || backup === null || shares === "" || shares > 100 || shares <= 0 || selected === backup) {
             let newErrors = {};
 
             if (backup === null) {
@@ -119,7 +118,7 @@ function Bequest({ id, datas, errors }) {
                 newErrors.bequestItem = "Please add a bequest in the section above";
             }
 
-            if (selected !== null && selected === backup) {
+            if (selected !== null && backup !== null && selected === backup) {
                 newErrors.backupSameAsBeneficiary = "Beneficiary and Backup can´t be the same person"
             }
 
@@ -136,7 +135,7 @@ function Bequest({ id, datas, errors }) {
             }
         }
 
-        if (bequest !== "" && (isCustomBequest || (selected !== "false" && shares !== "" && shares > 0 && shares <= 100))) {
+        if (bequest !== "" && (isCustomBequest || (selected !== "false" && shares !== "" && shares > 0 && shares <= 100 && selected !== backup))) {
             var obj = {
                 "id": bequestindex + 1,
                 "names": selected,
@@ -601,7 +600,6 @@ function Bequest({ id, datas, errors }) {
                                                             ))}
                                                             <Dropdown.Divider />
                                                         </Dropdown.Menu>
-                                                        {validationErrors.backupSameAsBeneficiary && <td><p className="mt-2 text-sm text-red-600">{validationErrors.backupSameAsBeneficiary}</p></td>}
                                                     </Dropdown>
                                                 ) : (
                                                     item.backup
