@@ -104,14 +104,14 @@ function Bequest({ id, datas, errors }) {
                         document.getElementById('sharesID').placeholder = `Pending shares for this bequest: ${pendingShares - shares}%`;
                         document.getElementById('sharesID').value = "";
                         document.getElementById('bequestTextArea').value = bequest;
-                        newErrors.sharedBequest = "Please select beneficiary or backup and shares for current bequest";
+                        newErrors.sharedBequest = "Please continue distributing shares for current bequest";
 
                         if (Object.keys(newErrors).length > 0) {
                             setValidationErrors(newErrors);
                         }
                     } else if (pendingShares - shares <= 0) {
-                        document.getElementById('sharesID').placeholder = 100;
                         document.getElementById('sharesID').value = "";
+                        document.getElementById('sharesID').placeholder = 100;
                         document.getElementById('bequestTextArea').value = "";
                         setIsSharedBequest(false)
                         setValidationErrors({})
@@ -233,6 +233,15 @@ function Bequest({ id, datas, errors }) {
         setShow(true);
     };
 
+    //Manage event on table dropdowns
+    const handleSelect = (selectedItem) => {
+        setSelectedBackup(selectedItem);
+        // Actualiza el valor en tableDataBequest
+        const updatedBequests = [...tableDataBequest];
+        updatedBequests[index].names = selectedItem;
+        setTableDataBequest(updatedBequests);
+    };
+
     const handleDelete = (itemId) => {
         setBequestToDelete(itemId); // Establecer el ID del bequest a eliminar
         setShowDeleteModal(true);
@@ -281,6 +290,13 @@ function Bequest({ id, datas, errors }) {
         setEditingRow(null);
     };
 
+
+    const handleDropdownSelect = (index, key, value) => {
+        const updatedBequests = [...table_dataBequest];
+        updatedBequests[index][key] = value;
+        setTable_dataBequest(updatedBequests);
+    };
+
     const handleCancel = () => {
         // Salir del modo de edición sin guardar cambios
         setEditingRow(null);
@@ -320,17 +336,20 @@ function Bequest({ id, datas, errors }) {
         <>
             <Form>
                 <Form.Group className="mb-3" controlId="bequestTextArea">
-                    <Form.Label>Bequest</Form.Label>
+
+                    <Form.Label style={{ fontWeight: "bold" }}>Bequest:</Form.Label>
                     <Form.Control as="textarea" rows={3} placeholder="(i.e... Gold chain...)" readOnly={readOnly} />
                 </Form.Group>
 
                 <Form.Check
+                    className='mb-4'
                     type="checkbox"
                     id="custom-bequest-checkbox"
                     label="Custom Bequest"
                     checked={isCustomBequest}
                     onChange={(e) => setIsCustomBequest(e.target.checked)}
                     disabled={isSharedBequest ? true : false}
+                    active={isSharedBequest ? true : false}
                 />
 
                 {!isCustomBequest && (
@@ -360,7 +379,7 @@ function Bequest({ id, datas, errors }) {
                         </Row>
                         <Row >
                             <Col sm={12}>
-                                <Dropdown style={{ width: "100%" }} onSelect={setCurrentBackup} >
+                                <Dropdown style={{ width: "100%", marginTop: "12px" }} onSelect={setCurrentBackup} >
                                     <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" caret="true" id="size-dropdown">
                                         {
                                             selectedBackup !== null
@@ -376,36 +395,42 @@ function Bequest({ id, datas, errors }) {
                                 </Dropdown>
                             </Col>
                         </Row>
-                        <Form.Group className="mb-3 text-center" controlId="sharesID">
+                        <Form.Group className="mb-3 text-center mt-12" controlId="sharesID">
                             <Form.Control controlId="sharesInput" className="text-center" type="number" placeholder="100" />
                             {validationErrors.sharedBequest && <p className="mt-2 text-sm text-red-600">{validationErrors.sharedBequest}</p>}
-                            <Form.Label>The total shares should be equal to 100% </Form.Label>
+                            <Form.Label className="text-center"><i class="bi bi-exclamation-circle text-danger mx-2" ></i>The total shares for each bequest, distributed among all recipients, must add up to 100%.</Form.Label>
+                            <Row>
+                                <Col sm={6}>
+                                    <Button style={{ width: "80%", margin: "5%" }} variant="outline-success" onClick={() => addRecepient()} >Add Recepient</Button>
+                                </Col>
+                                <Col sm={6}>
+                                    <Button style={{ width: "80%", margin: "5%" }} variant="outline-info" onClick={() => handleShow()}>Add New Beneficiary</Button>
+                                </Col>
+                            </Row>
+                            <Row>
+                                <Col sm={12}>
+                                    <Button
+                                        onClick={() => setOpen(!open)}
+                                        aria-controls="example-collapse-text"
+                                        aria-expanded={open}
+                                        style={{ width: "80%", margin: "5%" }}
+                                        variant="outline-dark"
+                                    >
+                                        See Bequest information
+                                    </Button>
+                                </Col>
+                            </Row>
                         </Form.Group>
                     </>
                 )}
-                <Row >
-                    <Col sm={6}>
-                        <Button style={{ width: "100%" }} variant="outline-success" onClick={() => addRecepient()} >Add Recepient</Button>
-                    </Col>
-                    <Col sm={6}>
-                        <Button style={{ width: "100%" }} variant="outline-info" onClick={() => handleShow()}>Add New Beneficiary</Button>
-                    </Col>
-                </Row>
+
             </Form>
 
-            <Button
-                onClick={() => setOpen(!open)}
-                aria-controls="example-collapse-text"
-                aria-expanded={open}
-                style={{ width: "80%", margin: "5%" }}
-                variant="outline-dark"
-            >
-                See Bequest information
-            </Button>
+
             {validationErrors.bequest && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.bequest}</p>}
             <Collapse in={open}>
                 <div id="example-collapse-text">
-                    <Table striped bordered hover responsive>
+                    <Table striped bordered hover responsive style={{ margin: "auto auto 148px auto" }}>
                         <thead>
                             <tr>
                                 <th>id</th>
@@ -431,30 +456,38 @@ function Bequest({ id, datas, errors }) {
                                             <td>{item.id}</td>
                                             <td>
                                                 {editingRow === index ? (
-                                                    <Form.Control
-                                                        type="text"
-                                                        value={item.names}
-                                                        onChange={(e) => {
-                                                            const updatedBequests = [...table_dataBequest];
-                                                            updatedBequests[index].names = e.target.value;
-                                                            setTable_dataBequest(updatedBequests);
-                                                        }}
-                                                    />
+                                                    <Dropdown style={{ width: '100%' }} onSelect={(eventKey) => handleDropdownSelect(index, 'names', eventKey)}>
+                                                        <Dropdown.Toggle style={{ width: '100%' }} variant="outline-dark" id={`dropdown-names-${index}`}>
+                                                            {item.names || 'Select Beneficiary'}
+                                                        </Dropdown.Toggle>
+                                                        <Dropdown.Menu className="text-center" style={{ width: '100%' }}>
+                                                            {identifiers_names.map(name => (
+                                                                <Dropdown.Item key={name} eventKey={name}>
+                                                                    {name}
+                                                                </Dropdown.Item>
+                                                            ))}
+                                                            <Dropdown.Divider />
+                                                        </Dropdown.Menu>
+                                                    </Dropdown>
                                                 ) : (
                                                     item.names
                                                 )}
                                             </td>
                                             <td>
                                                 {editingRow === index ? (
-                                                    <Form.Control
-                                                        type="text"
-                                                        value={item.backup}
-                                                        onChange={(e) => {
-                                                            const updatedBequests = [...table_dataBequest];
-                                                            updatedBequests[index].backup = e.target.value;
-                                                            setTable_dataBequest(updatedBequests);
-                                                        }}
-                                                    />
+                                                    <Dropdown style={{ width: '100%' }} onSelect={(eventKey) => handleDropdownSelect(index, 'backup', eventKey)}>
+                                                        <Dropdown.Toggle style={{ width: '100%' }} variant="outline-dark" id={`dropdown-backup-${index}`}>
+                                                            {item.backup || 'Select Backup'}
+                                                        </Dropdown.Toggle>
+                                                        <Dropdown.Menu className="text-center" style={{ width: '100%' }}>
+                                                            {identifiers_names.map(name => (
+                                                                <Dropdown.Item key={name} eventKey={name}>
+                                                                    {name}
+                                                                </Dropdown.Item>
+                                                            ))}
+                                                            <Dropdown.Divider />
+                                                        </Dropdown.Menu>
+                                                    </Dropdown>
                                                 ) : (
                                                     item.backup
                                                 )}
@@ -465,11 +498,7 @@ function Bequest({ id, datas, errors }) {
                                                         as="textarea"
                                                         rows={3}
                                                         value={item.bequest}
-                                                        onChange={(e) => {
-                                                            const updatedBequests = [...table_dataBequest];
-                                                            updatedBequests[index].bequest = e.target.value;
-                                                            setTable_dataBequest(updatedBequests);
-                                                        }}
+                                                        onChange={(e) => handleDropdownSelect(index, 'bequest', e.target.value)}
                                                     />
                                                 ) : (
                                                     item.bequest
@@ -480,11 +509,7 @@ function Bequest({ id, datas, errors }) {
                                                     <Form.Control
                                                         type="number"
                                                         value={item.shares}
-                                                        onChange={(e) => {
-                                                            const updatedBequests = [...table_dataBequest];
-                                                            updatedBequests[index].shares = e.target.value;
-                                                            setTable_dataBequest(updatedBequests);
-                                                        }}
+                                                        onChange={(e) => handleDropdownSelect(index, 'shares', e.target.value)}
                                                     />
                                                 ) : (
                                                     item.shares
@@ -538,7 +563,6 @@ function Bequest({ id, datas, errors }) {
                             }
                         </tbody>
                     </Table>
-
                 </div>
             </Collapse>
 
