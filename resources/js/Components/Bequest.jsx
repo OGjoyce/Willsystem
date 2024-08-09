@@ -118,7 +118,7 @@ function Bequest({ id, datas, errors }) {
                 newErrors.bequestItem = "Please add a bequest in the section above";
             }
 
-            if (selected !== null && backup !== null && selected === backup) {
+            if (!isCustomBequest && selected !== null && backup !== null && selected === backup) {
                 newErrors.backupSameAsBeneficiary = "Beneficiary and Backup can´t be the same person"
             }
 
