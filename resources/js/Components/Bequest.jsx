@@ -119,6 +119,10 @@ function Bequest({ id, datas, errors }) {
                 newErrors.bequestItem = "Please add a bequest in the section above";
             }
 
+            if (selected !== null && selected === backup) {
+                newErrors.backupSameAsBeneficiary = "Beneficiary and Backup can´t be the same person"
+            }
+
             if (shares === "") {
                 newErrors.shares = "Please enter a percentage value for shares"
             }
@@ -309,6 +313,7 @@ function Bequest({ id, datas, errors }) {
         setTimeout(() => {
             setToastMessage('')
         }, 4000)
+
         setShowToast(true)
         if (bequestToDelete !== null) {
             // Filter out the deleted item
@@ -494,6 +499,7 @@ function Bequest({ id, datas, errors }) {
                             </Col>
                         </Row>
                         {validationErrors.beneficiaryAndBackup && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.beneficiaryAndBackup}</p>}
+                        {validationErrors.backupSameAsBeneficiary && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.backupSameAsBeneficiary}</p>}
                         {validationErrors.backup && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.backup}</p>}
                         <Form.Group className="mb-3 text-center mt-12" controlId="sharesID">
                             <Form.Control readOnly={isSpouseFirst} controlId="sharesInput" className="text-center" type="number" placeholder="100" />
@@ -595,6 +601,7 @@ function Bequest({ id, datas, errors }) {
                                                             ))}
                                                             <Dropdown.Divider />
                                                         </Dropdown.Menu>
+                                                        {validationErrors.backupSameAsBeneficiary && <td><p className="mt-2 text-sm text-red-600">{validationErrors.backupSameAsBeneficiary}</p></td>}
                                                     </Dropdown>
                                                 ) : (
                                                     item.backup
