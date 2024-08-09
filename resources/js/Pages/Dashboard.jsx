@@ -4,7 +4,7 @@ import { Link, Head } from '@inertiajs/react';
 import { Container, Row, Col, Card, Button, Spinner } from 'react-bootstrap';
 import styled from 'styled-components';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import CustomToast from '@/Components/CustomToast';
+import CustomToast from '@/Components/AdditionalComponents/CustomToast';
 
 export default function Dashboard({ auth }) {
     const [showToast, setShowToast] = useState(false);
@@ -44,7 +44,7 @@ export default function Dashboard({ auth }) {
                             maxWidth: '400px',
                             margin: '0 auto'
                         }}>
-                            <Spinner animation="border" role="status" style={{ marginRight: '0.5rem' }}>
+                            <Spinner animation="border" role="status" style={{ marginRight: '0.5rem', width: "8px", height: "8px" }}>
                                 <span className="visually-hidden">Cargando...</span>
                             </Spinner>
                             <p style={{ margin: 0 }}>

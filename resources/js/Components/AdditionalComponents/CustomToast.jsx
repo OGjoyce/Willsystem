@@ -30,7 +30,7 @@ const CustomToast = ({ show, onClose, message, title = 'Success' }) => {
                 <Toast
                     show={show}
                     onClose={onClose}
-                    delay={5000}
+                    delay={3000}
                     autohide
                     style={{
                         borderRadius: '8px',

@@ -11,7 +11,7 @@ import Modal from 'react-bootstrap/Modal';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Dropdown from 'react-bootstrap/Dropdown';
 import ConfirmationModal from './AdditionalComponents/ConfirmationModal';
-import CustomToast from './CustomToast';
+import CustomToast from './AdditionalComponents/CustomToast';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import { Row, Col, DropdownToggle, DropdownMenu, DropdownItem } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
@@ -44,8 +44,29 @@ function Bequest({ id, datas, errors }) {
     const [validationErrors, setValidationErrors] = useState({});
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState("")
     const [bequestToDelete, setBequestToDelete] = useState(null);
     const [editingRow, setEditingRow] = useState(null); // Estado para manejar la fila en edición
+
+
+    useEffect(() => {
+        let newErrors = {}
+        const bequest = document.getElementById('bequestTextArea').value
+        if (isCustomBequest) {
+            document.getElementById('bequestTextArea').placeholder = "(e.g., Charitable Donation)"
+        } else {
+            document.getElementById('bequestTextArea').placeholder = "(i.e... Gold Chain)"
+        }
+        if (bequest === "" && isCustomBequest) {
+            newErrors.bequestItem = "Please add a custom bequest in the section above";
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setValidationErrors(newErrors)
+        } else {
+            setValidationErrors({})
+        }
+    }, [isCustomBequest])
 
     useEffect(() => {
         setValidationErrors(errors);
@@ -72,11 +93,44 @@ function Bequest({ id, datas, errors }) {
     };
 
     const addRecepient = () => {
+        setValidationErrors({});
         var bequest, selected, backup, shares;
         bequest = document.getElementById('bequestTextArea').value;
         selected = isCustomBequest ? 'NA' : selectedRecepient;
         backup = isCustomBequest ? 'NA' : selectedBackup;
-        shares = isCustomBequest ? "100%" : document.getElementById('sharesID').value;
+        shares = isCustomBequest || isSpouseFirst ? 100 : document.getElementById('sharesID').value;
+        console.log('selected', selected, 'backup', backup)
+
+        if (bequest === "" || selected === null || backup === null || shares === "" || shares > 100 || shares <= 0) {
+            let newErrors = {};
+
+            if (backup === null) {
+                newErrors.backup = "Backup selection is required";
+            }
+            if (selected === null) {
+                newErrors.beneficiary = "Beneficiary selection is required";
+            }
+            if (selected === null && backup === null) {
+                delete newErrors.beneficiary
+                delete newErrors.backup
+                newErrors.beneficiaryAndBackup = "Beneficiary and Backup are required";
+            }
+            if (bequest === "") {
+                newErrors.bequestItem = "Please add a bequest in the section above";
+            }
+
+            if (shares === "") {
+                newErrors.shares = "Please enter a percentage value for shares"
+            }
+            if (shares > 100 || shares <= 0) {
+                newErrors.shares = "Shares must be a percentage between 1 and 100"
+            }
+
+            if (Object.keys(newErrors).length > 0) {
+                setValidationErrors(newErrors);
+                return null
+            }
+        }
 
         if (bequest !== "" && (isCustomBequest || (selected !== "false" && shares !== "" && shares > 0 && shares <= 100))) {
             var obj = {
@@ -117,10 +171,9 @@ function Bequest({ id, datas, errors }) {
                         setValidationErrors({})
                     }
 
-
                 } else {
                     setValidationErrors({});
-                    document.getElementById('sharesID').values = "";
+                    document.getElementById('sharesID').value = "";
                     document.getElementById('sharesID').placeholder = 100;
                     document.getElementById('bequestTextArea').value = "";
                 }
@@ -157,7 +210,11 @@ function Bequest({ id, datas, errors }) {
                 setTable_dataBequest(updatedBequests);
                 bequestArrObj = updatedBequests;
                 bequestindex += 1;
-
+                setToastMessage(isCustomBequest ? 'Custom bequest added succesfully' : 'Bequest added successfully')
+                setTimeout(() => {
+                    setToastMessage('')
+                }, 4000)
+                setShowToast(true)
                 // Save to localStorage
                 const storedValues = JSON.parse(localStorage.getItem('formValues')) || {};
                 storedValues.bequests = updatedBequests;
@@ -248,6 +305,11 @@ function Bequest({ id, datas, errors }) {
     };
 
     const confirmDelete = () => {
+        setToastMessage('Bequest removed succesfully')
+        setTimeout(() => {
+            setToastMessage('')
+        }, 4000)
+        setShowToast(true)
         if (bequestToDelete !== null) {
             // Filter out the deleted item
             const updatedBequests = table_dataBequest.filter(obj => obj.id !== bequestToDelete);
@@ -286,8 +348,14 @@ function Bequest({ id, datas, errors }) {
         const storedValues = JSON.parse(localStorage.getItem('formValues')) || {};
         storedValues.bequests = updatedBequests;
         localStorage.setItem('formValues', JSON.stringify(storedValues));
-
+        setToastMessage('Bequest updated succesfully')
+        setTimeout(() => {
+            setToastMessage('')
+        }, 4000)
+        setShowToast(true)
         setEditingRow(null);
+
+
     };
 
 
@@ -339,6 +407,7 @@ function Bequest({ id, datas, errors }) {
 
                     <Form.Label style={{ fontWeight: "bold" }}>Bequest:</Form.Label>
                     <Form.Control as="textarea" rows={3} placeholder="(i.e... Gold chain...)" readOnly={readOnly} />
+                    {validationErrors.bequestItem && <p className="mt-2 text-sm text-red-600">{validationErrors.bequestItem}</p>}
                 </Form.Group>
 
                 <Form.Check
@@ -352,11 +421,24 @@ function Bequest({ id, datas, errors }) {
                     active={isSharedBequest ? true : false}
                 />
                 {isCustomBequest && (
-                    <Row>
+                    <>
                         <Col sm={12}>
                             <Button style={{ width: "80%", margin: "5%" }} variant="outline-success" onClick={() => addRecepient()} >Add Custom Bequest</Button>
                         </Col>
-                    </Row>
+                        <Col sm={12}>
+                            <Button
+                                onClick={() => setOpen(!open)}
+                                aria-controls="example-collapse-text"
+                                aria-expanded={open}
+                                style={{ width: "80%", margin: "5%" }}
+                                variant="outline-dark"
+                            >
+                                See Bequest information
+                            </Button>
+                        </Col>
+                    </>
+
+
                 )}
                 {!isCustomBequest && (
                     <>
@@ -366,12 +448,17 @@ function Bequest({ id, datas, errors }) {
                                     <Dropdown.Toggle style={{ width: "100%" }} variant={isSpouseFirst ? "outline-success" : "outline-dark"} caret="true" id="size-dropdown">
                                         {
                                             isSpouseFirst
-                                                ? `Selected Beneficiary: ${selectedRecepient}`
+                                                ? <>
+                                                    <strong>Selected Beneficiary:</strong> {selectedRecepient}
+                                                </>
                                                 : (selectedRecepient !== null
-                                                    ? `Selected Beneficiary: ${selectedRecepient}`
+                                                    ? <>
+                                                        <strong>Selected Beneficiary:</strong> {selectedRecepient}
+                                                    </>
                                                     : "Select Beneficiary"
                                                 )
                                         }
+
                                     </Dropdown.Toggle>
                                     <Dropdown.Menu className={'text-center'} style={{ width: "100%" }}>
                                         <DropdownItem key='spouse-first' eventKey='Spouse First'>Spouse First</DropdownItem>
@@ -383,13 +470,16 @@ function Bequest({ id, datas, errors }) {
                                 </Dropdown>
                             </Col>
                         </Row>
+                        {validationErrors.beneficiary && <p className="mt-2 text-center text-red-600">{validationErrors.beneficiary}</p>}
                         <Row >
                             <Col sm={12}>
                                 <Dropdown style={{ width: "100%", marginTop: "12px" }} onSelect={setCurrentBackup} >
                                     <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" caret="true" id="size-dropdown">
                                         {
                                             selectedBackup !== null
-                                                ? `Selected Backup: ${selectedBackup}`
+                                                ? <>
+                                                    <strong>Selected Backup:</strong> {selectedBackup}
+                                                </>
                                                 : 'Select Bequest Backup'
                                         }
                                     </Dropdown.Toggle>
@@ -401,10 +491,20 @@ function Bequest({ id, datas, errors }) {
                                 </Dropdown>
                             </Col>
                         </Row>
+                        {validationErrors.beneficiaryAndBackup && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.beneficiaryAndBackup}</p>}
+                        {validationErrors.backup && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.backup}</p>}
                         <Form.Group className="mb-3 text-center mt-12" controlId="sharesID">
-                            <Form.Control controlId="sharesInput" className="text-center" type="number" placeholder="100" />
-                            {validationErrors.sharedBequest && <p className="mt-2 text-sm text-red-600">{validationErrors.sharedBequest}</p>}
-                            <Form.Label className="text-center"><i class="bi bi-exclamation-circle text-danger mx-2" ></i>The total shares for each bequest, distributed among all recipients, must add up to 100%.</Form.Label>
+                            <Form.Control readOnly={isSpouseFirst} controlId="sharesInput" className="text-center" type="number" placeholder="100" />
+                            {validationErrors.shares && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.shares}</p>}
+                            {validationErrors.sharedBequest && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.sharedBequest}</p>}
+                            <Form.Label className="text-center">
+                                <i class="bi bi-exclamation-circle text-danger mx-2"></i>
+                                {isSpouseFirst
+                                    ? 'If the bequest is allocated to the spouse first, they receive 100% of it.'
+                                    : 'The total shares for each bequest, distributed among all recipients, must sum to 100%.'
+                                }
+                            </Form.Label>
+
                             <Row>
                                 <Col sm={6}>
                                     <Button style={{ width: "80%", margin: "5%" }} variant="outline-success" onClick={() => addRecepient()} >Add Recepient</Button>
@@ -598,7 +698,7 @@ function Bequest({ id, datas, errors }) {
             <CustomToast
                 show={showToast}
                 onClose={() => setShowToast(false)}
-                message='Do you want to delete this bequest?'
+                message={toastMessage}
             />
         </>
     );

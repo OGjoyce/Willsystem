@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Container, Table, Modal, Form, Row, Col } from 'react-bootstrap';
-import CustomToast from '@/Components/CustomToast';
+import CustomToast from '@/Components/AdditionalComponents/CustomToast';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ConfirmationModal from '@/Components/AdditionalComponents/ConfirmationModal';
 import { Head, Link } from '@inertiajs/react';
