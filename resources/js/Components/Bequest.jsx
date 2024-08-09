@@ -461,7 +461,9 @@ function Bequest({ id, datas, errors }) {
 
                                     </Dropdown.Toggle>
                                     <Dropdown.Menu className={'text-center'} style={{ width: "100%" }}>
-                                        <DropdownItem key='spouse-first' eventKey='Spouse First'>Spouse First</DropdownItem>
+                                        {!isSharedBequest && (
+                                            <DropdownItem key='spouse-first' eventKey='Spouse First'>Spouse First</DropdownItem>
+                                        )}
                                         <Dropdown.Divider />
                                         {identifiers_names.map(size => (
                                             <DropdownItem key={size} eventKey={size}>{size}</DropdownItem>
