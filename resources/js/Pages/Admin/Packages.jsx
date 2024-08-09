@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Container, Table, Modal, Form, Row, Col } from 'react-bootstrap';
-import CustomToast from '@/Components/CustomToast';
+import CustomToast from '@/Components/AdditionalComponents/CustomToast';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import ConfirmationModal from '@/Components/AdditionalComponents/ConfirmationModal';
 import { Head, Link } from '@inertiajs/react';
 import axios from 'axios';
 
@@ -259,20 +260,12 @@ const Packages = () => {
                 </Modal.Body>
             </Modal>
 
-            <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Confirm Delete</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>Are you sure you want to delete this package?</Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
-                        Cancel
-                    </Button>
-                    <Button variant="danger" onClick={handleDelete}>
-                        Delete
-                    </Button>
-                </Modal.Footer>
-            </Modal>
+            <ConfirmationModal
+                show={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={handleDelete}
+                message="Are you sure you want to delete this package?"
+            />
             <CustomToast
                 show={showToast}
                 onClose={() => setShowToast(false)}
