@@ -36,6 +36,7 @@ function Bequest({ id, datas, errors }) {
     const [table_dataBequest, setTable_dataBequest] = useState([]);
     const [selectedRecepient, setSelectedRecepient] = useState(null);
     const [selectedBackup, setSelectedBackup] = useState(null);
+    const [isMarried, setIsMarried] = useState(false)
     const [isSpouseFirst, setIsSpouseFirst] = useState(false);
     const [isCustomBequest, setIsCustomBequest] = useState(false);
     const [isSharedBequest, setIsSharedBequest] = useState(false);
@@ -387,6 +388,7 @@ function Bequest({ id, datas, errors }) {
 
         var married_names = married?.firstName && married?.lastName ? married?.firstName + " " + married?.lastName : null;
 
+        if (married_names !== null) { setIsMarried(true) }
         if (kidsq === "true") {
             var kids_names = kids?.firstName + " " + kids?.lastName;
             for (let child in kids) {
@@ -465,7 +467,7 @@ function Bequest({ id, datas, errors }) {
 
                                     </Dropdown.Toggle>
                                     <Dropdown.Menu className={'text-center'} style={{ width: "100%" }}>
-                                        {!isSharedBequest && (
+                                        {isMarried && !isSharedBequest && (
                                             <DropdownItem key='spouse-first' eventKey='Spouse First'>Spouse First</DropdownItem>
                                         )}
                                         <Dropdown.Divider />
@@ -559,7 +561,7 @@ function Bequest({ id, datas, errors }) {
                             {
                                 table_dataBequest.length === 0 ? (
                                     <tr>
-                                        <td colSpan="7">
+                                        <td className='text-center' colSpan="7">
                                             No information added yet, press "Add Recipient Button" to add.
                                         </td>
                                     </tr>
