@@ -201,7 +201,7 @@ const View = () => {
                                         </tbody>
                                     </Table>
 
-                                    <Row>
+                                    <Row style={{ marginBottom: "24px" }}>
                                         <Col xs={6}>
                                             <Link href={route('dashboard')}>
                                                 <Button variant="outline-success" size="lg" className="w-100">

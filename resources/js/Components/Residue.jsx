@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import Form from 'react-bootstrap/Form';
-import DropdownButton from 'react-bootstrap/DropdownButton';
-import Dropdown from 'react-bootstrap/Dropdown';
 import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import InputGroup from 'react-bootstrap/InputGroup';
-import ButtonGroup from 'react-bootstrap/ButtonGroup';
+import { Dropdown, ButtonGroup, DropdownButton } from 'react-bootstrap';
 import Container from 'react-bootstrap/Container';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
+import ConfirmationModal from './AdditionalComponents/ConfirmationModal';
+import CustomToast from './AdditionalComponents/CustomToast';
+
 
 var identifiers_names = [];
 var all_data;
@@ -56,16 +57,20 @@ function Residue({ id, datas, errors }) {
   const [selected, setSelected] = useState(obj);
   const [validationErrors, setValidationErrors] = useState(errors);
   const [availableShares, setAvailableShares] = useState(100);
+  const [editingRow, setEditingRow] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [residueToDelete, setResidueToDelete] = useState(null);
+
 
   useEffect(() => {
     setValidationErrors(errors);
   }, [errors]);
 
   useEffect(() => {
-    // Recuperar datos del localStorage al cargar el componente
     const savedData = JSON.parse(localStorage.getItem('formValues')) || {};
 
-    // Asignar valores a los estados desde el objeto formValues
     setSelectedCategory(savedData.residue?.selectedCategory || null);
     setSelectedOption(savedData.residue?.selectedOption || null);
     setClauseValue(savedData.residue?.clauseValue || '');
@@ -75,10 +80,9 @@ function Residue({ id, datas, errors }) {
     setAvailableShares(savedData.residue?.availableShares || 100);
 
     if (savedData.residue?.obj) {
-
       obj = savedData.residue.obj;
-      obj.selectedBeneficiary = null
-      obj.selectedBackup = null
+      obj.selectedBeneficiary = null;
+      obj.selectedBackup = null;
       setSelected(obj);
     }
 
@@ -87,11 +91,9 @@ function Residue({ id, datas, errors }) {
       bequestindex = savedData.residue.bequestindex || 1;
     }
 
-    // Actualizar las opciones basadas en la categoría seleccionada
     if (savedData.residue?.selectedCategory === 'Custom Selection') {
       setOptions(['Custom Clause', 'Specific Beneficiaries']);
     } else if (savedData.residue?.selectedCategory === 'Bloodline Selection') {
-      // Aquí mantenemos las opciones de Bloodline Selection
       setOptions(bloodlineOptions);
     }
   }, []);
@@ -105,10 +107,7 @@ function Residue({ id, datas, errors }) {
   }, [selectedCategory, bloodlineOptions]);
 
   useEffect(() => {
-    // Guardar datos en localStorage cada vez que cambien
     const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
-
-    // Crear o actualizar el objeto residue dentro de formValues
     formValues.residue = {
       selectedCategory,
       selectedOption: obj.selectedOption,
@@ -121,7 +120,6 @@ function Residue({ id, datas, errors }) {
       backupBeneficiaryData,
       bequestindex
     };
-
     localStorage.setItem('formValues', JSON.stringify(formValues));
   }, [selectedCategory, obj, clauseValue, custom, specific, table_dataBequest, availableShares]);
 
@@ -149,9 +147,8 @@ function Residue({ id, datas, errors }) {
   }, [marriedStatus, hasKids, sosoStatus, selectedCategory]);
 
   useEffect(() => {
-
     if (firstRender && all_data != null) {
-      identifiers_names = []
+      identifiers_names = [];
       const married = all_data[2].married;
       const kids = all_data[4].kids;
       const relatives = all_data[5].relatives;
@@ -190,13 +187,13 @@ function Residue({ id, datas, errors }) {
     setSelected(obj);
   };
 
-  const handleOptionSelect = (option) => {
+  const handleCheckboxChange = (option) => {
     if (option === 'Custom Clause') {
-      setCustom(true);
+      setCustom(!custom);
       setSpecific(false);
       obj = { ...obj, customClause: clauseValue };
     } else if (option === 'Specific Beneficiaries') {
-      setSpecific(true);
+      setSpecific(!specific);
       setCustom(false);
     } else {
       setCustom(false);
@@ -217,15 +214,6 @@ function Residue({ id, datas, errors }) {
     setSelected(obj);
   };
 
-  const handleDelete = (itemId) => {
-    backupBeneficiaryData = backupBeneficiaryData.filter(obj => obj.id !== itemId);
-    setTable_dataBequest([...backupBeneficiaryData]);
-    bequestindex -= 1;
-    var totalShares = backupBeneficiaryData.length > 0
-      ? 100 - backupBeneficiaryData?.map(backup => backup.shares).reduce((a, b) => a + b)
-      : 100;
-    setAvailableShares(totalShares);
-  };
 
   const AddBackupButton = () => {
     setValidationErrors({});
@@ -285,9 +273,87 @@ function Residue({ id, datas, errors }) {
     obj = { ...obj, selectedBeneficiary: null, selectedBackup: null };
     setSelected(obj);
     document.getElementById('basic-url').value = '';
+    // Show toast notification
+    setToastMessage('Beneficiary added successfully');
+    setShowToast(true);
   };
 
   all_data = datas;
+
+  const handleEdit = (index) => {
+    setEditingRow(index);
+  };
+
+  const handleSave = (index) => {
+    const updatedBackupBeneficiaryData = [...backupBeneficiaryData];
+    setTable_dataBequest(updatedBackupBeneficiaryData);
+    backupBeneficiaryData = updatedBackupBeneficiaryData;
+
+    // Actualizar localStorage
+    const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
+    formValues.residue = {
+      ...formValues.residue,
+      table_dataBequest: updatedBackupBeneficiaryData,
+      backupBeneficiaryData: updatedBackupBeneficiaryData
+    };
+    localStorage.setItem('formValues', JSON.stringify(formValues));
+
+    setToastMessage('Residue updated successfully');
+    setTimeout(() => {
+      setToastMessage('');
+    }, 4000);
+    setShowToast(true);
+    setEditingRow(null);
+  };
+
+  const handleCancel = () => {
+    setEditingRow(null);
+  };
+
+  const handleDelete = (itemId) => {
+    setResidueToDelete(itemId);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = () => {
+    if (residueToDelete !== null) {
+      const updatedBackupBeneficiaryData = backupBeneficiaryData.filter(obj => obj.id !== residueToDelete);
+      setTable_dataBequest(updatedBackupBeneficiaryData);
+      backupBeneficiaryData = updatedBackupBeneficiaryData;
+      bequestindex -= 1;
+
+      const totalShares = updatedBackupBeneficiaryData.length > 0
+        ? 100 - updatedBackupBeneficiaryData.reduce((sum, backup) => sum + backup.shares, 0)
+        : 100;
+      setAvailableShares(totalShares);
+
+      // Actualizar localStorage
+      const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
+      formValues.residue = {
+        ...formValues.residue,
+        table_dataBequest: updatedBackupBeneficiaryData,
+        backupBeneficiaryData: updatedBackupBeneficiaryData,
+        bequestindex,
+        availableShares: totalShares
+      };
+      localStorage.setItem('formValues', JSON.stringify(formValues));
+
+      setToastMessage('Residue removed successfully');
+      setTimeout(() => {
+        setToastMessage('');
+      }, 4000);
+      setShowToast(true);
+      setResidueToDelete(null);
+      setShowDeleteModal(false);
+    }
+  };
+
+  const handleDropdownSelect = (index, key, value) => {
+    const updatedBackupBeneficiaryData = [...backupBeneficiaryData];
+    updatedBackupBeneficiaryData[index][key] = value;
+    setTable_dataBequest(updatedBackupBeneficiaryData);
+    backupBeneficiaryData = updatedBackupBeneficiaryData;
+  };
 
   return (
     <Container>
@@ -295,7 +361,7 @@ function Residue({ id, datas, errors }) {
         <Row>
           <Col sm={12}>
             <Dropdown onSelect={handleCategorySelect} style={{ width: "100%" }}>
-              <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="category-dropdown">
+              <Dropdown.Toggle style={{ width: "100%" }} variant={selectedCategory !== null ? "outline-success" : "outline-dark"} id="category-dropdown">
                 {selectedCategory !== null ? selectedCategory : 'Select Residue'}
               </Dropdown.Toggle>
               <Dropdown.Menu className={'text-center'} style={{ width: "100%" }}>
@@ -306,74 +372,73 @@ function Residue({ id, datas, errors }) {
           </Col>
         </Row>
         {selectedCategory && (
-          <Row>
+          <Row className='mt-12'>
             <Col sm={12}>
-              <Dropdown onSelect={handleOptionSelect} style={{ width: "100%" }}>
-                <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="category-dropdown">
-                  {obj.selectedOption !== null ? obj.selectedOption : 'Select an Option'}
-                </Dropdown.Toggle>
-                <Dropdown.Menu className={'text-center'} style={{ width: "100%" }}>
-                  {options.map((option, index) => (
-                    <Dropdown.Item style={{ width: "100%" }} key={index} eventKey={option}>
-                      {option}
-                    </Dropdown.Item>
-                  ))}
-                </Dropdown.Menu>
-              </Dropdown>
+              <Form>
+                {options.map((option, index) => (
+                  <Form.Check
+                    key={index}
+                    type="checkbox"
+                    label={option}
+                    checked={obj.selectedOption === option}
+                    onChange={() => handleCheckboxChange(option)}
+                    id={`checkbox-${index}`}
+                  />
+                ))}
+              </Form>
             </Col>
           </Row>
         )}
         {specific && (
           <>
-            <Row>
+            <Row className='mt-12 text-center'>
               <Col sm={12}>
                 <p>Please select a beneficiary for the residue following with a backup beneficiary</p>
               </Col>
             </Row>
-            <Row>
+            <Row >
               <Col sm={12}>
-                <Form.Group className="mb-3">
-                  <ButtonGroup style={{ width: '100%' }}>
-                    <DropdownButton
-                      style={{ width: '100%' }}
-                      size="lg"
-                      variant="outline-dark"
-                      id="dropdown-basic-button"
-                      title={selected.selectedBeneficiary != null ? selected.selectedBeneficiary : 'Select the beneficiary'}
-                      onSelect={handleSelectBeneficiary}
-                    >
-                      {identifiers_names.map((option, index) => (
-                        <Dropdown.Item key={index} eventKey={option}>
-                          {option}
-                        </Dropdown.Item>
-                      ))}
-                    </DropdownButton>
-                  </ButtonGroup>
-                </Form.Group>
+                <Dropdown onSelect={handleSelectBeneficiary} style={{ width: '100%' }}>
+                  <Dropdown.Toggle style={{ width: '100%' }} variant="outline-dark" id="dropdown-basic-button">
+                    {
+                      selected.selectedBeneficiary != null
+                        ? <><strong>Selected Beneficiary:</strong> {selected.selectedBeneficiary}</>
+                        : 'Select beneficiary'
+                    }
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu className={'text-center'} style={{ width: '100%' }}>
+                    {identifiers_names.map((option, index) => (
+                      <Dropdown.Item key={index} eventKey={option}>
+                        {option}
+                      </Dropdown.Item>
+                    ))}
+                  </Dropdown.Menu>
+                </Dropdown>
               </Col>
             </Row>
-            <Row>
+            <Row className='mt-3'>
               <Col sm={12}>
-                <Form.Group className="mb-3">
-                  <ButtonGroup style={{ width: '100%' }}>
-                    <DropdownButton
-                      style={{ width: '100%' }}
-                      size="lg"
-                      variant="outline-dark"
-                      id="dropdown-basic-button"
-                      title={selected.selectedBackup != null ? selected.selectedBackup : 'Select the backup beneficiary'}
-                      onSelect={handleSelectBackup}
-                    >
-                      {identifiers_names.map((option, index) => (
-                        <Dropdown.Item key={index} eventKey={option}>
-                          {option}
-                        </Dropdown.Item>
-                      ))}
-                    </DropdownButton>
-                  </ButtonGroup>
-                </Form.Group>
-                {validationErrors.identifiers && <p className="mt-2 text-sm text-red-600">{validationErrors.identifiers}</p>}
+
+                <Dropdown onSelect={handleSelectBackup} style={{ width: '100%' }}>
+                  <Dropdown.Toggle style={{ width: '100%' }} variant="outline-dark" id="dropdown-basic-button">
+                    {
+                      selected.selectedBackup != null
+                        ? <><strong>Selected Backup:</strong> {selected.selectedBackup}</>
+                        : 'Select backup'
+                    }
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu className={'text-center'} style={{ width: '100%' }}>
+                    {identifiers_names.map((option, index) => (
+                      <Dropdown.Item key={index} eventKey={option}>
+                        {option}
+                      </Dropdown.Item>
+                    ))}
+                  </Dropdown.Menu>
+                </Dropdown>
+
+                {validationErrors.identifiers && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.identifiers}</p>}
               </Col>
+
             </Row>
             <Row>
               <Col sm={12}>
@@ -397,14 +462,14 @@ function Residue({ id, datas, errors }) {
                     id="optionB"
                   />
                   {validationErrors.backupType && <p className="mt-2 text-sm text-red-600">{validationErrors.backupType}</p>}
-                  <InputGroup className="mb-3">
+                  <InputGroup className="mt-3 mb-3">
                     <InputGroup.Text id="basic-addon3">
                       Shares for Backup  ( Available: {availableShares}% )
                     </InputGroup.Text>
                     <Form.Control id="basic-url" aria-describedby="basic-addon3" />
                   </InputGroup>
                 </Form>
-                {validationErrors.shares && <p className="mt-2 text-sm text-red-600">{validationErrors.shares}</p>}
+                {validationErrors.shares && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.shares}</p>}
               </Col>
             </Row>
             <Row>
@@ -414,7 +479,7 @@ function Residue({ id, datas, errors }) {
             </Row>
             <Row>
               <Col sm={12}>
-                <Table striped bordered hover responsive>
+                <Table striped bordered hover responsive style={{ margin: "auto auto 148px auto" }}>
                   <thead>
                     <tr>
                       <th>id</th>
@@ -422,10 +487,10 @@ function Residue({ id, datas, errors }) {
                       <th>backup</th>
                       <th>type</th>
                       <th>shares</th>
-                      <th>Delete</th>
+                      <th>Options</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody >
                     {backupBeneficiaryData.length === 0 ? (
                       <tr>
                         <td colSpan="6">
@@ -436,11 +501,75 @@ function Residue({ id, datas, errors }) {
                       backupBeneficiaryData.map((item, index) => (
                         <tr key={index}>
                           <td>{item.id}</td>
-                          <td>{item.beneficiary}</td>
-                          <td>{item.backup}</td>
-                          <td>{item.type}</td>
-                          <td>{item.shares}</td>
-                          <td><Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button></td>
+                          <td>
+                            {editingRow === index ? (
+                              <Dropdown onSelect={(eventKey) => handleDropdownSelect(index, 'beneficiary', eventKey)}>
+                                <Dropdown.Toggle variant="outline-dark" id={`dropdown-beneficiary-${index}`}>
+                                  {item.beneficiary || 'Select Beneficiary'}
+                                </Dropdown.Toggle>
+                                <Dropdown.Menu>
+                                  {identifiers_names.map((name, idx) => (
+                                    <Dropdown.Item key={idx} eventKey={name}>{name}</Dropdown.Item>
+                                  ))}
+                                </Dropdown.Menu>
+                              </Dropdown>
+                            ) : (
+                              item.beneficiary
+                            )}
+                          </td>
+                          <td>
+                            {editingRow === index ? (
+                              <Dropdown onSelect={(eventKey) => handleDropdownSelect(index, 'backup', eventKey)}>
+                                <Dropdown.Toggle variant="outline-dark" id={`dropdown-backup-${index}`}>
+                                  {item.backup || 'Select Backup'}
+                                </Dropdown.Toggle>
+                                <Dropdown.Menu>
+                                  {identifiers_names.map((name, idx) => (
+                                    <Dropdown.Item key={idx} eventKey={name}>{name}</Dropdown.Item>
+                                  ))}
+                                </Dropdown.Menu>
+                              </Dropdown>
+                            ) : (
+                              item.backup
+                            )}
+                          </td>
+                          <td>
+                            {editingRow === index ? (
+                              <Form.Select
+                                value={item.type}
+                                onChange={(e) => handleDropdownSelect(index, 'type', e.target.value)}
+                              >
+                                <option value="per stirpes">per stirpes</option>
+                                <option value="per capita">per capita</option>
+                              </Form.Select>
+                            ) : (
+                              item.type
+                            )}
+                          </td>
+                          <td>
+                            {editingRow === index ? (
+                              <Form.Control
+                                type="number"
+                                value={item.shares}
+                                onChange={(e) => handleDropdownSelect(index, 'shares', Number(e.target.value))}
+                              />
+                            ) : (
+                              item.shares
+                            )}
+                          </td>
+                          <td>
+                            {editingRow === index ? (
+                              <>
+                                <Button variant="success" size="sm" onClick={() => handleSave(index)}>Save</Button>
+                                <Button variant="secondary" size="sm" onClick={handleCancel} className="ml-2">Cancel</Button>
+                              </>
+                            ) : (
+                              <>
+                                <Button variant="warning" size="sm" onClick={() => handleEdit(index)}>Edit</Button>
+                                <Button variant="danger" size="sm" onClick={() => handleDelete(item.id)} className="ml-2">Delete</Button>
+                              </>
+                            )}
+                          </td>
                         </tr>
                       ))
                     )}
@@ -448,10 +577,11 @@ function Residue({ id, datas, errors }) {
                 </Table>
               </Col>
             </Row>
+
           </>
         )}
         {custom && (
-          <Row>
+          <Row className='mt-3'>
             <Col sm={12}>
               <Form>
                 <Form.Group className="mb-3" controlId="customTextArea">
@@ -473,8 +603,21 @@ function Residue({ id, datas, errors }) {
         )}
         {validationErrors.residue && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.residue}</p>}
       </Form>
+      <ConfirmationModal
+        show={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={confirmDelete}
+        message="Are you sure you want to delete this residue?"
+      />
+      <CustomToast
+        show={showToast}
+        onClose={() => setShowToast(false)}
+        message={toastMessage}
+      />
     </Container>
   );
 }
 
-export default Residue;
+export default Residue
+
+
