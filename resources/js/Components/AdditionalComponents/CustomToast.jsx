@@ -1,19 +1,6 @@
 import React from 'react';
 import { Toast, ToastContainer } from 'react-bootstrap';
 
-const slideInAnimation = `
-    @keyframes slideIn {
-        from {
-            transform: translateY(-100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
-    }
-`;
-
 const CustomToast = ({ show, onClose, message, title = 'Success' }) => {
     return (
         <>
@@ -64,7 +51,7 @@ const CustomToast = ({ show, onClose, message, title = 'Success' }) => {
                     </Toast.Body>
                 </Toast>
             </ToastContainer>
-            <style jsx>{slideInAnimation}</style>
+
         </>
     );
 };
