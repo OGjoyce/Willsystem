@@ -273,6 +273,9 @@ function Residue({ id, datas, errors }) {
     obj = { ...obj, selectedBeneficiary: null, selectedBackup: null };
     setSelected(obj);
     document.getElementById('basic-url').value = '';
+    // Show toast notification
+    setToastMessage('Beneficiary added successfully');
+    setShowToast(true);
   };
 
   all_data = datas;

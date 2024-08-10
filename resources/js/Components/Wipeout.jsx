@@ -24,6 +24,7 @@ function Wipeout({ id, datas, errors }) {
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
     const [itemToDelete, setItemToDelete] = useState(null);
+    const [isSpecificBeneficiary, setIsSpecificBeneficiary] = useState(false);
 
     useEffect(() => {
         setValidationErrors(errors);
@@ -88,7 +89,6 @@ function Wipeout({ id, datas, errors }) {
         let newOptions = [
             `${marriedStatus || sosoStatus ? "50% to parents and siblings and 50% to parents and siblings of spouse" : "100% to parents and siblings"}`,
             `${marriedStatus || sosoStatus ? "50% to siblings and 50% to siblings of spouse" : "100% to siblings"}`,
-            'Specific Wipeout Beneficiary'
         ];
 
         setOptions(newOptions);
@@ -97,7 +97,17 @@ function Wipeout({ id, datas, errors }) {
     const handleCategorySelect = (category) => {
         setSelectedCategory(category);
         setValidationErrors({});
-        if (category === 'Specific Wipeout Beneficiary') {
+        setCustom(false);
+        setTable_dataBequest([]);
+        bequestindex = 0;
+        setAvailableShares(100);
+        setSelectedOption(null);
+    };
+
+    const handleCheckboxChange = (e) => {
+        setIsSpecificBeneficiary(e.target.checked);
+        if (e.target.checked) {
+            setSelectedCategory(null);
             setCustom(true);
         } else {
             setCustom(false);
@@ -105,7 +115,6 @@ function Wipeout({ id, datas, errors }) {
             bequestindex = 0;
             setAvailableShares(100);
         }
-        setSelectedOption(null);
     };
 
     const handleAddItem = () => {
@@ -155,6 +164,10 @@ function Wipeout({ id, datas, errors }) {
         document.getElementById("shares").value = "";
         document.getElementById("type").value = "";
         setValidationErrors({});
+
+        // Show toast notification
+        setToastMessage('Wipeout beneficiary added successfully');
+        setShowToast(true);
     };
 
     const handleEdit = (index) => {
@@ -204,10 +217,16 @@ function Wipeout({ id, datas, errors }) {
     return (
         <Container>
             <Form>
+                <Form.Label style={{ marginBottom: "24px", fontWeight: "bold" }}>Wipeout:</Form.Label>
                 <Row>
                     <Col sm={12}>
-                        <Dropdown onSelect={handleCategorySelect} style={{ width: "100%" }}>
-                            <Dropdown.Toggle style={{ width: "100%" }} variant={selectedCategory !== null ? "outline-success" : "outline-dark"} id="category-dropdown">
+                        <Dropdown onSelect={handleCategorySelect} style={{ width: "100%", marginBottom: "10px" }}>
+                            <Dropdown.Toggle
+                                style={{ width: "100%" }}
+                                variant={selectedCategory !== null ? "outline-success" : "outline-dark"}
+                                id="category-dropdown"
+                                disabled={isSpecificBeneficiary}
+                            >
                                 {selectedCategory !== null ? selectedCategory : 'Select Wipeout'}
                             </Dropdown.Toggle>
                             <Dropdown.Menu className={'text-center'} style={{ width: "100%" }}>
@@ -218,9 +237,20 @@ function Wipeout({ id, datas, errors }) {
                         </Dropdown>
                     </Col>
                 </Row>
+                <Row>
+                    <Col sm={12}>
+                        <Form.Check
+                            type="checkbox"
+                            id="specific-beneficiary-checkbox"
+                            label="Specific Wipeout Beneficiary"
+                            checked={isSpecificBeneficiary}
+                            onChange={handleCheckboxChange}
+                        />
+                    </Col>
+                </Row>
             </Form>
 
-            {custom && (
+            {isSpecificBeneficiary && (
                 <>
                     <Form className="mt-3">
                         <Form.Group controlId="beneficiary">
