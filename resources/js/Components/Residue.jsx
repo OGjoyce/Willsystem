@@ -451,7 +451,7 @@ function Residue({ id, datas, errors }) {
               <Col sm={12}>
                 <Form>
                   <OverlayTrigger
-                    placement="bottom"
+                    placement="right"
                     delay={{ show: 250, hide: 400 }}
                     overlay={renderTooltip({ type: 'per stirpes' })}
                   >
@@ -468,7 +468,7 @@ function Residue({ id, datas, errors }) {
                     </div>
                   </OverlayTrigger>
                   <OverlayTrigger
-                    placement="bottom"
+                    placement="right"
                     delay={{ show: 250, hide: 400 }}
                     overlay={renderTooltip({ type: 'per capita' })}
                   >
