@@ -48,7 +48,7 @@ function Bequest({ id, datas, errors }) {
     const [toastMessage, setToastMessage] = useState("")
     const [bequestToDelete, setBequestToDelete] = useState(null);
     const [editingRow, setEditingRow] = useState(null); // Estado para manejar la fila en edición
-
+    const [currentSharedUuid, setCurrentSharedUuid] = useState(1);
 
     useEffect(() => {
         let newErrors = {}
@@ -143,7 +143,8 @@ function Bequest({ id, datas, errors }) {
                 "backup": backup,
                 "shares": shares,
                 "bequest": bequest,
-                "isCustom": isCustomBequest
+                "isCustom": isCustomBequest,
+                "shared_uuid": 0
             };
 
             document.getElementById('bequestTextArea').value = "";
@@ -156,6 +157,7 @@ function Bequest({ id, datas, errors }) {
                 setSelectedBackup(null);
                 let newErrors = {};
                 if (shares < 100) {
+                    obj.shared_uuid = currentSharedUuid
                     setIsSharedBequest(true);
                     setPendingShares(pendingShares - shares);
                     if (pendingShares - shares > 0) {
@@ -171,8 +173,10 @@ function Bequest({ id, datas, errors }) {
                         document.getElementById('sharesID').value = "";
                         document.getElementById('sharesID').placeholder = 100;
                         document.getElementById('bequestTextArea').value = "";
-                        setIsSharedBequest(false)
                         setValidationErrors({})
+                        setIsSharedBequest(false)
+                        setPendingShares(100)
+                        setCurrentSharedUuid(prevValue => prevValue + 1)
                     }
 
                 } else {
