@@ -3,7 +3,7 @@ import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import InputGroup from 'react-bootstrap/InputGroup';
-import { Dropdown, ButtonGroup, DropdownButton } from 'react-bootstrap';
+import { Dropdown, OverlayTrigger, Tooltip, ButtonGroup, DropdownButton } from 'react-bootstrap';
 import Container from 'react-bootstrap/Container';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
@@ -355,6 +355,13 @@ function Residue({ id, datas, errors }) {
     backupBeneficiaryData = updatedBackupBeneficiaryData;
   };
 
+  const renderTooltip = (props) => (
+    <Tooltip id="button-tooltip" {...props}>
+      {props.type === 'per capita' ? 'Distribute shares equally among all beneficiaries.' : 'Distribute shares according to the number of descendants per line.'}
+    </Tooltip>
+  );
+
+
   return (
     <Container>
       <Form>
@@ -443,24 +450,40 @@ function Residue({ id, datas, errors }) {
             <Row>
               <Col sm={12}>
                 <Form>
-                  <Form.Check
-                    type="radio"
-                    label="per stirpes backup"
-                    name="options"
-                    value="A"
-                    checked={selectedOption === 'A'}
-                    onChange={(e) => setSelectedOption(e.target.value)}
-                    id="optionA"
-                  />
-                  <Form.Check
-                    type="radio"
-                    label="per capita backup"
-                    name="options"
-                    value="B"
-                    checked={selectedOption === 'B'}
-                    onChange={(e) => setSelectedOption(e.target.value)}
-                    id="optionB"
-                  />
+                  <OverlayTrigger
+                    placement="bottom"
+                    delay={{ show: 250, hide: 400 }}
+                    overlay={renderTooltip({ type: 'per stirpes' })}
+                  >
+                    <div style={{ width: "174px" }}>
+                      <Form.Check
+                        type="radio"
+                        label="per stirpes backup"
+                        name="options"
+                        value="A"
+                        checked={selectedOption === 'A'}
+                        onChange={(e) => setSelectedOption(e.target.value)}
+                        id="optionA"
+                      />
+                    </div>
+                  </OverlayTrigger>
+                  <OverlayTrigger
+                    placement="bottom"
+                    delay={{ show: 250, hide: 400 }}
+                    overlay={renderTooltip({ type: 'per capita' })}
+                  >
+                    <div style={{ width: "174px" }}>
+                      <Form.Check
+                        type="radio"
+                        label="per capita backup"
+                        name="options"
+                        value="B"
+                        checked={selectedOption === 'B'}
+                        onChange={(e) => setSelectedOption(e.target.value)}
+                        id="optionB"
+                      />
+                    </div>
+                  </OverlayTrigger>
                   {validationErrors.backupType && <p className="mt-2 text-sm text-red-600">{validationErrors.backupType}</p>}
                   <InputGroup className="mt-3 mb-3">
                     <InputGroup.Text id="basic-addon3">
