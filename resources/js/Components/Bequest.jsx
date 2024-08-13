@@ -636,10 +636,11 @@ function Bequest({ id, datas, errors }) {
                                             </td>
                                             <td>{item.isCustom ? 'Yes' : 'No'}</td>
                                             <td>
-                                                <div className="d-flex justify-content-around">
+                                                <div className='d-flex justify-content-around gap-3'>
                                                     {editingRow === index ? (
                                                         <>
                                                             <Button
+                                                                style={{ width: "50%" }}
                                                                 variant="success"
                                                                 size="sm"
                                                                 onClick={() => handleSave(index)}
@@ -647,6 +648,7 @@ function Bequest({ id, datas, errors }) {
                                                                 Save
                                                             </Button>
                                                             <Button
+                                                                style={{ width: "50%" }}
                                                                 variant="secondary"
                                                                 size="sm"
                                                                 onClick={handleCancel}
@@ -658,6 +660,7 @@ function Bequest({ id, datas, errors }) {
                                                     ) : (
                                                         <>
                                                             <Button
+                                                                style={{ width: "50%" }}
                                                                 variant="danger"
                                                                 size="sm"
                                                                 onClick={() => handleDelete(item.id)}
@@ -665,6 +668,7 @@ function Bequest({ id, datas, errors }) {
                                                                 Delete
                                                             </Button>
                                                             <Button
+                                                                style={{ width: "50%" }}
                                                                 variant="warning"
                                                                 size="sm"
                                                                 onClick={() => handleEdit(index)}

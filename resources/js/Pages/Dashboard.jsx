@@ -28,7 +28,7 @@ const CustomCard = styled(Card)`
 `;
 
 const IconWrapper = styled.div`
-  font-size: 3rem; /* Adjust size as needed */
+  font-size: 2.3rem;
   margin: auto;
   margin-bottom: 1rem;
   color: #002C42;
