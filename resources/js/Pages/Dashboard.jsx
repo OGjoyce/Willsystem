@@ -6,6 +6,80 @@ import styled from 'styled-components';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import CustomToast from '@/Components/AdditionalComponents/CustomToast';
 
+// This is a Styled Component, it lets you write CSS in JavaScript
+
+
+const CustomCard = styled(Card)`
+  display: flex;
+  flex-direction: column;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  overflow: hidden;
+  height: 100%;
+  background: #ffffff;
+
+  &:hover {
+    transform: translateY(-10px) rotate(1deg);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15);
+    opacity: 0.9;
+  }
+`;
+
+const IconWrapper = styled.div`
+  font-size: 3rem; /* Adjust size as needed */
+  margin: auto;
+  margin-bottom: 1rem;
+  color: #002C42;
+  transition: transform 0.2s ease, color 0.2s ease;
+
+  ${CustomCard}:hover & {
+    transform: scale(1.1);
+    color: #004060;
+  }
+`;
+
+const CardBody = styled(Card.Body)`
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  background: #f1f5f9;
+`;
+
+const CardTitle = styled(Card.Title)`
+text-align: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: #002C42;
+`;
+
+const CardText = styled(Card.Text)`
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 1.5rem;
+  flex: 1;
+`;
+
+const StyledButton = styled(Button)`
+  width: 100%;
+  border: 2px solid #004060; /* Outline button */
+  background: transparent;
+  color: #004060;
+  margin-top: auto;
+  padding: 0.75rem;
+  font-weight: 600;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    background: #004060;
+    color: white;
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(0, 44, 66, 0.4);
+  }
+`;
+
 export default function Dashboard({ auth }) {
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
@@ -52,6 +126,7 @@ export default function Dashboard({ auth }) {
                             </p>
                         </div>
                     );
+
 
                     setToastTitle('Notification');
                     setShowToast(true);
@@ -108,47 +183,66 @@ export default function Dashboard({ auth }) {
 
             <div className="py-12" style={{ background: '#f1f5f9' }}>
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <Container className="text-center my-5">
+                    <Container>
                         <Row xs={1} md={2} lg={4} className="g-4">
                             <Col>
-                                <Card>
-                                    <Card.Body>
-                                        <i className="bi bi-file-earmark-text"></i>
-                                        <Card.Title>Continue Will</Card.Title>
-                                        <Button className='mt-3' onClick={(e) => handleLinkClick(e, route('personal'), "continue-will")} variant="outline-dark">Continue</Button>
-                                    </Card.Body>
-                                </Card>
+                                <CustomCard>
+                                    <CardBody>
+                                        <IconWrapper>
+                                            <i className="bi bi-file-earmark-text"></i>
+                                        </IconWrapper>
+                                        <CardTitle>Continue Will</CardTitle>
+                                        <CardText>
+                                            Resume your will creation process where you left off.
+                                        </CardText>
+                                        <Button onClick={(e) => handleLinkClick(e, route('personal'), "continue-will")} variant="outline-dark">Continue</Button>
+                                    </CardBody>
+                                </CustomCard>
                             </Col>
 
                             <Col>
-                                <Card>
-                                    <Card.Body>
-                                        <i className="bi bi-files"></i>
-                                        <Card.Title>Create Will + 2 POA</Card.Title>
-                                        <Button className='mt-3' onClick={(e) => handleLinkClick(e, route('personal'), "new-will")} variant="outline-dark">Get Started</Button>
-                                    </Card.Body>
-                                </Card>
+                                <CustomCard>
+                                    <CardBody>
+                                        <IconWrapper>
+                                            <i className="bi bi-files"></i>
+                                        </IconWrapper>
+                                        <CardTitle>Create Will + 2 POA</CardTitle>
+                                        <CardText>
+                                            Start a new will and create two Power of Attorney documents.
+                                        </CardText>
+                                        <Button onClick={(e) => handleLinkClick(e, route('personal'), "new-will")} variant="outline-dark">Get Started</Button>
+                                    </CardBody>
+                                </CustomCard>
                             </Col>
 
                             <Col>
-                                <Card>
-                                    <Card.Body>
-                                        <i className="bi bi-search"></i>
-                                        <Card.Title>Search Files</Card.Title>
-                                        <Button className='mt-3' onClick={(e) => handleLinkClick(e, route('view'), "view")} variant="outline-dark">Search Now</Button>
-                                    </Card.Body>
-                                </Card>
+                                <CustomCard>
+                                    <CardBody>
+                                        <IconWrapper>
+                                            <i className="bi bi-search"></i>
+                                        </IconWrapper>
+                                        <CardTitle>Search Files</CardTitle>
+                                        <CardText>
+                                            Quickly locate and access all documents for specific users.
+                                        </CardText>
+                                        <Button onClick={(e) => handleLinkClick(e, route('view'), "view")} variant="outline-dark">Search Now</Button>
+                                    </CardBody>
+                                </CustomCard>
                             </Col>
 
                             <Col>
-                                <Card>
-                                    <Card.Body>
-                                        <i className="bi bi-box-seam"></i>
-                                        <Card.Title>Packages</Card.Title>
-                                        <Button className='mt-3' onClick={(e) => handleLinkClick(e, route('packages'), "packages")} variant="outline-dark">View Packages</Button>
-                                    </Card.Body>
-                                </Card>
-
+                                <CustomCard>
+                                    <CardBody>
+                                        <IconWrapper>
+                                            <i className="bi bi-box-seam"></i>
+                                        </IconWrapper>
+                                        <CardTitle>Packages</CardTitle>
+                                        <CardText>
+                                            Explore our comprehensive legal document packages.
+                                        </CardText>
+                                        <Button onClick={(e) => handleLinkClick(e, route('packages'), "packages")} variant="outline-dark">View Packages</Button>
+                                    </CardBody>
+                                </CustomCard>
                             </Col>
                         </Row>
                     </Container>

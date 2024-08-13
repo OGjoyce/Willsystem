@@ -36,6 +36,7 @@ function Bequest({ id, datas, errors }) {
     const [table_dataBequest, setTable_dataBequest] = useState([]);
     const [selectedRecepient, setSelectedRecepient] = useState(null);
     const [selectedBackup, setSelectedBackup] = useState(null);
+    const [isMarried, setIsMarried] = useState(false)
     const [isSpouseFirst, setIsSpouseFirst] = useState(false);
     const [isCustomBequest, setIsCustomBequest] = useState(false);
     const [isSharedBequest, setIsSharedBequest] = useState(false);
@@ -47,7 +48,7 @@ function Bequest({ id, datas, errors }) {
     const [toastMessage, setToastMessage] = useState("")
     const [bequestToDelete, setBequestToDelete] = useState(null);
     const [editingRow, setEditingRow] = useState(null); // Estado para manejar la fila en edición
-
+    const [currentSharedUuid, setCurrentSharedUuid] = useState(1);
 
     useEffect(() => {
         let newErrors = {}
@@ -142,7 +143,8 @@ function Bequest({ id, datas, errors }) {
                 "backup": backup,
                 "shares": shares,
                 "bequest": bequest,
-                "isCustom": isCustomBequest
+                "isCustom": isCustomBequest,
+                "shared_uuid": 0
             };
 
             document.getElementById('bequestTextArea').value = "";
@@ -155,6 +157,7 @@ function Bequest({ id, datas, errors }) {
                 setSelectedBackup(null);
                 let newErrors = {};
                 if (shares < 100) {
+                    obj.shared_uuid = currentSharedUuid
                     setIsSharedBequest(true);
                     setPendingShares(pendingShares - shares);
                     if (pendingShares - shares > 0) {
@@ -170,8 +173,10 @@ function Bequest({ id, datas, errors }) {
                         document.getElementById('sharesID').value = "";
                         document.getElementById('sharesID').placeholder = 100;
                         document.getElementById('bequestTextArea').value = "";
-                        setIsSharedBequest(false)
                         setValidationErrors({})
+                        setIsSharedBequest(false)
+                        setPendingShares(100)
+                        setCurrentSharedUuid(prevValue => prevValue + 1)
                     }
 
                 } else {
@@ -387,6 +392,7 @@ function Bequest({ id, datas, errors }) {
 
         var married_names = married?.firstName && married?.lastName ? married?.firstName + " " + married?.lastName : null;
 
+        if (married_names !== null) { setIsMarried(true) }
         if (kidsq === "true") {
             var kids_names = kids?.firstName + " " + kids?.lastName;
             for (let child in kids) {
@@ -465,7 +471,7 @@ function Bequest({ id, datas, errors }) {
 
                                     </Dropdown.Toggle>
                                     <Dropdown.Menu className={'text-center'} style={{ width: "100%" }}>
-                                        {!isSharedBequest && (
+                                        {isMarried && !isSharedBequest && (
                                             <DropdownItem key='spouse-first' eventKey='Spouse First'>Spouse First</DropdownItem>
                                         )}
                                         <Dropdown.Divider />
@@ -559,7 +565,7 @@ function Bequest({ id, datas, errors }) {
                             {
                                 table_dataBequest.length === 0 ? (
                                     <tr>
-                                        <td colSpan="7">
+                                        <td className='text-center' colSpan="7">
                                             No information added yet, press "Add Recipient Button" to add.
                                         </td>
                                     </tr>

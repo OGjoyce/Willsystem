@@ -132,6 +132,9 @@ function Wipeout({ id, datas, errors }) {
         if (!backup) {
             newErrors.backup = "Backup is required";
         }
+        if (beneficiary === backup) {
+            newErrors.backup = "Beneficiary and backup can't be the same person"
+        }
 
         if (isNaN(shares) || shares <= 0 || shares > availableShares) {
             newErrors.shares = `Please enter a valid number between 0 and ${availableShares}`;
