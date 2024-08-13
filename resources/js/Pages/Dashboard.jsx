@@ -19,7 +19,7 @@ const CustomCard = styled(Card)`
 
   &:hover {
     transform: translateY(-10px);
-    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
   }
 `;
 
