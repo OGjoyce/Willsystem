@@ -580,13 +580,13 @@ function Residue({ id, datas, errors }) {
                             <div className='d-flex justify-content-around gap-3'>
                               {editingRow === index ? (
                                 <>
-                                  <Button style={{ width: "50%" }} variant="success" size="sm" onClick={() => handleSave(index)}>Save</Button>
-                                  <Button style={{ width: "50%" }} variant="secondary" size="sm" onClick={handleCancel} className="ml-2">Cancel</Button>
+                                  <Button style={{ width: "50%" }} variant="outline-success" size="sm" onClick={() => handleSave(index)}>Save</Button>
+                                  <Button style={{ width: "50%" }} variant="outline-secondary" size="sm" onClick={handleCancel} className="ml-2">Cancel</Button>
                                 </>
                               ) : (
                                 <>
-                                  <Button style={{ width: "50%" }} variant="danger" size="sm" onClick={() => handleDelete(item.id)} className="ml-2">Delete</Button>
-                                  <Button style={{ width: "50%" }} variant="warning" size="sm" onClick={() => handleEdit(index)}>Edit</Button>
+                                  <Button style={{ width: "50%" }} variant="outline-danger" size="sm" onClick={() => handleDelete(item.id)} className="ml-2">Delete</Button>
+                                  <Button style={{ width: "50%" }} variant="outline-warning" size="sm" onClick={() => handleEdit(index)}>Edit</Button>
                                 </>
                               )}
                             </div>
