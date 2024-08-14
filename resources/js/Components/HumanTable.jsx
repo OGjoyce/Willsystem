@@ -1,11 +1,15 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Table from 'react-bootstrap/Table';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Pagination from 'react-bootstrap/Pagination';
+import Form from 'react-bootstrap/Form';
 import AddHuman from './AddHuman';
 import { getHumanData } from './AddHuman';
 import { validate } from './Validations';
+import ConfirmationModal from './AdditionalComponents/ConfirmationModal';
+import CustomToast from './AdditionalComponents/CustomToast';
+import { Dropdown } from 'react-bootstrap';
 
 let nextId = 1;
 
@@ -38,18 +42,27 @@ function HumanTable({ id, datas, errors }) {
     const [validationErrors, setValidationErrors] = useState(errors);
     const [selectedExecutor, setSelectedExecutor] = useState(null);
     const [allRelatives, setAllRelatives] = useState([]);
-    const [executorPriority, setExecutorPriority] = useState(null); // Cambiado a null para validar si se ha seleccionado
-    const [priorityError, setPriorityError] = useState(''); // Error de prioridad
+    const [executorPriority, setExecutorPriority] = useState(null);
+    const [priorityError, setPriorityError] = useState('');
     const maxPriority = 5;
-
-    const handlePriorityChange = (number) => {
-        setExecutorPriority(number);
-        setPriorityError(''); // Limpiar el error cuando se selecciona una prioridad
-    };
+    const [editingRow, setEditingRow] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState("");
+    const [itemToDelete, setItemToDelete] = useState(null);
+    const [allNames, setAllNames] = useState([]);
+    const [tempExecutors, setTempExecutors] = useState([]);
 
     useEffect(() => {
         setValidationErrors(errors);
     }, [errors]);
+
+    useEffect(() => {
+        if (datas) {
+            const names = allRelatives.map(relative => `${relative.firstName} ${relative.lastName}`);
+            setAllNames([...new Set(names)]); // Elimina duplicados
+        }
+    }, [datas, allRelatives]);
 
     useEffect(() => {
         const savedValues = localStorage.getItem('formValues');
@@ -71,13 +84,11 @@ function HumanTable({ id, datas, errors }) {
         if (datas) {
             const newAllRelatives = [];
 
-            // Add spouse if married
             const marriedData = datas.find(item => item.married);
             if (marriedData && marriedData.married.relative === "Spouse") {
                 newAllRelatives.push(marriedData.married);
             }
 
-            // Add kids
             const kidsData = datas.find(item => item.kids);
             if (kidsData) {
                 kidsData.kids.forEach(kid => {
@@ -88,12 +99,10 @@ function HumanTable({ id, datas, errors }) {
                 });
             }
 
-            // Add manually added relatives
             newAllRelatives.push(...relatives);
 
             setAllRelatives(newAllRelatives);
 
-            // Update executors to ensure spouse data is updated from relatives
             setExecutors(prevExecutors => {
                 const updatedExecutors = prevExecutors.map(executor => {
                     if (executor.relative === "Spouse") {
@@ -125,29 +134,29 @@ function HumanTable({ id, datas, errors }) {
     };
 
     const handleShow = () => {
-        setPriorityError('')
-        setShow(true)
-
+        setPriorityError('');
+        setShow(true);
     };
+
     const handleCloseNosave = () => {
-        setPriorityError('')
+        setPriorityError('');
         setShow(false);
-    }
+    };
 
     const handleShowExecutor = (relative) => {
-        setPriorityError('')
+        setPriorityError('');
         setSelectedExecutor(relative);
         setShowExecutor(true);
     };
 
     const handleCloseExecutor = () => {
-        setPriorityError('')
+        setPriorityError('');
         if (selectedExecutor) {
             if (executorPriority) {
                 const newExecutor = {
                     ...selectedExecutor,
                     priority: executorPriority,
-                    id: nextId++ // Asigna un ID único a cada nuevo executor
+                    id: nextId++
                 };
 
                 setExecutors(prevExecutors => [
@@ -165,8 +174,64 @@ function HumanTable({ id, datas, errors }) {
         }
     };
 
-    const handleDeleteExecutor = (id) => {
-        setExecutors(prevExecutors => prevExecutors.filter(executor => executor.id !== id));
+    const handlePriorityChange = (number) => {
+        setExecutorPriority(number);
+        setPriorityError('');
+    };
+
+    const handleEdit = (index) => {
+        setEditingRow(index);
+        setTempExecutors([...executors]);
+    };
+
+    const handleSave = (index) => {
+        const updatedExecutors = [...tempExecutors];
+        setExecutors(updatedExecutors);
+        setToastMessage('Executor updated successfully');
+        setShowToast(true);
+        setEditingRow(null);
+    };
+
+    const handleCancel = () => {
+        setTempExecutors([...executors]); // Restaura el estado original
+        setEditingRow(null);
+    };
+
+    const handleDelete = (id) => {
+        setItemToDelete(id);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = () => {
+        if (itemToDelete !== null) {
+            setExecutors(prevExecutors => prevExecutors.filter(executor => executor.id !== itemToDelete));
+            setToastMessage('Executor removed successfully');
+            setShowToast(true);
+            setItemToDelete(null);
+            setShowDeleteModal(false);
+        }
+    };
+
+    const handleDropdownSelect = (index, key, value) => {
+        const updatedExecutors = [...tempExecutors];
+        if (key === 'firstName') {
+            const [firstName, lastName] = value.split(' ');
+            const selectedRelative = allRelatives.find(rel =>
+                rel.firstName === firstName && rel.lastName === lastName
+            );
+
+            if (selectedRelative) {
+                updatedExecutors[index] = {
+                    ...updatedExecutors[index],
+                    firstName,
+                    lastName,
+                    relative: selectedRelative.relative
+                };
+            }
+        } else {
+            updatedExecutors[index][key] = value;
+        }
+        setTempExecutors(updatedExecutors);
     };
 
     return (
@@ -208,32 +273,63 @@ function HumanTable({ id, datas, errors }) {
                 <thead>
                     <tr>
                         <th>Priority</th>
-                        <th>First Name</th>
-                        <th>Last Name</th>
+                        <th>Executor</th>
                         <th>Relative</th>
-                        <th>Delete</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {executors.map((executor) => (
+                    {(editingRow !== null ? tempExecutors : executors).map((executor, index) => (
                         <tr key={executor.id}>
-                            <td>{executor.priority !== undefined ? executor.priority : 'N/A'}</td> {/* Manejar valor vacío */}
-                            <td>{executor.firstName}</td>
-                            <td>{executor.lastName}</td>
+                            <td>
+                                {editingRow === index ? (
+                                    <Form.Control
+                                        type="number"
+                                        value={executor.priority}
+                                        onChange={(e) => handleDropdownSelect(index, 'priority', Number(e.target.value))}
+                                        min="1"
+                                        max={maxPriority}
+                                    />
+                                ) : (
+                                    executor.priority
+                                )}
+                            </td>
+                            <td>
+                                {editingRow === index ? (
+                                    <Dropdown onSelect={(eventKey) => handleDropdownSelect(index, 'firstName', eventKey)}>
+                                        <Dropdown.Toggle variant="outline-dark" id={`dropdown-executor-${index}`}>
+                                            {`${executor.firstName} ${executor.lastName}` || 'Select Executor'}
+                                        </Dropdown.Toggle>
+                                        <Dropdown.Menu>
+                                            {allNames.map((name, idx) => (
+                                                <Dropdown.Item key={idx} eventKey={name}>{name}</Dropdown.Item>
+                                            ))}
+                                        </Dropdown.Menu>
+                                    </Dropdown>
+                                ) : (
+                                    `${executor.firstName} ${executor.lastName}`
+                                )}
+                            </td>
                             <td>{executor.relative}</td>
                             <td>
-                                <Button variant="danger" size="sm" onClick={() => handleDeleteExecutor(executor.id)}>
-                                    Delete
-                                </Button>
+                                <div className='d-flex justify-content-around gap-3'>
+                                    {editingRow === index ? (
+                                        <>
+                                            <Button style={{ width: "50%" }} variant="outline-success" size="sm" onClick={() => handleSave(index)}>Save</Button>
+                                            <Button style={{ width: "50%" }} variant="outline-secondary" size="sm" onClick={handleCancel}>Cancel</Button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Button style={{ width: "50%" }} variant="outline-danger" size="sm" onClick={() => handleDelete(executor.id)}>Delete</Button>
+                                            <Button style={{ width: "50%" }} variant="outline-warning" size="sm" onClick={() => handleEdit(index)}>Edit</Button>
+                                        </>
+                                    )}
+                                </div>
                             </td>
                         </tr>
                     ))}
                 </tbody>
             </Table>
-
-            {validationErrors.executors && (
-                <p className="mt-2 text-center text-danger">{validationErrors.executors}</p>
-            )}
 
             <Modal show={show} onHide={handleCloseNosave} dialogClassName="modal-90w">
                 <Modal.Header closeButton>
@@ -287,6 +383,19 @@ function HumanTable({ id, datas, errors }) {
                     </Button>
                 </Modal.Footer>
             </Modal>
+
+            <ConfirmationModal
+                show={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={confirmDelete}
+                message="Are you sure you want to delete this executor?"
+            />
+
+            <CustomToast
+                show={showToast}
+                onClose={() => setShowToast(false)}
+                message={toastMessage}
+            />
         </>
     );
 }

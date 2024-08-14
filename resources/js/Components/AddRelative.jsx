@@ -1,16 +1,10 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Link, Head } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
-import { Dialog } from '@headlessui/react';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
-import { validate } from './Validations';
-import Table from 'react-bootstrap/Table';
-import Button from 'react-bootstrap/Button';
-
+import { Button, Table, Modal } from 'react-bootstrap';
+import CustomToast from './AdditionalComponents/CustomToast';
+import ConfirmationModal from './AdditionalComponents/ConfirmationModal';
 import AddHuman from './AddHuman';
 import { getHumanData } from './AddHuman';
-import Modal from 'react-bootstrap/Modal';
-import ResetPassword from '@/Pages/Auth/ResetPassword';
+import { validate } from './Validations';
 
 let ids = 1;
 var childRelatives;
@@ -24,6 +18,12 @@ function AddRelative({ relative, datas, errors, onDataChange }) {
         return parsedValues.kids || [];
     });
     const [validationErrors, setValidationErrors] = useState(errors);
+    const [editId, setEditId] = useState(null);
+    const [editValues, setEditValues] = useState({ firstName: '', lastName: '' });
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState("");
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState(null);
 
     useEffect(() => {
         childRelatives = tableData;
@@ -46,7 +46,7 @@ function AddRelative({ relative, datas, errors, onDataChange }) {
     const handleClose = () => {
         const modalData = getHumanData("childrens");
 
-        // Realiza la validación
+        // Perform validation
         var errors = validate.addHumanData(modalData);
         const { email, phone, ...restErrors } = errors;
         errors = restErrors;
@@ -73,6 +73,8 @@ function AddRelative({ relative, datas, errors, onDataChange }) {
             });
 
             ids += 1;
+            setToastMessage('Child added successfully');
+            setShowToast(true);
             setShow(false);
             setValidationErrors({});
         } else {
@@ -82,27 +84,76 @@ function AddRelative({ relative, datas, errors, onDataChange }) {
     };
 
     const handleDelete = (id) => {
-        setTableData((prevData) => {
-            const updatedData = prevData.filter((obj) => obj.id !== id);
+        setItemToDelete(id);
+        setShowDeleteModal(true);
+    };
 
-            // Get formValues from localStorage
+    const confirmDelete = () => {
+        if (itemToDelete !== null) {
+            setTableData((prevData) => {
+                const updatedData = prevData.filter((obj) => obj.id !== itemToDelete);
+
+                // Get formValues from localStorage
+                const key = 'formValues';
+                const savedValues = localStorage.getItem(key);
+                const parsedValues = savedValues ? JSON.parse(savedValues) : {};
+
+                // Update kids in formValues
+                parsedValues.kids = updatedData;
+
+                // Remove the child from executors if present
+                if (parsedValues.executors) {
+                    parsedValues.executors = parsedValues.executors.filter(
+                        executor => !(executor.uuid === itemToDelete && executor.relative === "Child")
+                    );
+                }
+
+                localStorage.setItem(key, JSON.stringify(parsedValues));
+                return updatedData;
+            });
+
+            // Show the CustomToast
+            setToastMessage('Child removed successfully');
+            setShowToast(true);
+            setItemToDelete(null);
+            setShowDeleteModal(false);
+        }
+    };
+
+    const handleEditClick = (id, firstName, lastName) => {
+        setEditId(id);
+        setEditValues({ firstName, lastName });
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setEditValues((prevValues) => ({
+            ...prevValues,
+            [name]: value,
+        }));
+    };
+
+    const handleSaveEdit = () => {
+        setTableData((prevData) => {
+            const updatedData = prevData.map((item) =>
+                item.id === editId
+                    ? { ...item, firstName: editValues.firstName, lastName: editValues.lastName }
+                    : item
+            );
             const key = 'formValues';
             const savedValues = localStorage.getItem(key);
             const parsedValues = savedValues ? JSON.parse(savedValues) : {};
-
-            // Update kids in formValues
             parsedValues.kids = updatedData;
-
-            // Remove the child from executors if present
-            if (parsedValues.executors) {
-                parsedValues.executors = parsedValues.executors.filter(
-                    executor => !(executor.uuid === id && executor.relative === "Child")
-                );
-            }
-
             localStorage.setItem(key, JSON.stringify(parsedValues));
             return updatedData;
         });
+
+        // Show the CustomToast
+        setToastMessage('Child updated successfully');
+        setShowToast(true);
+
+        setEditId(null);
+        setEditValues({ firstName: '', lastName: '' });
     };
 
     return (
@@ -119,7 +170,7 @@ function AddRelative({ relative, datas, errors, onDataChange }) {
                             <th>First Name</th>
                             <th>Last Name</th>
                             <th>Relative</th>
-                            <th>Delete</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -130,16 +181,65 @@ function AddRelative({ relative, datas, errors, onDataChange }) {
                                 </td>
                             </tr>
                         ) : (
-                            tableData.map((item, index) => (
-                                <tr key={index}>
+                            tableData.map((item) => (
+                                <tr key={item.id}>
                                     <td>{item.id}</td>
-                                    <td>{item.firstName}</td>
-                                    <td>{item.lastName}</td>
+                                    <td>
+                                        {editId === item.id ? (
+                                            <input
+                                                type="text"
+                                                name="firstName"
+                                                value={editValues.firstName}
+                                                onChange={handleInputChange}
+                                            />
+                                        ) : (
+                                            item.firstName
+                                        )}
+                                    </td>
+                                    <td>
+                                        {editId === item.id ? (
+                                            <input
+                                                type="text"
+                                                name="lastName"
+                                                value={editValues.lastName}
+                                                onChange={handleInputChange}
+                                            />
+                                        ) : (
+                                            item.lastName
+                                        )}
+                                    </td>
                                     <td>{item.relative}</td>
                                     <td>
-                                        <Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>
-                                            Delete
-                                        </Button>
+                                        <div className='d-flex gap-2'>
+                                            {editId === item.id ? (
+                                                <>
+                                                    <Button style={{ width: "50%" }} variant="outline-success" size="sm" onClick={handleSaveEdit}>
+                                                        Save
+                                                    </Button>
+                                                    <Button style={{ width: "50%" }} variant="outline-secondary" size="sm" onClick={() => setEditId(null)}>
+                                                        Cancel
+                                                    </Button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Button
+                                                        style={{ width: "50%" }}
+                                                        variant="outline-danger"
+                                                        size="sm"
+                                                        onClick={() => handleDelete(item.id)}>
+                                                        Delete
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline-warning"
+                                                        style={{ width: "50%" }}
+                                                        size="sm"
+                                                        onClick={() => handleEditClick(item.id, item.firstName, item.lastName)}
+                                                    >
+                                                        Edit
+                                                    </Button>
+                                                </>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))
@@ -165,6 +265,19 @@ function AddRelative({ relative, datas, errors, onDataChange }) {
                     </Button>
                 </Modal.Footer>
             </Modal>
+
+            <ConfirmationModal
+                show={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={confirmDelete}
+                message="Are you sure you want to delete this child?"
+            />
+
+            <CustomToast
+                show={showToast}
+                onClose={() => setShowToast(false)}
+                message={toastMessage}
+            />
         </>
     );
 }
