@@ -129,10 +129,6 @@ function Residue({ id, datas, errors }) {
       'Have the residue go to siblings per stirpes',
     ];
 
-    if (marriedStatus || sosoStatus) {
-      newBloodlineOptions.unshift(`NO SPOUSAL WILL: Have the residue go to spouse ${hasKids ? 'first then children per stirpes' : ''}`);
-    }
-
     if (hasKids) {
       newBloodlineOptions.unshift(
         'Have the residue go to children per stirpes',
