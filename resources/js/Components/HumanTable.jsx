@@ -51,6 +51,7 @@ function HumanTable({ id, datas, errors }) {
     const [toastMessage, setToastMessage] = useState("");
     const [itemToDelete, setItemToDelete] = useState(null);
     const [allNames, setAllNames] = useState([]);
+    const [tempExecutors, setTempExecutors] = useState([]);
 
     useEffect(() => {
         setValidationErrors(errors);
@@ -180,18 +181,18 @@ function HumanTable({ id, datas, errors }) {
 
     const handleEdit = (index) => {
         setEditingRow(index);
+        setTempExecutors([...executors]);
     };
 
     const handleSave = (index) => {
-        const updatedExecutors = [...executors];
-        setExecutors(updatedExecutors);
-
+        setExecutors(tempExecutors);
         setToastMessage('Executor updated successfully');
         setShowToast(true);
         setEditingRow(null);
     };
 
     const handleCancel = () => {
+        setTempExecutors([]);
         setEditingRow(null);
     };
 
@@ -211,7 +212,7 @@ function HumanTable({ id, datas, errors }) {
     };
 
     const handleDropdownSelect = (index, key, value) => {
-        const updatedExecutors = [...executors];
+        const updatedExecutors = [...tempExecutors];
         if (key === 'firstName') {
             const [firstName, lastName] = value.split(' ');
             const selectedRelative = allRelatives.find(rel =>
@@ -229,7 +230,7 @@ function HumanTable({ id, datas, errors }) {
         } else {
             updatedExecutors[index][key] = value;
         }
-        setExecutors(updatedExecutors);
+        setTempExecutors(updatedExecutors);
     };
 
     return (
@@ -277,7 +278,7 @@ function HumanTable({ id, datas, errors }) {
                     </tr>
                 </thead>
                 <tbody>
-                    {executors.map((executor, index) => (
+                    {(editingRow !== null ? tempExecutors : executors).map((executor, index) => (
                         <tr key={executor.id}>
                             <td>
                                 {editingRow === index ? (
