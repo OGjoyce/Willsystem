@@ -185,14 +185,15 @@ function HumanTable({ id, datas, errors }) {
     };
 
     const handleSave = (index) => {
-        setExecutors(tempExecutors);
+        const updatedExecutors = [...tempExecutors];
+        setExecutors(updatedExecutors);
         setToastMessage('Executor updated successfully');
         setShowToast(true);
         setEditingRow(null);
     };
 
     const handleCancel = () => {
-        setTempExecutors([]);
+        setTempExecutors([...executors]); // Restaura el estado original
         setEditingRow(null);
     };
 

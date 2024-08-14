@@ -49,6 +49,7 @@ function Bequest({ id, datas, errors }) {
     const [bequestToDelete, setBequestToDelete] = useState(null);
     const [editingRow, setEditingRow] = useState(null); // Estado para manejar la fila en edición
     const [currentSharedUuid, setCurrentSharedUuid] = useState(1);
+    const [tempData, setTempData] = useState({});
 
     useEffect(() => {
         let newErrors = {}
@@ -344,11 +345,11 @@ function Bequest({ id, datas, errors }) {
     };
 
     const handleEdit = (index) => {
-        setEditingRow(index); // Establecer la fila que se está editando
+        setTempData(table_dataBequest[index]);
+        setEditingRow(index);
     };
 
     const handleSave = (index) => {
-        // Guardar los cambios y salir del modo de edición
         const updatedBequests = [...table_dataBequest];
         setTable_dataBequest(updatedBequests);
         bequestArrObj = updatedBequests;
@@ -357,26 +358,32 @@ function Bequest({ id, datas, errors }) {
         const storedValues = JSON.parse(localStorage.getItem('formValues')) || {};
         storedValues.bequests = updatedBequests;
         localStorage.setItem('formValues', JSON.stringify(storedValues));
-        setToastMessage('Bequest updated succesfully')
+
+        setToastMessage('Bequest updated successfully')
         setTimeout(() => {
             setToastMessage('')
         }, 4000)
         setShowToast(true)
         setEditingRow(null);
-
-
+        setTempData({});
     };
 
-
     const handleDropdownSelect = (index, key, value) => {
-        const updatedBequests = [...table_dataBequest];
-        updatedBequests[index][key] = value;
-        setTable_dataBequest(updatedBequests);
+        if (editingRow === index) {
+            const updatedBequests = [...table_dataBequest];
+            updatedBequests[index] = { ...updatedBequests[index], [key]: value };
+            setTable_dataBequest(updatedBequests);
+        }
     };
 
     const handleCancel = () => {
-        // Salir del modo de edición sin guardar cambios
+        if (editingRow !== null) {
+            const updatedBequests = [...table_dataBequest];
+            updatedBequests[editingRow] = tempData;
+            setTable_dataBequest(updatedBequests);
+        }
         setEditingRow(null);
+        setTempData({});
     };
 
     all_data = datas;
