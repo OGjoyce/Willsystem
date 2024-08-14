@@ -1,16 +1,7 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { useState, useEffect } from 'react';
-import Table from 'react-bootstrap/Table';
-import Button from 'react-bootstrap/Button';
-import AddHuman from './AddHuman';
-import { getHumanData } from './AddHuman';
-import Modal from 'react-bootstrap/Modal';
-import ButtonGroup from 'react-bootstrap/ButtonGroup';
-import Dropdown from 'react-bootstrap/Dropdown';
-import DropdownButton from 'react-bootstrap/DropdownButton';
-import { Row, Col, DropdownToggle, DropdownMenu, DropdownItem } from 'react-bootstrap';
-import Form from 'react-bootstrap/Form';
-import Collapse from 'react-bootstrap/Collapse';
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Form, Button, Table, Dropdown, InputGroup } from 'react-bootstrap';
+import ConfirmationModal from './AdditionalComponents/ConfirmationModal';
+import CustomToast from './AdditionalComponents/CustomToast';
 
 var returndata;
 export function getWipeoutData() {
@@ -20,18 +11,20 @@ export function getWipeoutData() {
 var bequestindex = 0;
 
 function Wipeout({ id, datas, errors }) {
-    const [selected, setSelected] = useState({ options: [], selectedOption: null });
-    const [selectedBeneficiary, setSelectedBeneficiary] = useState("Select a beneficiary");
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [options, setOptions] = useState([]);
     const [custom, setCustom] = useState(false);
-    const [selectedRecepient, setSelectedRecepient] = useState("Select a recipient to continue...");
-    const [open, setOpen] = useState(false);
     const [table_dataBequest, setTable_dataBequest] = useState([]);
     const [identifiers_names, setIdentifiersNames] = useState([]);
-    const [selectedOption, setSelectedOption] = useState('');
-    const [fullWipeoutSelected, setFullWipeoutSelected] = useState(false);
-    const [beneficiarySelected, setBeneficiarySelected] = useState(false);
+    const [selectedOption, setSelectedOption] = useState(null);
     const [validationErrors, setValidationErrors] = useState(errors);
-
+    const [availableShares, setAvailableShares] = useState(100);
+    const [editingRow, setEditingRow] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState("");
+    const [itemToDelete, setItemToDelete] = useState(null);
+    const [isSpecificBeneficiary, setIsSpecificBeneficiary] = useState(false);
 
     useEffect(() => {
         setValidationErrors(errors);
@@ -39,25 +32,33 @@ function Wipeout({ id, datas, errors }) {
 
     useEffect(() => {
         const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
-        const savedData = formValues.wipeout || [];
-        if (savedData.length > 0) {
-            setTable_dataBequest(savedData);
-            bequestindex = savedData.length;
+        const savedData = formValues.wipeout || {};
+
+        setSelectedCategory(savedData.selectedCategory || null);
+        setSelectedOption(savedData.selectedOption || null);
+        setCustom(savedData.custom || false);
+        setTable_dataBequest(savedData.table_dataBequest || []);
+        setAvailableShares(savedData.availableShares || 100);
+
+        if (savedData.table_dataBequest) {
+            bequestindex = savedData.table_dataBequest.length;
         }
     }, []);
 
     useEffect(() => {
         const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
-        formValues.wipeout = table_dataBequest;
+        formValues.wipeout = {
+            selectedCategory,
+            selectedOption,
+            custom,
+            table_dataBequest,
+            availableShares
+        };
         localStorage.setItem('formValues', JSON.stringify(formValues));
         returndata = { wipeout: formValues.wipeout, timestamp: Date.now() };
-    }, [table_dataBequest]);
+    }, [selectedCategory, selectedOption, custom, table_dataBequest, availableShares]);
 
     useEffect(() => {
-        console.log("datas:", datas);
-        console.log("kids:", datas[4].kids);
-        console.log("relatives:", datas[5].relatives);
-
         const married = datas[2].married;
         const marriedStatus = datas[1].marriedq?.selection === "true";
         const sosoStatus = datas[1].marriedq?.selection === "soso";
@@ -67,324 +68,345 @@ function Wipeout({ id, datas, errors }) {
 
         let names = [];
         const married_names = married?.firstName && married?.lastName ? `${married?.firstName} ${married?.lastName}` : null;
-        names.push(married_names);
+        if (married_names) names.push(married_names);
 
         if (kidsq === "true" && kids) {
-            if (Array.isArray(kids)) {
-                for (let child of kids) {
-                    const childName = `${child?.firstName} ${child?.lastName}`;
-                    names.push(childName);
-                }
-            } else if (typeof kids === 'object') {
-                for (let key in kids) {
-                    if (kids.hasOwnProperty(key)) {
-                        const child = kids[key];
-                        const childName = `${child?.firstName} ${child?.lastName}`;
-                        names.push(childName);
-                    }
-                }
-            }
+            Object.values(kids).forEach(child => {
+                const childName = `${child?.firstName} ${child?.lastName}`;
+                names.push(childName);
+            });
         }
 
         if (relatives) {
-            if (Array.isArray(relatives)) {
-                for (let relative of relatives) {
-                    const relativeName = `${relative?.firstName} ${relative?.lastName}`;
-                    names.push(relativeName);
-                }
-            } else if (typeof relatives === 'object') {
-                for (let key in relatives) {
-                    if (relatives.hasOwnProperty(key)) {
-                        const relative = relatives[key];
-                        const relativeName = `${relative?.firstName} ${relative?.lastName}`;
-                        names.push(relativeName);
-                    }
-                }
-            }
+            Object.values(relatives).forEach(relative => {
+                const relativeName = `${relative?.firstName} ${relative?.lastName}`;
+                names.push(relativeName);
+            });
         }
 
         setIdentifiersNames(names);
 
-        var options = [
+        let newOptions = [
             `${marriedStatus || sosoStatus ? "50% to parents and siblings and 50% to parents and siblings of spouse" : "100% to parents and siblings"}`,
             `${marriedStatus || sosoStatus ? "50% to siblings and 50% to siblings of spouse" : "100% to siblings"}`,
-            'Specific Wipeout Beneficiary'
         ];
 
-        setSelected({ options, selectedOption: null });
-
-        // Retrieve and set saved wipeout option from localStorage
-        const savedOption = JSON.parse(localStorage.getItem('formValues')) || {};
-        console.log('selected', savedOption.selectedWipeoutOption)
-        if (savedOption.selectedWipeoutOption) {
-            setSelectedOption(savedOption.selectedWipeoutOption);
-            if (options.includes(savedOption.selectedWipeoutOption)) {
-                handleSelect(savedOption.selectedWipeoutOption);
-            }
-        }
+        setOptions(newOptions);
     }, [datas]);
 
-    const handleOptionChange = (event) => {
-        setSelectedOption(event.target.value);
+    const handleCategorySelect = (category) => {
+        setSelectedCategory(category);
+        setValidationErrors({});
+        setCustom(false);
+        setTable_dataBequest([]);
+        bequestindex = 0;
+        setAvailableShares(100);
+        setSelectedOption(null);
     };
 
-    const calculateTotalShares = () => {
-        return table_dataBequest.reduce((total, item) => total + parseFloat(item.shares), 0);
-    };
-
-    const handleDelete = (itemId) => {
-        const updatedData = table_dataBequest.filter(obj => obj.id !== itemId);
-        setTable_dataBequest(updatedData);
-        returndata = { wipeout: updatedData, timestamp: Date.now() };
-        bequestindex--;
-
-        // Actualizar formValues en localStorage
-        const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
-        formValues.wipeout = updatedData;
-        localStorage.setItem('formValues', JSON.stringify(formValues));
+    const handleCheckboxChange = (e) => {
+        setIsSpecificBeneficiary(e.target.checked);
+        if (e.target.checked) {
+            setSelectedCategory(null);
+            setCustom(true);
+        } else {
+            setCustom(false);
+            setTable_dataBequest([]);
+            bequestindex = 0;
+            setAvailableShares(100);
+        }
     };
 
     const handleAddItem = () => {
-        if (fullWipeoutSelected) {
-            alert("Cannot add specific beneficiaries when a 100% wipeout option is selected.");
-            return;
-        }
-
-        const organization = document.getElementById("organization").value;
-        setOpen(true);
-
-        let beneficiary;
-        if (beneficiarySelected) {
-            beneficiary = selectedBeneficiary;
-        } else if (organization !== "") {
-            beneficiary = organization;
-        } else {
-            setValidationErrors({ name: "Please select a beneficiary or enter an organization name." });
-            return;
-        }
-
-        const backup = selectedOption;
+        const beneficiary = document.getElementById("beneficiary").value;
+        const backup = document.getElementById("backup").value;
         const shares = parseFloat(document.getElementById('shares').value);
+        const type = document.getElementById('type').value;
 
-        if (isNaN(shares) || shares <= 0) {
-            setValidationErrors({ shares: "Please enter a valid positive number for shares percentage." });
+        let newErrors = {};
+
+        if (!beneficiary) {
+            newErrors.beneficiary = "Beneficiary is required";
+        }
+
+        if (!backup) {
+            newErrors.backup = "Backup is required";
+        }
+        if (beneficiary === backup) {
+            newErrors.backup = "Beneficiary and backup can't be the same person"
+        }
+
+        if (isNaN(shares) || shares <= 0 || shares > availableShares) {
+            newErrors.shares = `Please enter a valid number between 0 and ${availableShares}`;
+        }
+
+        if (!type) {
+            newErrors.type = "Type is required";
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setValidationErrors(newErrors);
             return;
         }
 
-        const currentTotal = calculateTotalShares();
-        if (currentTotal + shares > 100) {
-            setValidationErrors({ shares: `Cannot add ${shares}%. Current total is ${currentTotal}%. The sum cannot exceed 100%.` });
-            return;
-        }
-
-        if (selectedOption === '') {
-            setValidationErrors({ type: 'Backup type is required' });
-            return null;
-        }
         const newItem = {
-            "id": bequestindex,
-            "names": beneficiary,
-            "shares": shares,
-            "backup": backup,
+            id: bequestindex,
+            beneficiary,
+            backup,
+            shares,
+            type
         };
 
-        const updatedData = [...table_dataBequest, newItem];
-        setTable_dataBequest(updatedData);
-        returndata = { wipeout: updatedData, timestamp: Date.now() };
+        setTable_dataBequest([...table_dataBequest, newItem]);
+        setAvailableShares(availableShares - shares);
         bequestindex++;
 
-        // Actualizar formValues en localStorage
-        const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
-        formValues.wipeout = updatedData;
-        localStorage.setItem('formValues', JSON.stringify(formValues));
         // Reset form
-        setSelectedBeneficiary("Select a beneficiary");
-        setSelectedRecepient("Select a recipient to continue...");
-        document.getElementById("organization").value = "";
+        document.getElementById("beneficiary").value = "";
+        document.getElementById("backup").value = "";
         document.getElementById("shares").value = "";
-        setSelectedOption('');
-        setBeneficiarySelected(false);
+        document.getElementById("type").value = "";
         setValidationErrors({});
+
+        // Show toast notification
+        setToastMessage('Wipeout beneficiary added successfully');
+        setShowToast(true);
     };
 
-    const setCurrentRecepient = (eventKey) => {
-        setSelectedBeneficiary(eventKey);
-        setSelectedRecepient(eventKey);
-        setBeneficiarySelected(true);
-        document.getElementById("organization").value = "";
-        setValidationErrors({});
+    const handleEdit = (index) => {
+        setEditingRow(index);
     };
 
-    const handleOrganizationChange = (event) => {
-        if (event.target.value !== "") {
-            setSelectedBeneficiary("Select a beneficiary");
-            setSelectedRecepient("Select a recipient to continue...");
-            setBeneficiarySelected(false);
-            setValidationErrors({});
+    const handleSave = (index) => {
+        const updatedTable_dataBequest = [...table_dataBequest];
+        setTable_dataBequest(updatedTable_dataBequest);
+
+        setToastMessage('Wipeout beneficiary updated successfully');
+        setShowToast(true);
+        setEditingRow(null);
+    };
+
+    const handleCancel = () => {
+        setEditingRow(null);
+    };
+
+    const handleDelete = (itemId) => {
+        setItemToDelete(itemId);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = () => {
+        if (itemToDelete !== null) {
+            const updatedTable_dataBequest = table_dataBequest.filter(item => item.id !== itemToDelete);
+            const deletedItem = table_dataBequest.find(item => item.id === itemToDelete);
+
+            setTable_dataBequest(updatedTable_dataBequest);
+            setAvailableShares(availableShares + deletedItem.shares);
+            bequestindex--;
+
+            setToastMessage('Wipeout beneficiary removed successfully');
+            setShowToast(true);
+            setItemToDelete(null);
+            setShowDeleteModal(false);
         }
     };
 
-    const handleSelect = (key) => {
-        setValidationErrors({});
-        setSelected(prev => ({ ...prev, selectedOption: key }));
-        if (key === "Specific Wipeout Beneficiary") {
-            setCustom(true);
-            setFullWipeoutSelected(false);
-        } else {
-            setCustom(false);
-            setFullWipeoutSelected(true);
-            setTable_dataBequest([]);
-            bequestindex = 0;
-            returndata = { wipeout: key, timestamp: Date.now() };
-        }
-
-        if (key !== "Specific Wipeout Beneficiary") {
-            setTable_dataBequest([]);
-            bequestindex = 0;
-            returndata = { wipeout: key, timestamp: Date.now() };
-
-            // Actualizar formValues en localStorage
-            const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
-            formValues.wipeout = key;
-            localStorage.setItem('formValues', JSON.stringify(formValues));
-        }
-
-        // Save selected wipeout option to localStorage
-        const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
-        formValues.selectedWipeoutOption = key;
-        localStorage.setItem('formValues', JSON.stringify(formValues));
-
-
+    const handleDropdownSelect = (index, key, value) => {
+        const updatedTable_dataBequest = [...table_dataBequest];
+        updatedTable_dataBequest[index][key] = value;
+        setTable_dataBequest(updatedTable_dataBequest);
     };
 
     return (
-        <>
-            <DropdownButton
-                size="md"
-                variant="outline-info"
-                id="dropdown-basic-button"
-                title={'select an option for wipeout'}
-                onSelect={handleSelect}
-            >
-                {selected.options.map((option, index) => (
-                    <Dropdown.Item key={index} eventKey={option}>
-                        {option}
-                    </Dropdown.Item>
-                ))}
-            </DropdownButton>
-            <p style={{ color: "gray" }}> If you don't add a backup, then inheritance is per stirpes (if a person is deceased, their children will get their share equally. If one of their children is deceased and has children of their own, their children (testator's grandchildren) will get their share equally)</p>
+        <Container>
+            <Form>
+                <Form.Label style={{ marginBottom: "24px", fontWeight: "bold" }}>Wipeout:</Form.Label>
+                <Row>
+                    <Col sm={12}>
+                        <Dropdown onSelect={handleCategorySelect} style={{ width: "100%", marginBottom: "10px" }}>
+                            <Dropdown.Toggle
+                                style={{ width: "100%" }}
+                                variant={selectedCategory !== null ? "outline-success" : "outline-dark"}
+                                id="category-dropdown"
+                                disabled={isSpecificBeneficiary}
+                            >
+                                {selectedCategory !== null ? selectedCategory : 'Select Wipeout'}
+                            </Dropdown.Toggle>
+                            <Dropdown.Menu className={'text-center'} style={{ width: "100%" }}>
+                                {options.map((option, index) => (
+                                    <Dropdown.Item key={index} eventKey={option}>{option}</Dropdown.Item>
+                                ))}
+                            </Dropdown.Menu>
+                        </Dropdown>
+                    </Col>
+                </Row>
+                <Row>
+                    <Col sm={12}>
+                        <Form.Check
+                            type="checkbox"
+                            id="specific-beneficiary-checkbox"
+                            label="Specific Wipeout Beneficiary"
+                            checked={isSpecificBeneficiary}
+                            onChange={handleCheckboxChange}
+                        />
+                    </Col>
+                </Row>
+            </Form>
 
-            {custom && !fullWipeoutSelected && (
+            {isSpecificBeneficiary && (
                 <>
-                    <Dropdown style={{ width: "100%" }} onSelect={setCurrentRecepient}>
-                        <Dropdown.Toggle variant="success" id="dropdown-basic">
-                            {selectedBeneficiary}
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu>
-                            {identifiers_names.map((name, index) => (
-                                <Dropdown.Item key={index} eventKey={name}>{name}</Dropdown.Item>
-                            ))}
-                        </Dropdown.Menu>
-                    </Dropdown>
-
-                    <Form>
-                        <Form.Group className="mb-3" controlId="organization">
-                            <Form.Label>Or Organization</Form.Label>
-                            <Form.Control type="text"
-                                disabled={beneficiarySelected}
-                                onChange={handleOrganizationChange}
-                            />
-                            {validationErrors.name && <p className="mt-2 text-sm text-red-600">{validationErrors.name}</p>}
+                    <Form className="mt-3">
+                        <Form.Group controlId="beneficiary">
+                            <Form.Label>Beneficiary</Form.Label>
+                            <Form.Control as="select">
+                                <option value="">Select a beneficiary</option>
+                                {identifiers_names.map((name, index) => (
+                                    <option key={index} value={name}>{name}</option>
+                                ))}
+                            </Form.Control>
+                            {validationErrors.beneficiary && <p className="text-danger">{validationErrors.beneficiary}</p>}
                         </Form.Group>
-                        <Form.Group className="mb-3" controlId="shares">
+
+                        <Form.Group controlId="backup">
+                            <Form.Label>Backup</Form.Label>
+                            <Form.Control as="select">
+                                <option value="">Select a backup</option>
+                                {identifiers_names.map((name, index) => (
+                                    <option key={index} value={name}>{name}</option>
+                                ))}
+                            </Form.Control>
+                            {validationErrors.backup && <p className="text-danger">{validationErrors.backup}</p>}
+                        </Form.Group>
+
+                        <Form.Group controlId="shares">
                             <Form.Label>Shares %</Form.Label>
                             <Form.Control type="number" />
-                            {validationErrors.shares && <p className="mt-2 text-sm text-red-600">{validationErrors.shares}</p>}
+                            {validationErrors.shares && <p className="text-danger">{validationErrors.shares}</p>}
                         </Form.Group>
 
-                        <Form.Check
-                            type="radio"
-                            label="Per Stirpes"
-                            name="checkboxOptions"
-                            value="Per Stirpes"
-                            checked={selectedOption === 'Per Stirpes'}
-                            onChange={handleOptionChange}
-                        />
-                        <Form.Check
-                            type="radio"
-                            label="Per Capita"
-                            name="checkboxOptions"
-                            value="Per Capita"
-                            checked={selectedOption === 'Per Capita'}
-                            onChange={handleOptionChange}
-                        />
-                        {validationErrors.type && <p className="mt-2 text-sm text-red-600">{validationErrors.type}</p>}
-                        <Button variant="outline-success" size="lg" onClick={handleAddItem}> Add Beneficiary</Button>
+                        <Form.Group controlId="type">
+                            <Form.Label>Type</Form.Label>
+                            <Form.Control as="select">
+                                <option value="">Select type</option>
+                                <option value="Per Stirpes">Per Stirpes</option>
+                                <option value="Per Capita">Per Capita</option>
+                            </Form.Control>
+                            {validationErrors.type && <p className="text-danger">{validationErrors.type}</p>}
+                        </Form.Group>
+
+                        <Button variant="outline-success" onClick={handleAddItem}>Add Wipeout Beneficiary</Button>
                     </Form>
-                </>
-            )}
-            <Button
-                onClick={() => setOpen(!open)}
-                aria-controls="example-collapse-text"
-                aria-expanded={open}
-                style={{ width: "80%", margin: "5%" }}
-                variant="outline-dark"
-            >
-                See information
-            </Button>
-            {validationErrors.wipeout && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.wipeout}</p>}
-            <Collapse in={open}>
-                <div id="example-collapse-text">
-                    {fullWipeoutSelected ? (
-                        <p>Selected option: {selected.selectedOption}</p>
-                    ) : (
-                        <>
-                            <div>
-                                <strong>Total Shares: {calculateTotalShares()}%</strong>
-                                {calculateTotalShares() < 100 && (
-                                    <span style={{ color: 'red' }}> (Remaining: {100 - calculateTotalShares()}%)</span>
-                                )}
-                                {calculateTotalShares() === 100 && (
-                                    <span style={{ color: 'green' }}> (Complete)</span>
-                                )}
-                            </div>
-                            <Table striped bordered hover responsive>
-                                <thead>
-                                    <tr>
-                                        <th>Id</th>
-                                        <th>Names</th>
-                                        <th>Backup</th>
-                                        <th>Shares</th>
-                                        <th>Delete</th>
+
+                    <Table striped bordered hover responsive className="mt-3">
+                        <thead>
+                            <tr>
+                                <th>Beneficiary</th>
+                                <th>Backup</th>
+                                <th>Shares %</th>
+                                <th>Type</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {table_dataBequest.length === 0 ? (
+                                <tr>
+                                    <td colSpan="5">No wipeout beneficiaries added yet.</td>
+                                </tr>
+                            ) : (
+                                table_dataBequest.map((item, index) => (
+                                    <tr key={index}>
+                                        <td>
+                                            {editingRow === index ? (
+                                                <Form.Control
+                                                    as="select"
+                                                    value={item.beneficiary}
+                                                    onChange={(e) => handleDropdownSelect(index, 'beneficiary', e.target.value)}
+                                                >
+                                                    {identifiers_names.map((name, idx) => (
+                                                        <option key={idx} value={name}>{name}</option>
+                                                    ))}
+                                                </Form.Control>
+                                            ) : (
+                                                item.beneficiary
+                                            )}
+                                        </td>
+                                        <td>
+                                            {editingRow === index ? (
+                                                <Form.Control
+                                                    as="select"
+                                                    value={item.backup}
+                                                    onChange={(e) => handleDropdownSelect(index, 'backup', e.target.value)}
+                                                >
+                                                    {identifiers_names.map((name, idx) => (
+                                                        <option key={idx} value={name}>{name}</option>
+                                                    ))}
+                                                </Form.Control>
+                                            ) : (
+                                                item.backup
+                                            )}
+                                        </td>
+                                        <td>
+                                            {editingRow === index ? (
+                                                <Form.Control
+                                                    type="number"
+                                                    value={item.shares}
+                                                    onChange={(e) => handleDropdownSelect(index, 'shares', Number(e.target.value))}
+                                                />
+                                            ) : (
+                                                item.shares
+                                            )}
+                                        </td>
+                                        <td>
+                                            {editingRow === index ? (
+                                                <Form.Control
+                                                    as="select"
+                                                    value={item.type}
+                                                    onChange={(e) => handleDropdownSelect(index, 'type', e.target.value)}
+                                                >
+                                                    <option value="Per Stirpes">Per Stirpes</option>
+                                                    <option value="Per Capita">Per Capita</option>
+                                                </Form.Control>
+                                            ) : (
+                                                item.type
+                                            )}
+                                        </td>
+                                        <td>
+                                            <div className='d-flex justify-content-around gap-3'>
+                                                {editingRow === index ? (
+                                                    <>
+                                                        <Button style={{ width: "50%" }} variant="success" size="sm" onClick={() => handleSave(index)}>Save</Button>
+                                                        <Button style={{ width: "50%" }} variant="secondary" size="sm" onClick={handleCancel} className="ml-2">Cancel</Button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Button style={{ width: "50%" }} variant="danger" size="sm" onClick={() => handleDelete(item.id)} className="ml-2">Delete</Button>
+                                                        <Button style={{ width: "50%" }} variant="warning" size="sm" onClick={() => handleEdit(index)}>Edit</Button>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    {table_dataBequest.length === 0 ? (
-                                        <tr>
-                                            <td colSpan="5">
-                                                No information added yet, press "Add Recipient Button" to add.
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        table_dataBequest.map((item, index) => (
-                                            <tr key={index}>
-                                                <td>{item.id + 1}</td>
-                                                <td>{item.names}</td>
-                                                <td>{item.backup}</td>
-                                                <td>{item.shares}</td>
-                                                <td>
-                                                    <Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </Table>
-                        </>
-                    )}
-                </div>
-            </Collapse>
-        </>
+                                ))
+                            )}
+                        </tbody>
+                    </Table>
+                </>
+            )
+            }
+
+            <ConfirmationModal
+                show={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={confirmDelete}
+                message="Are you sure you want to delete this wipeout beneficiary?"
+            />
+
+            <CustomToast
+                show={showToast}
+                onClose={() => setShowToast(false)}
+                message={toastMessage}
+            />
+        </Container >
     );
 }
 

@@ -820,32 +820,31 @@ export default function Personal({ auth }) {
 
 
 
-                        <div style={{ position: "relative", bottom: "1px", width: "80%", margin: "100px" }}>
+
+
+                        <div style={{ padding: '20px', display: 'flex', justifyContent: 'center', marginTop: "100px" }}>
                             <Container fluid="md">
                                 <Row>
-                                    <Col xs={6} >
+                                    <Col xs={6} className="d-flex justify-content-start">
                                         {
-                                            pointer == 0 ?
-                                                null
-                                                :
-                                                <Button
-                                                    onClick={() => backStep(pointer - 1)}
-                                                    variant="outline-dark"
-                                                    size="lg"
-                                                    style={{ width: "100%" }}
-                                                >
-                                                    Back
-                                                </Button>
+                                            pointer > 0 &&
+                                            <Button
+                                                onClick={() => backStep(pointer - 1)}
+                                                variant="outline-dark"
+                                                size="lg"
+                                                style={{ width: "100%" }}
+                                            >
+                                                Back
+                                            </Button>
                                         }
                                     </Col>
-                                    <Col xs={6}>
+                                    <Col xs={6} className="d-flex justify-content-end">
                                         {
                                             pointer < 16 ?
                                                 <Button
                                                     onClick={async () => {
                                                         const canAdvance = await nextStep(pointer + 1);
                                                         if (!canAdvance) {
-                                                            // Optionally, you can show an error message here
                                                             console.log("Cannot advance due to validation errors");
                                                         }
                                                     }}
@@ -859,22 +858,21 @@ export default function Personal({ auth }) {
                                                 null
                                         }
                                         {
-                                            pointer === 16 ?
-                                                <Button
-                                                    onClick={handleExit}
-                                                    variant="outline-success"
-                                                    size="lg"
-                                                    style={{ width: "100%" }}
-                                                >
-                                                    Exit
-                                                </Button>
-                                                :
-                                                null
+                                            pointer === 16 &&
+                                            <Button
+                                                onClick={handleExit}
+                                                variant="outline-success"
+                                                size="lg"
+                                                style={{ width: "100%" }}
+                                            >
+                                                Exit
+                                            </Button>
                                         }
                                     </Col>
                                 </Row>
                             </Container>
                         </div>
+
 
                     </div>
                 </div>

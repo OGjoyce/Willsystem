@@ -141,7 +141,7 @@ const View = () => {
                             </>
                         ) : (
                             <>
-                                <Container style={{ padding: "10px" }}>
+                                <Container style={{ display: "flex", flexDirection: "column", height: "70vh", justifyContent: "space-between" }}>
                                     <Form>
                                         <Row>
                                             <Col sm={8}>
@@ -159,8 +159,7 @@ const View = () => {
                                         </Row>
                                     </Form>
                                     <br />
-                                    <br />
-                                    <p>Please, search by email of the owner of the will, then search it on the table</p>
+                                    <p class="text-center">Please, search by email of the owner of the will, then search it on the table</p>
                                     <Table striped bordered hover responsive>
                                         <thead>
                                             <tr>
@@ -201,7 +200,8 @@ const View = () => {
                                             ))}
                                         </tbody>
                                     </Table>
-                                    <Row className="mt-3">
+
+                                    <Row style={{ marginBottom: "24px" }}>
                                         <Col xs={6}>
                                             <Link href={route('dashboard')}>
                                                 <Button variant="outline-success" size="lg" className="w-100">
@@ -211,6 +211,7 @@ const View = () => {
                                         </Col>
                                     </Row>
                                 </Container>
+
                                 <Modal show={show} onHide={handleClose}>
                                     <Modal.Header closeButton>
                                         <Modal.Title>Select the document and version you want to see</Modal.Title>

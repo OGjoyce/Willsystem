@@ -6,7 +6,7 @@ import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
 import { Container, Row, Col, Button, Toast, ToastContainer } from 'react-bootstrap';
-import CustomToast from '../CustomToast'
+import CustomToast from '../AdditionalComponents/CustomToast'
 
 import Toolbar from './Toolbar'
 import { useReactToPrint } from "react-to-print";
