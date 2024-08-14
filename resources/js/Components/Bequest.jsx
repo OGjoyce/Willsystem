@@ -641,7 +641,7 @@ function Bequest({ id, datas, errors }) {
                                                         <>
                                                             <Button
                                                                 style={{ width: "50%" }}
-                                                                variant="success"
+                                                                variant="outline-success"
                                                                 size="sm"
                                                                 onClick={() => handleSave(index)}
                                                             >
@@ -649,7 +649,7 @@ function Bequest({ id, datas, errors }) {
                                                             </Button>
                                                             <Button
                                                                 style={{ width: "50%" }}
-                                                                variant="secondary"
+                                                                variant="outline-secondary"
                                                                 size="sm"
                                                                 onClick={handleCancel}
                                                                 className="me-2"
@@ -661,7 +661,7 @@ function Bequest({ id, datas, errors }) {
                                                         <>
                                                             <Button
                                                                 style={{ width: "50%" }}
-                                                                variant="danger"
+                                                                variant="outline-danger"
                                                                 size="sm"
                                                                 onClick={() => handleDelete(item.id)}
                                                             >
@@ -669,7 +669,7 @@ function Bequest({ id, datas, errors }) {
                                                             </Button>
                                                             <Button
                                                                 style={{ width: "50%" }}
-                                                                variant="warning"
+                                                                variant="outline-warning"
                                                                 size="sm"
                                                                 onClick={() => handleEdit(index)}
                                                                 className="me-2"
