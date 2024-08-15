@@ -1,17 +1,10 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Link, Head } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
-import { Dialog } from '@headlessui/react';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
-import { Fragment } from 'react';
-import { Listbox, Transition } from '@headlessui/react';
-import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
+import React, { useState, useEffect } from 'react';
 import Form from 'react-bootstrap/Form';
 import Table from 'react-bootstrap/Table';
 import Button from 'react-bootstrap/Button';
-import Collapse from 'react-bootstrap/Collapse';
+import CustomToast from './AdditionalComponents/CustomToast';
+import ConfirmationModal from './AdditionalComponents/ConfirmationModal';
 
-// Create a ref to hold the tableData array
 const tableDataRef = { current: [] };
 
 export function getTableData() {
@@ -20,13 +13,18 @@ export function getTableData() {
 
 function Trusting({ datas, errors }) {
     const [localTableData, setLocalTableData] = useState([]);
+    const [tempTableData, setTempTableData] = useState([]);
     const [localPointer, setLocalPointer] = useState(1);
     const [localSharescounter, setLocalSharescounter] = useState(0);
     const [validationErrors, setValidationErrors] = useState(errors);
     const [age, setAge] = useState('');
     const [shares, setShares] = useState('');
+    const [editingRow, setEditingRow] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState("");
+    const [itemToDelete, setItemToDelete] = useState(null);
 
-    // Initialize table data from localStorage on component mount
     useEffect(() => {
         const formValues = localStorage.getItem('formValues');
         if (formValues) {
@@ -34,7 +32,7 @@ function Trusting({ datas, errors }) {
             if (parsedFormValues.trusting) {
                 const parsedData = parsedFormValues.trusting;
                 setLocalTableData(parsedData);
-                tableDataRef.current = parsedData; // Update ref
+                tableDataRef.current = parsedData;
                 setLocalPointer(parsedData.length ? parsedData[parsedData.length - 1].id + 1 : 1);
                 const totalShares = parsedData.reduce((acc, item) => acc + parseFloat(item.shares), 0);
                 setLocalSharescounter(totalShares);
@@ -42,32 +40,27 @@ function Trusting({ datas, errors }) {
         }
     }, []);
 
-    // Update localStorage whenever localTableData changes
     useEffect(() => {
         const formValues = localStorage.getItem('formValues') ? JSON.parse(localStorage.getItem('formValues')) : {};
         formValues.trusting = localTableData;
         localStorage.setItem('formValues', JSON.stringify(formValues));
-        tableDataRef.current = localTableData; // Update ref
+        tableDataRef.current = localTableData;
     }, [localTableData]);
 
     const handleAdd = () => {
         setValidationErrors({});
         const floatShares = parseFloat(shares);
-        let flag = false;
 
-        // Validate age
         if (!age || age > 100 || age <= 0) {
             setValidationErrors(prevErrors => ({ ...prevErrors, age: 'A valid age is required' }));
             return;
         }
 
-        // Validate shares
         if (!shares || shares <= 0 || shares > 100) {
             setValidationErrors(prevErrors => ({ ...prevErrors, shares: 'Valid percent is required for shares' }));
             return;
         }
 
-        // Check if the age already exists
         const addedAge = localTableData.filter(i => i.age === age);
 
         if (addedAge.length > 0) {
@@ -75,7 +68,6 @@ function Trusting({ datas, errors }) {
             return;
         }
 
-        // Check if shares exceed 100%
         if ((localSharescounter + floatShares) > 100) {
             setValidationErrors(prevErrors => ({ ...prevErrors, shares: `Cannot add ${shares}%. Current total is ${localSharescounter}%. The sum cannot exceed 100%` }));
             return;
@@ -94,13 +86,57 @@ function Trusting({ datas, errors }) {
         setShares('');
     };
 
-    const handleDelete = (itemid) => {
-        const newData = localTableData.filter(obj => obj.id !== itemid);
-        const totalShares = newData.reduce((acc, item) => acc + parseFloat(item.shares), 0);
+    const handleDelete = (itemId) => {
+        setItemToDelete(itemId);
+        setShowDeleteModal(true);
+    };
 
-        setLocalTableData(newData);
+    const confirmDelete = () => {
+        if (itemToDelete !== null) {
+            const newData = localTableData.filter(obj => obj.id !== itemToDelete);
+            const totalShares = newData.reduce((acc, item) => acc + parseFloat(item.shares), 0);
+
+            setLocalTableData(newData);
+            setLocalSharescounter(totalShares);
+            setToastMessage('Share removed successfully');
+            setShowToast(true);
+            setItemToDelete(null);
+            setShowDeleteModal(false);
+        }
+    };
+
+    const handleEdit = (index) => {
+        setEditingRow(index);
+        setTempTableData([...localTableData]);
+    };
+
+    const handleSave = (index) => {
+        const updatedData = [...tempTableData];
+        const totalShares = updatedData.reduce((acc, item) => acc + parseFloat(item.shares), 0);
+
+        if (totalShares > 100) {
+            setValidationErrors(prevErrors => ({ ...prevErrors, shares: `Total shares exceed 100%. Current total is ${totalShares}%` }));
+            return;
+        }
+
+        setLocalTableData(updatedData);
         setLocalSharescounter(totalShares);
-        setLocalPointer(prevPointer => prevPointer - 1);
+        setToastMessage('Share updated successfully');
+        setShowToast(true);
+        setEditingRow(null);
+        setValidationErrors({});
+    };
+
+    const handleCancel = () => {
+        setTempTableData([...localTableData]);
+        setEditingRow(null);
+        setValidationErrors({});
+    };
+
+    const handleChange = (index, field, value) => {
+        const updatedData = [...tempTableData];
+        updatedData[index][field] = value;
+        setTempTableData(updatedData);
     };
 
     return (
@@ -129,32 +165,69 @@ function Trusting({ datas, errors }) {
                             <th>id</th>
                             <th>Age</th>
                             <th>Percentage</th>
-                            <th>Delete</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {localTableData.length === 0 ? (
-                            <tr>
-                                <td colSpan="4">No information added yet, press "Add New Share" to add.</td>
+                        {(editingRow !== null ? tempTableData : localTableData).map((item, index) => (
+                            <tr key={index}>
+                                <td>{item.id}</td>
+                                <td>
+                                    {editingRow === index ? (
+                                        <Form.Control
+                                            type="number"
+                                            value={item.age}
+                                            onChange={(e) => handleChange(index, 'age', e.target.value)}
+                                        />
+                                    ) : (
+                                        item.age
+                                    )}
+                                </td>
+                                <td>
+                                    {editingRow === index ? (
+                                        <Form.Control
+                                            type="number"
+                                            value={item.shares}
+                                            onChange={(e) => handleChange(index, 'shares', e.target.value)}
+                                        />
+                                    ) : (
+                                        item.shares
+                                    )}
+                                </td>
+                                <td>
+                                    {editingRow === index ? (
+                                        <>
+                                            <Button style={{ width: "50%" }} variant="outline-success" size="sm" onClick={() => handleSave(index)}>Save</Button>
+                                            <Button style={{ width: "50%" }} variant="outline-secondary" size="sm" onClick={handleCancel}>Cancel</Button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Button style={{ width: "50%" }} variant="outline-danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button>
+                                            <Button style={{ width: "50%" }} variant="outline-warning" size="sm" onClick={() => handleEdit(index)}>Edit</Button>
+                                        </>
+                                    )}
+                                </td>
                             </tr>
-                        ) : (
-                            localTableData.map((item, index) => (
-                                <tr key={index}>
-                                    <td>{item.id}</td>
-                                    <td>{item.age}</td>
-                                    <td>{item.shares}</td>
-                                    <td>
-                                        <Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button>
-                                    </td>
-                                </tr>
-                            ))
-                        )}
+                        ))}
                     </tbody>
                 </Table>
             </div>
             <div>
                 <p><b><u>Total: {localSharescounter} %</u></b></p>
             </div>
+
+            <ConfirmationModal
+                show={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={confirmDelete}
+                message="Are you sure you want to delete this share?"
+            />
+
+            <CustomToast
+                show={showToast}
+                onClose={() => setShowToast(false)}
+                message={toastMessage}
+            />
         </>
     );
 }
