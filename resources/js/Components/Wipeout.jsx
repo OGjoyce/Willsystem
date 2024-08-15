@@ -20,6 +20,7 @@ function Wipeout({ id, datas, errors }) {
     const [validationErrors, setValidationErrors] = useState(errors);
     const [availableShares, setAvailableShares] = useState(100);
     const [editingRow, setEditingRow] = useState(null);
+    const [tempEditData, setTempEditData] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
@@ -186,19 +187,23 @@ function Wipeout({ id, datas, errors }) {
 
     const handleEdit = (index) => {
         setEditingRow(index);
+        setTempEditData({ ...table_dataBequest[index] });
     };
 
     const handleSave = (index) => {
         const updatedTable_dataBequest = [...table_dataBequest];
+        updatedTable_dataBequest[index] = tempEditData;
         setTable_dataBequest(updatedTable_dataBequest);
 
         setToastMessage('Wipeout beneficiary updated successfully');
         setShowToast(true);
         setEditingRow(null);
+        setTempEditData(null);
     };
 
     const handleCancel = () => {
         setEditingRow(null);
+        setTempEditData(null);
     };
 
     const handleDelete = (itemId) => {
@@ -223,9 +228,7 @@ function Wipeout({ id, datas, errors }) {
     };
 
     const handleDropdownSelect = (index, key, value) => {
-        const updatedTable_dataBequest = [...table_dataBequest];
-        updatedTable_dataBequest[index][key] = value;
-        setTable_dataBequest(updatedTable_dataBequest);
+        setTempEditData({ ...tempEditData, [key]: value });
     };
 
     return (
@@ -351,16 +354,16 @@ function Wipeout({ id, datas, errors }) {
                                     <tr key={index}>
                                         <td>
                                             {editingRow === index ? (
-                                                item.type === "N/A" ? (
+                                                tempEditData.type === "N/A" ? (
                                                     <Form.Control
                                                         type="text"
-                                                        value={item.beneficiary}
+                                                        value={tempEditData.beneficiary}
                                                         onChange={(e) => handleDropdownSelect(index, 'beneficiary', e.target.value)}
                                                     />
                                                 ) : (
                                                     <Form.Control
                                                         as="select"
-                                                        value={item.beneficiary}
+                                                        value={tempEditData.beneficiary}
                                                         onChange={(e) => handleDropdownSelect(index, 'beneficiary', e.target.value)}
                                                     >
                                                         {identifiers_names.map((name, idx) => (
@@ -374,16 +377,16 @@ function Wipeout({ id, datas, errors }) {
                                         </td>
                                         <td>
                                             {editingRow === index ? (
-                                                item.type === "N/A" ? (
+                                                tempEditData.type === "N/A" ? (
                                                     <Form.Control
                                                         type="text"
-                                                        value={item.backup}
+                                                        value={tempEditData.backup}
                                                         onChange={(e) => handleDropdownSelect(index, 'backup', e.target.value)}
                                                     />
                                                 ) : (
                                                     <Form.Control
                                                         as="select"
-                                                        value={item.backup}
+                                                        value={tempEditData.backup}
                                                         onChange={(e) => handleDropdownSelect(index, 'backup', e.target.value)}
                                                     >
                                                         {identifiers_names.map((name, idx) => (
@@ -399,7 +402,7 @@ function Wipeout({ id, datas, errors }) {
                                             {editingRow === index ? (
                                                 <Form.Control
                                                     type="number"
-                                                    value={item.shares}
+                                                    value={tempEditData.shares}
                                                     onChange={(e) => handleDropdownSelect(index, 'shares', Number(e.target.value))}
                                                 />
                                             ) : (
@@ -407,10 +410,10 @@ function Wipeout({ id, datas, errors }) {
                                             )}
                                         </td>
                                         <td>
-                                            {editingRow === index && item.type !== "N/A" ? (
+                                            {editingRow === index && tempEditData.type !== "N/A" ? (
                                                 <Form.Control
                                                     as="select"
-                                                    value={item.type}
+                                                    value={tempEditData.type}
                                                     onChange={(e) => handleDropdownSelect(index, 'type', e.target.value)}
                                                 >
                                                     <option value="Per Stirpes">Per Stirpes</option>
