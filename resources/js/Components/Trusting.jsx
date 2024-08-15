@@ -13,13 +13,13 @@ export function getTableData() {
 
 function Trusting({ datas, errors }) {
     const [localTableData, setLocalTableData] = useState([]);
-    const [tempTableData, setTempTableData] = useState([]);
     const [localPointer, setLocalPointer] = useState(1);
     const [localSharescounter, setLocalSharescounter] = useState(0);
     const [validationErrors, setValidationErrors] = useState(errors);
     const [age, setAge] = useState('');
     const [shares, setShares] = useState('');
     const [editingRow, setEditingRow] = useState(null);
+    const [tempEditData, setTempEditData] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
@@ -33,7 +33,7 @@ function Trusting({ datas, errors }) {
                 const parsedData = parsedFormValues.trusting;
                 setLocalTableData(parsedData);
                 tableDataRef.current = parsedData;
-                setLocalPointer(parsedData.length ? parsedData[parsedData.length - 1].id + 1 : 1);
+                setLocalPointer(parsedData.length ? Math.max(...parsedData.map(item => item.id)) + 1 : 1);
                 const totalShares = parsedData.reduce((acc, item) => acc + parseFloat(item.shares), 0);
                 setLocalSharescounter(totalShares);
             }
@@ -107,11 +107,14 @@ function Trusting({ datas, errors }) {
 
     const handleEdit = (index) => {
         setEditingRow(index);
-        setTempTableData([...localTableData]);
+        setTempEditData({ ...localTableData[index] });
     };
 
     const handleSave = (index) => {
-        const updatedData = [...tempTableData];
+        if (!tempEditData) return;
+
+        const updatedData = [...localTableData];
+        updatedData[index] = tempEditData;
         const totalShares = updatedData.reduce((acc, item) => acc + parseFloat(item.shares), 0);
 
         if (totalShares > 100) {
@@ -124,19 +127,18 @@ function Trusting({ datas, errors }) {
         setToastMessage('Share updated successfully');
         setShowToast(true);
         setEditingRow(null);
+        setTempEditData(null);
         setValidationErrors({});
     };
 
     const handleCancel = () => {
-        setTempTableData([...localTableData]);
         setEditingRow(null);
+        setTempEditData(null);
         setValidationErrors({});
     };
 
-    const handleChange = (index, field, value) => {
-        const updatedData = [...tempTableData];
-        updatedData[index][field] = value;
-        setTempTableData(updatedData);
+    const handleChange = (field, value) => {
+        setTempEditData(prev => ({ ...prev, [field]: value }));
     };
 
     return (
@@ -169,15 +171,15 @@ function Trusting({ datas, errors }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {(editingRow !== null ? tempTableData : localTableData).map((item, index) => (
-                            <tr key={index}>
+                        {localTableData.map((item, index) => (
+                            <tr key={item.id}>
                                 <td>{item.id}</td>
                                 <td>
                                     {editingRow === index ? (
                                         <Form.Control
                                             type="number"
-                                            value={item.age}
-                                            onChange={(e) => handleChange(index, 'age', e.target.value)}
+                                            value={tempEditData.age}
+                                            onChange={(e) => handleChange('age', e.target.value)}
                                         />
                                     ) : (
                                         item.age
@@ -187,8 +189,8 @@ function Trusting({ datas, errors }) {
                                     {editingRow === index ? (
                                         <Form.Control
                                             type="number"
-                                            value={item.shares}
-                                            onChange={(e) => handleChange(index, 'shares', e.target.value)}
+                                            value={tempEditData.shares}
+                                            onChange={(e) => handleChange('shares', e.target.value)}
                                         />
                                     ) : (
                                         item.shares
