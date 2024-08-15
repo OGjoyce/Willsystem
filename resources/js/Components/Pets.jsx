@@ -232,7 +232,7 @@ function Pets({ datas, errors }) {
             {validationErrors.pets && <p className="mt-2 text-sm text-center text-danger">{validationErrors.pets}</p>}
             <br />
             {petGuardianData.length > 0 ? (
-                <Table striped bordered hover responsive>
+                <Table striped bordered hover responsive style={{ margin: "auto auto 148px auto" }}>
                     <thead>
                         <tr>
                             <td>Id</td>

@@ -185,6 +185,7 @@ export default function Poa({ datas, errors }) {
                         </Dropdown.Menu>
                     </Dropdown>
                     {validationErrors.poaHealth?.join && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.poaHealth?.join}</p>}
+
                 </Col>
             </Row>
             <br />

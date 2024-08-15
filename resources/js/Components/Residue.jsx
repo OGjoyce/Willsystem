@@ -58,6 +58,7 @@ function Residue({ id, datas, errors }) {
   const [validationErrors, setValidationErrors] = useState(errors);
   const [availableShares, setAvailableShares] = useState(100);
   const [editingRow, setEditingRow] = useState(null);
+  const [tempEditData, setTempEditData] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -278,14 +279,16 @@ function Residue({ id, datas, errors }) {
 
   const handleEdit = (index) => {
     setEditingRow(index);
+    setTempEditData({ ...backupBeneficiaryData[index] });
   };
 
   const handleSave = (index) => {
     const updatedBackupBeneficiaryData = [...backupBeneficiaryData];
+    updatedBackupBeneficiaryData[index] = tempEditData;
     setTable_dataBequest(updatedBackupBeneficiaryData);
     backupBeneficiaryData = updatedBackupBeneficiaryData;
 
-    // Actualizar localStorage
+    // Update localStorage
     const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
     formValues.residue = {
       ...formValues.residue,
@@ -295,16 +298,16 @@ function Residue({ id, datas, errors }) {
     localStorage.setItem('formValues', JSON.stringify(formValues));
 
     setToastMessage('Residue updated successfully');
-    setTimeout(() => {
-      setToastMessage('');
-    }, 4000);
     setShowToast(true);
     setEditingRow(null);
+    setTempEditData(null);
   };
+
 
   const handleCancel = () => {
     setEditingRow(null);
-  };
+    setTempEditData(null);
+  }
 
   const handleDelete = (itemId) => {
     setResidueToDelete(itemId);
@@ -345,10 +348,14 @@ function Residue({ id, datas, errors }) {
   };
 
   const handleDropdownSelect = (index, key, value) => {
-    const updatedBackupBeneficiaryData = [...backupBeneficiaryData];
-    updatedBackupBeneficiaryData[index][key] = value;
-    setTable_dataBequest(updatedBackupBeneficiaryData);
-    backupBeneficiaryData = updatedBackupBeneficiaryData;
+    if (editingRow === index) {
+      setTempEditData({ ...tempEditData, [key]: value });
+    } else {
+      const updatedBackupBeneficiaryData = [...backupBeneficiaryData];
+      updatedBackupBeneficiaryData[index][key] = value;
+      setTable_dataBequest(updatedBackupBeneficiaryData);
+      backupBeneficiaryData = updatedBackupBeneficiaryData;
+    }
   };
 
   const renderTooltip = (props) => (
@@ -509,7 +516,7 @@ function Residue({ id, datas, errors }) {
                       <th>Options</th>
                     </tr>
                   </thead>
-                  <tbody >
+                  <tbody>
                     {backupBeneficiaryData.length === 0 ? (
                       <tr>
                         <td colSpan="6">
@@ -524,7 +531,7 @@ function Residue({ id, datas, errors }) {
                             {editingRow === index ? (
                               <Dropdown onSelect={(eventKey) => handleDropdownSelect(index, 'beneficiary', eventKey)}>
                                 <Dropdown.Toggle variant="outline-dark" id={`dropdown-beneficiary-${index}`}>
-                                  {item.beneficiary || 'Select Beneficiary'}
+                                  {tempEditData.beneficiary || 'Select Beneficiary'}
                                 </Dropdown.Toggle>
                                 <Dropdown.Menu>
                                   {identifiers_names.map((name, idx) => (
@@ -540,7 +547,7 @@ function Residue({ id, datas, errors }) {
                             {editingRow === index ? (
                               <Dropdown onSelect={(eventKey) => handleDropdownSelect(index, 'backup', eventKey)}>
                                 <Dropdown.Toggle variant="outline-dark" id={`dropdown-backup-${index}`}>
-                                  {item.backup || 'Select Backup'}
+                                  {tempEditData.backup || 'Select Backup'}
                                 </Dropdown.Toggle>
                                 <Dropdown.Menu>
                                   {identifiers_names.map((name, idx) => (
@@ -555,7 +562,7 @@ function Residue({ id, datas, errors }) {
                           <td>
                             {editingRow === index ? (
                               <Form.Select
-                                value={item.type}
+                                value={tempEditData.type}
                                 onChange={(e) => handleDropdownSelect(index, 'type', e.target.value)}
                               >
                                 <option value="per stirpes">per stirpes</option>
@@ -569,7 +576,7 @@ function Residue({ id, datas, errors }) {
                             {editingRow === index ? (
                               <Form.Control
                                 type="number"
-                                value={item.shares}
+                                value={tempEditData.shares}
                                 onChange={(e) => handleDropdownSelect(index, 'shares', Number(e.target.value))}
                               />
                             ) : (
