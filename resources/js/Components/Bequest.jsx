@@ -647,7 +647,7 @@ function Bequest({ id, datas, errors }) {
                                                     {editingRow === index ? (
                                                         <>
                                                             <Button
-                                                                style={{ width: "50%" }}
+                                                                className="w-[50%]"
                                                                 variant="outline-success"
                                                                 size="sm"
                                                                 onClick={() => handleSave(index)}
@@ -655,11 +655,10 @@ function Bequest({ id, datas, errors }) {
                                                                 Save
                                                             </Button>
                                                             <Button
-                                                                style={{ width: "50%" }}
+                                                                className="w-[50%]"
                                                                 variant="outline-secondary"
                                                                 size="sm"
                                                                 onClick={handleCancel}
-                                                                className="me-2"
                                                             >
                                                                 Cancel
                                                             </Button>
@@ -667,7 +666,7 @@ function Bequest({ id, datas, errors }) {
                                                     ) : (
                                                         <>
                                                             <Button
-                                                                style={{ width: "50%" }}
+                                                                className="w-[50%]"
                                                                 variant="outline-danger"
                                                                 size="sm"
                                                                 onClick={() => handleDelete(item.id)}
@@ -675,11 +674,10 @@ function Bequest({ id, datas, errors }) {
                                                                 Delete
                                                             </Button>
                                                             <Button
-                                                                style={{ width: "50%" }}
+                                                                className="w-[50%]"
                                                                 variant="outline-warning"
                                                                 size="sm"
                                                                 onClick={() => handleEdit(index)}
-                                                                className="me-2"
                                                             >
                                                                 Edit
                                                             </Button>
