@@ -91,6 +91,11 @@ const Poa = ({ datas, errors }) => {
         setFormData(prev => ({ ...prev, backups: newBackups }));
     };
 
+    const handleDeleteBackup = (index) => {
+        const newBackups = formData.backups.filter((_, idx) => idx !== index);
+        setFormData(prev => ({ ...prev, backups: newBackups }));
+    };
+
     const handleSubmit = () => {
         setValidationErrors({});
 
@@ -104,8 +109,8 @@ const Poa = ({ datas, errors }) => {
         setToastMessage('POA added successfully');
         setShowToast(true);
 
-        // Change tab based on the newly added POA type
-        setActiveTab(activeTab === 'Property' ? 'Health' : 'Property');
+        // Force a re-render
+        setActiveTab(prevTab => prevTab);
     };
 
     const handleDelete = (id) => {
@@ -121,6 +126,9 @@ const Poa = ({ datas, errors }) => {
             setShowToast(true);
             setItemToDelete(null);
             setShowDeleteModal(false);
+
+            // Force a re-render
+            setActiveTab(prevTab => prevTab);
         }
     };
 
@@ -130,7 +138,9 @@ const Poa = ({ datas, errors }) => {
     };
 
     const handleSave = (index) => {
-        poaData[index] = tempData;
+        const updatedPoaData = [...poaData];
+        updatedPoaData[index] = { ...tempData, id: poaData[index].id };
+        poaData = updatedPoaData;
         updateLocalStorage();
         setEditingRow(null);
         setTempData({});
@@ -143,139 +153,109 @@ const Poa = ({ datas, errors }) => {
         setTempData({});
     };
 
+    const addBackupToRow = (index) => {
+        const newBackups = [...tempData.backups, ''];
+        setTempData({ ...tempData, backups: newBackups });
+    };
+
+    const poaExistsForType = (type) => {
+        return poaData.some(poa => poa.type === type);
+    };
+
+    const renderTabContent = (type) => {
+        if (poaExistsForType(type)) {
+            return (
+                <Card className="mb-4">
+                    <Card.Body>
+                        <p className="text-center">
+                            POA of {type} already added. You can edit the data in the table below or remove it to add a new one.
+                        </p>
+                    </Card.Body>
+                </Card>
+            );
+        }
+
+        return (
+            <Form>
+                <Card className="mb-4">
+                    <Card.Header as="h5">Add New Power of Attorney</Card.Header>
+                    <Card.Body>
+                        <Row>
+                            <Col sm={12}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Attorney</Form.Label>
+                                    <Dropdown onSelect={(eventKey) => handleDropdownSelect('attorney', eventKey)}>
+                                        <Dropdown.Toggle variant="outline-dark" id="dropdown-attorney" className="w-100">
+                                            {formData.attorney || 'Select attorney...'}
+                                        </Dropdown.Toggle>
+                                        <Dropdown.Menu className="w-100 text-center">
+                                            {identifiersNames.map((name, index) => (
+                                                <Dropdown.Item key={index} eventKey={name}>{name}</Dropdown.Item>
+                                            ))}
+                                        </Dropdown.Menu>
+                                    </Dropdown>
+                                    <Form.Control.Feedback type="invalid">{validationErrors.attorney}</Form.Control.Feedback>
+                                </Form.Group>
+                            </Col>
+                        </Row>
+
+                        <Form.Group className="mb-3">
+                            <Form.Label>Backups (optional):</Form.Label>
+                            {formData.backups.map((backup, index) => (
+                                <div key={index} className="d-flex align-items-center mb-2">
+                                    <Dropdown className="flex-grow-1" onSelect={(eventKey) => handleBackupChange(index, eventKey)}>
+                                        <Dropdown.Toggle variant="outline-secondary" id={`dropdown-backup-${index}`} className="w-100">
+                                            {backup || `Select backup ${index + 1}...`}
+                                        </Dropdown.Toggle>
+                                        <Dropdown.Menu className="w-100 text-center">
+                                            {identifiersNames.map((name, idx) => (
+                                                <Dropdown.Item key={idx} eventKey={name}>{name}</Dropdown.Item>
+                                            ))}
+                                        </Dropdown.Menu>
+                                    </Dropdown>
+                                    <Button variant="outline-danger" onClick={() => handleDeleteBackup(index)} className="ms-2">
+                                        <i className="bi bi-trash me-2"></i>Delete
+                                    </Button>
+                                </div>
+                            ))}
+
+                            <Button variant="outline-secondary" onClick={addBackup} className="mt-2 w-100">
+                                <i className="bi bi-plus-circle me-2"></i>Add Backup
+                            </Button>
+                            <Form.Control.Feedback type="invalid">{validationErrors.backups}</Form.Control.Feedback>
+                        </Form.Group>
+
+                        <Form.Group className="mb-3">
+                            <Form.Label>Restrictions</Form.Label>
+                            <Form.Control
+                                as="textarea"
+                                rows={3}
+                                name="restrictions"
+                                value={formData.restrictions}
+                                onChange={handleInputChange}
+                                placeholder="Enter restrictions..."
+                                isInvalid={!!validationErrors.restrictions}
+                            />
+                            <Form.Control.Feedback type="invalid">{validationErrors.restrictions}</Form.Control.Feedback>
+                        </Form.Group>
+
+                        <Button className='w-100' variant="outline-success" onClick={handleSubmit}>
+                            <i className="bi bi-check-circle me-2"></i>Save POA
+                        </Button>
+                    </Card.Body>
+                </Card>
+            </Form>
+        );
+    };
+
     return (
         <Container>
             <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k)} className="mb-4">
                 <Tab eventKey="Property" title="Property">
-                    <Form>
-                        <Card className="mb-4">
-                            <Card.Header as="h5">Add New Power of Attorney</Card.Header>
-                            <Card.Body>
-                                <Row>
-                                    <Col sm={12}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>Attorney</Form.Label>
-                                            <Dropdown onSelect={(eventKey) => handleDropdownSelect('attorney', eventKey)}>
-                                                <Dropdown.Toggle variant="outline-dark" id="dropdown-attorney" className="w-[100%]">
-                                                    {formData.attorney || 'Select attorney...'}
-                                                </Dropdown.Toggle>
-                                                <Dropdown.Menu className="w-100 text-center">
-                                                    {identifiersNames.map((name, index) => (
-                                                        <Dropdown.Item key={index} eventKey={name}>{name}</Dropdown.Item>
-                                                    ))}
-                                                </Dropdown.Menu>
-                                            </Dropdown>
-                                            <Form.Control.Feedback type="invalid">{validationErrors.attorney}</Form.Control.Feedback>
-                                        </Form.Group>
-                                    </Col>
-                                </Row>
-
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Backups (optional):</Form.Label>
-                                    {formData.backups.map((backup, index) => (
-                                        <Dropdown key={index} className="mb-2" onSelect={(eventKey) => handleBackupChange(index, eventKey)}>
-                                            <Dropdown.Toggle variant="outline-secondary" id={`dropdown-backup-${index}`} className="w-[100%]">
-                                                {backup || `Select backup ${index + 1}...`}
-                                            </Dropdown.Toggle>
-                                            <Dropdown.Menu className="w-100 text-center">
-                                                {identifiersNames.map((name, idx) => (
-                                                    <Dropdown.Item key={idx} eventKey={name}>{name}</Dropdown.Item>
-                                                ))}
-                                            </Dropdown.Menu>
-                                        </Dropdown>
-                                    ))}
-
-                                    <Button variant="outline-secondary" onClick={addBackup} className="mt-2 w-[100%]">
-                                        <i className="bi bi-plus-circle me-2"></i>Add Backup
-                                    </Button>
-                                    <Form.Control.Feedback type="invalid">{validationErrors.backups}</Form.Control.Feedback>
-                                </Form.Group>
-
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Restrictions</Form.Label>
-                                    <Form.Control
-                                        as="textarea"
-                                        rows={3}
-                                        name="restrictions"
-                                        value={formData.restrictions}
-                                        onChange={handleInputChange}
-                                        placeholder="Enter restrictions..."
-                                        isInvalid={!!validationErrors.restrictions}
-                                    />
-                                    <Form.Control.Feedback type="invalid">{validationErrors.restrictions}</Form.Control.Feedback>
-                                </Form.Group>
-
-                                <Button className='w-100' variant="outline-success" onClick={handleSubmit}>
-                                    <i className="bi bi-plus-circle me-2"></i>Add POA
-                                </Button>
-                            </Card.Body>
-                        </Card>
-                    </Form>
+                    {renderTabContent("Property")}
                 </Tab>
                 <Tab eventKey="Health" title="Health">
-                    <Form>
-                        <Card className="mb-4">
-                            <Card.Header as="h5">Add New Power of Attorney</Card.Header>
-                            <Card.Body>
-                                <Row>
-                                    <Col sm={12}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>Attorney</Form.Label>
-                                            <Dropdown onSelect={(eventKey) => handleDropdownSelect('attorney', eventKey)}>
-                                                <Dropdown.Toggle variant="outline-dark" id="dropdown-attorney" className="w-100">
-                                                    {formData.attorney || 'Select attorney...'}
-                                                </Dropdown.Toggle>
-                                                <Dropdown.Menu className="w-100">
-                                                    {identifiersNames.map((name, index) => (
-                                                        <Dropdown.Item key={index} eventKey={name}>{name}</Dropdown.Item>
-                                                    ))}
-                                                </Dropdown.Menu>
-                                            </Dropdown>
-                                            <Form.Control.Feedback type="invalid">{validationErrors.attorney}</Form.Control.Feedback>
-                                        </Form.Group>
-                                    </Col>
-                                </Row>
-
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Backups (optional):</Form.Label>
-                                    {formData.backups.map((backup, index) => (
-                                        <Dropdown key={index} className="mb-2" onSelect={(eventKey) => handleBackupChange(index, eventKey)}>
-                                            <Dropdown.Toggle variant="outline-secondary" id={`dropdown-backup-${index}`} className="w-100">
-                                                {backup || `Select backup ${index + 1}...`}
-                                            </Dropdown.Toggle>
-                                            <Dropdown.Menu className="w-100">
-                                                {identifiersNames.map((name, idx) => (
-                                                    <Dropdown.Item key={idx} eventKey={name}>{name}</Dropdown.Item>
-                                                ))}
-                                            </Dropdown.Menu>
-                                        </Dropdown>
-                                    ))}
-                                    <Button variant="outline-secondary" onClick={addBackup} className="mt-2 w-[100%]">
-                                        <i className="bi bi-plus-circle me-2"></i>Add Backup
-                                    </Button>
-                                    <Form.Control.Feedback type="invalid">{validationErrors.backups}</Form.Control.Feedback>
-                                </Form.Group>
-
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Restrictions</Form.Label>
-                                    <Form.Control
-                                        as="textarea"
-                                        rows={3}
-                                        name="restrictions"
-                                        value={formData.restrictions}
-                                        onChange={handleInputChange}
-                                        placeholder="Enter restrictions..."
-                                        isInvalid={!!validationErrors.restrictions}
-                                    />
-                                    <Form.Control.Feedback type="invalid">{validationErrors.restrictions}</Form.Control.Feedback>
-                                </Form.Group>
-
-                                <Button className='w-100' variant="outline-success" onClick={handleSubmit}>
-                                    <i className="bi bi-plus-circle me-2"></i>Add POA
-                                </Button>
-                            </Card.Body>
-                        </Card>
-                    </Form>
+                    {renderTabContent("Health")}
                 </Tab>
             </Tabs>
 
@@ -304,7 +284,7 @@ const Poa = ({ datas, errors }) => {
                                         </td>
                                         <td>{editingRow === index ?
                                             <Dropdown onSelect={(eventKey) => setTempData({ ...tempData, attorney: eventKey })}>
-                                                <Dropdown.Toggle variant="outline-secondary" className="w-100">{tempData.attorney}</Dropdown.Toggle>
+                                                <Dropdown.Toggle variant="outline-dark" className="w-100">{tempData.attorney}</Dropdown.Toggle>
                                                 <Dropdown.Menu className="w-100">
                                                     {identifiersNames.map((name, idx) => (
                                                         <Dropdown.Item key={idx} eventKey={name}>{name}</Dropdown.Item>
@@ -313,49 +293,71 @@ const Poa = ({ datas, errors }) => {
                                             </Dropdown> : item.attorney}
                                         </td>
                                         <td>{editingRow === index ?
-                                            tempData.backups.map((backup, idx) => (
-                                                <Dropdown key={idx} className="mb-1" onSelect={(eventKey) => {
-                                                    const newBackups = [...tempData.backups];
-                                                    newBackups[idx] = eventKey;
-                                                    setTempData({ ...tempData, backups: newBackups });
-                                                }}>
-                                                    <Dropdown.Toggle variant="outline-secondary" className="w-100">{backup}</Dropdown.Toggle>
-                                                    <Dropdown.Menu className="w-100">
-                                                        {identifiersNames.map((name, nameIdx) => (
-                                                            <Dropdown.Item key={nameIdx} eventKey={name}>{name}</Dropdown.Item>
-                                                        ))}
-                                                    </Dropdown.Menu>
-                                                </Dropdown>
-                                            )) : item.backups.join(', ')}
+                                            <>
+                                                {tempData.backups.map((backup, idx) => (
+                                                    <div key={idx} className="d-flex align-items-center mb-2">
+                                                        <Dropdown className="flex-grow-1" onSelect={(eventKey) => {
+                                                            const newBackups = [...tempData.backups];
+                                                            newBackups[idx] = eventKey;
+                                                            setTempData({ ...tempData, backups: newBackups });
+                                                        }}>
+                                                            <Dropdown.Toggle variant="outline-dark" className="w-100">{backup}</Dropdown.Toggle>
+                                                            <Dropdown.Menu className="w-100">
+                                                                {identifiersNames.map((name, nameIdx) => (
+                                                                    <Dropdown.Item key={nameIdx} eventKey={name}>{name}</Dropdown.Item>
+                                                                ))}
+                                                            </Dropdown.Menu>
+                                                        </Dropdown>
+                                                        <Button variant="outline-danger" onClick={() => {
+                                                            const newBackups = [...tempData.backups];
+                                                            newBackups.splice(idx, 1);
+                                                            setTempData({ ...tempData, backups: newBackups });
+                                                        }} className="ms-2">
+                                                            <i className="bi bi-trash me-2"></i>Delete
+                                                        </Button>
+                                                    </div>
+                                                ))}
+                                                <Button
+                                                    variant="outline-secondary"
+                                                    size="sm"
+                                                    onClick={() => addBackupToRow(index)}
+                                                    className="w-100 mt-1"
+                                                >
+                                                    <i className="bi bi-plus-circle me-2"></i>Add Backup
+                                                </Button>
+                                            </>
+                                            : item.backups.join(', ')}
                                         </td>
                                         <td>{editingRow === index ?
                                             <Form.Control as="textarea" rows={2} value={tempData.restrictions} onChange={(e) => setTempData({ ...tempData, restrictions: e.target.value })} />
                                             : item.restrictions}
                                         </td>
                                         <td>
-                                            {editingRow === index ? (
-                                                <>
-                                                    <Button variant="success" size="sm" onClick={() => handleSave(index)} className="me-1">
-                                                        <i className="bi bi-check-circle me-1"></i>Save
-                                                    </Button>
-                                                    <Button variant="secondary" size="sm" onClick={handleCancel}>
-                                                        <i className="bi bi-x-circle me-1"></i>Cancel
-                                                    </Button>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <OverlayTrigger placement="top" overlay={<Tooltip>Edit this POA</Tooltip>}>
-                                                        <Button variant="warning" size="sm" onClick={() => handleEdit(index)} className="me-1">
-                                                            <i className="bi bi-pencil me-1"></i>Edit
+                                            <div className='d-flex justify-content-around gap-3'>
+                                                {editingRow === index ? (
+                                                    <>
+                                                        <Button variant="outline-success" size="sm" onClick={() => handleSave(index)} className="me-1 w-50">
+                                                            <i className="bi bi-check-circle me-1"></i>Save
                                                         </Button>
-                                                    </OverlayTrigger>
-                                                    <OverlayTrigger placement="top" overlay={<Tooltip>Delete this POA</Tooltip>}>
-                                                        <Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>
-                                                            <i className="bi bi-trash me-1"></i>Delete
+                                                        <Button variant="outline-secondary" size="sm" onClick={handleCancel} className="w-50">
+                                                            <i className="bi bi-x-circle me-1"></i>Cancel
                                                         </Button>
-                                                    </OverlayTrigger>
-                                                </>
-                                            )}
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <OverlayTrigger placement="top" overlay={<Tooltip>Edit this POA</Tooltip>}>
+                                                            <Button variant="outline-warning" size="sm" onClick={() => handleEdit(index)} className="me-1 w-50">
+                                                                <i className="bi bi-pencil me-1"></i>Edit
+                                                            </Button>
+                                                        </OverlayTrigger>
+                                                        <OverlayTrigger placement="top" overlay={<Tooltip>Delete this POA</Tooltip>}>
+                                                            <Button variant="outline-danger" size="sm" onClick={() => handleDelete(item.id)} className="w-50">
+                                                                <i className="bi bi-trash me-1"></i>Delete
+                                                            </Button>
+                                                        </OverlayTrigger>
+                                                    </>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
