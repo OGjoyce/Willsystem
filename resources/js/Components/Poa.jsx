@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Form, Dropdown, Button, Table, Card, Tabs, Tab, Modal, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Container, Row, Col, Form, Dropdown, Button, Table, Card, Tabs, Tab, Modal, OverlayTrigger, Tooltip, Popover } from 'react-bootstrap';
 import ConfirmationModal from './AdditionalComponents/ConfirmationModal';
 import CustomToast from './AdditionalComponents/CustomToast';
 
-let poaData = [];
+let poaData = {
+    poaProperty: null,
+    poaHealth: null,
+    organDonation: false,
+    dnr: false,
+    timestamp: Date.now()
+};
 
 export function getPoa() {
     return poaData;
@@ -16,15 +22,17 @@ const Poa = ({ datas, errors }) => {
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
     const [itemToDelete, setItemToDelete] = useState(null);
-    const [editingRow, setEditingRow] = useState(null);
+    const [editingType, setEditingType] = useState(null);
     const [tempData, setTempData] = useState({});
     const [formData, setFormData] = useState({
-        type: 'Property', // Default tab
         attorney: '',
         backups: [],
         restrictions: '',
     });
     const [activeTab, setActiveTab] = useState('Property');
+    const [organDonation, setOrganDonation] = useState(false);
+    const [dnr, setDnr] = useState(false);
+    const [showTooltip, setShowTooltip] = useState({ Property: false, Health: false });
 
     useEffect(() => {
         if (datas) {
@@ -55,8 +63,12 @@ const Poa = ({ datas, errors }) => {
         const storedFormValues = JSON.parse(localStorage.getItem('formValues')) || {};
         if (storedFormValues.poa) {
             poaData = storedFormValues.poa;
-            setFormData(poaData);
+            setFormData(poaData.poaProperty || poaData.poaHealth || {});
+            setOrganDonation(poaData.organDonation || false);
+            setDnr(poaData.dnr || false);
         }
+
+        setShowTooltip({ Property: false, Health: false });
     }, [datas]);
 
     useEffect(() => {
@@ -99,30 +111,53 @@ const Poa = ({ datas, errors }) => {
     const handleSubmit = () => {
         setValidationErrors({});
 
-        poaData.push({ ...formData, type: activeTab, id: Date.now() });
+        const newPoa = { ...formData };
+        if (activeTab === 'Property') {
+            poaData.poaProperty = {
+                attorney: newPoa.attorney,
+                backups: newPoa.backups,
+                restrictions: newPoa.restrictions
+            };
+            setShowTooltip(prev => ({ ...prev, Health: true }));
+        } else {
+            poaData.poaHealth = {
+                attorney: newPoa.attorney,
+                backups: newPoa.backups,
+                restrictions: newPoa.restrictions
+            };
+            poaData.organDonation = organDonation;
+            poaData.dnr = dnr;
+            setShowTooltip(prev => ({ ...prev, Property: true }));
+        }
+        poaData.timestamp = Date.now();
         updateLocalStorage();
         setFormData({
             attorney: '',
             backups: [],
             restrictions: '',
         });
-        setToastMessage('POA added successfully');
+        setToastMessage(`${activeTab} POA added successfully`);
         setShowToast(true);
 
         // Force a re-render
         setActiveTab(prevTab => prevTab);
     };
 
-    const handleDelete = (id) => {
-        setItemToDelete(id);
+    const handleDelete = (type) => {
+        setItemToDelete(type);
         setShowDeleteModal(true);
+        setShowTooltip(prev => ({ ...prev, [type]: false }));
     };
 
     const confirmDelete = () => {
-        if (itemToDelete !== null) {
-            poaData = poaData.filter(item => item.id !== itemToDelete);
+        if (itemToDelete) {
+            if (itemToDelete === 'Property') {
+                poaData.poaProperty = null;
+            } else {
+                poaData.poaHealth = null;
+            }
             updateLocalStorage();
-            setToastMessage('POA removed successfully');
+            setToastMessage(`${itemToDelete} POA removed successfully`);
             setShowToast(true);
             setItemToDelete(null);
             setShowDeleteModal(false);
@@ -132,34 +167,46 @@ const Poa = ({ datas, errors }) => {
         }
     };
 
-    const handleEdit = (index) => {
-        setEditingRow(index);
-        setTempData({ ...poaData[index] });
+    const handleEdit = (type) => {
+        setEditingType(type);
+        const currentPoa = poaData[`poa${type}`];
+        setTempData({
+            ...currentPoa,
+            backups: currentPoa.backups || []
+        });
     };
 
-    const handleSave = (index) => {
-        const updatedPoaData = [...poaData];
-        updatedPoaData[index] = { ...tempData, id: poaData[index].id };
-        poaData = updatedPoaData;
+    const handleSave = () => {
+        const updatedPoa = {
+            attorney: tempData.attorney,
+            backups: tempData.backups,
+            restrictions: tempData.restrictions
+        };
+        poaData[`poa${editingType}`] = updatedPoa;
+        if (editingType === 'Health') {
+            poaData.organDonation = organDonation;
+            poaData.dnr = dnr;
+        }
+        poaData.timestamp = Date.now();
         updateLocalStorage();
-        setEditingRow(null);
+        setEditingType(null);
         setTempData({});
-        setToastMessage('POA updated successfully');
+        setToastMessage(`${editingType} POA updated successfully`);
         setShowToast(true);
     };
 
     const handleCancel = () => {
-        setEditingRow(null);
+        setEditingType(null);
         setTempData({});
     };
 
-    const addBackupToRow = (index) => {
+    const addBackupToRow = () => {
         const newBackups = [...tempData.backups, ''];
         setTempData({ ...tempData, backups: newBackups });
     };
 
     const poaExistsForType = (type) => {
-        return poaData.some(poa => poa.type === type);
+        return poaData[`poa${type}`] !== null;
     };
 
     const renderTabContent = (type) => {
@@ -239,6 +286,29 @@ const Poa = ({ datas, errors }) => {
                             <Form.Control.Feedback type="invalid">{validationErrors.restrictions}</Form.Control.Feedback>
                         </Form.Group>
 
+                        {type === 'Health' && (
+                            <>
+                                <Form.Group className="mb-3">
+                                    <Form.Check
+                                        type="checkbox"
+                                        id="organDonation"
+                                        label="Organ Donation"
+                                        checked={organDonation}
+                                        onChange={(e) => setOrganDonation(e.target.checked)}
+                                    />
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Check
+                                        type="checkbox"
+                                        id="dnr"
+                                        label="Do Not Resuscitate (DNR)"
+                                        checked={dnr}
+                                        onChange={(e) => setDnr(e.target.checked)}
+                                    />
+                                </Form.Group>
+                            </>
+                        )}
+
                         <Button className='w-100' variant="outline-success" onClick={handleSubmit}>
                             <i className="bi bi-check-circle me-2"></i>Save POA
                         </Button>
@@ -250,16 +320,66 @@ const Poa = ({ datas, errors }) => {
 
     return (
         <Container>
-            <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k)} className="mb-4">
-                <Tab eventKey="Property" title="Property">
+            <Tabs
+                activeKey={activeTab}
+                onSelect={(k) => setActiveTab(k)}
+                className="mb-4"
+            >
+                <Tab
+                    eventKey="Property"
+                    title={
+                        <OverlayTrigger
+                            trigger={[]}
+                            show={showTooltip.Property && !poaExistsForType('Property')}
+                            placement="top"
+                            overlay={
+                                <Popover id="popover-property" className="bg-red-100 text-red-600 border border-red-600">
+                                    <Popover.Body>
+                                        Don&apos;t forget to fill out the Property POA!
+                                    </Popover.Body>
+                                </Popover>
+                            }
+                        >
+                            <span className="flex items-center">
+                                Property
+                                {showTooltip.Property && !poaExistsForType('Property') && (
+                                    <span className="text-red-600 ml-1"> ⚠️</span>
+                                )}
+                            </span>
+                        </OverlayTrigger>
+                    }
+                >
                     {renderTabContent("Property")}
                 </Tab>
-                <Tab eventKey="Health" title="Health">
+                <Tab
+                    eventKey="Health"
+                    title={
+                        <OverlayTrigger
+                            trigger={[]}
+                            show={showTooltip.Health && !poaExistsForType('Health')}
+                            placement="top"
+                            overlay={
+                                <Popover id="popover-health" className="bg-red-100 text-red-600 border border-red-600">
+                                    <Popover.Body>
+                                        Don&apos;t forget to fill out the Health POA!
+                                    </Popover.Body>
+                                </Popover>
+                            }
+                        >
+                            <span className="flex items-center">
+                                Health
+                                {showTooltip.Health && !poaExistsForType('Health') && (
+                                    <span className="text-red-600 ml-1"> ⚠️</span>
+                                )}
+                            </span>
+                        </OverlayTrigger>
+                    }
+                >
                     {renderTabContent("Health")}
                 </Tab>
             </Tabs>
 
-            {poaData.length > 0 && (
+            {(poaData.poaProperty || poaData.poaHealth) && (
                 <Card className="mt-4">
                     <Card.Header as="h5">Existing Powers of Attorney</Card.Header>
                     <Card.Body>
@@ -274,95 +394,99 @@ const Poa = ({ datas, errors }) => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {poaData.map((item, index) => (
-                                    <tr key={item.id}>
-                                        <td>{editingRow === index ?
-                                            <Form.Select value={tempData.type} onChange={(e) => setTempData({ ...tempData, type: e.target.value })}>
-                                                <option value="Property">Property</option>
-                                                <option value="Health">Health</option>
-                                            </Form.Select> : item.type}
-                                        </td>
-                                        <td>{editingRow === index ?
-                                            <Dropdown onSelect={(eventKey) => setTempData({ ...tempData, attorney: eventKey })}>
-                                                <Dropdown.Toggle variant="outline-dark" className="w-100">{tempData.attorney}</Dropdown.Toggle>
-                                                <Dropdown.Menu className="w-100">
-                                                    {identifiersNames.map((name, idx) => (
-                                                        <Dropdown.Item key={idx} eventKey={name}>{name}</Dropdown.Item>
+                                {['Property', 'Health'].map((type) => {
+                                    const item = poaData[`poa${type}`];
+                                    if (!item) return null;
+                                    return (
+                                        <tr key={type}>
+                                            <td>{type}</td>
+                                            <td>{editingType === type ?
+                                                <Dropdown onSelect={(eventKey) => setTempData({ ...tempData, attorney: eventKey })}>
+                                                    <Dropdown.Toggle variant="outline-dark" className="w-100">{tempData.attorney}</Dropdown.Toggle>
+                                                    <Dropdown.Menu className="w-100">
+                                                        {identifiersNames.map((name, idx) => (
+                                                            <Dropdown.Item key={idx} eventKey={name}>{name}</Dropdown.Item>
+                                                        ))}
+                                                    </Dropdown.Menu>
+                                                </Dropdown> : item.attorney}
+                                            </td>
+                                            <td>{editingType === type ?
+                                                <>
+                                                    {tempData.backups.map((backup, idx) => (
+                                                        <div key={idx} className="d-flex align-items-center mb-2">
+                                                            <Dropdown className="flex-grow-1" onSelect={(eventKey) => {
+                                                                const newBackups = [...tempData.backups];
+                                                                newBackups[idx] = eventKey;
+                                                                setTempData({ ...tempData, backups: newBackups });
+                                                            }}>
+                                                                <Dropdown.Toggle variant="outline-dark" className="w-100">{backup}</Dropdown.Toggle>
+                                                                <Dropdown.Menu className="w-100">
+                                                                    {identifiersNames.map((name, nameIdx) => (
+                                                                        <Dropdown.Item key={nameIdx} eventKey={name}>{name}</Dropdown.Item>
+                                                                    ))}
+                                                                </Dropdown.Menu>
+                                                            </Dropdown>
+                                                            <Button variant="outline-danger" onClick={() => {
+                                                                const newBackups = [...tempData.backups];
+                                                                newBackups.splice(idx, 1);
+                                                                setTempData({ ...tempData, backups: newBackups });
+                                                            }} className="ms-2">
+                                                                <i className="bi bi-trash me-2"></i>Delete
+                                                            </Button>
+                                                        </div>
                                                     ))}
-                                                </Dropdown.Menu>
-                                            </Dropdown> : item.attorney}
-                                        </td>
-                                        <td>{editingRow === index ?
-                                            <>
-                                                {tempData.backups.map((backup, idx) => (
-                                                    <div key={idx} className="d-flex align-items-center mb-2">
-                                                        <Dropdown className="flex-grow-1" onSelect={(eventKey) => {
-                                                            const newBackups = [...tempData.backups];
-                                                            newBackups[idx] = eventKey;
-                                                            setTempData({ ...tempData, backups: newBackups });
-                                                        }}>
-                                                            <Dropdown.Toggle variant="outline-dark" className="w-100">{backup}</Dropdown.Toggle>
-                                                            <Dropdown.Menu className="w-100">
-                                                                {identifiersNames.map((name, nameIdx) => (
-                                                                    <Dropdown.Item key={nameIdx} eventKey={name}>{name}</Dropdown.Item>
-                                                                ))}
-                                                            </Dropdown.Menu>
-                                                        </Dropdown>
-                                                        <Button variant="outline-danger" onClick={() => {
-                                                            const newBackups = [...tempData.backups];
-                                                            newBackups.splice(idx, 1);
-                                                            setTempData({ ...tempData, backups: newBackups });
-                                                        }} className="ms-2">
-                                                            <i className="bi bi-trash me-2"></i>Delete
-                                                        </Button>
-                                                    </div>
-                                                ))}
-                                                <Button
-                                                    variant="outline-secondary"
-                                                    size="sm"
-                                                    onClick={() => addBackupToRow(index)}
-                                                    className="w-100 mt-1"
-                                                >
-                                                    <i className="bi bi-plus-circle me-2"></i>Add Backup
-                                                </Button>
-                                            </>
-                                            : item.backups.join(', ')}
-                                        </td>
-                                        <td>{editingRow === index ?
-                                            <Form.Control as="textarea" rows={2} value={tempData.restrictions} onChange={(e) => setTempData({ ...tempData, restrictions: e.target.value })} />
-                                            : item.restrictions}
-                                        </td>
-                                        <td>
-                                            <div className='d-flex justify-content-around gap-3'>
-                                                {editingRow === index ? (
-                                                    <>
-                                                        <Button variant="outline-success" size="sm" onClick={() => handleSave(index)} className="me-1 w-50">
-                                                            <i className="bi bi-check-circle me-1"></i>Save
-                                                        </Button>
-                                                        <Button variant="outline-secondary" size="sm" onClick={handleCancel} className="w-50">
-                                                            <i className="bi bi-x-circle me-1"></i>Cancel
-                                                        </Button>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <OverlayTrigger placement="top" overlay={<Tooltip>Edit this POA</Tooltip>}>
-                                                            <Button variant="outline-warning" size="sm" onClick={() => handleEdit(index)} className="me-1 w-50">
+                                                    <Button
+                                                        variant="outline-secondary"
+                                                        size="sm"
+                                                        onClick={addBackupToRow}
+                                                        className="w-100 mt-1"
+                                                    >
+                                                        <i className="bi bi-plus-circle me-2"></i>Add Backup
+                                                    </Button>
+                                                </>
+                                                : item.backups.join(', ')}
+                                            </td>
+                                            <td>{editingType === type ?
+                                                <Form.Control as="textarea" rows={2} value={tempData.restrictions} onChange={(e) => setTempData({ ...tempData, restrictions: e.target.value })} />
+                                                : item.restrictions}
+                                            </td>
+                                            <td>
+                                                <div className='d-flex justify-content-around gap-3'>
+                                                    {editingType === type ? (
+                                                        <>
+                                                            <Button variant="outline-success" size="sm" onClick={handleSave} className="me-1 w-50">
+                                                                <i className="bi bi-check-circle me-1"></i>Save
+                                                            </Button>
+                                                            <Button variant="outline-secondary" size="sm" onClick={handleCancel} className="w-50">
+                                                                <i className="bi bi-x-circle me-1"></i>Cancel
+                                                            </Button>
+                                                        </>
+                                                    ) : (
+                                                        <>
+
+                                                            <Button variant="outline-warning" size="sm" onClick={() => handleEdit(type)} className="me-1 w-50">
                                                                 <i className="bi bi-pencil me-1"></i>Edit
                                                             </Button>
-                                                        </OverlayTrigger>
-                                                        <OverlayTrigger placement="top" overlay={<Tooltip>Delete this POA</Tooltip>}>
-                                                            <Button variant="outline-danger" size="sm" onClick={() => handleDelete(item.id)} className="w-50">
+
+                                                            <Button variant="outline-danger" size="sm" onClick={() => handleDelete(type)} className="w-50">
                                                                 <i className="bi bi-trash me-1"></i>Delete
                                                             </Button>
-                                                        </OverlayTrigger>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
+
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </Table>
+                        {poaData.poaHealth && (
+                            <div>
+                                <p><strong>Organ Donation:</strong> {poaData.organDonation ? 'Yes' : 'No'}</p>
+                                <p><strong>Do Not Resuscitate (DNR):</strong> {poaData.dnr ? 'Yes' : 'No'}</p>
+                            </div>
+                        )}
                     </Card.Body>
                 </Card>
             )}
@@ -371,7 +495,7 @@ const Poa = ({ datas, errors }) => {
                 show={showDeleteModal}
                 onClose={() => setShowDeleteModal(false)}
                 onConfirm={confirmDelete}
-                message="Are you sure you want to delete this POA?"
+                message={`Are you sure you want to delete this ${itemToDelete} POA?`}
             />
 
             <CustomToast
