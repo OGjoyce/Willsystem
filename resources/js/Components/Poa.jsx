@@ -209,6 +209,11 @@ const Poa = ({ datas, errors }) => {
         return poaData[`poa${type}`] !== null;
     };
 
+    const handleTabSelect = (key) => {
+        setActiveTab(key);
+        setShowTooltip({ Property: false, Health: false });
+    };
+
     const renderTabContent = (type) => {
         if (poaExistsForType(type)) {
             return (
@@ -251,7 +256,7 @@ const Poa = ({ datas, errors }) => {
                             {formData.backups.map((backup, index) => (
                                 <div key={index} className="d-flex align-items-center mb-2">
                                     <Dropdown className="flex-grow-1" onSelect={(eventKey) => handleBackupChange(index, eventKey)}>
-                                        <Dropdown.Toggle variant="outline-secondary" id={`dropdown-backup-${index}`} className="w-100">
+                                        <Dropdown.Toggle variant="outline-secondary" id={`dropdown-backup-${index}`} className="w-100  ">
                                             {backup || `Select backup ${index + 1}...`}
                                         </Dropdown.Toggle>
                                         <Dropdown.Menu className="w-100 text-center">
@@ -322,7 +327,7 @@ const Poa = ({ datas, errors }) => {
         <Container>
             <Tabs
                 activeKey={activeTab}
-                onSelect={(k) => setActiveTab(k)}
+                onSelect={(k) => handleTabSelect(k)}
                 className="mb-4"
             >
                 <Tab
@@ -333,7 +338,7 @@ const Poa = ({ datas, errors }) => {
                             show={showTooltip.Property && !poaExistsForType('Property')}
                             placement="top"
                             overlay={
-                                <Popover id="popover-property" className="bg-red-100 text-red-600 border border-red-600">
+                                <Popover id="popover-property" className="border-red-300 mb-2">
                                     <Popover.Body>
                                         Don&apos;t forget to fill out the Property POA!
                                     </Popover.Body>
@@ -359,7 +364,7 @@ const Poa = ({ datas, errors }) => {
                             show={showTooltip.Health && !poaExistsForType('Health')}
                             placement="top"
                             overlay={
-                                <Popover id="popover-health" className="bg-red-100 text-red-600 border border-red-600">
+                                <Popover id="popover-health" className="border-red-300 mb-2">
                                     <Popover.Body>
                                         Don&apos;t forget to fill out the Health POA!
                                     </Popover.Body>
