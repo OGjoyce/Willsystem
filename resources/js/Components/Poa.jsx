@@ -93,16 +93,6 @@ const Poa = ({ datas, errors }) => {
 
     const handleSubmit = () => {
         setValidationErrors({});
-        let newErrors = {};
-
-        if (!formData.attorney) newErrors.attorney = "Attorney is required";
-        if (formData.backups.length === 0) newErrors.backups = "At least one backup is required";
-        if (!formData.restrictions) newErrors.restrictions = "Restrictions are required";
-
-        if (Object.keys(newErrors).length > 0) {
-            setValidationErrors(newErrors);
-            return;
-        }
 
         poaData.push({ ...formData, type: activeTab, id: Date.now() });
         updateLocalStorage();
@@ -162,14 +152,14 @@ const Poa = ({ datas, errors }) => {
                             <Card.Header as="h5">Add New Power of Attorney</Card.Header>
                             <Card.Body>
                                 <Row>
-                                    <Col sm={6}>
+                                    <Col sm={12}>
                                         <Form.Group className="mb-3">
                                             <Form.Label>Attorney</Form.Label>
                                             <Dropdown onSelect={(eventKey) => handleDropdownSelect('attorney', eventKey)}>
-                                                <Dropdown.Toggle variant="outline-secondary" id="dropdown-attorney" className="w-100">
+                                                <Dropdown.Toggle variant="outline-dark" id="dropdown-attorney" className="w-[100%]">
                                                     {formData.attorney || 'Select attorney...'}
                                                 </Dropdown.Toggle>
-                                                <Dropdown.Menu className="w-100">
+                                                <Dropdown.Menu className="w-100 text-center">
                                                     {identifiersNames.map((name, index) => (
                                                         <Dropdown.Item key={index} eventKey={name}>{name}</Dropdown.Item>
                                                     ))}
@@ -181,20 +171,21 @@ const Poa = ({ datas, errors }) => {
                                 </Row>
 
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Backups</Form.Label>
+                                    <Form.Label>Backups (optional):</Form.Label>
                                     {formData.backups.map((backup, index) => (
                                         <Dropdown key={index} className="mb-2" onSelect={(eventKey) => handleBackupChange(index, eventKey)}>
-                                            <Dropdown.Toggle variant="outline-secondary" id={`dropdown-backup-${index}`} className="w-100">
+                                            <Dropdown.Toggle variant="outline-secondary" id={`dropdown-backup-${index}`} className="w-[100%]">
                                                 {backup || `Select backup ${index + 1}...`}
                                             </Dropdown.Toggle>
-                                            <Dropdown.Menu className="w-100">
+                                            <Dropdown.Menu className="w-100 text-center">
                                                 {identifiersNames.map((name, idx) => (
                                                     <Dropdown.Item key={idx} eventKey={name}>{name}</Dropdown.Item>
                                                 ))}
                                             </Dropdown.Menu>
                                         </Dropdown>
                                     ))}
-                                    <Button variant="outline-primary" onClick={addBackup} className="mt-2">
+
+                                    <Button variant="outline-secondary" onClick={addBackup} className="mt-2 w-[100%]">
                                         <i className="bi bi-plus-circle me-2"></i>Add Backup
                                     </Button>
                                     <Form.Control.Feedback type="invalid">{validationErrors.backups}</Form.Control.Feedback>
@@ -214,7 +205,7 @@ const Poa = ({ datas, errors }) => {
                                     <Form.Control.Feedback type="invalid">{validationErrors.restrictions}</Form.Control.Feedback>
                                 </Form.Group>
 
-                                <Button variant="primary" onClick={handleSubmit}>
+                                <Button className='w-100' variant="outline-success" onClick={handleSubmit}>
                                     <i className="bi bi-plus-circle me-2"></i>Add POA
                                 </Button>
                             </Card.Body>
@@ -227,11 +218,11 @@ const Poa = ({ datas, errors }) => {
                             <Card.Header as="h5">Add New Power of Attorney</Card.Header>
                             <Card.Body>
                                 <Row>
-                                    <Col sm={6}>
+                                    <Col sm={12}>
                                         <Form.Group className="mb-3">
                                             <Form.Label>Attorney</Form.Label>
                                             <Dropdown onSelect={(eventKey) => handleDropdownSelect('attorney', eventKey)}>
-                                                <Dropdown.Toggle variant="outline-secondary" id="dropdown-attorney" className="w-100">
+                                                <Dropdown.Toggle variant="outline-dark" id="dropdown-attorney" className="w-100">
                                                     {formData.attorney || 'Select attorney...'}
                                                 </Dropdown.Toggle>
                                                 <Dropdown.Menu className="w-100">
@@ -246,7 +237,7 @@ const Poa = ({ datas, errors }) => {
                                 </Row>
 
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Backups</Form.Label>
+                                    <Form.Label>Backups (optional):</Form.Label>
                                     {formData.backups.map((backup, index) => (
                                         <Dropdown key={index} className="mb-2" onSelect={(eventKey) => handleBackupChange(index, eventKey)}>
                                             <Dropdown.Toggle variant="outline-secondary" id={`dropdown-backup-${index}`} className="w-100">
@@ -259,7 +250,7 @@ const Poa = ({ datas, errors }) => {
                                             </Dropdown.Menu>
                                         </Dropdown>
                                     ))}
-                                    <Button variant="outline-primary" onClick={addBackup} className="mt-2">
+                                    <Button variant="outline-secondary" onClick={addBackup} className="mt-2 w-[100%]">
                                         <i className="bi bi-plus-circle me-2"></i>Add Backup
                                     </Button>
                                     <Form.Control.Feedback type="invalid">{validationErrors.backups}</Form.Control.Feedback>
@@ -279,7 +270,7 @@ const Poa = ({ datas, errors }) => {
                                     <Form.Control.Feedback type="invalid">{validationErrors.restrictions}</Form.Control.Feedback>
                                 </Form.Group>
 
-                                <Button variant="primary" onClick={handleSubmit}>
+                                <Button className='w-100' variant="outline-success" onClick={handleSubmit}>
                                     <i className="bi bi-plus-circle me-2"></i>Add POA
                                 </Button>
                             </Card.Body>
