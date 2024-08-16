@@ -215,8 +215,8 @@ function Pets({ datas, errors }) {
                             {validationErrors.backup && <p className="mt-2 text-sm text-danger">{validationErrors.backup}</p>}
                         </Form.Group>
                         <br />
-                        <Form.Group controlId="formAmount">
-                            <FloatingLabel controlId="floatingNumber" label="How much money should we give to the guardian">
+                        <Form.Group className="text-sm" controlId="formAmount">
+                            <FloatingLabel controlId="floatingNumber" label="How much money should we give to the guardian?">
                                 <Form.Control size="sm" type="number" placeholder="0.00" id="amountId" />
                             </FloatingLabel>
                             {validationErrors.amount && <p className="mt-2 text-sm text-danger">{validationErrors.amount}</p>}
