@@ -1,65 +1,67 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Form, Dropdown } from 'react-bootstrap';
-import 'bootstrap-icons/font/bootstrap-icons.css';
+import { Container, Row, Col, Form, Dropdown, Button, Table, Card, Tabs, Tab, Modal, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import ConfirmationModal from './AdditionalComponents/ConfirmationModal';
+import CustomToast from './AdditionalComponents/CustomToast';
 
-let poaData = {
-    poaProperty: { attorney: null, join: null, restrictions: null },
-    poaHealth: { attorney: null, join: null, restrictions: null },
-    organDonation: false,
-    dnr: false
-};
+let poaData = [];
 
 export function getPoa() {
     return poaData;
 }
 
-export default function Poa({ datas, errors }) {
-    const [checkboxes, setCheckboxes] = useState({
-        organ: false,
-        dnr: false,
+const Poa = ({ datas, errors }) => {
+    const [identifiersNames, setIdentifiersNames] = useState([]);
+    const [validationErrors, setValidationErrors] = useState(errors);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState("");
+    const [itemToDelete, setItemToDelete] = useState(null);
+    const [editingRow, setEditingRow] = useState(null);
+    const [tempData, setTempData] = useState({});
+    const [formData, setFormData] = useState({
+        type: 'Property', // Default tab
+        attorney: '',
+        backups: [],
+        restrictions: '',
     });
-
-    const [identifiers_names, setIdentifiersNames] = useState([]);
-    const [firstRender, setFirstRender] = useState(true);
-    const [validationErrors, setValidationErrors] = useState(errors)
+    const [activeTab, setActiveTab] = useState('Property');
 
     useEffect(() => {
-        if (datas != null && firstRender) {
-            const married = datas[2].married;
-            const kids = datas[4].kids;
-            const relatives = datas[5].relatives;
-
-            let names = [];
+        if (datas) {
+            const names = [];
+            const married = datas[2]?.married;
+            const kids = datas[4]?.kids;
+            const relatives = datas[5]?.relatives;
 
             if (married?.firstName && married?.lastName) {
                 names.push(`${married.firstName} ${married.lastName}`);
             }
 
-            for (let key in relatives) {
-                names.push(`${relatives[key].firstName} ${relatives[key].lastName}`);
+            if (relatives) {
+                for (let key in relatives) {
+                    names.push(`${relatives[key].firstName} ${relatives[key].lastName}`);
+                }
             }
-            for (let key in kids) {
-                names.push(`${kids[key].firstName} ${kids[key].lastName}`);
+
+            if (kids) {
+                for (let key in kids) {
+                    names.push(`${kids[key].firstName} ${kids[key].lastName}`);
+                }
             }
 
             setIdentifiersNames(names);
-            setFirstRender(false);
         }
 
-        // Cargar datos del localStorage
         const storedFormValues = JSON.parse(localStorage.getItem('formValues')) || {};
         if (storedFormValues.poa) {
             poaData = storedFormValues.poa;
-            setCheckboxes({
-                organ: poaData.organDonation,
-                dnr: poaData.dnr
-            });
+            setFormData(poaData);
         }
-    }, [datas, firstRender]);
+    }, [datas]);
 
     useEffect(() => {
-        setValidationErrors(errors)
-    }, [errors])
+        setValidationErrors(errors);
+    }, [errors]);
 
     const updateLocalStorage = () => {
         const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
@@ -67,167 +69,325 @@ export default function Poa({ datas, errors }) {
         localStorage.setItem('formValues', JSON.stringify(formValues));
     };
 
-    const handleCheckboxChange = (event) => {
-        const { name, checked } = event.target;
-        setCheckboxes(prev => ({
-            ...prev,
-            [name]: checked,
-        }));
-        poaData[name === 'organ' ? 'organDonation' : 'dnr'] = checked;
-        updateLocalStorage();
+    const handleInputChange = (event) => {
+        const { name, value } = event.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const setCurrentRecepient = (eventKey, event) => {
-        setValidationErrors({})
-        if (event == null) {
+    const handleDropdownSelect = (field, value) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
+
+    const addBackup = () => {
+        setFormData(prev => ({
+            ...prev,
+            backups: [...prev.backups, '']
+        }));
+    };
+
+    const handleBackupChange = (index, value) => {
+        const newBackups = [...formData.backups];
+        newBackups[index] = value;
+        setFormData(prev => ({ ...prev, backups: newBackups }));
+    };
+
+    const handleSubmit = () => {
+        setValidationErrors({});
+        let newErrors = {};
+
+        if (!formData.attorney) newErrors.attorney = "Attorney is required";
+        if (formData.backups.length === 0) newErrors.backups = "At least one backup is required";
+        if (!formData.restrictions) newErrors.restrictions = "Restrictions are required";
+
+        if (Object.keys(newErrors).length > 0) {
+            setValidationErrors(newErrors);
             return;
         }
-        const { name, index } = JSON.parse(eventKey);
 
-        switch (index) {
-            case 0:
-                poaData.poaProperty.attorney = name;
-                break;
-            case 1:
-                poaData.poaProperty.join = name;
-                break;
-            case 2:
-                poaData.poaHealth.attorney = name;
-                break;
-            case 3:
-                poaData.poaHealth.join = name;
-                break;
-        }
+        poaData.push({ ...formData, type: activeTab, id: Date.now() });
         updateLocalStorage();
+        setFormData({
+            attorney: '',
+            backups: [],
+            restrictions: '',
+        });
+        setToastMessage('POA added successfully');
+        setShowToast(true);
+
+        // Change tab based on the newly added POA type
+        setActiveTab(activeTab === 'Property' ? 'Health' : 'Property');
     };
 
-    const handleRestrictionChange = (type, event) => {
-        setValidationErrors({})
-        poaData[type].restrictions = event.target.value;
+    const handleDelete = (id) => {
+        setItemToDelete(id);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = () => {
+        if (itemToDelete !== null) {
+            poaData = poaData.filter(item => item.id !== itemToDelete);
+            updateLocalStorage();
+            setToastMessage('POA removed successfully');
+            setShowToast(true);
+            setItemToDelete(null);
+            setShowDeleteModal(false);
+        }
+    };
+
+    const handleEdit = (index) => {
+        setEditingRow(index);
+        setTempData({ ...poaData[index] });
+    };
+
+    const handleSave = (index) => {
+        poaData[index] = tempData;
         updateLocalStorage();
+        setEditingRow(null);
+        setTempData({});
+        setToastMessage('POA updated successfully');
+        setShowToast(true);
+    };
+
+    const handleCancel = () => {
+        setEditingRow(null);
+        setTempData({});
     };
 
     return (
         <Container>
-            <Row>
-                <Col sm={12}>
-                    <Dropdown style={{ width: "100%" }} onSelect={setCurrentRecepient}>
-                        <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="poa0">
-                            {poaData.poaProperty.attorney || "Attorney for Property"}
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu style={{ width: "100%" }}>
-                            {identifiers_names.map((name, index) => (
-                                <Dropdown.Item key={index} eventKey={JSON.stringify({ name: name, index: 0 })}>{name}</Dropdown.Item>
-                            ))}
-                        </Dropdown.Menu>
-                    </Dropdown>
-                    {validationErrors.poaProperty?.attorney && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.poaProperty?.attorney}</p>}
-                </Col>
-            </Row>
-            <br />
-            <Row>
-                <Col sm={12}>
-                    <Dropdown style={{ width: "100%" }} onSelect={setCurrentRecepient}>
-                        <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="poa1">
-                            {poaData.poaProperty.join || "Joint - Attorney for Property"}
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu style={{ width: "100%" }}>
-                            {identifiers_names.map((name, index) => (
-                                <Dropdown.Item key={index} eventKey={JSON.stringify({ name: name, index: 1 })}>{name}</Dropdown.Item>
-                            ))}
-                        </Dropdown.Menu>
-                    </Dropdown>
-                    {validationErrors.poaProperty?.join && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.poaProperty?.join}</p>}
-                </Col>
-            </Row>
-            <br />
-            <Row>
-                <Col sm={3}>
-                    <Form.Label>Restrictions on Property</Form.Label>
-                </Col>
-                <Col sm={9}>
-                    <Form.Control
-                        as="textarea"
-                        id="property-restrictions"
-                        value={poaData.poaProperty.restrictions || ""}
-                        onChange={(e) => handleRestrictionChange('poaProperty', e)}
-                    />
-                    {validationErrors.poaProperty?.restrictions && <p className="mt-2 text-sm text-red-600">{validationErrors.poaProperty?.restrictions}</p>}
-                </Col>
-            </Row>
-            <br />
-            <Row>
-                <Col sm={12}>
-                    <Dropdown style={{ width: "100%" }} onSelect={setCurrentRecepient}>
-                        <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="poa2">
-                            {poaData.poaHealth.attorney || "Attorney for Health"}
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu style={{ width: "100%" }}>
-                            {identifiers_names.map((name, index) => (
-                                <Dropdown.Item key={index} eventKey={JSON.stringify({ name: name, index: 2 })}>{name}</Dropdown.Item>
-                            ))}
-                        </Dropdown.Menu>
-                    </Dropdown>
-                    {validationErrors.poaHealth?.attorney && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.poaHealth?.attorney}</p>}
-                </Col>
-            </Row>
-            <br />
-            <Row>
-                <Col sm={12}>
-                    <Dropdown style={{ width: "100%" }} onSelect={setCurrentRecepient}>
-                        <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="poa3">
-                            {poaData.poaHealth.join || "Joint - Attorney for Health"}
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu style={{ width: "100%" }}>
-                            {identifiers_names.map((name, index) => (
-                                <Dropdown.Item key={index} eventKey={JSON.stringify({ name: name, index: 3 })}>{name}</Dropdown.Item>
-                            ))}
-                        </Dropdown.Menu>
-                    </Dropdown>
-                    {validationErrors.poaHealth?.join && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.poaHealth?.join}</p>}
+            <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k)} className="mb-4">
+                <Tab eventKey="Property" title="Property">
+                    <Form>
+                        <Card className="mb-4">
+                            <Card.Header as="h5">Add New Power of Attorney</Card.Header>
+                            <Card.Body>
+                                <Row>
+                                    <Col sm={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label>Attorney</Form.Label>
+                                            <Dropdown onSelect={(eventKey) => handleDropdownSelect('attorney', eventKey)}>
+                                                <Dropdown.Toggle variant="outline-secondary" id="dropdown-attorney" className="w-100">
+                                                    {formData.attorney || 'Select attorney...'}
+                                                </Dropdown.Toggle>
+                                                <Dropdown.Menu className="w-100">
+                                                    {identifiersNames.map((name, index) => (
+                                                        <Dropdown.Item key={index} eventKey={name}>{name}</Dropdown.Item>
+                                                    ))}
+                                                </Dropdown.Menu>
+                                            </Dropdown>
+                                            <Form.Control.Feedback type="invalid">{validationErrors.attorney}</Form.Control.Feedback>
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
 
-                </Col>
-            </Row>
-            <br />
-            <Row>
-                <Col sm={3}>
-                    <Form.Label>Restrictions on Health</Form.Label>
-                </Col>
-                <Col sm={9}>
-                    <Form.Control
-                        as="textarea"
-                        id="health-restrictions"
-                        value={poaData.poaHealth.restrictions || ""}
-                        onChange={(e) => handleRestrictionChange('poaHealth', e)}
-                    />
-                    {validationErrors.poaHealth?.restrictions && <p className="mt-2 text-sm text-red-600">{validationErrors.poaHealth?.restrictions}</p>}
-                </Col>
-            </Row>
-            <br />
-            <Form>
-                <Row>
-                    <Col sm={6}>
-                        <Form.Check
-                            type="checkbox"
-                            id="checkbox1"
-                            name="organ"
-                            label="Organ Donation"
-                            checked={checkboxes.organ}
-                            onChange={handleCheckboxChange}
-                        />
-                    </Col>
-                    <Col sm={6}>
-                        <Form.Check
-                            type="checkbox"
-                            id="checkbox2"
-                            name="dnr"
-                            label="DNR (Do Not Resuscitate)"
-                            checked={checkboxes.dnr}
-                            onChange={handleCheckboxChange}
-                        />
-                    </Col>
-                </Row>
-            </Form>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Backups</Form.Label>
+                                    {formData.backups.map((backup, index) => (
+                                        <Dropdown key={index} className="mb-2" onSelect={(eventKey) => handleBackupChange(index, eventKey)}>
+                                            <Dropdown.Toggle variant="outline-secondary" id={`dropdown-backup-${index}`} className="w-100">
+                                                {backup || `Select backup ${index + 1}...`}
+                                            </Dropdown.Toggle>
+                                            <Dropdown.Menu className="w-100">
+                                                {identifiersNames.map((name, idx) => (
+                                                    <Dropdown.Item key={idx} eventKey={name}>{name}</Dropdown.Item>
+                                                ))}
+                                            </Dropdown.Menu>
+                                        </Dropdown>
+                                    ))}
+                                    <Button variant="outline-primary" onClick={addBackup} className="mt-2">
+                                        <i className="bi bi-plus-circle me-2"></i>Add Backup
+                                    </Button>
+                                    <Form.Control.Feedback type="invalid">{validationErrors.backups}</Form.Control.Feedback>
+                                </Form.Group>
+
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Restrictions</Form.Label>
+                                    <Form.Control
+                                        as="textarea"
+                                        rows={3}
+                                        name="restrictions"
+                                        value={formData.restrictions}
+                                        onChange={handleInputChange}
+                                        placeholder="Enter restrictions..."
+                                        isInvalid={!!validationErrors.restrictions}
+                                    />
+                                    <Form.Control.Feedback type="invalid">{validationErrors.restrictions}</Form.Control.Feedback>
+                                </Form.Group>
+
+                                <Button variant="primary" onClick={handleSubmit}>
+                                    <i className="bi bi-plus-circle me-2"></i>Add POA
+                                </Button>
+                            </Card.Body>
+                        </Card>
+                    </Form>
+                </Tab>
+                <Tab eventKey="Health" title="Health">
+                    <Form>
+                        <Card className="mb-4">
+                            <Card.Header as="h5">Add New Power of Attorney</Card.Header>
+                            <Card.Body>
+                                <Row>
+                                    <Col sm={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label>Attorney</Form.Label>
+                                            <Dropdown onSelect={(eventKey) => handleDropdownSelect('attorney', eventKey)}>
+                                                <Dropdown.Toggle variant="outline-secondary" id="dropdown-attorney" className="w-100">
+                                                    {formData.attorney || 'Select attorney...'}
+                                                </Dropdown.Toggle>
+                                                <Dropdown.Menu className="w-100">
+                                                    {identifiersNames.map((name, index) => (
+                                                        <Dropdown.Item key={index} eventKey={name}>{name}</Dropdown.Item>
+                                                    ))}
+                                                </Dropdown.Menu>
+                                            </Dropdown>
+                                            <Form.Control.Feedback type="invalid">{validationErrors.attorney}</Form.Control.Feedback>
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Backups</Form.Label>
+                                    {formData.backups.map((backup, index) => (
+                                        <Dropdown key={index} className="mb-2" onSelect={(eventKey) => handleBackupChange(index, eventKey)}>
+                                            <Dropdown.Toggle variant="outline-secondary" id={`dropdown-backup-${index}`} className="w-100">
+                                                {backup || `Select backup ${index + 1}...`}
+                                            </Dropdown.Toggle>
+                                            <Dropdown.Menu className="w-100">
+                                                {identifiersNames.map((name, idx) => (
+                                                    <Dropdown.Item key={idx} eventKey={name}>{name}</Dropdown.Item>
+                                                ))}
+                                            </Dropdown.Menu>
+                                        </Dropdown>
+                                    ))}
+                                    <Button variant="outline-primary" onClick={addBackup} className="mt-2">
+                                        <i className="bi bi-plus-circle me-2"></i>Add Backup
+                                    </Button>
+                                    <Form.Control.Feedback type="invalid">{validationErrors.backups}</Form.Control.Feedback>
+                                </Form.Group>
+
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Restrictions</Form.Label>
+                                    <Form.Control
+                                        as="textarea"
+                                        rows={3}
+                                        name="restrictions"
+                                        value={formData.restrictions}
+                                        onChange={handleInputChange}
+                                        placeholder="Enter restrictions..."
+                                        isInvalid={!!validationErrors.restrictions}
+                                    />
+                                    <Form.Control.Feedback type="invalid">{validationErrors.restrictions}</Form.Control.Feedback>
+                                </Form.Group>
+
+                                <Button variant="primary" onClick={handleSubmit}>
+                                    <i className="bi bi-plus-circle me-2"></i>Add POA
+                                </Button>
+                            </Card.Body>
+                        </Card>
+                    </Form>
+                </Tab>
+            </Tabs>
+
+            {poaData.length > 0 && (
+                <Card className="mt-4">
+                    <Card.Header as="h5">Existing Powers of Attorney</Card.Header>
+                    <Card.Body>
+                        <Table striped bordered hover responsive>
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Attorney</th>
+                                    <th>Backups</th>
+                                    <th>Restrictions</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {poaData.map((item, index) => (
+                                    <tr key={item.id}>
+                                        <td>{editingRow === index ?
+                                            <Form.Select value={tempData.type} onChange={(e) => setTempData({ ...tempData, type: e.target.value })}>
+                                                <option value="Property">Property</option>
+                                                <option value="Health">Health</option>
+                                            </Form.Select> : item.type}
+                                        </td>
+                                        <td>{editingRow === index ?
+                                            <Dropdown onSelect={(eventKey) => setTempData({ ...tempData, attorney: eventKey })}>
+                                                <Dropdown.Toggle variant="outline-secondary" className="w-100">{tempData.attorney}</Dropdown.Toggle>
+                                                <Dropdown.Menu className="w-100">
+                                                    {identifiersNames.map((name, idx) => (
+                                                        <Dropdown.Item key={idx} eventKey={name}>{name}</Dropdown.Item>
+                                                    ))}
+                                                </Dropdown.Menu>
+                                            </Dropdown> : item.attorney}
+                                        </td>
+                                        <td>{editingRow === index ?
+                                            tempData.backups.map((backup, idx) => (
+                                                <Dropdown key={idx} className="mb-1" onSelect={(eventKey) => {
+                                                    const newBackups = [...tempData.backups];
+                                                    newBackups[idx] = eventKey;
+                                                    setTempData({ ...tempData, backups: newBackups });
+                                                }}>
+                                                    <Dropdown.Toggle variant="outline-secondary" className="w-100">{backup}</Dropdown.Toggle>
+                                                    <Dropdown.Menu className="w-100">
+                                                        {identifiersNames.map((name, nameIdx) => (
+                                                            <Dropdown.Item key={nameIdx} eventKey={name}>{name}</Dropdown.Item>
+                                                        ))}
+                                                    </Dropdown.Menu>
+                                                </Dropdown>
+                                            )) : item.backups.join(', ')}
+                                        </td>
+                                        <td>{editingRow === index ?
+                                            <Form.Control as="textarea" rows={2} value={tempData.restrictions} onChange={(e) => setTempData({ ...tempData, restrictions: e.target.value })} />
+                                            : item.restrictions}
+                                        </td>
+                                        <td>
+                                            {editingRow === index ? (
+                                                <>
+                                                    <Button variant="success" size="sm" onClick={() => handleSave(index)} className="me-1">
+                                                        <i className="bi bi-check-circle me-1"></i>Save
+                                                    </Button>
+                                                    <Button variant="secondary" size="sm" onClick={handleCancel}>
+                                                        <i className="bi bi-x-circle me-1"></i>Cancel
+                                                    </Button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <OverlayTrigger placement="top" overlay={<Tooltip>Edit this POA</Tooltip>}>
+                                                        <Button variant="warning" size="sm" onClick={() => handleEdit(index)} className="me-1">
+                                                            <i className="bi bi-pencil me-1"></i>Edit
+                                                        </Button>
+                                                    </OverlayTrigger>
+                                                    <OverlayTrigger placement="top" overlay={<Tooltip>Delete this POA</Tooltip>}>
+                                                        <Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>
+                                                            <i className="bi bi-trash me-1"></i>Delete
+                                                        </Button>
+                                                    </OverlayTrigger>
+                                                </>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </Table>
+                    </Card.Body>
+                </Card>
+            )}
+
+            <ConfirmationModal
+                show={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={confirmDelete}
+                message="Are you sure you want to delete this POA?"
+            />
+
+            <CustomToast
+                show={showToast}
+                onClose={() => setShowToast(false)}
+                message={toastMessage}
+            />
         </Container>
     );
-}
+};
+
+export default Poa;
