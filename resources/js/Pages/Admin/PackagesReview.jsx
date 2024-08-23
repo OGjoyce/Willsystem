@@ -48,16 +48,16 @@ const PackagesReview = () => {
     return (
         <Container fluid className="py-3">
             <Row className="mb-3">
-                <Col xs={12} md={6} className="mb-3 mb-md-0">
+                <Col xs={12} md={9} className="mb-3 mb-md-0">
                     <Form.Group as={Row}>
-                        <Col xs={8} sm={9}>
+                        <Col xs={8} md={4}>
                             <Form.Control
                                 type="text"
                                 placeholder="Search"
                                 onChange={handleSearchChange}
                             />
                         </Col>
-                        <Col xs={6} md={3}>
+                        <Col xs={6} md={5}>
                             <Dropdown>
                                 <Dropdown.Toggle
                                     variant="outline-dark"
