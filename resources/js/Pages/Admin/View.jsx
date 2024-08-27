@@ -274,10 +274,6 @@ const View = () => {
 
                                 <div className="w-[80%] mx-auto">
                                     <div className="border-t border-red-950 my-4"></div>
-                                    <div className="border-t border-red-950 my-4"></div>
-                                    <h1 className="text-4xl mb-4"> PackageStatus.jsx:</h1>
-                                    <PackageStatus />
-                                    <div className="border-t border-red-950 my-4"></div>
                                     <h1 className="text-4xl mb-4"> ChangeRequest.jsx:</h1>
                                     <ChangeRequestForm />
                                 </div>

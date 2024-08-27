@@ -183,7 +183,7 @@ export default function Dashboard({ auth }) {
                                         <IconWrapper>
                                             <i className="bi  bi-inboxes"></i>
                                         </IconWrapper>
-                                        <CardTitle>Search Packages</CardTitle>
+                                        <CardTitle>View Packages</CardTitle>
                                         <CardText>Manage the legal document packages.</CardText>
                                         <Button onClick={(e) => handleLinkClick(e, route('packages'), 'packages')} variant="outline-dark">View Packages</Button>
                                     </CardBody>
