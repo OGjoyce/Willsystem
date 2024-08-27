@@ -6,6 +6,8 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\ObjStatusController;
+use App\Http\Controllers\PackagesReviewController;
+use App\Http\Controllers\PackageStatusController;
 
 
 
@@ -40,6 +42,14 @@ Route::get('/view', function () {
 Route::get('/packages', function () {
     return Inertia::render('Admin/Packages');
 })->name("packages");
+
+Route::get('/packages-review', function () {
+    return Inertia::render('Admin/PackagesReview');
+})->name("packages-review");
+
+Route::get('/package-status', function () {
+    return Inertia::render('Admin/PackageStatus');
+})->name("package-status");
 
 Route::get('/create', function () {
     return Inertia::render('Will/Create');

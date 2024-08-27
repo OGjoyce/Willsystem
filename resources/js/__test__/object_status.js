@@ -1,7 +1,10 @@
 export const object_status = [
     {
     "owner": "henry@email.com",
-    "package": "facebook Campaign",
+    "package": {
+        "id": 1,
+        "packageName": "Package 1"
+    },
     "personal": {
         "step": 0,
         "title": "Please insert the personal information",
