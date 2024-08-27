@@ -1,10 +1,7 @@
 export const object_status = [
     {
     "owner": "henry@email.com",
-    "package": {
-        "id": 1,
-        "packageName": "Package 1"
-    },
+    "packageId": 1,
     "personal": {
         "step": 0,
         "title": "Please insert the personal information",
