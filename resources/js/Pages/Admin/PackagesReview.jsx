@@ -9,40 +9,17 @@ const PackagesReview = () => {
     const [statusFilter, setStatusFilter] = useState('All');
 
     const documents = useMemo(() => [
-        { id: 1, user: 'jhondoe@email.com', package: 'Package 1', approved: '4/7', status: 'completed' },
-        { id: 2, user: 'charlespatrick@email.com', package: 'Package 2', approved: '2/5', status: 'pending' },
-        { id: 3, user: 'dianejhonson@email.com', package: 'Package 3', approved: '3/3', status: 'changes requested' },
-        { id: 1, user: 'jhondoe@email.com', package: 'Package 1', approved: '4/7', status: 'completed' },
-        { id: 2, user: 'charlespatrick@email.com', package: 'Package 2', approved: '2/5', status: 'pending' },
-        { id: 3, user: 'dianejhonson@email.com', package: 'Package 3', approved: '3/3', status: 'changes requested' },
-        { id: 1, user: 'jhondoe@email.com', package: 'Package 1', approved: '4/7', status: 'completed' },
-        { id: 2, user: 'charlespatrick@email.com', package: 'Package 2', approved: '2/5', status: 'pending' },
-        { id: 3, user: 'dianejhonson@email.com', package: 'Package 3', approved: '3/3', status: 'changes requested' },
-        { id: 1, user: 'jhondoe@email.com', package: 'Package 1', approved: '4/7', status: 'completed' },
-        { id: 2, user: 'charlespatrick@email.com', package: 'Package 2', approved: '2/5', status: 'pending' },
-        { id: 3, user: 'dianejhonson@email.com', package: 'Package 3', approved: '3/3', status: 'changes requested' },
-        { id: 1, user: 'jhondoe@email.com', package: 'Package 1', approved: '4/7', status: 'completed' },
-        { id: 2, user: 'charlespatrick@email.com', package: 'Package 2', approved: '2/5', status: 'pending' },
-        { id: 3, user: 'dianejhonson@email.com', package: 'Package 3', approved: '3/3', status: 'changes requested' },
-        { id: 1, user: 'jhondoe@email.com', package: 'Package 1', approved: '4/7', status: 'completed' },
-        { id: 2, user: 'charlespatrick@email.com', package: 'Package 2', approved: '2/5', status: 'pending' },
-        { id: 3, user: 'dianejhonson@email.com', package: 'Package 3', approved: '3/3', status: 'changes requested' },
-        { id: 1, user: 'jhondoe@email.com', package: 'Package 1', approved: '4/7', status: 'completed' },
-        { id: 2, user: 'charlespatrick@email.com', package: 'Package 2', approved: '2/5', status: 'pending' },
-        { id: 3, user: 'dianejhonson@email.com', package: 'Package 3', approved: '3/3', status: 'changes requested' },
-        { id: 1, user: 'jhondoe@email.com', package: 'Package 1', approved: '4/7', status: 'completed' },
-        { id: 2, user: 'charlespatrick@email.com', package: 'Package 2', approved: '2/5', status: 'pending' },
-        { id: 3, user: 'dianejhonson@email.com', package: 'Package 3', approved: '3/3', status: 'changes requested' },
-        { id: 1, user: 'jhondoe@email.com', package: 'Package 1', approved: '4/7', status: 'completed' },
-        { id: 2, user: 'charlespatrick@email.com', package: 'Package 2', approved: '2/5', status: 'pending' },
-        { id: 3, user: 'dianejhonson@email.com', package: 'Package 3', approved: '3/3', status: 'changes requested' },
-        { id: 1, user: 'jhondoe@email.com', package: 'Package 1', approved: '4/7', status: 'completed' },
-        { id: 2, user: 'charlespatrick@email.com', package: 'Package 2', approved: '2/5', status: 'pending' },
-        { id: 3, user: 'dianejhonson@email.com', package: 'Package 3', approved: '3/3', status: 'changes requested' },
-        { id: 1, user: 'jhondoe@email.com', package: 'Package 1', approved: '4/7', status: 'completed' },
-        { id: 2, user: 'charlespatrick@email.com', package: 'Package 2', approved: '2/5', status: 'pending' },
-        { id: 3, user: 'dianejhonson@email.com', package: 'Package 3', approved: '3/3', status: 'changes requested' },
-    ], []);
+        { id: 1, user: 'jhondoe@email.com', package: 'Package A', approved: '5/8', status: 'completed' },
+        { id: 2, user: 'charlespatrick@email.com', package: 'Package B', approved: '3/6', status: 'pending' },
+        { id: 3, user: 'dianejhonson@email.com', package: 'Package C', approved: '4/4', status: 'changes requested' },
+        { id: 4, user: 'alicewilliams@email.com', package: 'Package D', approved: '7/10', status: 'completed' },
+        { id: 5, user: 'bobsmith@email.com', package: 'Package E', approved: '1/2', status: 'pending' },
+        { id: 6, user: 'caroljones@email.com', package: 'Package F', approved: '6/6', status: 'changes requested' },
+        { id: 7, user: 'davidbrown@email.com', package: 'Package G', approved: '8/10', status: 'completed' },
+        { id: 8, user: 'emilyclark@email.com', package: 'Package H', approved: '2/3', status: 'pending' },
+        { id: 9, user: 'frankdavis@email.com', package: 'Package I', approved: '5/7', status: 'changes requested' }
+    ]
+        , []);
 
     const filteredDocuments = useMemo(() => {
         return documents.filter(doc =>

@@ -199,7 +199,7 @@ export default function Dashboard({ auth }) {
                                         </IconWrapper>
                                         <CardTitle>Review Packages</CardTitle>
                                         <CardText>View the status of all packages for all users.</CardText>
-                                        <Button onClick={(e) => handleLinkClick(e, route('packages-review'), 'packages-review')} variant="outline-dark">View Packages</Button>
+                                        <Button onClick={(e) => handleLinkClick(e, route('packages-review'), 'packages-review')} variant="outline-dark">Review Packages</Button>
                                     </CardBody>
                                 </CustomCard>
                             </Col>
