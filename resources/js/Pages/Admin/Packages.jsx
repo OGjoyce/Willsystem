@@ -132,7 +132,7 @@ const Packages = () => {
                             <Container className="py-4">
                                 <Row className="mb-3">
                                     <Col>
-                                        <Button variant="primary" onClick={() => handleShow('create')}>
+                                        <Button variant="outline-primary" onClick={() => handleShow('create')}>
                                             Add New Package
                                         </Button>
                                     </Col>
@@ -160,24 +160,25 @@ const Packages = () => {
                                                             <td className="text-break">{pkg.description}</td>
                                                             <td className="text-break">{pkg.campaign}</td>
                                                             <td>
-                                                                <div className="d-flex flex-column flex-sm-row">
+                                                                <div className='d-flex justify-content-around gap-3'>
                                                                     <Button
-                                                                        variant="info"
+                                                                        variant="outline-danger"
                                                                         size="sm"
-                                                                        onClick={() => handleShow('edit', pkg)}
-                                                                        className="mb-2 mb-sm-0 me-sm-2"
-                                                                    >
-                                                                        Edit
-                                                                    </Button>
-                                                                    <Button
-                                                                        variant="danger"
-                                                                        size="sm"
+                                                                        className='w-[50%]'
                                                                         onClick={() => {
                                                                             setCurrentPackage(pkg);
                                                                             setShowDeleteModal(true);
                                                                         }}
                                                                     >
                                                                         Delete
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="outline-warning"
+                                                                        size="sm"
+                                                                        onClick={() => handleShow('edit', pkg)}
+                                                                        className="w-[50%]"
+                                                                    >
+                                                                        Edit
                                                                     </Button>
                                                                 </div>
                                                             </td>
