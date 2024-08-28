@@ -92,7 +92,7 @@ const PackageApproval = () => {
                                                                 <>
                                                                     <span className='text-black ml-2 cursor-pointer'>
                                                                         <i
-                                                                            className="bi bi-eye"
+                                                                            className="bi bi-pencil-square"
                                                                             onClick={() => {
                                                                                 setEditableDocId(doc.id);
                                                                                 setChangeRequest(doc.changeRequest);

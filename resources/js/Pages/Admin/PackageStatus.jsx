@@ -77,10 +77,10 @@ const PackageStatus = () => {
                                                 <td>
                                                     <div className='d-flex justify-content-around gap-3'>
                                                         <Dropdown className='w-[50%]' show={openDropdown === doc.id} onToggle={() => setOpenDropdown(openDropdown === doc.id ? null : doc.id)}>
-                                                            <Dropdown.Toggle variant="outline-danger" size="sm" className="w-[100%] h-[100%]">
+                                                            <Dropdown.Toggle variant="outline-danger" size="sm" className="w-[100%]">
                                                                 Change Status
                                                             </Dropdown.Toggle>
-                                                            <Dropdown.Menu>
+                                                            <Dropdown.Menu className="w-[100%] text-center">
                                                                 <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Pending')}>Pending</Dropdown.Item>
                                                                 <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Approved')}>Approved</Dropdown.Item>
                                                                 <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Changes Requested')}>Changes Requested</Dropdown.Item>
