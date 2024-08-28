@@ -10,7 +10,7 @@ const PackageStatus = () => {
 
     // This data should be dynamically extracted from object_status
     const [documents, setDocuments] = useState([
-        { id: 1, type: 'Will', latestVersion: 'v1', status: 'Completed' },
+        { id: 1, type: 'Will', latestVersion: 'v1', status: 'Approved' },
         { id: 2, type: 'POA1', latestVersion: 'v3', status: 'Pending' },
         { id: 3, type: 'POA2', latestVersion: 'v1', status: 'Changes Requested' },
     ]);
@@ -43,29 +43,46 @@ const PackageStatus = () => {
                                         <tr>
                                             <th>Document Type</th>
                                             <th>Version</th>
-                                            <th>Status</th>
+                                            <th>Created At</th>
+                                            <th>Updated At</th>
                                             <th>Actions</th>
+
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {documents.map((doc) => (
                                             <tr key={doc.id}>
-                                                <td>{doc.type}</td>
-                                                <td>{doc.latestVersion}</td>
-                                                <td>{doc.status}</td>
                                                 <td>
-                                                    <div className='d-flex gap-2'>
-                                                        <Dropdown show={openDropdown === doc.id} onToggle={() => setOpenDropdown(openDropdown === doc.id ? null : doc.id)}>
-                                                            <Dropdown.Toggle variant="outline-danger" size="sm" className="flex-grow h-[100%]">
+                                                    <div className='px-4 flex gap-3'>
+                                                        {
+                                                            doc.status === 'Approved'
+                                                                ? <i style={{ color: "#008857" }} class="bi bi-patch-check-fill"></i>
+                                                                : (
+                                                                    doc.status === 'Changes Requested'
+                                                                        ? <i style={{ color: "#E53448" }} class="bi bi-patch-exclamation-fill"></i>
+                                                                        : <i style={{ color: "#FFC339" }} class="bi bi-patch-question-fill"></i>
+                                                                )
+
+                                                        }
+                                                        {doc.type}
+                                                    </div>
+                                                </td>
+                                                <td>{doc.latestVersion}</td>
+                                                <td> 27/02/24</td>
+                                                <td> 27/02/24</td>
+                                                <td>
+                                                    <div className='d-flex justify-content-around gap-3'>
+                                                        <Dropdown className="w-[50%]" show={openDropdown === doc.id} onToggle={() => setOpenDropdown(openDropdown === doc.id ? null : doc.id)}>
+                                                            <Dropdown.Toggle variant="outline-danger" size="sm" className="w-[100%] h-[100%]">
                                                                 Change Status
                                                             </Dropdown.Toggle>
-                                                            <Dropdown.Menu>
+                                                            <Dropdown.Menu className='w-[100%] text-center' >
                                                                 <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Pending')}>Pending</Dropdown.Item>
                                                                 <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Approved')}>Approved</Dropdown.Item>
                                                                 <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Changes Requested')}>Changes Requested</Dropdown.Item>
                                                             </Dropdown.Menu>
                                                         </Dropdown>
-                                                        <Button variant="outline-warning" size="sm" className="flex-grow">Edit Document</Button>
+                                                        <Button variant="outline-warning" size="sm" className="w-[50%]">Edit Document</Button>
                                                     </div>
                                                 </td>
                                             </tr>

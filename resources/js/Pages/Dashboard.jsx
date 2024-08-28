@@ -181,7 +181,7 @@ export default function Dashboard({ auth }) {
                                 <CustomCard>
                                     <CardBody>
                                         <IconWrapper>
-                                            <i className="bi  bi-inboxes"></i>
+                                            <i className="bi bi-box-seam"></i>
                                         </IconWrapper>
                                         <CardTitle>View Packages</CardTitle>
                                         <CardText>Manage the legal document packages.</CardText>
@@ -195,7 +195,7 @@ export default function Dashboard({ auth }) {
                                 <CustomCard>
                                     <CardBody>
                                         <IconWrapper>
-                                            <i className="bi bi-box-seam"></i>
+                                            <i className="bi  bi-inboxes"></i>
                                         </IconWrapper>
                                         <CardTitle>Review Packages</CardTitle>
                                         <CardText>View the status of all packages for all users.</CardText>

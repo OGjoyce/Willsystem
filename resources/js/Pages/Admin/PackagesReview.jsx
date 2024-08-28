@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import React, { useState, useMemo, useCallback } from 'react';
-import { Container, Row, Col, Form, Button, Dropdown, Table } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, Dropdown, Table, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { Link, Head } from '@inertiajs/react';
 import { debounce } from 'lodash';
 
@@ -8,26 +8,26 @@ const PackagesReview = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
 
-    const documents = useMemo(() => [
-        { id: 1, user: 'jhondoe@email.com', package: 'Package A', approved: '5/8', status: 'completed' },
-        { id: 2, user: 'charlespatrick@email.com', package: 'Package B', approved: '3/6', status: 'pending' },
-        { id: 3, user: 'dianejhonson@email.com', package: 'Package C', approved: '4/4', status: 'changes requested' },
-        { id: 4, user: 'alicewilliams@email.com', package: 'Package D', approved: '7/10', status: 'completed' },
-        { id: 5, user: 'bobsmith@email.com', package: 'Package E', approved: '1/2', status: 'pending' },
-        { id: 6, user: 'caroljones@email.com', package: 'Package F', approved: '6/6', status: 'changes requested' },
-        { id: 7, user: 'davidbrown@email.com', package: 'Package G', approved: '8/10', status: 'completed' },
-        { id: 8, user: 'emilyclark@email.com', package: 'Package H', approved: '2/3', status: 'pending' },
-        { id: 9, user: 'frankdavis@email.com', package: 'Package I', approved: '5/7', status: 'changes requested' }
+    const packages = useMemo(() => [
+        { id: 1, user: 'jhondoe@email.com', name: 'Package A', approved: '8/8', status: 'completed' },
+        { id: 2, user: 'charlespatrick@email.com', name: 'Package B', approved: '3/6', status: 'pending' },
+        { id: 3, user: 'dianejhonson@email.com', name: 'Package C', approved: '4/4', status: 'changes requested' },
+        { id: 4, user: 'alicewilliams@email.com', name: 'Package D', approved: '10/10', status: 'completed' },
+        { id: 5, user: 'bobsmith@email.com', name: 'Package E', approved: '1/2', status: 'pending' },
+        { id: 6, user: 'caroljones@email.com', name: 'Package F', approved: '6/6', status: 'changes requested' },
+        { id: 7, user: 'davidbrown@email.com', name: 'Package G', approved: '10/10', status: 'completed' },
+        { id: 8, user: 'emilyclark@email.com', name: 'Package H', approved: '2/3', status: 'pending' },
+        { id: 9, user: 'frankdavis@email.com', name: 'Package I', approved: '5/7', status: 'changes requested' }
     ]
         , []);
 
-    const filteredDocuments = useMemo(() => {
-        return documents.filter(doc =>
-            (statusFilter === 'All' || doc.status.toLowerCase() === statusFilter.toLowerCase()) &&
-            (doc.package.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                doc.user.toLowerCase().includes(searchTerm.toLowerCase()))
+    const filteredPackages = useMemo(() => {
+        return packages.filter(pkg =>
+            (statusFilter === 'All' || pkg.status.toLowerCase() === statusFilter.toLowerCase()) &&
+            (pkg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                pkg.user.toLowerCase().includes(searchTerm.toLowerCase()))
         );
-    }, [documents, statusFilter, searchTerm]);
+    }, [packages, statusFilter, searchTerm]);
 
     const debouncedSearch = useMemo(
         () => debounce((value) => setSearchTerm(value), 300),
@@ -42,12 +42,36 @@ const PackagesReview = () => {
         setStatusFilter(status);
     }, []);
 
-    const renderTableRow = useCallback((doc) => (
-        <tr key={doc.id}>
-            <td>{doc.user}</td>
-            <td>{doc.package}</td>
-            <td>{doc.approved}</td>
-            <td>{doc.status}</td>
+    const renderTableRow = useCallback((pkg) => (
+        <tr key={pkg.id}>
+            <td className='text-center'>
+                <OverlayTrigger
+                    key={pkg.id}
+                    placement='top'
+                    overlay={
+                        <Tooltip id={pkg.id}>
+                            status: <strong>{pkg.status}</strong>.
+                        </Tooltip>
+                    }
+                >
+                    {
+                        pkg.status === 'completed'
+                            ? <i style={{ color: "#008857" }} class="bi bi-patch-check-fill"></i>
+                            : (
+                                pkg.status === 'changes requested'
+                                    ? <i style={{ color: "#E53448" }} class="bi bi-patch-exclamation-fill"></i>
+                                    : <i style={{ color: "#FFC339" }} class="bi bi-patch-question-fill"></i>
+                            )
+
+                    }
+                </OverlayTrigger>
+            </td>
+            <td>  {pkg.user}</td>
+
+            <td>{pkg.name}</td>
+            <td>{pkg.approved}</td>
+            <td>27/12/2024</td>
+            <td>27/12/2024</td>
             <td>
 
 
@@ -58,7 +82,7 @@ const PackagesReview = () => {
                 </Link>
 
             </td>
-        </tr>
+        </tr >
     ), []);
 
     return (
@@ -93,7 +117,7 @@ const PackagesReview = () => {
                                                     <span className="me-1">Filter:</span>
                                                     <span className="text-truncate">{statusFilter}</span>
                                                 </Dropdown.Toggle>
-                                                <Dropdown.Menu className='w-100'>
+                                                <Dropdown.Menu className='w-100 text-center'>
                                                     {['All', 'Pending', 'Changes Requested', 'Completed'].map((status) => (
                                                         <Dropdown.Item
                                                             key={status}
@@ -114,15 +138,17 @@ const PackagesReview = () => {
                                 <Table striped bordered hover>
                                     <thead>
                                         <tr>
+                                            <th>Status</th>
                                             <th>User</th>
                                             <th>Package</th>
                                             <th>Approved</th>
-                                            <th>Status</th>
+                                            <th>Created At</th>
+                                            <th>Updated At</th>
                                             <th>Options</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {filteredDocuments.map(renderTableRow)}
+                                        {filteredPackages.map(renderTableRow)}
                                     </tbody>
                                 </Table>
                             </div>
