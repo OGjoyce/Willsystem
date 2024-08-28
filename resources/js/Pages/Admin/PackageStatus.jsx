@@ -43,40 +43,44 @@ const PackageStatus = () => {
                                         <tr>
                                             <th>Document Type</th>
                                             <th>Version</th>
-                                            <th>Created At</th>
-                                            <th>Updated At</th>
+                                            <th>Status</th>
                                             <th>Actions</th>
-
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {documents.map((doc) => (
                                             <tr key={doc.id}>
-                                                <td>
-                                                    <div className='px-4 flex gap-3'>
-                                                        {
-                                                            doc.status === 'Approved'
-                                                                ? <i style={{ color: "#008857" }} class="bi bi-patch-check-fill"></i>
-                                                                : (
-                                                                    doc.status === 'Changes Requested'
-                                                                        ? <i style={{ color: "#E53448" }} class="bi bi-patch-exclamation-fill"></i>
-                                                                        : <i style={{ color: "#FFC339" }} class="bi bi-patch-question-fill"></i>
-                                                                )
-
-                                                        }
-                                                        {doc.type}
-                                                    </div>
+                                                <td className='px-4'>
+                                                    <i class="bi bi-eye">  {doc.type}</i>
                                                 </td>
                                                 <td>{doc.latestVersion}</td>
-                                                <td> 27/02/24</td>
-                                                <td> 27/02/24</td>
+                                                <td className={
+                                                    doc.status === "Approved"
+                                                        ? 'text-green-600'
+                                                        : (
+                                                            doc.status === "Changes Requested"
+                                                                ? 'text-red-600'
+                                                                : 'text-yellow-600'
+                                                        )
+                                                }
+                                                >
+                                                    {doc.status}
+                                                    {
+                                                        doc.status === "Changes Requested"
+                                                            ? <span className='text-black ml-2'>
+
+                                                                <i class="bi bi-eye"></i>
+                                                            </span>
+                                                            : ""
+                                                    }
+                                                </td>
                                                 <td>
                                                     <div className='d-flex justify-content-around gap-3'>
-                                                        <Dropdown className="w-[50%]" show={openDropdown === doc.id} onToggle={() => setOpenDropdown(openDropdown === doc.id ? null : doc.id)}>
+                                                        <Dropdown className='w-[50%]' show={openDropdown === doc.id} onToggle={() => setOpenDropdown(openDropdown === doc.id ? null : doc.id)}>
                                                             <Dropdown.Toggle variant="outline-danger" size="sm" className="w-[100%] h-[100%]">
                                                                 Change Status
                                                             </Dropdown.Toggle>
-                                                            <Dropdown.Menu className='w-[100%] text-center' >
+                                                            <Dropdown.Menu>
                                                                 <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Pending')}>Pending</Dropdown.Item>
                                                                 <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Approved')}>Approved</Dropdown.Item>
                                                                 <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Changes Requested')}>Changes Requested</Dropdown.Item>

@@ -11,10 +11,10 @@ const PackagesReview = () => {
     const packages = useMemo(() => [
         { id: 1, user: 'jhondoe@email.com', name: 'Package A', approved: '8/8', status: 'completed' },
         { id: 2, user: 'charlespatrick@email.com', name: 'Package B', approved: '3/6', status: 'pending' },
-        { id: 3, user: 'dianejhonson@email.com', name: 'Package C', approved: '4/4', status: 'changes requested' },
+        { id: 3, user: 'dianejhonson@email.com', name: 'Package C', approved: '3/4', status: 'changes requested' },
         { id: 4, user: 'alicewilliams@email.com', name: 'Package D', approved: '10/10', status: 'completed' },
         { id: 5, user: 'bobsmith@email.com', name: 'Package E', approved: '1/2', status: 'pending' },
-        { id: 6, user: 'caroljones@email.com', name: 'Package F', approved: '6/6', status: 'changes requested' },
+        { id: 6, user: 'caroljones@email.com', name: 'Package F', approved: '4/6', status: 'changes requested' },
         { id: 7, user: 'davidbrown@email.com', name: 'Package G', approved: '10/10', status: 'completed' },
         { id: 8, user: 'emilyclark@email.com', name: 'Package H', approved: '2/3', status: 'pending' },
         { id: 9, user: 'frankdavis@email.com', name: 'Package I', approved: '5/7', status: 'changes requested' }
@@ -50,7 +50,7 @@ const PackagesReview = () => {
                     placement='top'
                     overlay={
                         <Tooltip id={pkg.id}>
-                            status: <strong>{pkg.status}</strong>.
+                            <strong>{pkg.status}</strong>
                         </Tooltip>
                     }
                 >
