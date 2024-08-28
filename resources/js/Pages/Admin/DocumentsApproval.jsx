@@ -25,7 +25,7 @@ const PackageApproval = () => {
     return (
         <AuthenticatedLayout
             user={"Admin"}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Package Approval</h2>}
+            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Documents Approval</h2>}
         >
             <Head title={"Package Status"} />
             <div className="py-12">
@@ -33,7 +33,7 @@ const PackageApproval = () => {
                     <div className="bg-white shadow-sm sm:rounded-lg p-6">
 
                         <Container className="flex flex-col h-full">
-                            <h3 className='text-xl font-bold mb-4'>Showing all your documents</h3>
+                            <h3 className='text-xl font-bold mb-4'>Approve or request changes on your documents</h3>
                             <h4 className='text-lg text-gray-600 mb-6'>Current Package: Facebook Campaign</h4>
 
                             {/* Scrollable table container */}
@@ -77,11 +77,11 @@ const PackageApproval = () => {
                                                 <td>
                                                     <div className='d-flex justify-content-around gap-3'>
                                                         <Dropdown className='w-[50%]' show={openDropdown === doc.id} onToggle={() => setOpenDropdown(openDropdown === doc.id ? null : doc.id)}>
-                                                            <Dropdown.Toggle variant="outline-danger" size="sm" className="w-[100%] h-[100%]">
+                                                            <Dropdown.Toggle variant="outline-dark" size="sm" className="w-[100%] h-[100%]">
                                                                 Select Option
                                                             </Dropdown.Toggle>
                                                             <Dropdown.Menu>
-                                                                <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Approved')}>Approved</Dropdown.Item>
+                                                                <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Approved')}>Approve</Dropdown.Item>
                                                                 <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Changes Requested')}>Request Changes</Dropdown.Item>
                                                             </Dropdown.Menu>
                                                         </Dropdown>
@@ -92,15 +92,6 @@ const PackageApproval = () => {
                                     </tbody>
                                 </Table>
                             </div>
-                            <Row style={{ marginBottom: "24px" }}>
-                                <Col xs={6}>
-                                    <Link href={route('packages-review')}>
-                                        <Button variant="outline-success" size="lg" className="w-full max-w-sm">
-                                            Go Back
-                                        </Button>
-                                    </Link>
-                                </Col>
-                            </Row>
                         </Container>
                     </div>
                 </div>
