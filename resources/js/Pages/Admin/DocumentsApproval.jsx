@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
 import { Container, Row, Col, Button, Table, Dropdown } from 'react-bootstrap';
 
-const PackageStatus = () => {
+const PackageApproval = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
     const [openDropdown, setOpenDropdown] = useState(null);
@@ -25,7 +25,7 @@ const PackageStatus = () => {
     return (
         <AuthenticatedLayout
             user={"Admin"}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Package Status Overview</h2>}
+            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Package Approval</h2>}
         >
             <Head title={"Package Status"} />
             <div className="py-12">
@@ -33,7 +33,7 @@ const PackageStatus = () => {
                     <div className="bg-white shadow-sm sm:rounded-lg p-6">
 
                         <Container className="flex flex-col h-full">
-                            <h3 className='text-xl font-bold mb-4'>Documents for User: user@email.com</h3>
+                            <h3 className='text-xl font-bold mb-4'>Showing all your documents</h3>
                             <h4 className='text-lg text-gray-600 mb-6'>Current Package: Facebook Campaign</h4>
 
                             {/* Scrollable table container */}
@@ -78,15 +78,13 @@ const PackageStatus = () => {
                                                     <div className='d-flex justify-content-around gap-3'>
                                                         <Dropdown className='w-[50%]' show={openDropdown === doc.id} onToggle={() => setOpenDropdown(openDropdown === doc.id ? null : doc.id)}>
                                                             <Dropdown.Toggle variant="outline-danger" size="sm" className="w-[100%] h-[100%]">
-                                                                Change Status
+                                                                Select Option
                                                             </Dropdown.Toggle>
                                                             <Dropdown.Menu>
-                                                                <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Pending')}>Pending</Dropdown.Item>
                                                                 <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Approved')}>Approved</Dropdown.Item>
-                                                                <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Changes Requested')}>Changes Requested</Dropdown.Item>
+                                                                <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Changes Requested')}>Request Changes</Dropdown.Item>
                                                             </Dropdown.Menu>
                                                         </Dropdown>
-                                                        <Button variant="outline-warning" size="sm" className="w-[50%]">Edit Document</Button>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -111,4 +109,4 @@ const PackageStatus = () => {
     );
 };
 
-export default PackageStatus;
+export default PackageApproval;

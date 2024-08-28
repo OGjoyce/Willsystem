@@ -8,7 +8,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\ObjStatusController;
 use App\Http\Controllers\PackagesReviewController;
 use App\Http\Controllers\PackageStatusController;
-
+use App\Http\Controllers\PackageApprovalController;
 
 
 
@@ -50,6 +50,10 @@ Route::get('/packages-review', function () {
 Route::get('/package-status', function () {
     return Inertia::render('Admin/PackageStatus');
 })->name("package-status");
+
+Route::get('/documents-approval', function () {
+    return Inertia::render('Admin/DocumentsApproval');
+})->name("documents-approval");
 
 Route::get('/create', function () {
     return Inertia::render('Will/Create');

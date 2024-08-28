@@ -115,6 +115,10 @@ export default function Dashboard({ auth }) {
                 window.location.href = url;
                 break;
 
+            case 'documents-approval':
+                window.location.href = url;
+                break;
+
             default:
                 console.error('Unknown selection:', selected);
         }
@@ -200,6 +204,18 @@ export default function Dashboard({ auth }) {
                                         <CardTitle>Review Packages</CardTitle>
                                         <CardText>View the status of all packages for all users.</CardText>
                                         <Button onClick={(e) => handleLinkClick(e, route('packages-review'), 'packages-review')} variant="outline-dark">Review Packages</Button>
+                                    </CardBody>
+                                </CustomCard>
+                            </Col>
+                            <Col>
+                                <CustomCard>
+                                    <CardBody>
+                                        <IconWrapper>
+                                            <i className="bi  bi-filetype-pdf"></i>
+                                        </IconWrapper>
+                                        <CardTitle>Documents Approval</CardTitle>
+                                        <CardText>Approve or request changes on your documents.</CardText>
+                                        <Button onClick={(e) => handleLinkClick(e, route('documents-approval'), 'documents-approval')} variant="outline-dark">Go Now</Button>
                                     </CardBody>
                                 </CustomCard>
                             </Col>
