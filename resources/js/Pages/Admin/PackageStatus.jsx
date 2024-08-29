@@ -1,9 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
 import { Container, Row, Col, Button, Table, Dropdown } from 'react-bootstrap';
+import searchDataById from '@/Components/ObjStatusForm';
+import axios from 'axios';
+
+
 
 const PackageStatus = () => {
+
+
+    useEffect(() => {
+        axios.get('/api/obj-status/search', {
+            params: { id: 2 }
+        })
+            .then(response => {
+                console.log(response.data)
+            })
+            .catch(error => {
+                console.error('There was an error fetching the data!', error);
+            });
+    }, []);
+
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
     const [openDropdown, setOpenDropdown] = useState(null);
