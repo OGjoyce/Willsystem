@@ -153,7 +153,7 @@ const PackageApproval = () => {
                                                         {editableDocId === doc.id ? (
                                                             <Form.Control
                                                                 as="textarea"
-                                                                rows={2}
+                                                                rows={6}
                                                                 value={changeRequest}
                                                                 onChange={(e) => setChangeRequest(e.target.value)}
                                                                 className="w-full"
@@ -229,7 +229,7 @@ const PackageApproval = () => {
                         <Form.Label>Enter the changes you want to request:</Form.Label>
                         <Form.Control
                             as="textarea"
-                            rows={3}
+                            rows={6}
                             value={changeRequest}
                             onChange={(e) => setChangeRequest(e.target.value)}
                         />

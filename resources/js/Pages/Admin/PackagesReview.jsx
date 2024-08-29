@@ -75,11 +75,12 @@ const PackagesReview = () => {
             <td>
 
 
-                <Link href={route('package-status')}>
+                <Link href={route('package-status', { id: 3 })}>
                     <Button className="w-100" variant="outline-info" size="sm">
                         View
                     </Button>
                 </Link>
+
 
             </td>
         </tr >

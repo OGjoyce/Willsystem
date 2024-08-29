@@ -47,8 +47,10 @@ Route::get('/packages-review', function () {
     return Inertia::render('Admin/PackagesReview');
 })->name("packages-review");
 
-Route::get('/package-status', function () {
-    return Inertia::render('Admin/PackageStatus');
+Route::get('/package-status/{id}', function ($id) {
+    return Inertia::render('Admin/PackageStatus', [
+        'id' => $id
+    ]);
 })->name("package-status");
 
 Route::get('/documents-approval', function () {
