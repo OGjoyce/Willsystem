@@ -11,8 +11,9 @@ const POA1Content = forwardRef((props, ref) => {
         return null;
     }
 
-    const datasObj = props.props.datas;
     const documentDOM = props.props.selectedDOMVersion
+    const datasObj = props.props.datas;
+
     const statusObject = datasObj.reduce((acc, item) => ({ ...acc, ...item }), {});
 
     const personal = statusObject.personal || {};
