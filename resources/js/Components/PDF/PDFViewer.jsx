@@ -11,17 +11,15 @@ const PDFViewer = ({ content, show, handleClose }) => {
             aria-labelledby="contained-modal-title-vcenter"
             centered
             className="pdf-viewer-modal"
-
         >
-            <Modal.Header closeButton>
-                <Modal.Title id="contained-modal-title-center">
+            <Modal.Header closeButton className="bg-gray-100 border-b-2 border-gray-300">
+                <Modal.Title id="contained-modal-title-center" className="text-lg font-semibold text-gray-700">
                     Document Viewer
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body className="p-0 mx-0">
-                <div className="pdf-content-wrapper overflow-auto  w-[100%] h-[80vh] mx-auto">
-
-                    <div className='mx-4 mt-4' dangerouslySetInnerHTML={{ __html: content }} />
+                <div className="overflow-auto w-full h-[80vh] mx-auto bg-white shadow-lg rounded-lg">
+                    <div className="p-4" dangerouslySetInnerHTML={{ __html: content }} />
                 </div>
             </Modal.Body>
         </Modal>
