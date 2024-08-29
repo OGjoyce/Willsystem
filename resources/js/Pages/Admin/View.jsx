@@ -1,9 +1,3 @@
-import PackagesReview from "./PackagesReview";
-import PackageStatus from "./PackageStatus";
-import ChangeRequestForm from "./ChangeRequestForm";
-
-
-
 import React, { useState, useEffect } from 'react';
 import { Dropdown, Button, Container, Row, Col, Table, Modal, Form } from 'react-bootstrap';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -270,13 +264,6 @@ const View = () => {
                                         </Button>
                                     </Modal.Footer>
                                 </Modal>
-
-
-                                <div className="w-[80%] mx-auto">
-                                    <div className="border-t border-red-950 my-4"></div>
-                                    <h1 className="text-4xl mb-4"> ChangeRequest.jsx:</h1>
-                                    <ChangeRequestForm />
-                                </div>
                             </>
                         )}
                     </div>
