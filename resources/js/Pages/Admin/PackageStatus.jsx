@@ -278,7 +278,7 @@ const PackageStatus = () => {
                                                                     <Dropdown.Toggle variant="outline-danger" size="sm" className="w-[100%]">
                                                                         Change Status
                                                                     </Dropdown.Toggle>
-                                                                    <Dropdown.Menu>
+                                                                    <Dropdown.Menu className='w-[100%] text-center'>
                                                                         <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Pending')}>Pending</Dropdown.Item>
                                                                         <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Approved')}>Approved</Dropdown.Item>
                                                                         <Dropdown.Item onClick={() => { setShowModal(true); setCurrentDocId(doc.id); }}>

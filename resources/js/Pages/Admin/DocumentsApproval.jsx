@@ -266,7 +266,7 @@ const DocumentsApproval = () => {
                                                                 <Dropdown.Toggle variant="outline-dark" size="sm" className="w-[100%] h-[100%]">
                                                                     Select Option
                                                                 </Dropdown.Toggle>
-                                                                <Dropdown.Menu>
+                                                                <Dropdown.Menu className='w-[100%] text-center'>
                                                                     <Dropdown.Item onClick={() => { setShowModal(true); setCurrentDocId(doc.id); }}>
                                                                         Request Changes
                                                                     </Dropdown.Item>
