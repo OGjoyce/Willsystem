@@ -182,6 +182,12 @@ const PackageStatus = () => {
         }
     };
 
+    const handleEditDocument = (docId) => {
+        // Placeholder for edit document functionality
+        console.log('Edit document:', docId);
+        // You can implement the edit functionality here
+    };
+
     return (
         <AuthenticatedLayout
             user={"Admin"}
@@ -267,18 +273,21 @@ const PackageStatus = () => {
                                                                 <Button className='w-[50%]' variant="outline-secondary" size="sm" onClick={() => setEditableDocId(null)}>Cancel</Button>
                                                             </div>
                                                         ) : (
-                                                            <Dropdown className='w-[100%]' show={openDropdown === doc.id} onToggle={() => setOpenDropdown(openDropdown === doc.id ? null : doc.id)}>
-                                                                <Dropdown.Toggle variant="outline-dark" size="sm" className="w-[100%] h-[100%]">
-                                                                    Change Status
-                                                                </Dropdown.Toggle>
-                                                                <Dropdown.Menu>
-                                                                    <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Pending')}>Pending</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Approved')}>Approved</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={() => { setShowModal(true); setCurrentDocId(doc.id); }}>
-                                                                        Request Changes
-                                                                    </Dropdown.Item>
-                                                                </Dropdown.Menu>
-                                                            </Dropdown>
+                                                            <div className='d-flex justify-content-around gap-3'>
+                                                                <Dropdown className='w-[50%]' show={openDropdown === doc.id} onToggle={() => setOpenDropdown(openDropdown === doc.id ? null : doc.id)}>
+                                                                    <Dropdown.Toggle variant="outline-danger" size="sm" className="w-[100%]">
+                                                                        Change Status
+                                                                    </Dropdown.Toggle>
+                                                                    <Dropdown.Menu>
+                                                                        <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Pending')}>Pending</Dropdown.Item>
+                                                                        <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Approved')}>Approved</Dropdown.Item>
+                                                                        <Dropdown.Item onClick={() => { setShowModal(true); setCurrentDocId(doc.id); }}>
+                                                                            Request Changes
+                                                                        </Dropdown.Item>
+                                                                    </Dropdown.Menu>
+                                                                </Dropdown>
+                                                                <Button variant="outline-warning" size="sm" className="w-[50%]" onClick={() => handleEditDocument(doc.id)}>Edit Document</Button>
+                                                            </div>
                                                         )}
                                                     </td>
                                                 </tr>
