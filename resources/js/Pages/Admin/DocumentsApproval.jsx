@@ -4,8 +4,11 @@ import { Link, Head } from '@inertiajs/react';
 import { Container, Row, Col, Button, Table, Dropdown, Modal, Form, Alert } from 'react-bootstrap';
 import PDFViewer from '@/Components/PDF/PDFViewer';
 import axios from 'axios';
+import { updateDataObject } from '@/Components/ObjStatusForm';
+import CustomToast from '@/Components/AdditionalComponents/CustomToast';
 
-const PackageApproval = () => {
+const DocumentsApproval = () => {
+    const [objectStatus, setObjectStatus] = useState([]);
     const [documents, setDocuments] = useState([]);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -16,6 +19,8 @@ const PackageApproval = () => {
     const [editableDocId, setEditableDocId] = useState(null);
     const [showPDFViewer, setShowPDFViewer] = useState(false);
     const [currentDocumentDOM, setCurrentDocumentDOM] = useState("");
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState('');
 
     useEffect(() => {
         fetchDocuments();
@@ -24,12 +29,13 @@ const PackageApproval = () => {
     const fetchDocuments = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('/api/obj-status/search', { params: { id: 3 } });
+            const response = await axios.get('/api/obj-status/search', { params: { id: 2 } });
 
             if (response.data && response.data.length > 0) {
-                const objectStatus = parseObjectStatus(response.data[0].information);
-                if (objectStatus) {
-                    const formattedDocuments = formatDocuments(objectStatus);
+                const parsedObjectStatus = parseObjectStatus(response.data[0].information);
+                if (parsedObjectStatus) {
+                    setObjectStatus(parsedObjectStatus);
+                    const formattedDocuments = formatDocuments(parsedObjectStatus);
                     setDocuments(formattedDocuments);
                 } else {
                     setError('No document data found in response');
@@ -80,20 +86,89 @@ const PackageApproval = () => {
             });
     };
 
-    const handleStatusChange = (docId, newStatus) => {
-        setDocuments(documents.map(doc =>
-            doc.id === docId ? { ...doc, status: newStatus, changeRequest: newStatus === 'Changes Requested' ? changeRequest : '' } : doc
-        ));
-        setOpenDropdown(null);
-        setShowModal(false);
-        setChangeRequest('');
+    const handleStatusChange = async (docId, newStatus) => {
+        try {
+            const currentDoc = documents.find(doc => doc.id === docId);
+
+            const updatedObjectStatus = objectStatus.map(item => {
+                if (item.documentDOM) {
+                    const currentDocumentDOM = item.documentDOM[currentDoc.type][currentDoc.latestVersion];
+                    const updatedDocumentDOM = {
+                        ...item.documentDOM,
+                        [currentDoc.type]: {
+                            ...item.documentDOM[currentDoc.type],
+                            [currentDoc.latestVersion]: {
+                                ...currentDocumentDOM,
+                                status: newStatus.toLowerCase(),
+                                changes: {
+                                    requestedChanges: newStatus === 'Changes Requested'
+                                        ? [...(currentDocumentDOM.changes.requestedChanges || []), changeRequest]
+                                        : currentDocumentDOM.changes.requestedChanges || []
+                                },
+                                content: currentDoc.content
+                            }
+                        }
+                    };
+                    return { ...item, documentDOM: updatedDocumentDOM };
+                }
+                return item;
+            });
+
+            await updateDataObject(updatedObjectStatus, 2);
+
+            setObjectStatus(updatedObjectStatus);
+            setDocuments(formatDocuments(updatedObjectStatus));
+            setOpenDropdown(null);
+            setShowModal(false);
+            setChangeRequest('');
+
+            // Show toast message
+            setToastMessage(newStatus === 'Approved' ? 'Document approved successfully' : 'Changes requested successfully');
+            setShowToast(true);
+        } catch (error) {
+            console.error('Error updating document status:', error);
+            setToastMessage('Failed to update document status. Please try again.');
+            setShowToast(true);
+        }
     };
 
-    const handleSaveChanges = (docId) => {
-        setDocuments(documents.map(doc =>
-            doc.id === docId ? { ...doc, changeRequest: changeRequest } : doc
-        ));
-        setEditableDocId(null);
+    const handleSaveChanges = async (docId) => {
+        try {
+            const currentDoc = documents.find(doc => doc.id === docId);
+
+            const updatedObjectStatus = objectStatus.map(item => {
+                if (item.documentDOM) {
+                    const currentDocumentDOM = item.documentDOM[currentDoc.type][currentDoc.latestVersion];
+                    const updatedDocumentDOM = {
+                        ...item.documentDOM,
+                        [currentDoc.type]: {
+                            ...item.documentDOM[currentDoc.type],
+                            [currentDoc.latestVersion]: {
+                                ...currentDocumentDOM,
+                                changes: {
+                                    requestedChanges: changeRequest ? [changeRequest] : []
+                                }
+                            }
+                        }
+                    };
+                    return { ...item, documentDOM: updatedDocumentDOM };
+                }
+                return item;
+            });
+
+            await updateDataObject(updatedObjectStatus, 2);
+
+            setObjectStatus(updatedObjectStatus);
+            setDocuments(formatDocuments(updatedObjectStatus));
+            setEditableDocId(null);
+
+            setToastMessage('Changes saved successfully');
+            setShowToast(true);
+        } catch (error) {
+            console.error('Error saving changes:', error);
+            setToastMessage('Failed to save changes. Please try again.');
+            setShowToast(true);
+        }
     };
 
     const handleViewDocument = (docId) => {
@@ -146,7 +221,7 @@ const PackageApproval = () => {
                                                     <td className={
                                                         doc.status === "Approved"
                                                             ? 'text-green-600'
-                                                            : (doc.status === "Changes Requested"
+                                                            : (doc.status === "Changes requested"
                                                                 ? 'text-red-600'
                                                                 : 'text-yellow-600')
                                                     }>
@@ -161,7 +236,7 @@ const PackageApproval = () => {
                                                         ) : (
                                                             <>
                                                                 {doc.status}
-                                                                {doc.status === "Changes Requested" && (
+                                                                {doc.status === "Changes requested" && (
                                                                     <>
                                                                         <span className='text-black ml-2 cursor-pointer'>
                                                                             <i
@@ -245,8 +320,13 @@ const PackageApproval = () => {
                 show={showPDFViewer}
                 handleClose={() => setShowPDFViewer(false)}
             />
+            <CustomToast
+                show={showToast}
+                onClose={() => setShowToast(false)}
+                message={toastMessage}
+            />
         </AuthenticatedLayout>
     );
 };
 
-export default PackageApproval;
+export default DocumentsApproval;
