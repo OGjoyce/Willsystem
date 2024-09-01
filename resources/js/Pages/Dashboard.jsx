@@ -111,6 +111,14 @@ export default function Dashboard({ auth }) {
                 window.location.href = url;
                 break;
 
+            case 'packages-review':
+                window.location.href = url;
+                break;
+
+            case 'documents-approval':
+                window.location.href = url;
+                break;
+
             default:
                 console.error('Unknown selection:', selected);
         }
@@ -179,9 +187,35 @@ export default function Dashboard({ auth }) {
                                         <IconWrapper>
                                             <i className="bi bi-box-seam"></i>
                                         </IconWrapper>
-                                        <CardTitle>Packages</CardTitle>
-                                        <CardText>Explore our comprehensive legal document packages.</CardText>
+                                        <CardTitle>View Packages</CardTitle>
+                                        <CardText>Manage the legal document packages.</CardText>
                                         <Button onClick={(e) => handleLinkClick(e, route('packages'), 'packages')} variant="outline-dark">View Packages</Button>
+                                    </CardBody>
+                                </CustomCard>
+                            </Col>
+                        </Row>
+                        <Row xs={1} md={2} lg={4} className="g-4 mt-4">
+                            <Col>
+                                <CustomCard>
+                                    <CardBody>
+                                        <IconWrapper>
+                                            <i className="bi  bi-inboxes"></i>
+                                        </IconWrapper>
+                                        <CardTitle>Review Packages</CardTitle>
+                                        <CardText>View the status of all packages for all users.</CardText>
+                                        <Button onClick={(e) => handleLinkClick(e, route('packages-review'), 'packages-review')} variant="outline-dark">Review Packages</Button>
+                                    </CardBody>
+                                </CustomCard>
+                            </Col>
+                            <Col>
+                                <CustomCard>
+                                    <CardBody>
+                                        <IconWrapper>
+                                            <i className="bi  bi-filetype-pdf"></i>
+                                        </IconWrapper>
+                                        <CardTitle>Documents Approval</CardTitle>
+                                        <CardText>Approve or request changes on your documents.</CardText>
+                                        <Button onClick={(e) => handleLinkClick(e, route('documents-approval'), 'documents-approval')} variant="outline-dark">Go Now</Button>
                                     </CardBody>
                                 </CustomCard>
                             </Col>

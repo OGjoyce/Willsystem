@@ -786,7 +786,7 @@ export default function Personal({ auth }) {
                         {
                             pointer == 15 ?
 
-                                <PDFEditor ContentComponent={WillContent} datas={object_status} documentType='Will' errors={validationErrors} />
+                                <PDFEditor ContentComponent={WillContent} datas={object_status} documentType='Will' errors={validationErrors} backendId={currIdObjDB} />
                                 :
                                 null
                         }
@@ -812,6 +812,7 @@ export default function Personal({ auth }) {
                                         datas={object_status}
                                         documentType={selectedDocument}
                                         errors={validationErrors}
+                                        backendId={currIdObjDB}
                                     />
                                 ) : null
                             ) : null

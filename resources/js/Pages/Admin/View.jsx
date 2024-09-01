@@ -221,7 +221,7 @@ const View = () => {
                                         <Row className="mt-3">
                                             {['Will', 'POA1', 'POA2', 'POA3'].map((docType) => (
                                                 <Col key={docType}>
-                                                    <Dropdown>
+                                                    <Dropdown className="w-[100%]">
                                                         <href onClick={() => searchById(docType, show)}>
                                                             <Dropdown.Toggle
                                                                 onSelect={() => { }}
