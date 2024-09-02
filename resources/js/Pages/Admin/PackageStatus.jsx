@@ -9,7 +9,6 @@ import useDocumentApproval from './useDocumentApproval';
 const PackageStatus = () => {
     const [openDropdown, setOpenDropdown] = useState(null);
     const [showModal, setShowModal] = useState(false);
-    const [modalDocId, setModalDocId] = useState(null);
     const [currentDocId, setCurrentDocId] = useState(null);
     const [changeRequest, setChangeRequest] = useState('');
     const [editableDocId, setEditableDocId] = useState(null);
@@ -55,7 +54,7 @@ const PackageStatus = () => {
             setOpenDropdown(null);
         } else {
             setShowModal(true);
-            setModalDocId(doc.id);  // Actualiza el docId en el modal
+            setCurrentDocId(doc.id);  // Actualiza el docId en el modal
             setChangeRequest('');
             setOpenDropdown(null);
         }
@@ -201,7 +200,7 @@ const PackageStatus = () => {
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
-                    <Button variant="primary" onClick={() => handleSaveChanges(modalDocId)}>Save Changes</Button>
+                    <Button variant="primary" onClick={() => handleSaveChanges(currentDocId)}>Save Changes</Button>
                 </Modal.Footer>
             </Modal>
             <PDFViewer

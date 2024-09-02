@@ -49,6 +49,7 @@ const DocumentsApproval = () => {
         if (doc.status === "Changes requested") {
             // If changes are already requested, open the editor in the table
             setEditableDocId(doc.id);
+            setCurrentDocId(doc.id);
             setChangeRequest(doc.changeRequest || '');
             setOpenDropdown(null); // Close the dropdown
         } else {
@@ -191,7 +192,7 @@ const DocumentsApproval = () => {
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
-                    <Button variant="primary" onClick={handleSaveChanges}>Save Changes</Button>
+                    <Button variant="primary" onClick={() => { handleSaveChanges(currentDocId) }}>Save Changes</Button>
                 </Modal.Footer>
             </Modal>
             <PDFViewer
