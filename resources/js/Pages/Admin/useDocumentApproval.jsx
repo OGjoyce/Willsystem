@@ -76,6 +76,10 @@ const useDocumentApproval = (initialDocId) => {
         try {
             const currentDoc = documents.find(doc => doc.id === docId);
 
+            if (!currentDoc) {
+                throw new Error('Document not found');
+            }
+
             const updatedObjectStatus = objectStatus.map(item => {
                 if (item.documentDOM) {
                     const currentDocumentDOM = item.documentDOM[currentDoc.type][currentDoc.latestVersion];
@@ -102,8 +106,9 @@ const useDocumentApproval = (initialDocId) => {
 
             await updateDataObject(updatedObjectStatus, initialDocId);
 
-            setObjectStatus(updatedObjectStatus);
-            setDocuments(formatDocuments(updatedObjectStatus));
+            // Volver a obtener los datos más recientes del servidor
+            await fetchDocuments();
+
         } catch (error) {
             console.error('Error updating document status:', error);
             throw new Error('Failed to update document status');

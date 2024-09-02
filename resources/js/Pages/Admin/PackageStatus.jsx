@@ -9,6 +9,7 @@ import useDocumentApproval from './useDocumentApproval';
 const PackageStatus = () => {
     const [openDropdown, setOpenDropdown] = useState(null);
     const [showModal, setShowModal] = useState(false);
+    const [modalDocId, setModalDocId] = useState(null);
     const [currentDocId, setCurrentDocId] = useState(null);
     const [changeRequest, setChangeRequest] = useState('');
     const [editableDocId, setEditableDocId] = useState(null);
@@ -17,7 +18,7 @@ const PackageStatus = () => {
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
 
-    const { documents, error, loading, handleStatusChange } = useDocumentApproval(4);
+    const { documents, error, loading, handleStatusChange } = useDocumentApproval(1);
 
     const handleViewDocument = (docId) => {
         const document = documents.find(doc => doc.id === docId);
@@ -28,10 +29,10 @@ const PackageStatus = () => {
             console.error('Document content not found');
         }
     };
-
-    const handleSaveChanges = async () => {
+    async function handleSaveChanges(docId) {
         try {
-            await handleStatusChange(currentDocId, 'Changes Requested', changeRequest);
+            await handleStatusChange(docId, 'Changes Requested', changeRequest);
+            console.log(docId);
             setEditableDocId(null);
             setChangeRequest('');
             setToastMessage('Changes saved successfully');
@@ -41,8 +42,11 @@ const PackageStatus = () => {
             setToastMessage('Failed to save changes. Please try again.');
             setShowToast(true);
         }
-        setShowModal(false)
-    };
+        setShowModal(false);
+        await fetchDocuments();  // Vuelve a obtener los datos actualizados
+    }
+
+
 
     const handleDropdownClick = (doc) => {
         if (doc.status === "Changes requested") {
@@ -51,11 +55,12 @@ const PackageStatus = () => {
             setOpenDropdown(null);
         } else {
             setShowModal(true);
-            setCurrentDocId(doc.id);
+            setModalDocId(doc.id);  // Actualiza el docId en el modal
             setChangeRequest('');
             setOpenDropdown(null);
         }
     };
+
 
     return (
         <AuthenticatedLayout
@@ -138,7 +143,7 @@ const PackageStatus = () => {
                                                     <td>
                                                         {editableDocId === doc.id ? (
                                                             <div className='d-flex justify-content-around gap-3'>
-                                                                <Button className='w-[50%]' variant="outline-success" size="sm" onClick={handleSaveChanges}>Save</Button>
+                                                                <Button className='w-[50%]' variant="outline-success" size="sm" onClick={() => handleSaveChanges(doc.id)}>Save</Button>
                                                                 <Button className='w-[50%]' variant="outline-secondary" size="sm" onClick={() => setEditableDocId(null)}>Cancel</Button>
                                                             </div>
                                                         ) : (
@@ -196,7 +201,7 @@ const PackageStatus = () => {
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
-                    <Button variant="primary" onClick={handleSaveChanges}>Save Changes</Button>
+                    <Button variant="primary" onClick={() => handleSaveChanges(modalDocId)}>Save Changes</Button>
                 </Modal.Footer>
             </Modal>
             <PDFViewer

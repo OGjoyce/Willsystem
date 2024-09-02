@@ -18,7 +18,7 @@ const DocumentsApproval = () => {
     const [toastMessage, setToastMessage] = useState('');
 
     // Use the custom hook here
-    const { documents, error, loading, handleStatusChange } = useDocumentApproval(4);
+    const { documents, error, loading, handleStatusChange } = useDocumentApproval(1);
 
     const handleViewDocument = (docId) => {
         const document = documents.find(doc => doc.id === docId);
