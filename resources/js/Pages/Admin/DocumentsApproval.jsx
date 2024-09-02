@@ -30,9 +30,9 @@ const DocumentsApproval = () => {
         }
     };
 
-    const handleSaveChanges = async () => {
+    async function handleSaveChanges(docId) {
         try {
-            await handleStatusChange(currentDocId, 'Changes Requested', changeRequest);
+            await handleStatusChange(docId, 'Changes Requested', changeRequest);
             setEditableDocId(null);
             setChangeRequest('');
             setToastMessage('Changes saved successfully');
@@ -49,7 +49,6 @@ const DocumentsApproval = () => {
         if (doc.status === "Changes requested") {
             // If changes are already requested, open the editor in the table
             setEditableDocId(doc.id);
-            setCurrentDocId(doc.id);
             setChangeRequest(doc.changeRequest || '');
             setOpenDropdown(null); // Close the dropdown
         } else {
@@ -124,6 +123,7 @@ const DocumentsApproval = () => {
                                                                                 onClick={() => {
                                                                                     setEditableDocId(doc.id);
                                                                                     setChangeRequest(doc.changeRequest);
+                                                                                    setCurrentDocId(doc.id)
                                                                                 }}
                                                                             ></i>
                                                                         </span>
@@ -138,7 +138,7 @@ const DocumentsApproval = () => {
                                                     <td>
                                                         {editableDocId === doc.id ? (
                                                             <div className='d-flex justify-content-around gap-3'>
-                                                                <Button className='w-[50%]' variant="outline-success" size="sm" onClick={handleSaveChanges}>Save</Button>
+                                                                <Button className='w-[50%]' variant="outline-success" size="sm" onClick={() => { handleSaveChanges(currentDocId) }}>Save</Button>
                                                                 <Button className='w-[50%]' variant="outline-secondary" size="sm" onClick={() => setEditableDocId(null)}>Cancel</Button>
                                                             </div>
                                                         ) : (

@@ -92,7 +92,7 @@ const useDocumentApproval = (initialDocId) => {
                                 status: newStatus.toLowerCase(),
                                 changes: {
                                     requestedChanges: newStatus === 'Changes Requested'
-                                        ? [changeRequest]  // Solo el nuevo cambio, reemplaza los anteriores
+                                        ? [changeRequest]
                                         : []
                                 },
                                 content: currentDoc.content
@@ -106,7 +106,7 @@ const useDocumentApproval = (initialDocId) => {
 
             await updateDataObject(updatedObjectStatus, initialDocId);
 
-            // Volver a obtener los datos más recientes del servidor
+
             await fetchDocuments();
 
         } catch (error) {
