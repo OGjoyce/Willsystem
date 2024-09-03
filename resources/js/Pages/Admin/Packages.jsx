@@ -6,10 +6,9 @@ import ConfirmationModal from '@/Components/AdditionalComponents/ConfirmationMod
 import { Head, Link } from '@inertiajs/react';
 import axios from 'axios';
 
-
-
 const Packages = () => {
     const [packages, setPackages] = useState([]);
+    const [contracts, setContracts] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [modalMode, setModalMode] = useState('');
@@ -17,7 +16,7 @@ const Packages = () => {
         id: null,
         name: '',
         price: '',
-        description: '',
+        description: '', // Se usa para contractId en dropdown
         campaign: ''
     });
     const [showToast, setShowToast] = useState(false);
@@ -26,6 +25,7 @@ const Packages = () => {
 
     useEffect(() => {
         fetchPackages();
+        fetchContracts(); // Obtener contratos al montar el componente
     }, []);
 
     const fetchPackages = async () => {
@@ -37,9 +37,18 @@ const Packages = () => {
         }
     };
 
+    const fetchContracts = async () => {
+        try {
+            const response = await axios.get('/api/contracts');
+            setContracts(response.data);
+        } catch (error) {
+            console.error('Error fetching contracts:', error);
+        }
+    };
+
     const handleClose = () => {
         setShowModal(false);
-        setCurrentPackage({ id: null, name: '', price: '', campaign: '' });
+        setCurrentPackage({ id: null, name: '', price: '', description: '', campaign: '' });
     };
 
     const handleShow = (mode, pkg = null) => {
@@ -63,8 +72,11 @@ const Packages = () => {
         }
 
         setCurrentPackage({ ...currentPackage, [name]: newValue });
-        // Limpiar el error de validación cuando el usuario empieza a escribir
         setValidationErrors({ ...validationErrors, [name]: '' });
+    };
+
+    const handleSelectChange = (e) => {
+        setCurrentPackage({ ...currentPackage, description: e.target.value });
     };
 
     const validateForm = () => {
@@ -217,7 +229,6 @@ const Packages = () => {
                                 name="name"
                                 value={currentPackage.name}
                                 onChange={handleInputChange}
-
                             />
                             {validationErrors.name && <p className="mt-2 text-sm text-red-600">{validationErrors.name}</p>}
                         </Form.Group>
@@ -228,19 +239,24 @@ const Packages = () => {
                                 name="price"
                                 value={currentPackage.price}
                                 onChange={handleInputChange}
-
                             />
                             {validationErrors.price && <p className="mt-2 text-sm text-red-600">{validationErrors.price}</p>}
                         </Form.Group>
                         <Form.Group className="mb-3">
                             <Form.Label>Description</Form.Label>
                             <Form.Control
-                                as="textarea"
-                                rows={3}
+                                as="select"
                                 name="description"
                                 value={currentPackage.description}
-                                onChange={handleInputChange}
-                            />
+                                onChange={handleSelectChange}
+                            >
+                                <option value="">Select a contract</option>
+                                {contracts.map(contract => (
+                                    <option key={contract.id} value={contract.description}>
+                                        {contract.description}
+                                    </option>
+                                ))}
+                            </Form.Control>
                             {validationErrors.description && <p className="mt-2 text-sm text-red-600">{validationErrors.description}</p>}
                         </Form.Group>
                         <Form.Group className="mb-3">
@@ -250,9 +266,8 @@ const Packages = () => {
                                 name="campaign"
                                 value={currentPackage.campaign}
                                 onChange={handleInputChange}
-
                             />
-                            {validationErrors.campaign && <p className="mt-2 text-sm  text-red-600">{validationErrors.campaign}</p>}
+                            {validationErrors.campaign && <p className="mt-2 text-sm text-red-600">{validationErrors.campaign}</p>}
                         </Form.Group>
                         <Button variant="primary" type="submit">
                             {modalMode === 'create' ? 'Add Package' : 'Update Package'}
