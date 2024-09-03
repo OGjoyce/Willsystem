@@ -161,8 +161,8 @@ export default function Dashboard({ auth }) {
                                         <IconWrapper>
                                             <i className="bi bi-files"></i>
                                         </IconWrapper>
-                                        <CardTitle>Create Will + 2 POA</CardTitle>
-                                        <CardText>Start a new will and create two Power of Attorney documents.</CardText>
+                                        <CardTitle>Create File</CardTitle>
+                                        <CardText>Select your package and start creating your documents</CardText>
                                         <Button onClick={(e) => handleLinkClick(e, route('personal'), 'new-will')} variant="outline-dark">Get Started</Button>
                                     </CardBody>
                                 </CustomCard>
