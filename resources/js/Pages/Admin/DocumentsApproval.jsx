@@ -1,175 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
 import { Container, Row, Col, Button, Table, Dropdown, Modal, Form, Alert } from 'react-bootstrap';
 import PDFViewer from '@/Components/PDF/PDFViewer';
-import axios from 'axios';
-import { updateDataObject } from '@/Components/ObjStatusForm';
+import useDocumentApproval from './useDocumentApproval';
 import CustomToast from '@/Components/AdditionalComponents/CustomToast';
 
 const DocumentsApproval = () => {
-    const [objectStatus, setObjectStatus] = useState([]);
-    const [documents, setDocuments] = useState([]);
-    const [error, setError] = useState(null);
-    const [loading, setLoading] = useState(true);
     const [openDropdown, setOpenDropdown] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [currentDocId, setCurrentDocId] = useState(null);
     const [changeRequest, setChangeRequest] = useState('');
     const [editableDocId, setEditableDocId] = useState(null);
     const [showPDFViewer, setShowPDFViewer] = useState(false);
-    const [currentDocumentDOM, setCurrentDocumentDOM] = useState("");
+    const [currentDocumentDOM, setCurrentDocumentDOM] = useState('');
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
 
-    useEffect(() => {
-        fetchDocuments();
-    }, []);
-
-    const fetchDocuments = async () => {
-        try {
-            setLoading(true);
-            const response = await axios.get('/api/obj-status/search', { params: { id: 2 } });
-
-            if (response.data && response.data.length > 0) {
-                const parsedObjectStatus = parseObjectStatus(response.data[0].information);
-                if (parsedObjectStatus) {
-                    setObjectStatus(parsedObjectStatus);
-                    const formattedDocuments = formatDocuments(parsedObjectStatus);
-                    setDocuments(formattedDocuments);
-                } else {
-                    setError('No document data found in response');
-                }
-            } else {
-                setError('No data received from server');
-            }
-        } catch (error) {
-            console.error('Error fetching documents:', error);
-            setError('Error fetching data from server');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const parseObjectStatus = (information) => {
-        if (typeof information === 'string') {
-            try {
-                return JSON.parse(information);
-            } catch (e) {
-                console.error('Error parsing information:', e);
-                return null;
-            }
-        } else if (typeof information === 'object') {
-            return information;
-        }
-        console.error('Unexpected information type:', typeof information);
-        return null;
-    };
-
-    const formatDocuments = (objectStatus) => {
-        const documentDOM = objectStatus.find(item => item.documentDOM)?.documentDOM;
-        if (!documentDOM) return [];
-
-        return Object.entries(documentDOM)
-            .filter(([key]) => key !== 'timestamp')
-            .map(([type, versions]) => {
-                const latestVersion = Object.keys(versions).sort().pop();
-                const { status, changes, content } = versions[latestVersion];
-                return {
-                    id: type,
-                    type,
-                    latestVersion,
-                    status: status.charAt(0).toUpperCase() + status.slice(1),
-                    changeRequest: changes.requestedChanges.join(', '),
-                    content
-                };
-            });
-    };
-
-    const handleStatusChange = async (docId, newStatus) => {
-        try {
-            const currentDoc = documents.find(doc => doc.id === docId);
-
-            const updatedObjectStatus = objectStatus.map(item => {
-                if (item.documentDOM) {
-                    const currentDocumentDOM = item.documentDOM[currentDoc.type][currentDoc.latestVersion];
-                    const updatedDocumentDOM = {
-                        ...item.documentDOM,
-                        [currentDoc.type]: {
-                            ...item.documentDOM[currentDoc.type],
-                            [currentDoc.latestVersion]: {
-                                ...currentDocumentDOM,
-                                status: newStatus.toLowerCase(),
-                                changes: {
-                                    requestedChanges: newStatus === 'Changes Requested'
-                                        ? [...(currentDocumentDOM.changes.requestedChanges || []), changeRequest]
-                                        : currentDocumentDOM.changes.requestedChanges || []
-                                },
-                                content: currentDoc.content
-                            }
-                        }
-                    };
-                    return { ...item, documentDOM: updatedDocumentDOM };
-                }
-                return item;
-            });
-
-            await updateDataObject(updatedObjectStatus, 2);
-
-            setObjectStatus(updatedObjectStatus);
-            setDocuments(formatDocuments(updatedObjectStatus));
-            setOpenDropdown(null);
-            setShowModal(false);
-            setChangeRequest('');
-
-            // Show toast message
-            setToastMessage(newStatus === 'Approved' ? 'Document approved successfully' : 'Changes requested successfully');
-            setShowToast(true);
-        } catch (error) {
-            console.error('Error updating document status:', error);
-            setToastMessage('Failed to update document status. Please try again.');
-            setShowToast(true);
-        }
-    };
-
-    const handleSaveChanges = async (docId) => {
-        try {
-            const currentDoc = documents.find(doc => doc.id === docId);
-
-            const updatedObjectStatus = objectStatus.map(item => {
-                if (item.documentDOM) {
-                    const currentDocumentDOM = item.documentDOM[currentDoc.type][currentDoc.latestVersion];
-                    const updatedDocumentDOM = {
-                        ...item.documentDOM,
-                        [currentDoc.type]: {
-                            ...item.documentDOM[currentDoc.type],
-                            [currentDoc.latestVersion]: {
-                                ...currentDocumentDOM,
-                                changes: {
-                                    requestedChanges: changeRequest ? [changeRequest] : []
-                                }
-                            }
-                        }
-                    };
-                    return { ...item, documentDOM: updatedDocumentDOM };
-                }
-                return item;
-            });
-
-            await updateDataObject(updatedObjectStatus, 2);
-
-            setObjectStatus(updatedObjectStatus);
-            setDocuments(formatDocuments(updatedObjectStatus));
-            setEditableDocId(null);
-
-            setToastMessage('Changes saved successfully');
-            setShowToast(true);
-        } catch (error) {
-            console.error('Error saving changes:', error);
-            setToastMessage('Failed to save changes. Please try again.');
-            setShowToast(true);
-        }
-    };
+    // Use the custom hook here
+    const { documents, error, loading, handleStatusChange } = useDocumentApproval(4);
 
     const handleViewDocument = (docId) => {
         const document = documents.find(doc => doc.id === docId);
@@ -181,12 +30,42 @@ const DocumentsApproval = () => {
         }
     };
 
+    async function handleSaveChanges(docId) {
+        try {
+            await handleStatusChange(docId, 'Changes Requested', changeRequest);
+            setEditableDocId(null);
+            setChangeRequest('');
+            setToastMessage('Changes saved successfully');
+            setShowToast(true);
+        } catch (error) {
+            console.error('Error saving changes:', error);
+            setToastMessage('Failed to save changes. Please try again.');
+            setShowToast(true);
+        }
+        setShowModal(false)
+    };
+
+    const handleDropdownClick = (doc) => {
+        if (doc.status === "Changes requested") {
+            // If changes are already requested, open the editor in the table
+            setEditableDocId(doc.id);
+            setChangeRequest(doc.changeRequest || '');
+            setOpenDropdown(null); // Close the dropdown
+        } else {
+            // Otherwise, show the modal
+            setShowModal(true);
+            setCurrentDocId(doc.id);
+            setChangeRequest('');
+            setOpenDropdown(null); // Close the dropdown
+        }
+    };
+
     return (
         <AuthenticatedLayout
             user={"Admin"}
             header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Documents Approval</h2>}
         >
-            <Head title="Package Status" />
+            <Head title="Documents Approval" />
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white shadow-sm sm:rounded-lg p-6">
@@ -244,6 +123,7 @@ const DocumentsApproval = () => {
                                                                                 onClick={() => {
                                                                                     setEditableDocId(doc.id);
                                                                                     setChangeRequest(doc.changeRequest);
+                                                                                    setCurrentDocId(doc.id)
                                                                                 }}
                                                                             ></i>
                                                                         </span>
@@ -258,7 +138,7 @@ const DocumentsApproval = () => {
                                                     <td>
                                                         {editableDocId === doc.id ? (
                                                             <div className='d-flex justify-content-around gap-3'>
-                                                                <Button className='w-[50%]' variant="outline-success" size="sm" onClick={() => handleSaveChanges(doc.id)}>Save</Button>
+                                                                <Button className='w-[50%]' variant="outline-success" size="sm" onClick={() => { handleSaveChanges(currentDocId) }}>Save</Button>
                                                                 <Button className='w-[50%]' variant="outline-secondary" size="sm" onClick={() => setEditableDocId(null)}>Cancel</Button>
                                                             </div>
                                                         ) : (
@@ -267,7 +147,7 @@ const DocumentsApproval = () => {
                                                                     Select Option
                                                                 </Dropdown.Toggle>
                                                                 <Dropdown.Menu className='w-[100%] text-center'>
-                                                                    <Dropdown.Item onClick={() => { setShowModal(true); setCurrentDocId(doc.id); }}>
+                                                                    <Dropdown.Item onClick={() => handleDropdownClick(doc)}>
                                                                         Request Changes
                                                                     </Dropdown.Item>
                                                                     <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Approved')}>Approve</Dropdown.Item>
@@ -312,7 +192,7 @@ const DocumentsApproval = () => {
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
-                    <Button variant="primary" onClick={() => handleStatusChange(currentDocId, 'Changes Requested')}>Save Changes</Button>
+                    <Button variant="primary" onClick={() => { handleSaveChanges(currentDocId) }}>Save Changes</Button>
                 </Modal.Footer>
             </Modal>
             <PDFViewer
