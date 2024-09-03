@@ -44,7 +44,7 @@ import { getDocumentDOMInfo } from '@/Components/PDF/PDFEditor';
 import { storeDataObject } from '@/Components/ObjStatusForm';
 import { updateDataObject } from '@/Components/ObjStatusForm';
 import { validate } from '@/Components/Validations.jsx';
-import { document } from 'postcss';
+import SelectPackageModal from '../Admin/SelectPackageModal';
 
 var object_status = [];
 var objectState = [];
@@ -144,7 +144,9 @@ export default function Personal({ auth }) {
     var [pointer, setPointer] = useState(0);
     var [validationErrors, setValidationErrors] = useState({})
     const [selectedDocument, setSelectedDocument] = useState(null);
-    const [formData, setFormData] = useState({});
+    const [selectedPackage, setSelectedPackage] = useState(null);
+    const [showSelectModal, setShowSelectModal] = useState(false);
+
     var lastPointer = 0;
 
     useEffect(() => {
@@ -171,6 +173,25 @@ export default function Personal({ auth }) {
             }
         }
     }, []);
+
+    useEffect(() => {
+        if (pointer === 0) {
+            setShowSelectModal(true);
+        } else {
+            setShowSelectModal(false);
+        }
+    }, [pointer]);
+
+    const handleHideSelectModal = () => {
+        if (selectedPackage !== null) {
+            setShowSelectModal(false)
+        }
+    }
+
+    const handleSelectPackage = (pkg) => {
+        setSelectedPackage(pkg)
+        setShowSelectModal(false)
+    }
 
     var updateOrCreateProperty = (propertiesAndData) => {
         const existingIndex = object_status.findIndex(obj =>
@@ -228,7 +249,8 @@ export default function Personal({ auth }) {
 
                     propertiesAndData = [
                         { name: 'personal', data: dataObj.personal },
-                        { name: 'owner', data: dataObj.owner }
+                        { name: 'owner', data: dataObj.owner },
+                        { name: 'packageInfo', data: selectedPackage }
                     ];
 
                     updateOrCreateProperty(propertiesAndData);
@@ -818,11 +840,6 @@ export default function Personal({ auth }) {
                             ) : null
                         }
 
-
-
-
-
-
                         <div style={{ padding: '20px', display: 'flex', justifyContent: 'center', marginTop: "100px" }}>
                             <Container fluid="md">
                                 <Row>
@@ -872,9 +889,14 @@ export default function Personal({ auth }) {
                                     </Col>
                                 </Row>
                             </Container>
+                            {pointer === 0 && (
+                                <SelectPackageModal
+                                    show={showSelectModal}
+                                    onHide={handleHideSelectModal}
+                                    onSelect={(pkg) => handleSelectPackage(pkg)}
+                                />
+                            )}
                         </div>
-
-
                     </div>
                 </div>
             </div>

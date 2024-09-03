@@ -17,7 +17,7 @@ const PackageStatus = () => {
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
 
-    const { documents, error, loading, handleStatusChange } = useDocumentApproval(4);
+    const { documents, error, loading, handleStatusChange } = useDocumentApproval(1);
 
     const handleViewDocument = (docId) => {
         const document = documents.find(doc => doc.id === docId);
