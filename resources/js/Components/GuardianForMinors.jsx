@@ -3,21 +3,21 @@ import { useState, useEffect } from 'react';
 import Table from 'react-bootstrap/Table';
 import Button from 'react-bootstrap/Button';
 import Dropdown from 'react-bootstrap/Dropdown';
-import { Container, Row, Col, DropdownToggle, DropdownMenu, DropdownItem } from 'react-bootstrap';
+import { Container, Row, Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
+import CustomToast from './AdditionalComponents/CustomToast';
+import ConfirmationModal from './AdditionalComponents/ConfirmationModal';
 
 var identifiers_names = [];
 var priorityInformation = [1, 2, 3, 4, 5];
 var bequestindex = 1;
 
 export function getFullData() {
-    // Recuperar datos de localStorage
     const savedData = localStorage.getItem('fullData');
     return savedData ? JSON.parse(savedData) : {};
 }
 
 export function getGuardiansForMinors() {
-    // Recuperar datos de localStorage
     const savedData = localStorage.getItem('formValues');
     return savedData ? JSON.parse(savedData).guardians || [] : [];
 }
@@ -26,10 +26,15 @@ export default function GuardianForMinors({ errors }) {
     const [firstRender, setFirstRender] = useState(true);
     const [selected, setSelected] = useState(null);
     const [priority, setPriority] = useState(0);
-    const [tableData, setTableData] = useState([]);
+    const [tableData, setTableData] = useState({});
+    const [tempTableData, setTempTableData] = useState({});
     const [validationErrors, setValidationErrors] = useState(errors);
+    const [editingRow, setEditingRow] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState("");
+    const [itemToDelete, setItemToDelete] = useState(null);
 
-    // Recuperar datos iniciales
     useEffect(() => {
         const savedData = getGuardiansForMinors();
         setTableData(savedData.reduce((acc, item) => {
@@ -38,7 +43,6 @@ export default function GuardianForMinors({ errors }) {
         }, {}));
     }, []);
 
-    // Guardar datos en localStorage
     useEffect(() => {
         const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
         formValues.guardians = Object.values(tableData);
@@ -48,6 +52,33 @@ export default function GuardianForMinors({ errors }) {
     useEffect(() => {
         setValidationErrors(errors);
     }, [errors]);
+
+    useEffect(() => {
+        if (firstRender) {
+            identifiers_names = []
+            const fullData = getFullData();
+            const married = fullData[2]?.married || {};
+            const kids = fullData[4]?.kids || [];
+            const relatives = fullData[5]?.relatives || [];
+            const kidsq = fullData[3]?.kidsq?.selection;
+
+            const married_names = married?.firstName && married?.lastName ? married.firstName + " " + married.lastName : null;
+            if (kidsq === "true") {
+                for (const child of kids) {
+                    const names = child?.firstName + " " + child?.lastName;
+                    identifiers_names.push(names);
+                }
+            }
+
+            identifiers_names.push(married_names);
+            for (const key in relatives) {
+                const names = relatives[key]?.firstName + " " + relatives[key]?.lastName;
+                identifiers_names.push(names);
+            }
+
+            setFirstRender(false);
+        }
+    }, [firstRender]);
 
     const handleSelectBeneficiary = (key) => {
         setValidationErrors({});
@@ -87,46 +118,48 @@ export default function GuardianForMinors({ errors }) {
     };
 
     const handleDelete = (itemId) => {
-        const updatedTableData = { ...tableData };
-        delete updatedTableData[itemId];
-        setTableData(updatedTableData);
+        setItemToDelete(itemId);
+        setShowDeleteModal(true);
     };
 
-    // Inicialización y llenado de identificadores
-    useEffect(() => {
-        if (firstRender) {
-            identifiers_names = []
-            const fullData = getFullData();
-            const married = fullData[2]?.married || {};
-            const kids = fullData[4]?.kids || [];
-            const relatives = fullData[5]?.relatives || [];
-            const kidsq = fullData[3]?.kidsq?.selection;
-
-            const married_names = married?.firstName && married?.lastName ? married.firstName + " " + married.lastName : null;
-            if (kidsq === "true") {
-                for (const child of kids) {
-                    const names = child?.firstName + " " + child?.lastName;
-                    identifiers_names.push(names);
-                }
-            }
-
-            identifiers_names.push(married_names);
-            for (const key in relatives) {
-                const names = relatives[key]?.firstName + " " + relatives[key]?.lastName;
-                identifiers_names.push(names);
-            }
-
-            setFirstRender(false);
+    const confirmDelete = () => {
+        if (itemToDelete !== null) {
+            const updatedTableData = { ...tableData };
+            delete updatedTableData[itemToDelete];
+            setTableData(updatedTableData);
+            setToastMessage('Guardian removed successfully');
+            setShowToast(true);
+            setItemToDelete(null);
+            setShowDeleteModal(false);
         }
-    }, [firstRender]);
+    };
 
-    const filteredIdentifiersNames = identifiers_names.filter(
-        (name) => !Object.values(tableData).some((item) => item.guardian === name)
-    );
+    const handleEdit = (itemId) => {
+        setEditingRow(itemId);
+        setTempTableData({ ...tableData });
+    };
 
-    const filteredPriorityInformation = priorityInformation.filter(
-        (priority) => !Object.values(tableData).some((item) => parseInt(item.position) === priority)
-    );
+    const handleSave = (itemId) => {
+        const updatedData = { ...tableData, [itemId]: tempTableData[itemId] };
+        setTableData(updatedData);
+        setToastMessage('Guardian updated successfully');
+        setShowToast(true);
+        setEditingRow(null);
+    };
+
+    const handleCancel = () => {
+        setEditingRow(null);
+    };
+
+    const handleChange = (itemId, field, value) => {
+        setTempTableData(prevData => ({
+            ...prevData,
+            [itemId]: {
+                ...prevData[itemId],
+                [field]: value
+            }
+        }));
+    };
 
     return (
         <>
@@ -145,8 +178,8 @@ export default function GuardianForMinors({ errors }) {
                                     {selected !== null ? selected : 'Select Relative'}
                                 </Dropdown.Toggle>
                                 {validationErrors.selected && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.selected}</p>}
-                                <Dropdown.Menu>
-                                    {filteredIdentifiersNames.map((option, index) => (
+                                <Dropdown.Menu className="w-[100%] text-center" >
+                                    {identifiers_names.map((option, index) => (
                                         <Dropdown.Item key={index} eventKey={option} style={{ width: '100%' }}>
                                             {option}
                                         </Dropdown.Item>
@@ -163,9 +196,9 @@ export default function GuardianForMinors({ errors }) {
                                     {priority !== 0 ? `Selected Priority: ${priority}` : 'Select Priority'}
                                 </Dropdown.Toggle>
                                 {validationErrors.priority && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.priority}</p>}
-                                <Dropdown.Menu>
-                                    {filteredPriorityInformation.map((option, index) => (
-                                        <Dropdown.Item key={index} eventKey={option}>
+                                <Dropdown.Menu className='w-[100%] text-center'>
+                                    {priorityInformation.map((option, index) => (
+                                        <Dropdown.Item className="w-[100%] text-center" key={index} eventKey={option}>
                                             {option}
                                         </Dropdown.Item>
                                     ))}
@@ -189,7 +222,7 @@ export default function GuardianForMinors({ errors }) {
                         <th>id</th>
                         <th>Guardian</th>
                         <th>Position</th>
-                        <th>Delete</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -203,16 +236,71 @@ export default function GuardianForMinors({ errors }) {
                         Object.values(tableData).map((item) => (
                             <tr key={item.id}>
                                 <td>{item.id}</td>
-                                <td>{item.guardian}</td>
-                                <td>{item.position}</td>
                                 <td>
-                                    <Button variant="danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button>
+                                    {editingRow === item.id ? (
+                                        <Dropdown onSelect={(eventKey) => handleChange(item.id, 'guardian', eventKey)}>
+                                            <Dropdown.Toggle variant="outline-dark" id={`dropdown-guardian-${item.id}`}>
+                                                {tempTableData[item.id]?.guardian || 'Select Guardian'}
+                                            </Dropdown.Toggle>
+                                            <Dropdown.Menu>
+                                                {identifiers_names.map((name, idx) => (
+                                                    <Dropdown.Item key={idx} eventKey={name}>{name}</Dropdown.Item>
+                                                ))}
+                                            </Dropdown.Menu>
+                                        </Dropdown>
+                                    ) : (
+                                        item.guardian
+                                    )}
+                                </td>
+                                <td>
+                                    {editingRow === item.id ? (
+                                        <>
+                                            <Form.Control
+                                                type="number"
+                                                value={tempTableData[item.id]?.position}
+                                                onChange={(e) => handleChange(item.id, 'position', e.target.value)}
+                                                min={1}
+                                                max={5}
+                                            />
+                                            {validationErrors.position && <p className="text-danger">{validationErrors.position}</p>}
+                                        </>
+                                    ) : (
+                                        item.position
+                                    )}
+                                </td>
+                                <td>
+                                    <div className='d-flex justify-content-around gap-3'>
+                                        {editingRow === item.id ? (
+                                            <>
+                                                <Button className="w-[50%]" variant="outline-success" size="sm" onClick={() => handleSave(item.id)}>Save</Button>
+                                                <Button className="w-[50%]" variant="outline-secondary" size="sm" onClick={handleCancel}>Cancel</Button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Button className="w-[50%]" variant="outline-danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button>
+                                                <Button className="w-[50%]" variant="outline-warning" size="sm" onClick={() => handleEdit(item.id)}>Edit</Button>
+                                            </>
+                                        )}
+                                    </div>
                                 </td>
                             </tr>
                         ))
                     )}
                 </tbody>
             </Table>
+
+            <ConfirmationModal
+                show={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={confirmDelete}
+                message="Are you sure you want to delete this guardian?"
+            />
+
+            <CustomToast
+                show={showToast}
+                onClose={() => setShowToast(false)}
+                message={toastMessage}
+            />
         </>
     );
 }

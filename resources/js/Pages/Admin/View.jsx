@@ -46,17 +46,18 @@ const View = () => {
 
     }
     const searchById = (file) => {
-        console.log(file);
         let selectedInformation = {};
         allDataFetched.forEach(function (arrayItem) {
             if (arrayItem.id == idSelected) {
                 selectedInformation = arrayItem.information;
                 if (file) {
                     const documentDOMs = selectedInformation.map(object => object.documentDOM ? object.documentDOM : null).filter(dom => dom !== null);
-                    console.log(documentDOMs)
                     if (documentDOMs[0] && documentDOMs[0][file]) {
                         const versionsObject = documentDOMs[0][file];
-                        const versionsArray = Object.keys(versionsObject);
+                        const versionsArray = Object.entries(versionsObject).map(([key, value]) => {
+                            return { key, value };
+                        });
+
                         setDocumentVersions(versionsArray);
 
                     } else {
@@ -220,7 +221,7 @@ const View = () => {
                                         <Row className="mt-3">
                                             {['Will', 'POA1', 'POA2', 'POA3'].map((docType) => (
                                                 <Col key={docType}>
-                                                    <Dropdown>
+                                                    <Dropdown className="w-[100%]">
                                                         <href onClick={() => searchById(docType, show)}>
                                                             <Dropdown.Toggle
                                                                 onSelect={() => { }}
@@ -238,14 +239,14 @@ const View = () => {
 
                                                         <Dropdown.Menu>
                                                             {documentVersions.length !== 0 ? (
-                                                                documentVersions.map((version, index) => (
+                                                                documentVersions.map((document, index) => (
                                                                     <Dropdown.Item
                                                                         className={'text-center'}
                                                                         style={{ width: "100%" }}
                                                                         key={index}
-                                                                        onClick={() => handleVersionSelect(docType, version)}
+                                                                        onClick={() => handleVersionSelect(docType, document.key)}
                                                                     >
-                                                                        {version}
+                                                                        {document.key} {new Date(document.value.timestamp).toLocaleDateString('en-GB')}
                                                                     </Dropdown.Item>
                                                                 ))
                                                             ) : (

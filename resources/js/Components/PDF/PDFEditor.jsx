@@ -163,7 +163,11 @@ const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId, v
     const newVersion = {
       [`v${versionNumber}`]: {
         content: editorContent,
-        timestamp: timestamp
+        timestamp: timestamp,
+        status: "pending",
+        changes: {
+          "requestedChanges": []
+        }
       }
     };
 

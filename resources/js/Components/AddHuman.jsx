@@ -195,8 +195,6 @@ function AddHuman({ married, childrens, human, errors, onDataChange }) {
                         <>
                             <Form.Control as="select" value={relative} onChange={handleRelativeChange}>
                                 <option value="">Select...</option>
-                                <option value="Spouse">Spouse</option>
-                                <option value="Children">Child</option>
                                 <option value="Brother">Brother</option>
                                 <option value="Uncle">Uncle</option>
                                 <option value="Other">Other</option>

@@ -188,17 +188,9 @@ export const validate = {
         errors.poaProperty = errors.poaProperty || {};
         errors.poaProperty.attorney = 'Attorney is required in poaProperty';
       }
-      if (data.poaProperty.join === null) {
-        errors.poaProperty = errors.poaProperty || {};
-        errors.poaProperty.join = 'Join is required in poaProperty';
-      }
-      if (data.poaProperty.attorney === data.poaProperty.join) {
+      if (data.poaProperty.attorney !== null && data.poaProperty.attorney === data.poaProperty.join) {
         errors.poaProperty = errors.poaProperty || {};
         errors.poaProperty.join = 'Attorney and Joint can´t be the same person';
-      }
-      if (data.poaProperty.restrictions === null) {
-        errors.poaProperty = errors.poaProperty || {};
-        errors.poaProperty.restrictions = 'Restrictions are required in poaProperty';
       }
     }
 
@@ -210,17 +202,9 @@ export const validate = {
         errors.poaHealth = errors.poaHealth || {};
         errors.poaHealth.attorney = 'Attorney is required in poaHealth';
       }
-      if (data.poaHealth.join === null) {
+      if (data.poaHealth.attorney !== null && data.poaHealth.attorney === data.poaHealth.join) {
         errors.poaHealth = errors.poaHealth || {};
-        errors.poaHealth.join = 'Join is required in poaHealth';
-      }
-      if (data.poaHealth.attorney === data.poaHealth.join) {
-        errors.poaProperty = errors.poaProperty || {};
-        errors.poaProperty.join = 'Attorney and Joint can´t be the same person';
-      }
-      if (data.poaHealth.restrictions === null) {
-        errors.poaHealth = errors.poaHealth || {};
-        errors.poaHealth.restrictions = 'Restrictions are required in poaHealth';
+        errors.poaHealth.join = 'Attorney and Joint can´t be the same person';
       }
     }
     return errors;

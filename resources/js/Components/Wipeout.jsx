@@ -20,11 +20,14 @@ function Wipeout({ id, datas, errors }) {
     const [validationErrors, setValidationErrors] = useState(errors);
     const [availableShares, setAvailableShares] = useState(100);
     const [editingRow, setEditingRow] = useState(null);
+    const [tempEditData, setTempEditData] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
     const [itemToDelete, setItemToDelete] = useState(null);
     const [isSpecificBeneficiary, setIsSpecificBeneficiary] = useState(false);
+    const [isOrganization, setIsOrganization] = useState(false);
+
 
     useEffect(() => {
         setValidationErrors(errors);
@@ -55,7 +58,9 @@ function Wipeout({ id, datas, errors }) {
             availableShares
         };
         localStorage.setItem('formValues', JSON.stringify(formValues));
-        returndata = { wipeout: formValues.wipeout, timestamp: Date.now() };
+        returndata = {
+            wipeout: formValues.wipeout, timestamp: Date.now()
+        };
     }, [selectedCategory, selectedOption, custom, table_dataBequest, availableShares]);
 
     useEffect(() => {
@@ -114,14 +119,19 @@ function Wipeout({ id, datas, errors }) {
             setTable_dataBequest([]);
             bequestindex = 0;
             setAvailableShares(100);
+            setIsOrganization(false);
         }
+    };
+
+    const handleOrganizationChange = (e) => {
+        setIsOrganization(e.target.checked);
     };
 
     const handleAddItem = () => {
         const beneficiary = document.getElementById("beneficiary").value;
         const backup = document.getElementById("backup").value;
         const shares = parseFloat(document.getElementById('shares').value);
-        const type = document.getElementById('type').value;
+        const type = isOrganization ? "N/A" : document.getElementById('type').value;
 
         let newErrors = {};
 
@@ -133,14 +143,14 @@ function Wipeout({ id, datas, errors }) {
             newErrors.backup = "Backup is required";
         }
         if (beneficiary === backup) {
-            newErrors.backup = "Beneficiary and backup can't be the same person"
+            newErrors.backup = "Beneficiary and backup can't be the same"
         }
 
         if (isNaN(shares) || shares <= 0 || shares > availableShares) {
             newErrors.shares = `Please enter a valid number between 0 and ${availableShares}`;
         }
 
-        if (!type) {
+        if (!isOrganization && !type) {
             newErrors.type = "Type is required";
         }
 
@@ -165,7 +175,9 @@ function Wipeout({ id, datas, errors }) {
         document.getElementById("beneficiary").value = "";
         document.getElementById("backup").value = "";
         document.getElementById("shares").value = "";
-        document.getElementById("type").value = "";
+        if (!isOrganization) {
+            document.getElementById("type").value = "";
+        }
         setValidationErrors({});
 
         // Show toast notification
@@ -175,19 +187,23 @@ function Wipeout({ id, datas, errors }) {
 
     const handleEdit = (index) => {
         setEditingRow(index);
+        setTempEditData({ ...table_dataBequest[index] });
     };
 
     const handleSave = (index) => {
         const updatedTable_dataBequest = [...table_dataBequest];
+        updatedTable_dataBequest[index] = tempEditData;
         setTable_dataBequest(updatedTable_dataBequest);
 
         setToastMessage('Wipeout beneficiary updated successfully');
         setShowToast(true);
         setEditingRow(null);
+        setTempEditData(null);
     };
 
     const handleCancel = () => {
         setEditingRow(null);
+        setTempEditData(null);
     };
 
     const handleDelete = (itemId) => {
@@ -212,9 +228,7 @@ function Wipeout({ id, datas, errors }) {
     };
 
     const handleDropdownSelect = (index, key, value) => {
-        const updatedTable_dataBequest = [...table_dataBequest];
-        updatedTable_dataBequest[index][key] = value;
-        setTable_dataBequest(updatedTable_dataBequest);
+        setTempEditData({ ...tempEditData, [key]: value });
     };
 
     return (
@@ -251,6 +265,19 @@ function Wipeout({ id, datas, errors }) {
                         />
                     </Col>
                 </Row>
+                {isSpecificBeneficiary && (
+                    <Row>
+                        <Col sm={12}>
+                            <Form.Check
+                                type="checkbox"
+                                id="organization-checkbox"
+                                label="Organization"
+                                checked={isOrganization}
+                                onChange={handleOrganizationChange}
+                            />
+                        </Col>
+                    </Row>
+                )}
             </Form>
 
             {isSpecificBeneficiary && (
@@ -258,23 +285,31 @@ function Wipeout({ id, datas, errors }) {
                     <Form className="mt-3">
                         <Form.Group controlId="beneficiary">
                             <Form.Label>Beneficiary</Form.Label>
-                            <Form.Control as="select">
-                                <option value="">Select a beneficiary</option>
-                                {identifiers_names.map((name, index) => (
-                                    <option key={index} value={name}>{name}</option>
-                                ))}
-                            </Form.Control>
+                            {isOrganization ? (
+                                <Form.Control type="text" placeholder="Enter organization name" />
+                            ) : (
+                                <Form.Control as="select">
+                                    <option value="">Select a beneficiary</option>
+                                    {identifiers_names.map((name, index) => (
+                                        <option key={index} value={name}>{name}</option>
+                                    ))}
+                                </Form.Control>
+                            )}
                             {validationErrors.beneficiary && <p className="text-danger">{validationErrors.beneficiary}</p>}
                         </Form.Group>
 
                         <Form.Group controlId="backup">
                             <Form.Label>Backup</Form.Label>
-                            <Form.Control as="select">
-                                <option value="">Select a backup</option>
-                                {identifiers_names.map((name, index) => (
-                                    <option key={index} value={name}>{name}</option>
-                                ))}
-                            </Form.Control>
+                            {isOrganization ? (
+                                <Form.Control type="text" placeholder="Enter backup organization name" />
+                            ) : (
+                                <Form.Control as="select">
+                                    <option value="">Select a backup</option>
+                                    {identifiers_names.map((name, index) => (
+                                        <option key={index} value={name}>{name}</option>
+                                    ))}
+                                </Form.Control>
+                            )}
                             {validationErrors.backup && <p className="text-danger">{validationErrors.backup}</p>}
                         </Form.Group>
 
@@ -284,15 +319,17 @@ function Wipeout({ id, datas, errors }) {
                             {validationErrors.shares && <p className="text-danger">{validationErrors.shares}</p>}
                         </Form.Group>
 
-                        <Form.Group controlId="type">
-                            <Form.Label>Type</Form.Label>
-                            <Form.Control as="select">
-                                <option value="">Select type</option>
-                                <option value="Per Stirpes">Per Stirpes</option>
-                                <option value="Per Capita">Per Capita</option>
-                            </Form.Control>
-                            {validationErrors.type && <p className="text-danger">{validationErrors.type}</p>}
-                        </Form.Group>
+                        {!isOrganization && (
+                            <Form.Group controlId="type">
+                                <Form.Label>Type</Form.Label>
+                                <Form.Control as="select">
+                                    <option value="">Select type</option>
+                                    <option value="Per Stirpes">Per Stirpes</option>
+                                    <option value="Per Capita">Per Capita</option>
+                                </Form.Control>
+                                {validationErrors.type && <p className="text-danger">{validationErrors.type}</p>}
+                            </Form.Group>
+                        )}
 
                         <Button variant="outline-success" onClick={handleAddItem}>Add Wipeout Beneficiary</Button>
                     </Form>
@@ -317,30 +354,46 @@ function Wipeout({ id, datas, errors }) {
                                     <tr key={index}>
                                         <td>
                                             {editingRow === index ? (
-                                                <Form.Control
-                                                    as="select"
-                                                    value={item.beneficiary}
-                                                    onChange={(e) => handleDropdownSelect(index, 'beneficiary', e.target.value)}
-                                                >
-                                                    {identifiers_names.map((name, idx) => (
-                                                        <option key={idx} value={name}>{name}</option>
-                                                    ))}
-                                                </Form.Control>
+                                                tempEditData.type === "N/A" ? (
+                                                    <Form.Control
+                                                        type="text"
+                                                        value={tempEditData.beneficiary}
+                                                        onChange={(e) => handleDropdownSelect(index, 'beneficiary', e.target.value)}
+                                                    />
+                                                ) : (
+                                                    <Form.Control
+                                                        as="select"
+                                                        value={tempEditData.beneficiary}
+                                                        onChange={(e) => handleDropdownSelect(index, 'beneficiary', e.target.value)}
+                                                    >
+                                                        {identifiers_names.map((name, idx) => (
+                                                            <option key={idx} value={name}>{name}</option>
+                                                        ))}
+                                                    </Form.Control>
+                                                )
                                             ) : (
                                                 item.beneficiary
                                             )}
                                         </td>
                                         <td>
                                             {editingRow === index ? (
-                                                <Form.Control
-                                                    as="select"
-                                                    value={item.backup}
-                                                    onChange={(e) => handleDropdownSelect(index, 'backup', e.target.value)}
-                                                >
-                                                    {identifiers_names.map((name, idx) => (
-                                                        <option key={idx} value={name}>{name}</option>
-                                                    ))}
-                                                </Form.Control>
+                                                tempEditData.type === "N/A" ? (
+                                                    <Form.Control
+                                                        type="text"
+                                                        value={tempEditData.backup}
+                                                        onChange={(e) => handleDropdownSelect(index, 'backup', e.target.value)}
+                                                    />
+                                                ) : (
+                                                    <Form.Control
+                                                        as="select"
+                                                        value={tempEditData.backup}
+                                                        onChange={(e) => handleDropdownSelect(index, 'backup', e.target.value)}
+                                                    >
+                                                        {identifiers_names.map((name, idx) => (
+                                                            <option key={idx} value={name}>{name}</option>
+                                                        ))}
+                                                    </Form.Control>
+                                                )
                                             ) : (
                                                 item.backup
                                             )}
@@ -349,7 +402,7 @@ function Wipeout({ id, datas, errors }) {
                                             {editingRow === index ? (
                                                 <Form.Control
                                                     type="number"
-                                                    value={item.shares}
+                                                    value={tempEditData.shares}
                                                     onChange={(e) => handleDropdownSelect(index, 'shares', Number(e.target.value))}
                                                 />
                                             ) : (
@@ -357,10 +410,10 @@ function Wipeout({ id, datas, errors }) {
                                             )}
                                         </td>
                                         <td>
-                                            {editingRow === index ? (
+                                            {editingRow === index && tempEditData.type !== "N/A" ? (
                                                 <Form.Control
                                                     as="select"
-                                                    value={item.type}
+                                                    value={tempEditData.type}
                                                     onChange={(e) => handleDropdownSelect(index, 'type', e.target.value)}
                                                 >
                                                     <option value="Per Stirpes">Per Stirpes</option>
@@ -374,13 +427,13 @@ function Wipeout({ id, datas, errors }) {
                                             <div className='d-flex justify-content-around gap-3'>
                                                 {editingRow === index ? (
                                                     <>
-                                                        <Button style={{ width: "50%" }} variant="success" size="sm" onClick={() => handleSave(index)}>Save</Button>
-                                                        <Button style={{ width: "50%" }} variant="secondary" size="sm" onClick={handleCancel} className="ml-2">Cancel</Button>
+                                                        <Button className="w-[50%]" variant="outline-success" size="sm" onClick={() => handleSave(index)}>Save</Button>
+                                                        <Button className="w-[50%]" variant="outline-secondary" size="sm" onClick={handleCancel}>Cancel</Button>
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <Button style={{ width: "50%" }} variant="danger" size="sm" onClick={() => handleDelete(item.id)} className="ml-2">Delete</Button>
-                                                        <Button style={{ width: "50%" }} variant="warning" size="sm" onClick={() => handleEdit(index)}>Edit</Button>
+                                                        <Button className="w-[50%]" variant="outline-danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button>
+                                                        <Button className="w-[50%]" variant="outline-warning" size="sm" onClick={() => handleEdit(index)}>Edit</Button>
                                                     </>
                                                 )}
                                             </div>
@@ -391,8 +444,7 @@ function Wipeout({ id, datas, errors }) {
                         </tbody>
                     </Table>
                 </>
-            )
-            }
+            )}
 
             <ConfirmationModal
                 show={showDeleteModal}
@@ -406,7 +458,7 @@ function Wipeout({ id, datas, errors }) {
                 onClose={() => setShowToast(false)}
                 message={toastMessage}
             />
-        </Container >
+        </Container>
     );
 }
 
