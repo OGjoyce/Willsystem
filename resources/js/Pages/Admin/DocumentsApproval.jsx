@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
 import { Container, Row, Col, Button, Table, Dropdown, Modal, Form, Alert } from 'react-bootstrap';
 import PDFViewer from '@/Components/PDF/PDFViewer';
-import useDocumentApproval from './useDocumentApproval'; // Asegúrate de que la ruta sea correcta
+import useDocumentApproval from './useDocumentApproval';
 import CustomToast from '@/Components/AdditionalComponents/CustomToast';
 
 const DocumentsApproval = () => {
@@ -18,7 +18,7 @@ const DocumentsApproval = () => {
     const [toastMessage, setToastMessage] = useState('');
 
     // Use the custom hook here
-    const { documents, error, loading, handleStatusChange } = useDocumentApproval(1);
+    const { documents, error, loading, handleStatusChange } = useDocumentApproval(4);
 
     const handleViewDocument = (docId) => {
         const document = documents.find(doc => doc.id === docId);
