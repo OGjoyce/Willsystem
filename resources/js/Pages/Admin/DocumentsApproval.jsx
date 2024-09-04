@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Inertia } from '@inertiajs/inertia';
 import { Link, Head } from '@inertiajs/react';
 import { Container, Row, Col, Button, Table, Dropdown, Modal, Form, Alert } from 'react-bootstrap';
 import PDFViewer from '@/Components/PDF/PDFViewer';
 import useDocumentApproval from './useDocumentApproval';
 import CustomToast from '@/Components/AdditionalComponents/CustomToast';
 
-const DocumentsApproval = () => {
+const DocumentsApproval = ({ id }) => {
     const [openDropdown, setOpenDropdown] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [currentDocId, setCurrentDocId] = useState(null);
@@ -18,7 +19,7 @@ const DocumentsApproval = () => {
     const [toastMessage, setToastMessage] = useState('');
 
     // Use the custom hook here
-    const { documents, error, loading, handleStatusChange } = useDocumentApproval(1);
+    const { documents, error, loading, handleStatusChange } = useDocumentApproval(id);
 
     const handleViewDocument = (docId) => {
         const document = documents.find(doc => doc.id === docId);

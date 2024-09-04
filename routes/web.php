@@ -4,11 +4,13 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Crypt;
+use Carbon\Carbon;
 use Inertia\Inertia;
 use App\Http\Controllers\ObjStatusController;
 use App\Http\Controllers\PackagesReviewController;
 use App\Http\Controllers\PackageStatusController;
-use App\Http\Controllers\PackageApprovalController;
+use App\Http\Controllers\DocumentsApprovalController;
 
 
 
@@ -53,9 +55,28 @@ Route::get('/package-status/{id}', function ($id) {
     ]);
 })->name("package-status");
 
-Route::get('/documents-approval', function () {
-    return Inertia::render('Admin/DocumentsApproval');
-})->name("documents-approval");
+Route::get('/documents-approval', [DocumentsApprovalController::class, 'show'])->name('documents-approval');
+
+
+Route::get('/generate-token', function () {
+    $email = 'test@test'; // Reemplaza con un email de prueba
+    $id = 1; // Reemplaza con un ID de prueba
+
+    // Establecer el tiempo de expiración
+    $expiresAt = Carbon::now()->addHours(1); // Token expira en 1 hora
+
+    // Crear el payload con fecha de expiración
+    $payload = json_encode([
+        'email' => $email,
+        'id' => $id,
+        'expires_at' => $expiresAt->timestamp,
+    ]);
+
+    // Encriptar el token
+    $token = Crypt::encryptString($payload);
+
+    return response()->json(['token' => $token]);
+});
 
 Route::get('/create', function () {
     return Inertia::render('Will/Create');
