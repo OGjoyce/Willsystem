@@ -10,10 +10,19 @@ export const object_status = [
       "email": "abrahaam@email.com",
       "timestamp": 1724955423322
     },
-    "owner": "abrahaam@email.com"
+    "owner": "abrahaam@email.com",
+    "packageInfo": {
+    "id": 2,
+    "name": "new",
+    "price": "$100",
+    "description": "One will and one secondary will and one POA (property)",
+    "campaign": "organic",
+    "created_at": "2024-09-04T15:04:23.000000Z",
+    "updated_at": "2024-09-04T15:04:23.000000Z"
+  }
   },
   {
-    "marriedq": {
+    "marriedq": { 
       "selection": "true",
       "timestamp": 1724955424862
     }
