@@ -8,6 +8,7 @@ use App\Http\Controllers\ContractController;
 
 Route::middleware('api')->group(function () {
     Route::apiResource('obj-statuses', ObjStatusController::class);
+    Route::apiResource('/obj-status/all',ObjStatusController::class);
     Route::apiResource('packages', PackageController::class);
 });
 

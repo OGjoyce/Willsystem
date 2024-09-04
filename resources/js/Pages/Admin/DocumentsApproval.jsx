@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Inertia } from '@inertiajs/inertia';
 import { Link, Head } from '@inertiajs/react';
@@ -6,8 +6,9 @@ import { Container, Row, Col, Button, Table, Dropdown, Modal, Form, Alert } from
 import PDFViewer from '@/Components/PDF/PDFViewer';
 import useDocumentApproval from './useDocumentApproval';
 import CustomToast from '@/Components/AdditionalComponents/CustomToast';
+import axios from 'axios';
 
-const DocumentsApproval = ({ id }) => {
+const DocumentsApproval = ({ id, auth }) => {
     const [openDropdown, setOpenDropdown] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [currentDocId, setCurrentDocId] = useState(null);
@@ -17,6 +18,16 @@ const DocumentsApproval = ({ id }) => {
     const [currentDocumentDOM, setCurrentDocumentDOM] = useState('');
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
+
+    useEffect(() => {
+        fetch()
+    })
+
+    const fetch = async () => {
+        const response = await axios.get('/generate-token')
+        console.log(response.data)
+    }
+
 
     // Use the custom hook here
     const { documents, error, loading, handleStatusChange } = useDocumentApproval(id);
@@ -63,7 +74,7 @@ const DocumentsApproval = ({ id }) => {
 
     return (
         <AuthenticatedLayout
-            user={"Admin"}
+            user={auth.user}
             header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Documents Approval</h2>}
         >
             <Head title="Documents Approval" />

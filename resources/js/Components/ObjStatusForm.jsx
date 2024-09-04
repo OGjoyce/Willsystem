@@ -56,17 +56,7 @@ export async function searchDataByEmail(owner) {
     }
 }
 
-export async function searchDataById(id) {
-    axios.get('/api/obj-status/search', {
-        params: { id: 2 }
-    })
-        .then(response => {
-            console.log(response.data)
-        })
-        .catch(error => {
-            console.error('There was an error fetching the data!', error);
-        });
-}
+
 
 
 const ObjStatusForm = () => {

@@ -69,6 +69,15 @@ class ObjStatusController extends Controller
         
     }
 
+     public function getAllInformation(): JsonResponse
+    {
+        // Obtén todos los registros de la columna `information`
+        $information = ObjStatus::pluck('all');
+
+        // Retorna los registros como una respuesta JSON
+        return response()->json($information);
+    }
+
     public function destroy(ObjStatus $objStatus)
     {
         $objStatus->delete();

@@ -59,7 +59,7 @@ Route::get('/documents-approval', [DocumentsApprovalController::class, 'show'])-
 
 
 Route::get('/generate-token', function () {
-    $email = 'test@test'; // Reemplaza con un email de prueba
+    $email = 'test2@test'; // Reemplaza con un email de prueba
     $id = 1; // Reemplaza con un ID de prueba
 
     // Establecer el tiempo de expiración
