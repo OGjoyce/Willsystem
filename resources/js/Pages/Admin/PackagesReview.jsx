@@ -1,33 +1,90 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Container, Row, Col, Form, Button, Dropdown, Table, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { Link, Head } from '@inertiajs/react';
 import { debounce } from 'lodash';
+import axios from 'axios';
 
 const PackagesReview = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
+    const [files, setFiles] = useState([]); // Cambiado de 'packages' a 'files'
 
-    const packages = useMemo(() => [
-        { id: 1, user: 'jhondoe@email.com', name: 'Package A', approved: '8/8', status: 'completed' },
-        { id: 2, user: 'charlespatrick@email.com', name: 'Package B', approved: '3/6', status: 'pending' },
-        { id: 3, user: 'dianejhonson@email.com', name: 'Package C', approved: '3/4', status: 'changes requested' },
-        { id: 4, user: 'alicewilliams@email.com', name: 'Package D', approved: '10/10', status: 'completed' },
-        { id: 5, user: 'bobsmith@email.com', name: 'Package E', approved: '1/2', status: 'pending' },
-        { id: 6, user: 'caroljones@email.com', name: 'Package F', approved: '4/6', status: 'changes requested' },
-        { id: 7, user: 'davidbrown@email.com', name: 'Package G', approved: '10/10', status: 'completed' },
-        { id: 8, user: 'emilyclark@email.com', name: 'Package H', approved: '2/3', status: 'pending' },
-        { id: 9, user: 'frankdavis@email.com', name: 'Package I', approved: '5/7', status: 'changes requested' }
-    ]
-        , []);
+    useEffect(() => {
+        fetchFiles();
+    }, []);
+
+    const fetchFiles = async () => {
+        try {
+            const response = await axios.get('/api/obj-status/all');
+
+            // Imprimir la estructura completa de la respuesta para depuración
+            console.log('Full response:', response.data);
+
+            function transformData(data) {
+                if (!Array.isArray(data)) {
+                    console.error('Expected an array but got:', data);
+                    return [];
+                }
+
+                // Mapear a través de cada objeto en el array de respuesta
+                return data.flatMap(item => {
+                    // Extraer la información del paquete
+                    const info = item.information || [];
+
+                    return info.map(innerItem => {
+                        // Extraer información del paquete
+                        const packageInfo = innerItem.packageInfo;
+                        const owner = innerItem.personal?.email;
+
+                        if (!packageInfo) {
+                            return null;
+                        }
+
+                        // Verificar y contar los documentos
+                        const documentDOM = innerItem.documentDOM;
+                        const documents = documentDOM ? Object.values(documentDOM) : [];
+
+                        // Calcular el número de documentos aprobados
+                        const approvedCount = documents.filter(doc => doc.v1?.status === 'approved').length;
+                        const totalCount = documents.length;
+
+                        // Determinar el estado general
+                        let status = 'pending';
+                        if (documents.some(doc => doc.v1?.status === 'changes requested')) {
+                            status = 'changes requested';
+                        } else if (approvedCount === totalCount && totalCount > 0) {
+                            status = 'approved';
+                        }
+
+                        return {
+                            id: packageInfo.id || null,
+                            user: owner || 'unknown',
+                            name: packageInfo.name || 'unknown',
+                            approved: `${approvedCount}/${totalCount}`,
+                            status: status
+                        };
+                    }).filter(Boolean); // Filtrar valores nulos
+                });
+            }
+
+            // Obtener los datos transformados
+            const transformedData = transformData(response.data);
+            setFiles(transformedData); // Establecer los datos en el estado
+            console.log(transformedData);
+
+        } catch (error) {
+            console.error('Error fetching files:', error);
+        }
+    };
 
     const filteredPackages = useMemo(() => {
-        return packages.filter(pkg =>
+        return files.filter(pkg =>
             (statusFilter === 'All' || pkg.status.toLowerCase() === statusFilter.toLowerCase()) &&
             (pkg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 pkg.user.toLowerCase().includes(searchTerm.toLowerCase()))
         );
-    }, [packages, statusFilter, searchTerm]);
+    }, [files, statusFilter, searchTerm]);
 
     const debouncedSearch = useMemo(
         () => debounce((value) => setSearchTerm(value), 300),
@@ -56,34 +113,28 @@ const PackagesReview = () => {
                 >
                     {
                         pkg.status === 'completed'
-                            ? <i style={{ color: "#008857" }} class="bi bi-patch-check-fill"></i>
+                            ? <i style={{ color: "#008857" }} className="bi bi-patch-check-fill"></i>
                             : (
                                 pkg.status === 'changes requested'
-                                    ? <i style={{ color: "#E53448" }} class="bi bi-patch-exclamation-fill"></i>
-                                    : <i style={{ color: "#FFC339" }} class="bi bi-patch-question-fill"></i>
+                                    ? <i style={{ color: "#E53448" }} className="bi bi-patch-exclamation-fill"></i>
+                                    : <i style={{ color: "#FFC339" }} className="bi bi-patch-question-fill"></i>
                             )
-
                     }
                 </OverlayTrigger>
             </td>
-            <td>  {pkg.user}</td>
-
+            <td>{pkg.user}</td>
             <td>{pkg.name}</td>
             <td>{pkg.approved}</td>
             <td>27/12/2024</td>
             <td>27/12/2024</td>
             <td>
-
-
-                <Link href={route('package-status', { id: 3 })}>
+                <Link href={route('package-status', { id: pkg.id })}>
                     <Button className="w-100" variant="outline-info" size="sm">
                         View
                     </Button>
                 </Link>
-
-
             </td>
-        </tr >
+        </tr>
     ), []);
 
     return (
@@ -95,7 +146,6 @@ const PackagesReview = () => {
             <div className="py-12" style={{ height: "100%", overflow: "hidden" }}>
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8" style={{ height: "inherit" }}>
                     <div className="bg-white overflow-visible shadow-sm sm:rounded-lg container" style={{ height: "inherit" }}>
-
                         <Container style={{ display: "flex", flexDirection: "column", height: "70vh", justifyContent: "space-between" }}>
                             <Row className="mb-3">
                                 <Col xs={12} md={9} className="mb-3 mb-md-0">
@@ -163,11 +213,10 @@ const PackagesReview = () => {
                                 </Col>
                             </Row>
                         </Container>
-
                     </div>
                 </div>
             </div>
-        </AuthenticatedLayout >
+        </AuthenticatedLayout>
     );
 };
 
