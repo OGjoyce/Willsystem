@@ -58,7 +58,7 @@ const PackagesReview = () => {
                         }
 
                         return {
-                            id: packageInfo.id || null,
+                            id: item.id || null,
                             user: owner || 'unknown',
                             name: packageInfo.name || 'unknown',
                             approved: `${approvedCount}/${totalCount}`,
