@@ -8,7 +8,7 @@ import axios from 'axios';
 const PackagesReview = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
-    const [files, setFiles] = useState([]); // Cambiado de 'packages' a 'files'
+    const [files, setFiles] = useState([]);
 
     useEffect(() => {
         fetchFiles();
@@ -27,51 +27,95 @@ const PackagesReview = () => {
                     return [];
                 }
 
-                // Mapear a través de cada objeto en el array de respuesta
                 return data.flatMap(item => {
-                    // Extraer la información del paquete
-                    const info = item.information || [];
+                    // Buscar el objeto documentDOM dentro de la estructura de información
+                    const documentDOM = findDocumentDOM(item.information);
+                    const packageInfo = item.information?.find(info => info.packageInfo)?.packageInfo;
+                    const owner = item.information?.find(info => info.personal)?.personal?.email || 'unknown';
 
-                    return info.map(innerItem => {
-                        // Extraer información del paquete
-                        const packageInfo = innerItem.packageInfo;
-                        const owner = innerItem.personal?.email;
-
-                        if (!packageInfo) {
-                            return null;
-                        }
-
-                        // Verificar y contar los documentos
-                        const documentDOM = innerItem.documentDOM;
-                        const documents = documentDOM ? Object.values(documentDOM) : [];
-
-                        // Calcular el número de documentos aprobados
-                        const approvedCount = documents.filter(doc => doc.v1?.status === 'approved').length;
-                        const totalCount = documents.length;
-
-                        // Determinar el estado general
-                        let status = 'pending';
-                        if (documents.some(doc => doc.v1?.status === 'changes requested')) {
-                            status = 'changes requested';
-                        } else if (approvedCount === totalCount && totalCount > 0) {
-                            status = 'approved';
-                        }
-
+                    if (!packageInfo || !documentDOM) {
                         return {
                             id: item.id || null,
-                            user: owner || 'unknown',
-                            name: packageInfo.name || 'unknown',
-                            approved: `${approvedCount}/${totalCount}`,
-                            status: status
+                            user: owner,
+                            name: packageInfo?.name || 'unknown',
+                            approved: '0/0',
+                            status: 'pending'
                         };
-                    }).filter(Boolean); // Filtrar valores nulos
-                });
+                    }
+
+                    console.log('Processing documentDOM:', documentDOM);
+
+                    const documents = Object.entries(documentDOM);
+                    let hasChangesRequested = false;
+                    let allApproved = true;
+                    let totalCount = 0;
+                    let approvedCount = 0;
+
+                    documents.forEach(([key, versions]) => {
+                        console.log(`Processing document: ${key}`);
+                        console.log(`Available versions for ${key}:`, Object.keys(versions));
+
+                        const versionKeys = Object.keys(versions).filter(vKey => vKey.startsWith('v'));
+                        if (versionKeys.length === 0) {
+                            console.log(`No version keys found for document: ${key}`);
+                            return;
+                        }
+
+                        // Obtener la última versión del documento
+                        const lastVersionKey = versionKeys.sort((a, b) => parseInt(b.replace('v', '')) - parseInt(a.replace('v', '')))[0];
+                        const lastVersion = versions[lastVersionKey]?.v1;
+
+                        if (lastVersion) {
+                            console.log(`Document: ${key}, Version: ${lastVersionKey}, Status: ${lastVersion.status}`);
+                            const status = lastVersion.status;
+
+                            if (status === 'changes requested') {
+                                hasChangesRequested = true;
+                            } else if (status === 'approved') {
+                                approvedCount += 1;
+                            } else if (status === 'pending') {
+                                allApproved = false;
+                            }
+                        } else {
+                            console.log(`No last version found for document: ${key}`);
+                        }
+
+                        totalCount += 1;
+                    });
+
+                    let status = 'pending';
+                    if (hasChangesRequested) {
+                        status = 'changes requested';
+                    } else if (approvedCount === totalCount && totalCount > 0) {
+                        status = 'completed';
+                    } else if (!hasChangesRequested && !allApproved) {
+                        status = 'pending';
+                    }
+
+                    console.log(`Final status for package ${packageInfo.name}:`, status);
+
+                    return {
+                        id: item.id || null,
+                        user: owner,
+                        name: packageInfo.name || 'unknown',
+                        approved: `${approvedCount}/${totalCount}`, // Mostrar número de aprobados/total
+                        status: status
+                    };
+                }).filter(Boolean);
             }
 
-            // Obtener los datos transformados
+            function findDocumentDOM(infoArray) {
+                for (const obj of infoArray) {
+                    if (obj.documentDOM) {
+                        return obj.documentDOM;
+                    }
+                }
+                return null;
+            }
+
             const transformedData = transformData(response.data);
-            setFiles(transformedData); // Establecer los datos en el estado
-            console.log(transformedData);
+            setFiles(transformedData);
+            console.log('Transformed data:', transformedData);
 
         } catch (error) {
             console.error('Error fetching files:', error);
