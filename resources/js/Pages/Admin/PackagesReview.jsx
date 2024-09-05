@@ -52,6 +52,12 @@ const PackagesReview = () => {
                     let approvedCount = 0;
 
                     documents.forEach(([key, versions]) => {
+                        // Evitar procesar documentos con nombre que empieza con 'timestamp'
+                        if (key.startsWith('timestamp')) {
+                            console.log(`Skipping document: ${key}`);
+                            return;
+                        }
+
                         console.log(`Processing document: ${key}`);
                         console.log(`Available versions for ${key}:`, Object.keys(versions));
 
@@ -63,7 +69,7 @@ const PackagesReview = () => {
 
                         // Obtener la última versión del documento
                         const lastVersionKey = versionKeys.sort((a, b) => parseInt(b.replace('v', '')) - parseInt(a.replace('v', '')))[0];
-                        const lastVersion = versions[lastVersionKey]?.v1;
+                        const lastVersion = versions[lastVersionKey];
 
                         if (lastVersion) {
                             console.log(`Document: ${key}, Version: ${lastVersionKey}, Status: ${lastVersion.status}`);
