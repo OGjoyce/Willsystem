@@ -5,7 +5,7 @@ import { Link, Head } from '@inertiajs/react';
 import { debounce } from 'lodash';
 import axios from 'axios';
 
-const PackagesReview = () => {
+const FilesReview = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
     const [files, setFiles] = useState([]);
@@ -190,7 +190,7 @@ const PackagesReview = () => {
     return (
         <AuthenticatedLayout
             user={"Admin"}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">{"Review Packages"}</h2>}
+            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">{"Files Review"}</h2>}
         >
             <Head title={"Welcome, Admin"} />
             <div className="py-12" style={{ height: "100%", overflow: "hidden" }}>
@@ -270,4 +270,4 @@ const PackagesReview = () => {
     );
 };
 
-export default PackagesReview;
+export default FilesReview;

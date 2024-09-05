@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Crypt;
 use Carbon\Carbon;
 use Inertia\Inertia;
 use App\Http\Controllers\ObjStatusController;
-use App\Http\Controllers\PackagesReviewController;
+use App\Http\Controllers\FilesReviewController;
 use App\Http\Controllers\PackageStatusController;
 use App\Http\Controllers\DocumentsApprovalController;
 
@@ -45,9 +45,9 @@ Route::get('/packages', function () {
     return Inertia::render('Admin/Packages');
 })->name("packages");
 
-Route::get('/packages-review', function () {
-    return Inertia::render('Admin/PackagesReview');
-})->name("packages-review");
+Route::get('/files-review', function () {
+    return Inertia::render('Admin/FilesReview');
+})->name("files-review");
 
 Route::get('/package-status/{id}', function ($id) {
     return Inertia::render('Admin/PackageStatus', [

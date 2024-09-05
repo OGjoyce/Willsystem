@@ -171,7 +171,7 @@ const PackageStatus = ({ id }) => {
                             )}
                             <Row className="mt-3">
                                 <Col xs={6}>
-                                    <Link href={route('packages-review')}>
+                                    <Link href={route('files-review')}>
                                         <Button variant="outline-success" size="lg" className="w-100">
                                             Go Back
                                         </Button>
