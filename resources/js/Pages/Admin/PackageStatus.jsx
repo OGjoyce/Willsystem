@@ -6,7 +6,7 @@ import PDFViewer from '@/Components/PDF/PDFViewer';
 import CustomToast from '@/Components/AdditionalComponents/CustomToast';
 import useDocumentApproval from './useDocumentApproval';
 
-const PackageStatus = () => {
+const PackageStatus = ({ id }) => {
     const [openDropdown, setOpenDropdown] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [currentDocId, setCurrentDocId] = useState(null);
@@ -17,7 +17,7 @@ const PackageStatus = () => {
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
 
-    const { documents, error, loading, handleStatusChange } = useDocumentApproval(1);
+    const { documents, error, loading, handleStatusChange } = useDocumentApproval(id);
 
     const handleViewDocument = (docId) => {
         const document = documents.find(doc => doc.id === docId);
@@ -171,7 +171,7 @@ const PackageStatus = () => {
                             )}
                             <Row className="mt-3">
                                 <Col xs={6}>
-                                    <Link href={route('packages-review')}>
+                                    <Link href={route('files-review')}>
                                         <Button variant="outline-success" size="lg" className="w-100">
                                             Go Back
                                         </Button>
