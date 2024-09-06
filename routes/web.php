@@ -58,9 +58,15 @@ Route::get('/package-status/{id}', function ($id) {
 Route::get('/documents-approval', [DocumentsApprovalController::class, 'show'])->name('documents-approval');
 
 
-Route::get('/generate-token', function () {
-    $email = 'test2@test'; // Reemplaza con un email de prueba
-    $id = 1; // Reemplaza con un ID de prueba
+Route::get('/generate-token', function (Request $request) {
+    // Obtener los parámetros de la solicitud
+    $email = $request->query('email');
+    $id = $request->query('id');
+
+    // Validar los parámetros
+    if (empty($email) || empty($id)) {
+        return response()->json(['error' => 'user email and object status id is required.'], 400);
+    }
 
     // Establecer el tiempo de expiración
     $expiresAt = Carbon::now()->addHours(1); // Token expira en 1 hora

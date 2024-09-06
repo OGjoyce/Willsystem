@@ -32,6 +32,8 @@ const FilesReview = () => {
                     const documentDOM = findDocumentDOM(item.information);
                     const packageInfo = item.information?.find(info => info.packageInfo)?.packageInfo;
                     const owner = item.information?.find(info => info.personal)?.personal?.email || 'unknown';
+                    const creationTimestamp = item.information?.find(info => info.personal)?.personal?.timestamp;
+                    let latestTimestamp = creationTimestamp;
 
                     if (!packageInfo || !documentDOM) {
                         return {
@@ -41,6 +43,18 @@ const FilesReview = () => {
                             approved: '0/0',
                             status: 'pending'
                         };
+                    }
+
+                    if (documentDOM) {
+                        Object.values(documentDOM).forEach(doc => {
+                            Object.values(doc).forEach(version => {
+                                Object.values(version).forEach(v => {
+                                    if (v.timestamp && new Date(v.timestamp).getTime() > new Date(latestTimestamp).getTime()) {
+                                        latestTimestamp = v.timestamp;
+                                    }
+                                });
+                            });
+                        });
                     }
 
                     console.log('Processing documentDOM:', documentDOM);
@@ -100,13 +114,19 @@ const FilesReview = () => {
 
                     console.log(`Final status for package ${packageInfo.name}:`, status);
 
+                    const formattedCreationDate = creationTimestamp ? new Date(creationTimestamp).toLocaleDateString() : 'N/A';
+                    const formattedLatestDate = latestTimestamp ? new Date(latestTimestamp).toLocaleDateString() : 'N/A';
+
                     return {
                         id: item.id || null,
                         user: owner,
                         name: packageInfo.name || 'unknown',
-                        approved: `${approvedCount}/${totalCount}`, // Mostrar número de aprobados/total
+                        approved: `${approvedCount}/${totalCount}`,
+                        createdAt: formattedCreationDate,
+                        updatedAt: formattedLatestDate,
                         status: status
                     };
+
                 }).filter(Boolean);
             }
 
@@ -175,8 +195,8 @@ const FilesReview = () => {
             <td>{pkg.user}</td>
             <td>{pkg.name}</td>
             <td>{pkg.approved}</td>
-            <td>27/12/2024</td>
-            <td>27/12/2024</td>
+            <td>{pkg.createdAt}</td>
+            <td>{pkg.updatedAt}</td>
             <td>
                 <Link href={route('package-status', { id: pkg.id })}>
                     <Button className="w-100" variant="outline-info" size="sm">
@@ -185,6 +205,7 @@ const FilesReview = () => {
                 </Link>
             </td>
         </tr>
+
     ), []);
 
     return (
