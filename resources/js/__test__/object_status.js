@@ -10,10 +10,19 @@ export const object_status = [
       "email": "abrahaam@email.com",
       "timestamp": 1724955423322
     },
-    "owner": "abrahaam@email.com"
+    "owner": "abrahaam@email.com",
+    "packageInfo": {
+    "id": 2,
+    "name": "new",
+    "price": "$100",
+    "description": "One will and one secondary will and one POA (property)",
+    "campaign": "organic",
+    "created_at": "2024-09-04T15:04:23.000000Z",
+    "updated_at": "2024-09-04T15:04:23.000000Z"
+  }
   },
   {
-    "marriedq": {
+    "marriedq": { 
       "selection": "true",
       "timestamp": 1724955424862
     }
@@ -199,7 +208,7 @@ export const object_status = [
         "v1": {
           "content": "",
           "timestamp": "2024-08-29T18:19:18.267Z",
-          "status": "pending",
+          "status": "approved",
           "changes": {
             "requestedChanges": []
           }
@@ -210,7 +219,15 @@ export const object_status = [
         "v1": {
           "content": "",
           "timestamp": "2024-08-29T18:44:31.850Z",
-          "status": "pending",
+          "status": "changes requested",
+          "changes": {
+            "requestedChanges": ["some change requested"]
+          }
+        },
+         "v2": {
+          "content": "",
+          "timestamp": "2024-08-29T18:44:31.850Z",
+          "status": "approved",
           "changes": {
             "requestedChanges": []
           }
@@ -218,6 +235,14 @@ export const object_status = [
       },
       "POA2": {
         "v1": {
+          "content": "",
+          "timestamp": "2024-08-29T18:44:40.139Z",
+          "status": "changes requested",
+          "changes": {
+            "requestedChanges": ["some change"]
+          }
+        },
+        "v2": {
           "content": "",
           "timestamp": "2024-08-29T18:44:40.139Z",
           "status": "pending",

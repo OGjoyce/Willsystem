@@ -1,4 +1,5 @@
 <?php
+// app/Http/Controllers/Auth/AuthenticatedSessionController.php
 
 namespace App\Http\Controllers\Auth;
 
@@ -33,7 +34,10 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // send user to returnUrl if available
+        $returnUrl = $request->session()->pull('returnUrl', route('dashboard', absolute: false));
+
+        return redirect()->intended($returnUrl);
     }
 
     /**

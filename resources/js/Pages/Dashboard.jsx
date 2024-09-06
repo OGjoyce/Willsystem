@@ -111,7 +111,7 @@ export default function Dashboard({ auth }) {
                 window.location.href = url;
                 break;
 
-            case 'packages-review':
+            case 'files-review':
                 window.location.href = url;
                 break;
 
@@ -201,9 +201,9 @@ export default function Dashboard({ auth }) {
                                         <IconWrapper>
                                             <i className="bi  bi-inboxes"></i>
                                         </IconWrapper>
-                                        <CardTitle>Review Packages</CardTitle>
-                                        <CardText>View the status of all packages for all users.</CardText>
-                                        <Button onClick={(e) => handleLinkClick(e, route('packages-review'), 'packages-review')} variant="outline-dark">Review Packages</Button>
+                                        <CardTitle>Files Review</CardTitle>
+                                        <CardText>View the status of all files for all users.</CardText>
+                                        <Button onClick={(e) => handleLinkClick(e, route('files-review'), 'files-review')} variant="outline-dark">Go Now</Button>
                                     </CardBody>
                                 </CustomCard>
                             </Col>

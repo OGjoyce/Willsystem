@@ -244,7 +244,8 @@ export default function Personal({ auth }) {
                             ...personalData,
                             timestamp: Date.now(),
                         },
-                        owner: personalData.email
+                        owner: personalData.email,
+                        packageInfo: selectedPackage
                     };
 
                     propertiesAndData = [
