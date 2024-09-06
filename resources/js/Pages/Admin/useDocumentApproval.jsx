@@ -59,17 +59,42 @@ const useDocumentApproval = (initialDocId) => {
         return Object.entries(documentDOM)
             .filter(([key]) => key !== 'timestamp')
             .map(([type, versions]) => {
-                const latestVersion = Object.keys(versions).sort().pop();
-                const { status, changes, content } = versions[latestVersion];
+                const versionKeys = Object.keys(versions);
+                if (versionKeys.length === 0) return null;
+
+                const firstVersion = versionKeys.sort()[0];
+                const lastVersion = versionKeys.sort().pop();
+                const { timestamp: latestTimestamp } = versions[lastVersion];
+
+                // Extract v1 data if available
+                const v1 = versions['v1'] || {};
+                const v1Timestamp = v1.timestamp;
+
+                // Set createdAt and updatedAt based on the presence of v1 and versions
+                const createdAt = v1Timestamp ? new Date(v1Timestamp).toLocaleDateString() : 'N/A';
+                const updatedAt = latestTimestamp ? new Date(latestTimestamp).toLocaleDateString() : createdAt;
+
+                // Ensure dates are not 'Invalid Date'
+                const validCreatedAt = createdAt === 'N/A' || !isNaN(new Date(createdAt).getTime()) ? createdAt : 'N/A';
+                const validUpdatedAt = updatedAt === 'N/A' || !isNaN(new Date(updatedAt).getTime()) ? updatedAt : 'N/A';
+
+                const { status, changes, content } = versions[lastVersion];
+                const owner = objectStatus.find(item => item.owner)?.owner || '';
+                const packageName = objectStatus.find(item => item.packageInfo)?.packageInfo?.name || '';
+
                 return {
                     id: type,
                     type,
-                    latestVersion,
+                    latestVersion: lastVersion,
                     status: status.charAt(0).toUpperCase() + status.slice(1),
                     changeRequest: changes.requestedChanges.join(', '),
-                    content
+                    content,
+                    createdAt: validCreatedAt,
+                    updatedAt: validUpdatedAt,
+                    owner,
+                    package: packageName
                 };
-            });
+            }).filter(doc => doc !== null);  // Filter out any null values
     };
 
     const handleStatusChange = async (docId, newStatus, changeRequest = '') => {
@@ -105,7 +130,6 @@ const useDocumentApproval = (initialDocId) => {
             });
 
             await updateDataObject(updatedObjectStatus, initialDocId);
-
 
             await fetchDocuments();
 

@@ -1,4 +1,4 @@
-export const object_status = [
+export const object_status =[
   {
     "personal": {
       "step": 0,
@@ -6,31 +6,31 @@ export const object_status = [
       "city": "Guatemala",
       "telephone": "+1 (111) 111-1111",
       "province": "Ontario",
-      "fullName": "Abrahaam Véliz",
-      "email": "abrahaam@email.com",
-      "timestamp": 1724955423322
+      "fullName": "Henry Véliz",
+      "email": "henry@email.com",
+      "timestamp": 1725641625376
     },
-    "owner": "abrahaam@email.com",
+    "owner": "henry@email.com",
     "packageInfo": {
-    "id": 2,
-    "name": "new",
-    "price": "$100",
-    "description": "One will and one secondary will and one POA (property)",
-    "campaign": "organic",
-    "created_at": "2024-09-04T15:04:23.000000Z",
-    "updated_at": "2024-09-04T15:04:23.000000Z"
-  }
+      "id": 2,
+      "name": "Summer Sale",
+      "price": "$800",
+      "description": "One will and two POAs",
+      "campaign": "Organic",
+      "created_at": "2024-09-06T16:53:03.000000Z",
+      "updated_at": "2024-09-06T16:53:03.000000Z"
+    }
   },
   {
-    "marriedq": { 
+    "marriedq": {
       "selection": "true",
-      "timestamp": 1724955424862
+      "timestamp": 1725641629791
     }
   },
   {
     "married": {
       "firstName": "Jennifer",
-      "middleName": "Tatiana",
+      "middleName": "",
       "lastName": "Salguero",
       "relative": "Spouse",
       "email": "jennifer@email.com",
@@ -38,7 +38,7 @@ export const object_status = [
       "city": "Guatemala",
       "province": "Guatemala",
       "country": "Guatemala",
-      "timestamp": 1724955447944
+      "timestamp": 1725641653690
     }
   },
   {
@@ -50,8 +50,8 @@ export const object_status = [
     "kids": [
       {
         "id": 1,
-        "firstName": "Junior",
-        "lastName": "Veliz",
+        "firstName": "Aitana",
+        "lastName": "Véliz",
         "relative": "Child",
         "city": "Guatemala",
         "country": "Guatemala",
@@ -59,8 +59,8 @@ export const object_status = [
       },
       {
         "id": 2,
-        "firstName": "Helen",
-        "lastName": "Veliz",
+        "firstName": "Junior",
+        "lastName": "Véliz",
         "relative": "Child",
         "city": "Guatemala",
         "country": "Guatemala",
@@ -73,7 +73,7 @@ export const object_status = [
     "executors": [
       {
         "firstName": "Jennifer",
-        "middleName": "Tatiana",
+        "middleName": "",
         "lastName": "Salguero",
         "relative": "Spouse",
         "email": "jennifer@email.com",
@@ -81,14 +81,14 @@ export const object_status = [
         "city": "Guatemala",
         "province": "Guatemala",
         "country": "Guatemala",
-        "timestamp": 1724955447944,
+        "timestamp": 1725641653690,
         "priority": 1,
         "id": 1
       },
       {
         "id": 2,
-        "firstName": "Junior",
-        "lastName": "Veliz",
+        "firstName": "Aitana",
+        "lastName": "Véliz",
         "relative": "Child",
         "city": "Guatemala",
         "country": "Guatemala",
@@ -103,31 +103,31 @@ export const object_status = [
       "0": {
         "id": 1,
         "names": "Spouse First",
-        "backup": "Helen Veliz",
+        "backup": "Aitana Véliz",
         "shares": 100,
         "bequest": "Gold Chain",
         "isCustom": false,
         "shared_uuid": 0
       },
-      "timestamp": 1724955500251
+      "timestamp": 1725641709869
     }
   },
   {
     "residue": {
-      "selected": "Have the residue go to children per stirpes",
-      "timestamp": 1724955506984
+      "selected": "Have the residue go to children per capita",
+      "timestamp": 1725641712567
     }
   },
   {
     "wipeout": {
       "wipeout": {
-        "selectedCategory": "50% to siblings and 50% to siblings of spouse",
+        "selectedCategory": "50% to parents and siblings and 50% to parents and siblings of spouse",
         "selectedOption": null,
         "custom": false,
         "table_dataBequest": [],
         "availableShares": 100
       },
-      "timestamp": 1724955508724
+      "timestamp": 1725641714243
     }
   },
   {
@@ -137,28 +137,28 @@ export const object_status = [
         "age": "21",
         "shares": "100"
       },
-      "timestamp": 1724955513240
+      "timestamp": 1725641719232
     }
   },
   {
     "guardians": {
       "0": {
         "id": 1,
-        "guardian": "Junior Veliz",
+        "guardian": "Aitana Véliz",
         "position": 1
       },
-      "timestamp": 1724955517037
+      "timestamp": 1725641723576
     }
   },
   {
     "pets": {
       "0": {
         "id": 4,
-        "guardian": "Junior Veliz",
-        "backup": "Jennifer Salguero",
-        "amount": 100
+        "guardian": "Jennifer Salguero",
+        "backup": "Aitana Véliz",
+        "amount": 1000
       },
-      "timestamp": 1724955525232
+      "timestamp": 1725641731249
     }
   },
   {
@@ -171,7 +171,7 @@ export const object_status = [
           "buried": true
         }
       },
-      "timestamp": 1724955529003
+      "timestamp": 1725641738451
     }
   },
   {
@@ -179,27 +179,27 @@ export const object_status = [
       "poaProperty": {
         "attorney": "Jennifer Salguero",
         "backups": [
-          "Junior Veliz"
+          "Aitana Véliz"
         ],
-        "restrictions": "None"
+        "restrictions": "No restrictions"
       },
       "poaHealth": {
-        "attorney": "Helen Veliz",
+        "attorney": "Aitana Véliz",
         "backups": [
-          "Jennifer Salguero"
+          "Junior Véliz"
         ],
-        "restrictions": "None"
+        "restrictions": "No restrictions"
       },
-      "organDonation": false,
-      "dnr": false,
-      "timestamp": 1724955552161
+      "organDonation": true,
+      "dnr": true,
+      "timestamp": 1725641760275
     }
   },
   {
     "finalDetails": {
-      "specialInstructions": "None",
+      "specialInstructions": "No requests",
       "pickup": false,
-      "timestamp": 1724955556152
+      "timestamp": 1725641765264
     }
   },
   {
@@ -207,27 +207,27 @@ export const object_status = [
       "Will": {
         "v1": {
           "content": "",
-          "timestamp": "2024-08-29T18:19:18.267Z",
-          "status": "approved",
+          "timestamp": "2024-09-06T16:56:07.477Z",
+          "status": "pending",
           "changes": {
             "requestedChanges": []
           }
         }
       },
-      "timestamp": 1724957075836,
+      "timestamp": 1725641775823,
       "POA1": {
         "v1": {
-          "content": "",
-          "timestamp": "2024-08-29T18:44:31.850Z",
-          "status": "changes requested",
+"content": "",
+          "timestamp": "2024-09-06T16:56:11.688Z",
+          "status": "pending",
           "changes": {
-            "requestedChanges": ["some change requested"]
+            "requestedChanges": []
           }
         },
-         "v2": {
-          "content": "",
-          "timestamp": "2024-08-29T18:44:31.850Z",
-          "status": "approved",
+        "v2": {
+       "content": "",
+          "timestamp": "2024-10-06T16:56:18.324Z",
+          "status": "pending",
           "changes": {
             "requestedChanges": []
           }
@@ -235,16 +235,8 @@ export const object_status = [
       },
       "POA2": {
         "v1": {
-          "content": "",
-          "timestamp": "2024-08-29T18:44:40.139Z",
-          "status": "changes requested",
-          "changes": {
-            "requestedChanges": ["some change"]
-          }
-        },
-        "v2": {
-          "content": "",
-          "timestamp": "2024-08-29T18:44:40.139Z",
+        "content": "",
+          "timestamp": "2024-09-06T16:56:15.161Z",
           "status": "pending",
           "changes": {
             "requestedChanges": []
