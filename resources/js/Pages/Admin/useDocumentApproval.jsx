@@ -59,17 +59,36 @@ const useDocumentApproval = (initialDocId) => {
         return Object.entries(documentDOM)
             .filter(([key]) => key !== 'timestamp')
             .map(([type, versions]) => {
-                const latestVersion = Object.keys(versions).sort().pop();
-                const { status, changes, content } = versions[latestVersion];
+                const versionKeys = Object.keys(versions);
+                if (versionKeys.length === 0) return null;
+
+                const latestVersion = versionKeys.sort().pop();
+                const { status, changes, content, timestamp } = versions[latestVersion];
+
+                // Extract additional data
+                let { created_at: createdAt, updated_at: updatedAt } = objectStatus.find(item => item.packageInfo)?.packageInfo || {};
+                const formattedCreationDate = createdAt ? new Date(createdAt).toLocaleDateString() : 'N/A';
+                const formattedLatestDate = updatedAt ? new Date(updatedAt).toLocaleDateString() : 'N/A';
+                createdAt = formattedCreationDate
+                updatedAt = formattedLatestDate
+
+                const owner = objectStatus.find(item => item.owner)?.owner || '';
+                const packageName = objectStatus.find(item => item.packageInfo)?.packageInfo?.name || '';
+
+
                 return {
                     id: type,
                     type,
                     latestVersion,
                     status: status.charAt(0).toUpperCase() + status.slice(1),
                     changeRequest: changes.requestedChanges.join(', '),
-                    content
+                    content,
+                    createdAt,
+                    updatedAt,
+                    owner,
+                    package: packageName
                 };
-            });
+            }).filter(doc => doc !== null);  // Filter out any null values
     };
 
     const handleStatusChange = async (docId, newStatus, changeRequest = '') => {
@@ -105,7 +124,6 @@ const useDocumentApproval = (initialDocId) => {
             });
 
             await updateDataObject(updatedObjectStatus, initialDocId);
-
 
             await fetchDocuments();
 

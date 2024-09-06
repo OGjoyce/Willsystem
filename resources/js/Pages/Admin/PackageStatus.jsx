@@ -18,7 +18,7 @@ const PackageStatus = ({ id }) => {
     const [toastMessage, setToastMessage] = useState('');
 
     const { documents, error, loading, handleStatusChange } = useDocumentApproval(id);
-
+    console.log(documents)
     const handleViewDocument = (docId) => {
         const document = documents.find(doc => doc.id === docId);
         if (document && document.content) {
@@ -60,6 +60,8 @@ const PackageStatus = ({ id }) => {
         }
     };
 
+    const owner = documents.length > 0 ? documents[0].owner : 'N/A'
+    const packageName = documents.length > 0 ? documents[0].package : "N/A"
 
     return (
         <AuthenticatedLayout
@@ -71,8 +73,8 @@ const PackageStatus = ({ id }) => {
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white shadow-sm sm:rounded-lg p-6">
                         <Container className="flex flex-col h-full">
-                            <h3 className='text-xl font-bold mb-4'>Documents for User: user@email.com</h3>
-                            <h4 className='text-lg text-gray-600 mb-6'>Current Package: Facebook Campaign</h4>
+                            <h3 className='text-xl font-bold mb-4'>Documents for User: {owner}</h3>
+                            <h4 className='text-lg text-gray-600 mb-6'>Current Package: {packageName}</h4>
 
                             {loading ? (
                                 <Alert variant="info">Loading documents...</Alert>
