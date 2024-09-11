@@ -45,6 +45,7 @@ import { storeDataObject } from '@/Components/ObjStatusForm';
 import { updateDataObject } from '@/Components/ObjStatusForm';
 import { validate } from '@/Components/Validations.jsx';
 import SelectPackageModal from '../Admin/SelectPackageModal';
+import BreadcrumbNavigation from '@/Components/AdditionalComponents/BreadcrumbNavigation';
 
 var object_status = [];
 var objectState = [];
@@ -705,12 +706,24 @@ export default function Personal({ auth }) {
     return (
         <AuthenticatedLayout
             user={auth.user}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">{stepper[pointer].title}</h2>}
+            header={<><h2 className="font-semibold text-xl text-gray-800 leading-tight">{stepper[pointer].title}</h2>
+                <BreadcrumbNavigation
+                    steps={stepper}
+                    currentStep={pointer}
+                    onStepClick={(step) => {
+                        setPointer(step);
+                        localStorage.setItem('currentPointer', step);
+                        // Aquí puedes agregar cualquier lógica adicional necesaria
+                        // para manejar el cambio de estado al saltar entre pasos
+                    }}
+                /></>}
+
         >
             <Head title={"Welcome, " + username} />
             <div className="py-12" style={{ height: "100%", overflow: "hidden" }}>
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8" style={{ height: "inherit" }} >
                     <div className="bg-white overflow-visible shadow-sm sm:rounded-lg container" style={{ height: "inherit" }}>
+
 
                         {pointer == 0 ?
                             <FormCity errors={validationErrors} />
