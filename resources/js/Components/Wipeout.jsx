@@ -28,7 +28,23 @@ function Wipeout({ id, datas, errors }) {
     const [isSpecificBeneficiary, setIsSpecificBeneficiary] = useState(false);
     const [isOrganization, setIsOrganization] = useState(false);
 
-
+    if (datas.length < 3) {
+        return (
+            <div className="flex flex-col items-center justify-center">
+                <div className="text-center p-8 mt-5 bg-white shadow-lg rounded-lg">
+                    <h1 className="text-2xl font-bold text-gray-800 mb-4">Insufficient Data</h1>
+                    <p className="text-gray-600 mb-6">
+                        We're unable to process your options at this time due to incomplete information.
+                        Please ensure all required data has been provided.
+                    </p>
+                    <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6" role="alert">
+                        <p className="font-bold">Action Required</p>
+                        <p>Return to the previous steps and complete all necessary fields.</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
     useEffect(() => {
         setValidationErrors(errors);
     }, [errors]);

@@ -48,7 +48,7 @@ function Residue({ id, datas, errors }) {
         <div className="text-center p-8 mt-5 bg-white shadow-lg rounded-lg">
           <h1 className="text-2xl font-bold text-gray-800 mb-4">Insufficient Data</h1>
           <p className="text-gray-600 mb-6">
-            We're unable to process your residue options at this time due to incomplete information.
+            We're unable to process your options at this time due to incomplete information.
             Please ensure all required data has been provided.
           </p>
           <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6" role="alert">

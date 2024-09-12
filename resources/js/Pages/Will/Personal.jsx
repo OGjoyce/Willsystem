@@ -517,8 +517,13 @@ export default function Personal({ auth }) {
             return false;
         }
 
+        const visibleSteps = getVisibleSteps();
+        const currentIndex = visibleSteps.findIndex(step => step.step === pointer);
+        let nextVisibleStep = visibleSteps[currentIndex + 1];
+
         const noSpuse = objectStatus.find(obj => obj.marriedq !== undefined && (obj.marriedq.selection === "false" || obj.marriedq.selection === ""));
         const noKids = objectStatus.find(obj => obj.kidsq !== undefined && (obj.kidsq.selection === "false" || obj.kidsq.selection === ""));
+
         if (pointer === 1 && noSpuse) {
             const propertiesAndData = [
                 { name: 'married', data: { ...{}, "timestamp": Date.now() } },
@@ -526,9 +531,10 @@ export default function Personal({ auth }) {
 
             updateOrCreateProperty(propertiesAndData);
 
-            nextStep = 3
-            setPointer(3)
+            // Find the next visible step after skipping spouse information
+            nextVisibleStep = visibleSteps.find(step => step.step > 2);
         }
+
         if (pointer === 3 && noKids) {
             const propertiesAndData = [
                 { name: 'kids', data: [...[]] },
@@ -536,21 +542,24 @@ export default function Personal({ auth }) {
 
             updateOrCreateProperty(propertiesAndData);
 
-            nextStep = 5
-            setPointer(5)
+            // Find the next visible step after skipping children information
+            nextVisibleStep = visibleSteps.find(step => step.step > 4);
         }
 
-        console.log("nb." + nextStep);
-        setPointer(nextStep);
+        if (nextVisibleStep) {
+            console.log("nb." + nextVisibleStep.step);
+            setPointer(nextVisibleStep.step);
 
-        if (pointer === 15) {
-            setValidationErrors({})
-            setPointer(16);
+            if (nextVisibleStep.step === 15) {
+                setValidationErrors({})
+                setPointer(16);
+            }
         } else {
-            setPointer(nextStep);
+            // Handle case when there are no more visible steps
+            console.log("No more visible steps");
         }
 
-        if (nextStep === 0) {
+        if (nextVisibleStep && nextVisibleStep.step === 0) {
             // Reset everything
             object_status = [];
             objectState = [];
@@ -563,8 +572,12 @@ export default function Personal({ auth }) {
             setPointer(0);
             return true;
         }
-        localStorage.setItem('currentPointer', nextStep.toString());
-        localStorage.setItem('fullData', JSON.stringify(object_status));
+
+        if (nextVisibleStep) {
+            localStorage.setItem('currentPointer', nextVisibleStep.step.toString());
+            localStorage.setItem('fullData', JSON.stringify(object_status));
+        }
+
         return true;
     }
     const backStep = function (nextStep) {
@@ -725,19 +738,42 @@ export default function Personal({ auth }) {
         return object_status.some(obj => obj.hasOwnProperty(stepDataMap[step]));
     };
 
+    const getVisibleSteps = () => {
+        const hasSpouse = object_status.some(obj => obj.marriedq && (obj.marriedq.selection === "true" || obj.marriedq.selection === "common"));
+        const hasKids = object_status.some(obj => obj.kidsq && obj.kidsq.selection === "true");
+
+        return stepper.filter((step, index) => {
+            if (index === 2 && !hasSpouse) return false; // Spouse Information
+            if (index === 4 && !hasKids) return false;  // Children Information
+            if (index === 10 && !hasKids) return false; // Guardian For Minors
+            return true;
+        });
+    };
+
+    const visibleSteps = getVisibleSteps();
+    const currentStepIndex = visibleSteps.findIndex(step => step.step === pointer);
+
+
     return (
         <AuthenticatedLayout
             user={auth.user}
-            header={<><h2 className="font-semibold text-xl text-gray-800 leading-tight">{stepper[pointer].title}</h2>
-                <BreadcrumbNavigation
-                    steps={stepper}
-                    currentStep={pointer}
-                    onStepClick={(step) => {
-                        setPointer(step);
-                        localStorage.setItem('currentPointer', step);
-                    }}
-                    stepHasData={stepHasData}
-                /></>}
+            header={
+                <>
+                    <h2 className="font-semibold text-xl text-gray-800 leading-tight">
+                        {visibleSteps[currentStepIndex].title}
+                    </h2>
+                    <BreadcrumbNavigation
+                        steps={visibleSteps}
+                        currentStep={currentStepIndex}
+                        onStepClick={(index) => {
+                            const actualStep = visibleSteps[index].step;
+                            setPointer(actualStep);
+                            localStorage.setItem('currentPointer', actualStep);
+                        }}
+                        stepHasData={stepHasData}
+                    />
+                </>
+            }
 
         >
             <Head title={"Welcome, " + username} />
