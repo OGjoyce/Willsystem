@@ -702,6 +702,28 @@ export default function Personal({ auth }) {
         router.get(route('dashboard'));
     }
 
+    const stepHasData = (step) => {
+        const stepDataMap = {
+            0: 'personal',
+            1: 'marriedq',
+            2: 'married',
+            3: 'kidsq',
+            4: 'kids',
+            5: 'relatives',
+            6: 'bequests',
+            7: 'residue',
+            8: 'wipeout',
+            9: 'trusting',
+            10: 'guardians',
+            11: 'pets',
+            12: 'additional',
+            13: 'poa',
+            14: 'finalDetails',
+            15: 'documentDOM',
+        };
+
+        return object_status.some(obj => obj.hasOwnProperty(stepDataMap[step]));
+    };
 
     return (
         <AuthenticatedLayout
@@ -713,9 +735,8 @@ export default function Personal({ auth }) {
                     onStepClick={(step) => {
                         setPointer(step);
                         localStorage.setItem('currentPointer', step);
-                        // Aquí puedes agregar cualquier lógica adicional necesaria
-                        // para manejar el cambio de estado al saltar entre pasos
                     }}
+                    stepHasData={stepHasData}
                 /></>}
 
         >

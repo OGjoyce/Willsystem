@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 
-const BreadcrumbNavigation = ({ steps, currentStep, onStepClick }) => {
+const BreadcrumbNavigation = ({ steps, currentStep, onStepClick, stepHasData }) => {
     const scrollContainerRef = useRef(null);
     const activeStepRef = useRef(null);
 
@@ -27,10 +27,11 @@ const BreadcrumbNavigation = ({ steps, currentStep, onStepClick }) => {
             <ol className="flex items-center space-x-2 min-w-max m-0">
                 {steps.map((step, index) => {
                     const isActive = index === currentStep;
-                    const isPast = index < currentStep;
+                    const isPast = index < currentStep && stepHasData(index);
                     const isFuture = index > currentStep;
 
                     return (
+
                         <li key={index} className="flex items-center" ref={isActive ? activeStepRef : null}>
                             {index > 0 && (
                                 <div className="flex-shrink-0 w-4 h-4 text-gray-300 mx-1">
@@ -45,10 +46,11 @@ const BreadcrumbNavigation = ({ steps, currentStep, onStepClick }) => {
                   flex items-center px-2.5 py-1.5 rounded-full text-sm transition-all duration-300 ease-in-out
                   ${isActive ? 'bg-sky-800 text-white font-semibold shadow ring-2 ring-blue-300' : ''}
                   ${isPast ? 'bg-green-100 text-green-800 hover:bg-green-200' : ''}
-                  ${isFuture ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : ''}
+                  ${isFuture || (!isActive && !isPast) ? 'bg-gray-200 text-gray-400' : ''}
                   ${!isActive && !isFuture ? 'hover:bg-opacity-80' : ''}
                   focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
                 `}
+
                             >
                                 <span className="font-medium">{step.title}</span>
                                 {isPast && (
