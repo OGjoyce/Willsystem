@@ -46,6 +46,7 @@ import { updateDataObject } from '@/Components/ObjStatusForm';
 import { validate } from '@/Components/Validations.jsx';
 import SelectPackageModal from '../Admin/SelectPackageModal';
 import BreadcrumbNavigation from '@/Components/AdditionalComponents/BreadcrumbNavigation';
+import StepRedirect from '@/Components/AdditionalComponents/StepRedirect';
 
 var object_status = [];
 var objectState = [];
@@ -738,10 +739,18 @@ export default function Personal({ auth }) {
         return object_status.some(obj => obj.hasOwnProperty(stepDataMap[step]));
     };
 
-    const getVisibleSteps = () => {
-        const hasSpouse = object_status.some(obj => obj.marriedq && (obj.marriedq.selection === "true" || obj.marriedq.selection === "common"));
-        const hasKids = object_status.some(obj => obj.kidsq && obj.kidsq.selection === "true");
+    const hasSpouse = object_status.some(obj => obj.marriedq && (obj.marriedq.selection === "true" || obj.marriedq.selection === "soso")) || null;
+    const hasKids = object_status.some(obj => obj.kidsq && obj.kidsq.selection === "true") || null;
+    const spouseData = object_status.some(obj => obj.married) || null;
+    const kidsData = object_status.some(obj => obj.kids) || null
+    const stepBack = spouseData === null
+        ? 1
+        : (kidsData === null
+            ? 3
+            : null
+        )
 
+    const getVisibleSteps = () => {
         return stepper.filter((step, index) => {
             if (index === 2 && !hasSpouse) return false; // Spouse Information
             if (index === 4 && !hasKids) return false;  // Children Information
@@ -821,22 +830,31 @@ export default function Personal({ auth }) {
                                 null
                         }
                         {
-                            pointer == 6 ?
+                            pointer == 6 && spouseData !== null && kidsData !== null ?
                                 <Bequest datas={object_status} errors={validationErrors} />
-                                :
-                                null
+                                : (
+                                    pointer === 6
+                                        ? <StepRedirect onGoToStep={setPointer} missingStep={stepBack} />
+                                        : null
+                                )
                         }
                         {
-                            pointer == 7 ?
+                            pointer == 7 && spouseData !== null && kidsData !== null ?
                                 <Residue datas={object_status} errors={validationErrors} />
-                                :
-                                null
+                                : (
+                                    pointer === 7
+                                        ? <StepRedirect onGoToStep={setPointer} missingStep={stepBack} />
+                                        : null
+                                )
                         }
                         {
-                            pointer == 8 ?
+                            pointer == 8 && spouseData !== null && kidsData !== null ?
                                 <Wipeout datas={object_status} errors={validationErrors} />
-                                :
-                                null
+                                : (
+                                    pointer === 8
+                                        ? <StepRedirect onGoToStep={setPointer} missingStep={stepBack} />
+                                        : null
+                                )
                         }
                         {
                             pointer == 9 ?
@@ -848,15 +866,17 @@ export default function Personal({ auth }) {
                             pointer == 10 ?
                                 <GuardianForMinors datas={object_status} errors={validationErrors} />
 
-                                :
-                                null
+                                : null
                         }
                         {
-                            pointer == 11 ?
+                            pointer == 11 && spouseData !== null && kidsData !== null ?
                                 <Pets datas={object_status} errors={validationErrors} />
 
-                                :
-                                null
+                                : (
+                                    pointer === 11
+                                        ? <StepRedirect onGoToStep={setPointer} missingStep={stepBack} />
+                                        : null
+                                )
                         }
                         {
                             pointer == 12 ?
