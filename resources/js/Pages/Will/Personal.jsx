@@ -38,6 +38,7 @@ import PDFEditor from '@/Components/PDF/PDFEditor';
 import WillContent from '@/Components/PDF/Content/WillContent'
 import POA1Content from '@/Components/PDF/Content/POA1Content';
 import POA2Content from '@/Components/PDF/Content/POA2Content';
+import DocumentSelector from '@/Components/PDF/DocumentSelector';
 import { PDFViewer } from '@react-pdf/renderer';
 import { getPetInfo } from '@/Components/Pets';
 import { getDocumentDOMInfo } from '@/Components/PDF/PDFEditor';
@@ -57,7 +58,7 @@ export default function Personal({ auth }) {
     var stepper = [
         {
             "step": 0,
-            "title": "Please insert the personal information"
+            "title": "Personal Information"
         },
         {
             "step": 1,
@@ -77,7 +78,7 @@ export default function Personal({ auth }) {
         },
         {
             "step": 5,
-            "title": "Add Will Executors"
+            "title": "Will Executors"
         },
         {
             "step": 6,
@@ -118,23 +119,7 @@ export default function Personal({ auth }) {
         ,
         {
             "step": 15,
-            "title": "Review, Edit and Download your Will"
-        },
-        {
-            "step": 16,
-            "title": "Review, Edit or Download your Documents"
-        },
-        {
-            "step": 17,
-            "title": "Review, Edit or Download your Will"
-        },
-        {
-            "step": 18,
-            "title": "Review, Edit or Download your POA1"
-        },
-        {
-            "step": 19,
-            "title": "Review, Edit or Download your POA2"
+            "title": "Review, Edit and Download your Documents"
         }
 
     ]
@@ -553,7 +538,7 @@ export default function Personal({ auth }) {
 
             if (nextVisibleStep.step === 15) {
                 setValidationErrors({})
-                setPointer(16);
+
             }
         } else {
             // Handle case when there are no more visible steps
@@ -599,58 +584,6 @@ export default function Personal({ auth }) {
             nextStep = 3
             setPointer(3)
         }
-        if (pointer === 17 || pointer === 18 || pointer === 19) {
-            setValidationErrors({})
-            // If we're viewing a specific document, go back to document selection
-
-            const newDocumentDOM = { ...getDocumentDOMInfo(), "timestamp": Date.now() };
-
-            var documentDOMData = getDocumentDOMInfo();
-
-            if (pointer === 18) {
-                // Check if POA1 exists in the object_status
-                const poa1Exists = documentDOMData?.hasOwnProperty('POA1');
-                if (!poa1Exists) {
-                    setValidationErrors({ documentDOM: 'POA1 must be saved before proceeding.' });
-                    console.log(validationErrors);
-                    return null;
-                }
-            }
-
-            if (pointer === 19) {
-                // Check if POA1 exists in the object_status
-                const poa2Exists = documentDOMData?.hasOwnProperty('POA2');
-                if (!poa2Exists) {
-                    setValidationErrors({ documentDOM: 'POA2 must be saved before proceeding.' });
-                    console.log(validationErrors);
-                    return null;
-                }
-            }
-            console.log(documentDOMData);
-
-            var errors = validate.documentDOM(documentDOMData);
-            if (Object.keys(errors).length > 0) {
-                setValidationErrors(errors)
-                console.log(validationErrors)
-                return null;
-            } else {
-                // Find the index of the existing documentDOM object
-                const documentDOMIndex = object_status.findIndex(obj => obj.hasOwnProperty('documentDOM'));
-
-                if (documentDOMIndex !== -1) {
-                    // If documentDOM exists, update it
-                    object_status[documentDOMIndex].documentDOM = newDocumentDOM;
-                } else {
-                    // If documentDOM doesn't exist, add it
-                    object_status.push({ documentDOM: newDocumentDOM });
-                }
-
-                updateDataObject(object_status, currIdObjDB);
-                setSelectedDocument(null);
-                setPointer(16);
-                return true;
-            }
-        }
 
         // Instead of popping the last item, we'll keep it
         // const objectStatus = popInfo();
@@ -667,27 +600,6 @@ export default function Personal({ auth }) {
 
         return true;
     }
-
-    const DocumentSelector = ({ onSelect }) => {
-        return (
-            <Container>
-                <h3>Select a Document to View, Edit or Download</h3>
-                <Row className="mt-3">
-                    <Col>
-                        <Button onClick={() => onSelect('Will')} style={{ width: "100%" }} variant="outline-dark"> <i class="bi bi-file-text"></i> Will</Button>
-                    </Col>
-                    <Col>
-                        <Button onClick={() => onSelect('POA1')} style={{ width: "100%" }} variant="outline-dark"> <i class="bi bi-house"></i> POA1 Property</Button>
-                    </Col>
-                    <Col>
-                        <Button onClick={() => onSelect('POA2')} style={{ width: "100%" }} variant="outline-dark"> <i class="bi bi-hospital"></i> POA2 Health</Button>
-                    </Col>
-
-                </Row>
-                {validationErrors.documentDOM && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.documentDOM}</p>}
-            </Container >
-        );
-    };
 
     const handleExit = () => {
 
@@ -897,39 +809,18 @@ export default function Personal({ auth }) {
                                 null
                         }
                         {
-                            pointer == 15 ?
-
-                                <PDFEditor ContentComponent={WillContent} datas={object_status} documentType='Will' errors={validationErrors} backendId={currIdObjDB} />
-                                :
-                                null
-                        }
-                        {
-                            pointer == 16 ? (
+                            pointer == 15 ? (
                                 <DocumentSelector
                                     errors={validationErrors}
+                                    object_status={object_status}
                                     onSelect={(doc) => {
                                         setSelectedDocument(doc);
-                                        if (doc === "Will") { setPointer(17); }
-                                        if (doc === "POA1") { setPointer(18) }
-                                        if (doc === "POA2") { setPointer(19) }
                                         setValidationErrors({})
-                                    }} />
-                            ) : pointer == 17 || pointer == 18 || pointer == 19 ? (
-                                selectedDocument ? (
-                                    <PDFEditor
-                                        ContentComponent={
-                                            selectedDocument === 'Will' ? WillContent :
-                                                selectedDocument === 'POA1' ? POA1Content :
-                                                    POA2Content
-                                        }
-                                        datas={object_status}
-                                        documentType={selectedDocument}
-                                        errors={validationErrors}
-                                        backendId={currIdObjDB}
-                                    />
-                                ) : null
+                                    }}
+                                />
                             ) : null
                         }
+
 
                         <div style={{ padding: '20px', display: 'flex', justifyContent: 'center', marginTop: "100px" }}>
                             <Container fluid="md">
@@ -949,7 +840,7 @@ export default function Personal({ auth }) {
                                     </Col>
                                     <Col xs={6} className="d-flex justify-content-end">
                                         {
-                                            pointer < 16 ?
+                                            pointer < 15 ?
                                                 <Button
                                                     onClick={async () => {
                                                         const canAdvance = await nextStep(pointer + 1);
@@ -967,7 +858,7 @@ export default function Personal({ auth }) {
                                                 null
                                         }
                                         {
-                                            pointer === 16 &&
+                                            pointer === 15 &&
                                             <Button
                                                 onClick={handleExit}
                                                 variant="outline-success"
