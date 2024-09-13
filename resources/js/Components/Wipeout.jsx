@@ -64,12 +64,12 @@ function Wipeout({ id, datas, errors }) {
     }, [selectedCategory, selectedOption, custom, table_dataBequest, availableShares]);
 
     useEffect(() => {
-        const married = datas[2].married;
-        const marriedStatus = datas[1].marriedq?.selection === "true";
-        const sosoStatus = datas[1].marriedq?.selection === "soso";
-        const kids = datas[4].kids;
-        const relatives = datas[5].relatives;
-        const kidsq = datas[3].kidsq?.selection;
+        const married = datas[2]?.married;
+        const marriedStatus = datas[1]?.marriedq?.selection === "true";
+        const sosoStatus = datas[1]?.marriedq?.selection === "soso";
+        const kids = datas[4]?.kids;
+        const relatives = datas[5]?.relatives;
+        const kidsq = datas[3]?.kidsq?.selection;
 
         let names = [];
         const married_names = married?.firstName && married?.lastName ? `${married?.firstName} ${married?.lastName}` : null;
