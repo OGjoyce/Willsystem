@@ -142,18 +142,6 @@ export default function Dashboard({ auth }) {
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <Container>
                         <Row xs={1} md={2} lg={4} className="g-4">
-                            <Col>
-                                <CustomCard>
-                                    <CardBody>
-                                        <IconWrapper>
-                                            <i className="bi bi-file-earmark-text"></i>
-                                        </IconWrapper>
-                                        <CardTitle>Continue Will</CardTitle>
-                                        <CardText>Resume your will creation process where you left off.</CardText>
-                                        <Button onClick={(e) => handleLinkClick(e, route('personal'), 'continue-will')} variant="outline-dark">Continue</Button>
-                                    </CardBody>
-                                </CustomCard>
-                            </Col>
 
                             <Col>
                                 <CustomCard>
@@ -193,8 +181,6 @@ export default function Dashboard({ auth }) {
                                     </CardBody>
                                 </CustomCard>
                             </Col>
-                        </Row>
-                        <Row xs={1} md={2} lg={4} className="g-4 mt-4">
                             <Col>
                                 <CustomCard>
                                     <CardBody>
@@ -207,6 +193,8 @@ export default function Dashboard({ auth }) {
                                     </CardBody>
                                 </CustomCard>
                             </Col>
+                        </Row>
+                        <Row xs={1} md={2} lg={4} className="g-4 mt-4">
                             <Col>
                                 <CustomCard>
                                     <CardBody>
@@ -219,6 +207,20 @@ export default function Dashboard({ auth }) {
                                     </CardBody>
                                 </CustomCard>
                             </Col>
+
+                            <Col className='hidden'>
+                                <CustomCard>
+                                    <CardBody>
+                                        <IconWrapper>
+                                            <i className="bi bi-file-earmark-text"></i>
+                                        </IconWrapper>
+                                        <CardTitle>Continue Will</CardTitle>
+                                        <CardText>Resume your will creation process where you left off.</CardText>
+                                        <Button onClick={(e) => handleLinkClick(e, route('personal'), 'continue-will')} variant="outline-dark">Continue</Button>
+                                    </CardBody>
+                                </CustomCard>
+                            </Col>
+
                         </Row>
                     </Container>
                 </div>
