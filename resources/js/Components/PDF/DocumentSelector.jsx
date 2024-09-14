@@ -4,13 +4,18 @@ import PDFEditor from './PDFEditor';
 import WillContent from './Content/WillContent';
 import POA1Content from './Content/POA1Content';
 import POA2Content from './Content/POA2Content';
+
 const DocumentSelector = ({ onSelect, errors, object_status, currIdObjDB }) => {
     const [selectedDoc, setSelectedDoc] = useState(null);
 
     const handleSelect = (doc) => {
-        console.log("selected")
+        console.log("selected");
         setSelectedDoc(doc);
         onSelect(doc);
+    };
+
+    const handleBack = () => {
+        setSelectedDoc(null);
     };
 
     return (
@@ -48,6 +53,7 @@ const DocumentSelector = ({ onSelect, errors, object_status, currIdObjDB }) => {
                     documentType={selectedDoc}
                     errors={errors}
                     backendId={currIdObjDB}
+                    onBack={handleBack}
                 />
             )}
         </Container>
