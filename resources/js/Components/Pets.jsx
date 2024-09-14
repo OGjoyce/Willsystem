@@ -27,35 +27,34 @@ function Pets({ datas, errors }) {
     useEffect(() => {
         setValidationErrors(errors);
     }, [errors]);
-
     useEffect(() => {
         if (datas != null) {
             let newTableData = [];
             let newId = 1;
 
             datas.forEach(element => {
-                if (element.married?.firstName && element.married?.lastName && element.married?.relative !== "NA") {
+                if (element?.married?.firstName && element.married?.lastName && element.married?.relative !== "NA") {
                     newTableData.push({
                         id: newId++,
-                        firstName: element.married.firstName,
-                        lastName: element.married.lastName,
-                        relative: element.married.relative
+                        firstName: element.married?.firstName,
+                        lastName: element.married?.lastName,
+                        relative: element.married?.relative
                     });
                 }
-                if (element.relatives) {
-                    element.relatives.map(relative => {
+                if (element?.relatives) {
+                    element.relatives.forEach(relative => {
                         newTableData.push({
                             id: newId++,
-                            firstName: relative.firstName,
-                            lastName: relative.lastName,
-                            relative: relative.relative
+                            firstName: relative?.firstName,
+                            lastName: relative?.lastName,
+                            relative: relative?.relative
                         });
-                    })
+                    });
                 }
             });
 
-            if (datas[3].kidsq.selection === "true") {
-                Object.values(datas[4].kids).forEach(child => {
+            if (datas[3]?.kidsq?.selection === "true") {
+                Object.values(datas[4]?.kids || []).forEach(child => {
                     newTableData.push({
                         id: newId++,
                         firstName: child.firstName,
@@ -69,6 +68,7 @@ function Pets({ datas, errors }) {
             setIdTable(newId);
         }
     }, [datas]);
+
 
     useEffect(() => {
         const savedData = JSON.parse(localStorage.getItem('formValues'));

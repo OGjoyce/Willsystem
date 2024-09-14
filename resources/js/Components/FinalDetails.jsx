@@ -47,8 +47,8 @@ export default function FinalDetails({ datas }) {
     };
 
     // Cálculo del tiempo transcurrido
-    const initialTimeStamp = datas[0].personal.timestamp;
-    const finalTimeStamp = datas[13].poa.timestamp;
+    const initialTimeStamp = datas[0]?.personal?.timestamp || Date.now();
+    const finalTimeStamp = datas[13]?.poa?.timestamp || Date.now();
     const actualTimeStamp = finalTimeStamp - initialTimeStamp;
     const totalMinutes = Math.floor(actualTimeStamp / 1000 / 60);
     const hours = Math.floor(totalMinutes / 60);

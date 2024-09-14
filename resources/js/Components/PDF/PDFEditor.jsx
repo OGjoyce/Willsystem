@@ -5,10 +5,9 @@ import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
-import { Container, Row, Col, Button, Toast, ToastContainer } from 'react-bootstrap';
-import CustomToast from '../AdditionalComponents/CustomToast'
-
-import Toolbar from './Toolbar'
+import { Container, Row, Col, Button } from 'react-bootstrap';
+import CustomToast from '../AdditionalComponents/CustomToast';
+import Toolbar from './Toolbar';
 import { useReactToPrint } from "react-to-print";
 import { updateDataObject } from '../ObjStatusForm';
 
@@ -104,9 +103,8 @@ ol {
     .page-break {
         page-break-before: always;
     }
-}`;
-
-var updatedObjectStatus = [];
+}
+`;
 
 export function getDocumentDOMInfo() {
   return updatedObjectStatus[updatedObjectStatus.length - 1]?.documentDOM;
@@ -118,27 +116,13 @@ function getDocumentContent(object_status, documentType, version) {
     ?.documentDOM[documentType][version]?.content || null;
 }
 
-
-const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId, version }) => {
-  var object_status = datas;
-  var id = backendId
-
-  console.log(version)
-  console.log(object_status)
+const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId, version, onBack }) => {
   const [editorContent, setEditorContent] = useState('');
   const [documentVersions, setDocumentVersions] = useState({});
-  const [validationErrors, setValidationErrors] = useState(errors)
-  const [showToast, setShowToast] = useState(false)
-  const [selectedDOMVersion, setSelectedDOMVersion] = useState(null)
-
-  useEffect(() => {
-    setValidationErrors(errors)
-  }, [errors])
-
-  useEffect(() => {
-    setSelectedDOMVersion(getDocumentContent(object_status, documentType, version))
-  }, [documentType, version, object_status])
-
+  const [validationErrors, setValidationErrors] = useState(errors);
+  const [showToast, setShowToast] = useState(false);
+  const [selectedDOMVersion, setSelectedDOMVersion] = useState(null);
+  const updatedObjectStatusRef = useRef([]);
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -154,9 +138,17 @@ const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId, v
     },
   });
 
+  useEffect(() => {
+    setValidationErrors(errors);
+  }, [errors]);
+
+  useEffect(() => {
+    setSelectedDOMVersion(getDocumentContent(datas, documentType, version));
+  }, [documentType, version, datas]);
+
   const saveDocumentDOM = useCallback(() => {
-    setShowToast(true)
-    setValidationErrors({})
+    setShowToast(true);
+    setValidationErrors({});
     const timestamp = new Date().toISOString();
     const currentVersions = documentVersions[documentType] || {};
     const versionNumber = Object.keys(currentVersions).length + 1;
@@ -180,24 +172,24 @@ const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId, v
     };
 
     setDocumentVersions(updatedDocumentVersions);
-    const lastObjectIndex = object_status.length - 1;
+    const lastObjectIndex = datas.length - 1;
     const updatedLastObject = {
-      ...object_status[lastObjectIndex],
+      ...datas[lastObjectIndex],
       documentDOM: updatedDocumentVersions
     };
 
-    updatedObjectStatus = [
-      ...object_status.slice(0, lastObjectIndex),
+    const updatedObjectStatus = [
+      ...datas.slice(0, lastObjectIndex),
       updatedLastObject
     ];
 
-    object_status = updatedObjectStatus;
-    updateDataObject(updatedObjectStatus, id)
+    updatedObjectStatusRef.current = updatedObjectStatus;
+    updateDataObject(updatedObjectStatus, backendId);
     console.log(`Document ${documentType} saved. Version: v${versionNumber}`);
 
-  }, [editorContent, documentVersions, documentType, object_status]);
+  }, [editorContent, documentVersions, documentType, datas, backendId]);
 
-  var componentRef = useRef();
+  const componentRef = useRef();
 
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
@@ -235,14 +227,14 @@ const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId, v
       console.error("ERROR while rendering document:", error);
       setEditorContent("No content to show");
     }
-  }, [object_status, ContentComponent, editor]);
+  }, [datas, ContentComponent, editor]);
 
   useEffect(() => {
-    const latestVersion = object_status[object_status.length - 1]?.documentDOM;
+    const latestVersion = datas[datas.length - 1]?.documentDOM;
     if (latestVersion) {
       setDocumentVersions(latestVersion);
     }
-  }, [object_status]);
+  }, [datas]);
 
   return (
     <Container className="editor">
@@ -258,37 +250,40 @@ const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId, v
       </Row>
       <Row className="button-row justify-content-center mt-3 mb-3">
         <Col xs={12} sm={6} md={4} lg={3}>
+          <Button variant="secondary" onClick={onBack} className="btn-block w-100 mb-2">
+            <i style={{ marginRight: 12 }} className="bi bi-arrow-left"></i>
+            Back
+          </Button>
+        </Col>
+        <Col xs={12} sm={6} md={4} lg={3}>
           <Button variant="primary" onClick={handlePrint} className="btn-block w-100 mb-2">
-            <i style={{ marginRight: 12 }} class="bi bi-download"></i>
+            <i style={{ marginRight: 12 }} className="bi bi-download"></i>
             Download
           </Button>
         </Col>
         <Col xs={12} sm={6} md={4} lg={3}>
           <Button variant="success" onClick={saveDocumentDOM} className="btn-block w-100 mb-2">
-            <i style={{ marginRight: 12 }} class="bi bi-floppy"></i>
+            <i style={{ marginRight: 12 }} className="bi bi-floppy"></i>
             Save
           </Button>
         </Col>
-        {validationErrors?.documentDOM && <p className="mt-2 text-sm text-center text-red-600">{validationErrors?.documentDOM}</p>}
       </Row>
-      <Row className="button-row justify-content-center mt-3 mb-3">
-        <Col xs={12} sm={6} md={4} lg={3} className="align-items-center">
-
-        </Col>
-      </Row>
-
-
-
+      {validationErrors?.documentDOM && (
+        <Row className="justify-content-center">
+          <Col xs={12} className="text-center">
+            <p className="mt-2 text-sm text-red-600">{validationErrors?.documentDOM}</p>
+          </Col>
+        </Row>
+      )}
       <div style={{ display: 'none' }}>
         <PrintComponent ref={componentRef} content={editorContent} />
       </div>
       <CustomToast
         show={showToast}
         onClose={() => setShowToast(false)}
-        message={`Your ${documentType ? documentType : 'Document'} has been saved Successfully!`}
+        message={`Your ${documentType ? documentType : 'Document'} has been saved successfully!`}
       />
     </Container>
-
   );
 };
 

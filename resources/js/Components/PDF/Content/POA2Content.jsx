@@ -3,7 +3,7 @@ import './content.css';
 
 const POA2Content = forwardRef((props, ref) => {
     const capitalLetters = (word) => {
-        return word.toUpperCase();
+        return word?.toUpperCase();
     };
 
     if (!props || !props.props) {
@@ -96,11 +96,11 @@ const POA2Content = forwardRef((props, ref) => {
                         <p><strong>Designation of Attorney</strong></p>
                         <ol start="3">
                             <li>
-                                I designate my {attorneyOne.relation.toLowerCase()} {capitalLetters(attorneyOne.fullName)} (tel: {attorneyOne.telephone || 'N/A'}) to be my sole Attorney for
+                                I designate my {attorneyOne?.relation?.toLowerCase()} {capitalLetters(attorneyOne.fullName)} (tel: {attorneyOne.telephone || 'N/A'}) to be my sole Attorney for
                                 Personal Care (my "Attorney").
                             </li>
                             <li>
-                                If my {attorneyOne.relation.toLowerCase()} cannot or will not be my Attorney because of refusal, resignation, death, mental
+                                If my {attorneyOne?.relation?.toLowerCase()} cannot or will not be my Attorney because of refusal, resignation, death, mental
                                 incapacity, or removal by the court, I SUBSTITUTE {capitalLetters(attorneyTwo.fullName)} of {capitalLetters(attorneyTwo.city)}, {capitalLetters(attorneyTwo.province)} ({attorneyTwo.telephone || 'N/A'}) to
                                 be my sole Attorney.
                             </li>

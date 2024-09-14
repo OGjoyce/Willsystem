@@ -6,6 +6,7 @@ var WillContent = forwardRef((props, ref) => {
         return word.toUpperCase();
     };
 
+
     if (props != undefined) {
 
         var datasObj = props.props.datas;
@@ -22,16 +23,17 @@ var WillContent = forwardRef((props, ref) => {
         var spouseInfo = statusObject.married;
         var hasKids = statusObject.kidsq.selection === "true";
         var kids = Object.values(statusObject.kids);
-        var relatives = Object.values(statusObject.relatives);
-        var executors = Object.values(statusObject.executors);
-        var bequests = Object.values(statusObject.bequests).filter(item => typeof item === 'object');
-        var trusting = Object.values(statusObject.trusting).filter(item => typeof item === 'object');
+        var relatives = statusObject.relatives ? Object.values(statusObject.relatives) : [];
+        var executors = statusObject.executors ? Object.values(statusObject.executors) : [];
+        var bequests = statusObject.bequests ? Object.values(statusObject.bequests).filter(item => typeof item === 'object') : [];
+        var trusting = statusObject.trusting ? Object.values(statusObject.trusting).filter(item => typeof item === 'object') : [];
+        var pets = statusObject.pets ? Object.values(statusObject.pets).filter(item => typeof item === 'object') : [];
+        var guardians = statusObject.guardians ? Object.values(statusObject.guardians).filter(item => typeof item === 'object').sort((a, b) => a.position - b.position) : [];
         var minTrustingAge = trusting.length > 0
             ? trusting.map(trust => trust.age).reduce((prevValue, currentValue) => prevValue > currentValue ? currentValue : prevValue)
             : null
-        var pets = Object.values(statusObject.pets).filter(item => typeof item === 'object');
         var wipeoutInfo = statusObject.wipeout.wipeout
-        var guardians = Object.values(statusObject.guardians).filter(item => typeof item === 'object').sort((a, b) => a.position - b.position);
+
         var residueInfo = statusObject.residue;
         var additionalInfo = statusObject.additional;
         var POAInfo = statusObject.poa;
