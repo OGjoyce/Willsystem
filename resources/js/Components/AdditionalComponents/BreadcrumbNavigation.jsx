@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 
-const BreadcrumbNavigation = ({ steps, currentStep, onStepClick, stepHasData }) => {
+const BreadcrumbNavigation = ({ steps, currentStep, onStepClick, stepHasData, isStepClickable }) => {
     const scrollContainerRef = useRef(null);
     const activeStepRef = useRef(null);
 
@@ -29,6 +29,28 @@ const BreadcrumbNavigation = ({ steps, currentStep, onStepClick, stepHasData }) 
                     const isActive = index === currentStep;
                     const isPast = stepHasData(step.step);
                     const isFuture = index > currentStep && !stepHasData(step.step);
+                    const clickable = isStepClickable ? isStepClickable(index) : true;
+                    const disabled = !clickable;
+
+                    let buttonClasses = 'flex items-center px-2.5 py-1.5 rounded-full text-sm transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500';
+
+                    if (isActive) {
+                        buttonClasses += ' bg-sky-800 text-white font-semibold shadow ring-2 ring-blue-300';
+                    } else if (isPast && !isActive) {
+                        buttonClasses += ' bg-green-100 text-green-800 hover:bg-green-200';
+                    } else if (isFuture) {
+                        buttonClasses += ' bg-gray-200 text-gray-400';
+                    } else {
+                        buttonClasses += ' bg-gray-200 text-gray-400';
+                    }
+
+                    if (!isActive && !isFuture && clickable) {
+                        buttonClasses += ' hover:bg-opacity-80';
+                    }
+
+                    if (disabled) {
+                        buttonClasses += ' cursor-not-allowed text-gray-400';
+                    }
 
                     return (
                         <li key={index} className="flex items-center" ref={isActive ? activeStepRef : null}>
@@ -40,22 +62,17 @@ const BreadcrumbNavigation = ({ steps, currentStep, onStepClick, stepHasData }) 
                                 </div>
                             )}
                             <button
-                                onClick={() => onStepClick(index)}
-                                className={`
-                                    flex items-center px-2.5 py-1.5 rounded-full text-sm transition-all duration-300 ease-in-out
-                                    ${isActive ? 'bg-sky-800 text-white font-semibold shadow ring-2 ring-blue-300' : ''}
-                                    ${isPast && !isActive ? 'bg-green-100 text-green-800 hover:bg-green-200' : ''}
-                                    ${isFuture ? 'bg-gray-200 text-gray-400' : 'bg-gray-200 text-gray-400'}
-                                    ${!isActive && !isFuture ? 'hover:bg-opacity-80' : ''}
-                                    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
-                                `}
+                                onClick={() => {
+                                    if (clickable) {
+                                        onStepClick(index);
+                                    } else {
+                                        alert("Por favor, completa el paso de Información Personal primero.");
+                                    }
+                                }}
+                                className={buttonClasses}
+                                disabled={!clickable}
                             >
                                 <span className="font-medium">{step.title}</span>
-                                {isPast && !isActive && (
-                                    <svg className="w-4 h-4 ml-1.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                )}
                             </button>
                         </li>
                     );

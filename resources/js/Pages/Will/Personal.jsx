@@ -1,12 +1,7 @@
 // Necessary imports
-import React, { useState, useEffect } from 'react';
-import { Link, Head, router } from '@inertiajs/react';
-import {
-    Container,
-    Row,
-    Col,
-    Button,
-} from 'react-bootstrap';
+import React, { useState, useEffect, useRef } from 'react';
+import { Head, router } from '@inertiajs/react';
+import { Container, Row, Col, Button } from 'react-bootstrap';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import FormCity from '@/Components/FormCity';
 import Married from '@/Components/Married';
@@ -127,29 +122,27 @@ export default function Personal({ auth }) {
         setShowSelectModal(false);
     };
 
-    const updateOrCreateProperty = (propertiesAndData) => {
-        setObjectStatus((prevStatus) => {
-            const newStatus = [...prevStatus];
-            const existingIndex = newStatus.findIndex((obj) =>
-                propertiesAndData.some((prop) => obj.hasOwnProperty(prop.name))
-            );
+    const updateOrCreateProperty = (prevStatus, propertiesAndData) => {
+        const newStatus = [...prevStatus];
+        const existingIndex = newStatus.findIndex((obj) =>
+            propertiesAndData.some((prop) => obj.hasOwnProperty(prop.name))
+        );
 
-            if (existingIndex !== -1) {
-                // Update existing object
-                propertiesAndData.forEach((prop) => {
-                    newStatus[existingIndex][prop.name] = prop.data;
-                });
-            } else {
-                // Add new object
-                const newObject = {};
-                propertiesAndData.forEach((prop) => {
-                    newObject[prop.name] = prop.data;
-                });
-                newStatus.push(newObject);
-            }
+        if (existingIndex !== -1) {
+            // Update existing object
+            propertiesAndData.forEach((prop) => {
+                newStatus[existingIndex][prop.name] = prop.data;
+            });
+        } else {
+            // Add new object
+            const newObject = {};
+            propertiesAndData.forEach((prop) => {
+                newObject[prop.name] = prop.data;
+            });
+            newStatus.push(newObject);
+        }
 
-            return newStatus;
-        });
+        return newStatus;
     };
 
     const pushInfo = async (step) => {
@@ -167,6 +160,8 @@ export default function Personal({ auth }) {
 
             return true;
         };
+
+        let updatedObjectStatus = objectStatus;
 
         switch (step) {
             case 0:
@@ -189,7 +184,8 @@ export default function Personal({ auth }) {
                         { name: 'packageInfo', data: selectedPackage },
                     ];
 
-                    updateOrCreateProperty(propertiesAndData);
+                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    setObjectStatus(updatedObjectStatus);
 
                     const dataFirstStore = await storeDataObject(dataObj);
                     setCurrIdObjDB(dataFirstStore.id);
@@ -208,7 +204,8 @@ export default function Personal({ auth }) {
                         data: { selection: getMarriedData(), timestamp: Date.now() },
                     },
                 ];
-                updateOrCreateProperty(propertiesAndData);
+                updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                setObjectStatus(updatedObjectStatus);
                 break;
 
             case 2:
@@ -218,7 +215,8 @@ export default function Personal({ auth }) {
                     propertiesAndData = [
                         { name: 'married', data: { ...humanData, timestamp: Date.now() } },
                     ];
-                    updateOrCreateProperty(propertiesAndData);
+                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
                 }
@@ -231,7 +229,8 @@ export default function Personal({ auth }) {
                         data: { selection: getMarriedData(), timestamp: Date.now() },
                     },
                 ];
-                updateOrCreateProperty(propertiesAndData);
+                updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                setObjectStatus(updatedObjectStatus);
                 break;
 
             case 4:
@@ -241,7 +240,8 @@ export default function Personal({ auth }) {
                     propertiesAndData = [
                         { name: 'kids', data: [...kidsData] },
                     ];
-                    updateOrCreateProperty(propertiesAndData);
+                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
                 }
@@ -256,7 +256,8 @@ export default function Personal({ auth }) {
                         { name: 'relatives', data: relativesData },
                         { name: 'executors', data: executorsData },
                     ];
-                    updateOrCreateProperty(propertiesAndData);
+                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
                 }
@@ -272,7 +273,8 @@ export default function Personal({ auth }) {
                             data: { ...bequestData, timestamp: Date.now() },
                         },
                     ];
-                    updateOrCreateProperty(propertiesAndData);
+                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
                 }
@@ -285,7 +287,8 @@ export default function Personal({ auth }) {
                     propertiesAndData = [
                         { name: 'residue', data: { ...residueData, timestamp: Date.now() } },
                     ];
-                    updateOrCreateProperty(propertiesAndData);
+                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
                 }
@@ -301,7 +304,8 @@ export default function Personal({ auth }) {
                             data: { ...wipeoutData, timestamp: Date.now() },
                         },
                     ];
-                    updateOrCreateProperty(propertiesAndData);
+                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
                 }
@@ -317,7 +321,8 @@ export default function Personal({ auth }) {
                             data: { ...trustingData, timestamp: Date.now() },
                         },
                     ];
-                    updateOrCreateProperty(propertiesAndData);
+                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
                 }
@@ -333,7 +338,8 @@ export default function Personal({ auth }) {
                             data: { ...guardiansData, timestamp: Date.now() },
                         },
                     ];
-                    updateOrCreateProperty(propertiesAndData);
+                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
                 }
@@ -346,7 +352,8 @@ export default function Personal({ auth }) {
                     propertiesAndData = [
                         { name: 'pets', data: { ...petsData, timestamp: Date.now() } },
                     ];
-                    updateOrCreateProperty(propertiesAndData);
+                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
                 }
@@ -362,7 +369,8 @@ export default function Personal({ auth }) {
                             data: { ...additionalData, timestamp: Date.now() },
                         },
                     ];
-                    updateOrCreateProperty(propertiesAndData);
+                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
                 }
@@ -375,7 +383,8 @@ export default function Personal({ auth }) {
                     propertiesAndData = [
                         { name: 'poa', data: { ...poaData, timestamp: Date.now() } },
                     ];
-                    updateOrCreateProperty(propertiesAndData);
+                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
                 }
@@ -388,7 +397,8 @@ export default function Personal({ auth }) {
                         data: { ...getFinalDetails(), timestamp: Date.now() },
                     },
                 ];
-                updateOrCreateProperty(propertiesAndData);
+                updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                setObjectStatus(updatedObjectStatus);
                 break;
 
             case 15:
@@ -401,7 +411,8 @@ export default function Personal({ auth }) {
                             data: { ...documentDOMData, timestamp: Date.now() },
                         },
                     ];
-                    updateOrCreateProperty(propertiesAndData);
+                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
                 }
@@ -413,13 +424,13 @@ export default function Personal({ auth }) {
 
         // Update local storage and database
         if (step !== 0 && currIdObjDB) {
-            updateDataObject(objectStatus, currIdObjDB);
+            updateDataObject(updatedObjectStatus, currIdObjDB);
         }
-        localStorage.setItem('fullData', JSON.stringify(objectStatus));
+        localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus));
         localStorage.setItem('currentPointer', step.toString());
 
-        console.log(objectStatus);
-        return objectStatus;
+        console.log(updatedObjectStatus);
+        return updatedObjectStatus;
     };
 
     const backStep = (prevStep) => {
@@ -455,13 +466,15 @@ export default function Personal({ auth }) {
             return false;
         }
 
-        const visibleSteps = getVisibleSteps();
+        // Use the updated objectStatusResult
+        const visibleSteps = getVisibleSteps(objectStatusResult);
         const currentIndex = visibleSteps.findIndex((step) => step.step === pointer);
         let nextVisibleStep = visibleSteps[currentIndex + 1];
 
         const noSpouse = objectStatusResult.some(
             (obj) => obj.marriedq && (obj.marriedq.selection === 'false' || obj.marriedq.selection === '')
         );
+
         const noKids = objectStatusResult.some(
             (obj) => obj.kidsq && (obj.kidsq.selection === 'false' || obj.kidsq.selection === '')
         );
@@ -470,32 +483,26 @@ export default function Personal({ auth }) {
             const propertiesAndData = [
                 { name: 'married', data: { timestamp: Date.now() } },
             ];
-            updateOrCreateProperty(propertiesAndData);
-            nextVisibleStep = visibleSteps.find((step) => step.step > 2);
+            const updatedObjectStatus = updateOrCreateProperty(objectStatusResult, propertiesAndData);
+            setObjectStatus(updatedObjectStatus);
+            // Recalculate visible steps
+            const newVisibleSteps = getVisibleSteps(updatedObjectStatus);
+            nextVisibleStep = newVisibleSteps.find((step) => step.step > pointer);
         }
 
         if (pointer === 3 && noKids) {
             const propertiesAndData = [{ name: 'kids', data: [] }];
-            updateOrCreateProperty(propertiesAndData);
-            nextVisibleStep = visibleSteps.find((step) => step.step > 4);
+            const updatedObjectStatus = updateOrCreateProperty(objectStatusResult, propertiesAndData);
+            setObjectStatus(updatedObjectStatus);
+            // Recalculate visible steps
+            const newVisibleSteps = getVisibleSteps(updatedObjectStatus);
+            nextVisibleStep = newVisibleSteps.find((step) => step.step > pointer);
         }
 
         if (nextVisibleStep) {
             setPointer(nextVisibleStep.step);
-
-            if (nextVisibleStep.step === 0) {
-                // Reset everything if we go back to step 0
-                setObjectStatus([]);
-                setDupMarried(false);
-                setDupKids(false);
-                localStorage.removeItem('fullData');
-                localStorage.removeItem('currentPointer');
-                setPointer(0);
-                return true;
-            }
-
             localStorage.setItem('currentPointer', nextVisibleStep.step.toString());
-            localStorage.setItem('fullData', JSON.stringify(objectStatus));
+            localStorage.setItem('fullData', JSON.stringify(objectStatusResult));
         } else {
             console.log('No more visible steps');
         }
@@ -526,15 +533,21 @@ export default function Personal({ auth }) {
         return objectStatus.some((obj) => obj.hasOwnProperty(stepDataMap[step]));
     };
 
-    const hasSpouse = objectStatus.some(
-        (obj) => obj.marriedq && (obj.marriedq.selection === 'true' || obj.marriedq.selection === 'soso')
-    );
-    const hasKids = objectStatus.some((obj) => obj.kidsq && obj.kidsq.selection === 'true');
+    // Function to determine if a step is clickable in the breadcrumb navigation
+    const isStepClickable = (index) => {
+        // Prevent navigating to other steps until Personal Information is completed
+        if (!stepHasData(0) && index !== 0) {
+            return false;
+        }
+        return true;
+    };
 
-    const spouseData = objectStatus.some(obj => obj.married) || null;
-    const kidsData = objectStatus.some(obj => obj.kids) || null
+    const getVisibleSteps = (objectStatusToUse = objectStatus) => {
+        const hasSpouse = objectStatusToUse.some(
+            (obj) => obj.marriedq && (obj.marriedq.selection === 'true' || obj.marriedq.selection === 'soso')
+        );
+        const hasKids = objectStatusToUse.some((obj) => obj.kidsq && obj.kidsq.selection === 'true');
 
-    const getVisibleSteps = () => {
         return stepper.filter((step, index) => {
             if (index === 2 && !hasSpouse) return false; // Spouse Information
             if (index === 4 && !hasKids) return false; // Children Information
@@ -551,6 +564,9 @@ export default function Personal({ auth }) {
     const hasKidsData = objectStatus.some((obj) => obj.kids && obj.kids.length > 0);
     const stepBack = !hasSpouseData ? 1 : !hasKidsData ? 3 : null;
 
+    const spouseData = objectStatus.some((obj) => obj.married) ? objectStatus.find((obj) => obj.married) : null;
+    const kidsData = objectStatus.some((obj) => obj.kids) ? objectStatus.find((obj) => obj.kids) : null;
+
     return (
         <AuthenticatedLayout
             user={auth.user}
@@ -563,11 +579,17 @@ export default function Personal({ auth }) {
                         steps={visibleSteps}
                         currentStep={currentStepIndex}
                         onStepClick={(index) => {
+                            if (!isStepClickable(index)) {
+                                // Optionally, show a message or do nothing
+                                alert("Please complete the Personal Information step first.");
+                                return;
+                            }
                             const actualStep = visibleSteps[index].step;
                             setPointer(actualStep);
                             localStorage.setItem('currentPointer', actualStep.toString());
                         }}
                         stepHasData={stepHasData}
+                        isStepClickable={isStepClickable}
                     />
                 </>
             }
@@ -584,7 +606,7 @@ export default function Personal({ auth }) {
                         {pointer === 4 && <AddRelative relative="children" errors={validationErrors} datas={objectStatus} />}
                         {pointer === 5 && <HumanTable datas={objectStatus} errors={validationErrors} />}
                         {
-                            pointer == 6 && spouseData !== null && kidsData !== null ?
+                            pointer === 6 && spouseData !== null && kidsData !== null ?
                                 <Bequest datas={objectStatus} errors={validationErrors} />
                                 : (
                                     pointer === 6
@@ -593,7 +615,7 @@ export default function Personal({ auth }) {
                                 )
                         }
                         {
-                            pointer == 7 && spouseData !== null && kidsData !== null ?
+                            pointer === 7 && spouseData !== null && kidsData !== null ?
                                 <Residue datas={objectStatus} errors={validationErrors} />
                                 : (
                                     pointer === 7
@@ -602,7 +624,7 @@ export default function Personal({ auth }) {
                                 )
                         }
                         {
-                            pointer == 8 && spouseData !== null && kidsData !== null ?
+                            pointer === 8 && spouseData !== null && kidsData !== null ?
                                 <Wipeout datas={objectStatus} errors={validationErrors} />
                                 : (
                                     pointer === 8
@@ -613,7 +635,7 @@ export default function Personal({ auth }) {
                         {pointer === 9 && <Trusting datas={objectStatus} errors={validationErrors} />}
                         {pointer === 10 && <GuardianForMinors datas={objectStatus} errors={validationErrors} />}
                         {
-                            pointer == 11 && spouseData !== null && kidsData !== null ?
+                            pointer === 11 && spouseData !== null && kidsData !== null ?
                                 <Pets datas={objectStatus} errors={validationErrors} />
 
                                 : (
