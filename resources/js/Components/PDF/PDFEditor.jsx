@@ -106,6 +106,10 @@ ol {
 }
 `;
 
+export function getDocumentDOMInfo() {
+  return updatedObjectStatus[updatedObjectStatus.length - 1]?.documentDOM;
+}
+
 function getDocumentContent(object_status, documentType, version) {
   return object_status
     .find(obj => obj.documentDOM && obj.documentDOM[documentType])

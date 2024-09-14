@@ -669,7 +669,7 @@ export default function Personal({ auth }) {
                             <Container fluid="md">
                                 <Row>
                                     <Col xs={6} className="d-flex justify-content-start">
-                                        {pointer > 0 && (
+                                        {pointer > 0 && pointer < 15 && (
                                             <Button
                                                 onClick={() => backStep(pointer - 1)}
                                                 variant="outline-dark"
