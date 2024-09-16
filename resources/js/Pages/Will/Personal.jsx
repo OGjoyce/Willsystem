@@ -434,6 +434,23 @@ export default function Personal({ auth }) {
     };
 
     const backStep = (prevStep) => {
+
+        //Skip kids Information step if no kids option selected
+        const noKids = objectStatus.some(
+            (obj) => obj.kidsq && (obj.kidsq.selection === 'false' || obj.kidsq.selection === '')
+        );
+        if (prevStep === 4 && noKids) {
+            prevStep = 3;
+        }
+
+        //Skip spouse's Information if no spouse option selected
+        const noSpouse = objectStatus.some(
+            (obj) => obj.marriedq && (obj.marriedq.selection === 'false' || obj.marriedq.selection === '')
+        );
+        if (prevStep === 2 && noSpouse) {
+            prevStep = 1;
+        }
+
         // Remove the last element from objectStatus when going back
         setObjectStatus((prevStatus) => {
             const newStatus = [...prevStatus];
