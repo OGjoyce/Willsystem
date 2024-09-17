@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Container, Row, Col, Form, Button, Table, Dropdown, InputGroup, Modal
+    Container, Row, Col, Form, Button, Table, Dropdown
 } from 'react-bootstrap';
 import ConfirmationModal from './AdditionalComponents/ConfirmationModal';
 import CustomToast from './AdditionalComponents/CustomToast';
-import AddHuman from './AddHuman';
-import { getHumanData } from './AddHuman';
+import AddPersonDropdown from './AddPersonDropdown';
 import { validate } from './Validations';
 
 let returndata;
@@ -32,7 +31,6 @@ function Wipeout({ id, datas, errors }) {
     const [itemToDelete, setItemToDelete] = useState(null);
     const [isSpecificBeneficiary, setIsSpecificBeneficiary] = useState(false);
     const [isOrganization, setIsOrganization] = useState(false);
-    const [showAddPersonModal, setShowAddPersonModal] = useState(false);
     const [firstRender, setFirstRender] = useState(true);
 
     // State variables for form inputs
@@ -248,54 +246,22 @@ function Wipeout({ id, datas, errors }) {
         }
     };
 
-    const handleDropdownSelect = (index, key, value) => {
-        setTempEditData({ ...tempEditData, [key]: value });
+    const handleBeneficiarySelect = (value) => {
+        setBeneficiary(value);
+        setValidationErrors(prevErrors => ({ ...prevErrors, beneficiary: '' }));
     };
 
-    const handleShowAddPersonModal = () => {
-        setShowAddPersonModal(true);
+    const handleBackupSelect = (value) => {
+        setBackup(value);
+        setValidationErrors(prevErrors => ({ ...prevErrors, backup: '' }));
     };
 
-    const handleCloseAddPersonModal = () => {
-        setShowAddPersonModal(false);
-        setValidationErrors({});
-    };
+    const handleAddPerson = (newPerson) => {
+        const name = `${newPerson.firstName} ${newPerson.lastName}`;
+        setIdentifiersNames(prevNames => [...prevNames, name]);
 
-    const handleSaveAddPersonModal = () => {
-        const newPerson = getHumanData();
-
-        const errors = validate.addHumanData(newPerson);
-
-        if (Object.keys(errors).length === 0) {
-            const name = `${newPerson.firstName} ${newPerson.lastName}`;
-            setIdentifiersNames(prevNames => [...prevNames, name]);
-
-            let len = Object.keys(datas[5].relatives).length;
-            datas[5].relatives[len] = newPerson;
-
-            setValidationErrors({});
-            setShowAddPersonModal(false);
-        } else {
-            setValidationErrors(errors);
-        }
-    };
-
-    const handleBeneficiarySelect = (eventKey, event) => {
-        if (eventKey === 'add-person') {
-            handleShowAddPersonModal();
-        } else {
-            setBeneficiary(eventKey);
-            setValidationErrors(prevErrors => ({ ...prevErrors, beneficiary: '' }));
-        }
-    };
-
-    const handleBackupSelect = (eventKey, event) => {
-        if (eventKey === 'add-person') {
-            handleShowAddPersonModal();
-        } else {
-            setBackup(eventKey);
-            setValidationErrors(prevErrors => ({ ...prevErrors, backup: '' }));
-        }
+        let len = Object.keys(datas[5].relatives).length;
+        datas[5].relatives[len] = newPerson;
     };
 
     return (
@@ -360,18 +326,15 @@ function Wipeout({ id, datas, errors }) {
                                     onChange={(e) => setBeneficiary(e.target.value)}
                                 />
                             ) : (
-                                <Dropdown onSelect={handleBeneficiarySelect}>
-                                    <Dropdown.Toggle style={{ width: '100%' }} variant="outline-dark" id="beneficiary-dropdown">
-                                        {beneficiary || 'Select a beneficiary'}
-                                    </Dropdown.Toggle>
-                                    <Dropdown.Menu className="text-center" style={{ width: '100%' }}>
-                                        {identifiers_names.map((name, index) => (
-                                            <Dropdown.Item key={index} eventKey={name}>{name}</Dropdown.Item>
-                                        ))}
-                                        <Dropdown.Divider />
-                                        <Dropdown.Item eventKey="add-person" className="text-primary">Add Person</Dropdown.Item>
-                                    </Dropdown.Menu>
-                                </Dropdown>
+                                <AddPersonDropdown
+                                    options={identifiers_names}
+                                    label="Select a beneficiary"
+                                    selected={beneficiary}
+                                    onSelect={handleBeneficiarySelect}
+                                    onAddPerson={handleAddPerson}
+                                    validationErrors={validationErrors}
+                                    setValidationErrors={setValidationErrors}
+                                />
                             )}
                             {validationErrors.beneficiary && <p className="text-danger">{validationErrors.beneficiary}</p>}
                         </Form.Group>
@@ -386,18 +349,15 @@ function Wipeout({ id, datas, errors }) {
                                     onChange={(e) => setBackup(e.target.value)}
                                 />
                             ) : (
-                                <Dropdown onSelect={handleBackupSelect}>
-                                    <Dropdown.Toggle style={{ width: '100%' }} variant="outline-dark" id="backup-dropdown">
-                                        {backup || 'Select a backup'}
-                                    </Dropdown.Toggle>
-                                    <Dropdown.Menu className="text-center" style={{ width: '100%' }}>
-                                        {identifiers_names.map((name, index) => (
-                                            <Dropdown.Item key={index} eventKey={name}>{name}</Dropdown.Item>
-                                        ))}
-                                        <Dropdown.Divider />
-                                        <Dropdown.Item eventKey="add-person" className="text-primary">Add Person</Dropdown.Item>
-                                    </Dropdown.Menu>
-                                </Dropdown>
+                                <AddPersonDropdown
+                                    options={identifiers_names}
+                                    label="Select a backup"
+                                    selected={backup}
+                                    onSelect={handleBackupSelect}
+                                    onAddPerson={handleAddPerson}
+                                    validationErrors={validationErrors}
+                                    setValidationErrors={setValidationErrors}
+                                />
                             )}
                             {validationErrors.backup && <p className="text-danger">{validationErrors.backup}</p>}
                         </Form.Group>
@@ -455,21 +415,18 @@ function Wipeout({ id, datas, errors }) {
                                                     <Form.Control
                                                         type="text"
                                                         value={tempEditData.beneficiary}
-                                                        onChange={(e) => handleDropdownSelect(index, 'beneficiary', e.target.value)}
+                                                        onChange={(e) => setTempEditData({ ...tempEditData, beneficiary: e.target.value })}
                                                     />
                                                 ) : (
-                                                    <Dropdown onSelect={(eventKey) => handleDropdownSelect(index, 'beneficiary', eventKey)}>
-                                                        <Dropdown.Toggle style={{ width: '100%' }} variant="outline-dark" id={`beneficiary-dropdown-${index}`}>
-                                                            {tempEditData.beneficiary}
-                                                        </Dropdown.Toggle>
-                                                        <Dropdown.Menu className="text-center" style={{ width: '100%' }}>
-                                                            {identifiers_names.map((name, idx) => (
-                                                                <Dropdown.Item key={idx} eventKey={name}>{name}</Dropdown.Item>
-                                                            ))}
-                                                            <Dropdown.Divider />
-                                                            <Dropdown.Item eventKey="add-person" className="text-primary" onClick={handleShowAddPersonModal}>Add Person</Dropdown.Item>
-                                                        </Dropdown.Menu>
-                                                    </Dropdown>
+                                                    <AddPersonDropdown
+                                                        options={identifiers_names}
+                                                        label="Select a beneficiary"
+                                                        selected={tempEditData.beneficiary}
+                                                        onSelect={(value) => setTempEditData({ ...tempEditData, beneficiary: value })}
+                                                        onAddPerson={handleAddPerson}
+                                                        validationErrors={validationErrors}
+                                                        setValidationErrors={setValidationErrors}
+                                                    />
                                                 )
                                             ) : (
                                                 item.beneficiary
@@ -481,21 +438,18 @@ function Wipeout({ id, datas, errors }) {
                                                     <Form.Control
                                                         type="text"
                                                         value={tempEditData.backup}
-                                                        onChange={(e) => handleDropdownSelect(index, 'backup', e.target.value)}
+                                                        onChange={(e) => setTempEditData({ ...tempEditData, backup: e.target.value })}
                                                     />
                                                 ) : (
-                                                    <Dropdown onSelect={(eventKey) => handleDropdownSelect(index, 'backup', eventKey)}>
-                                                        <Dropdown.Toggle style={{ width: '100%' }} variant="outline-dark" id={`backup-dropdown-${index}`}>
-                                                            {tempEditData.backup}
-                                                        </Dropdown.Toggle>
-                                                        <Dropdown.Menu className="text-center" style={{ width: '100%' }}>
-                                                            {identifiers_names.map((name, idx) => (
-                                                                <Dropdown.Item key={idx} eventKey={name}>{name}</Dropdown.Item>
-                                                            ))}
-                                                            <Dropdown.Divider />
-                                                            <Dropdown.Item eventKey="add-person" className="text-primary" onClick={handleShowAddPersonModal}>Add Person</Dropdown.Item>
-                                                        </Dropdown.Menu>
-                                                    </Dropdown>
+                                                    <AddPersonDropdown
+                                                        options={identifiers_names}
+                                                        label="Select a backup"
+                                                        selected={tempEditData.backup}
+                                                        onSelect={(value) => setTempEditData({ ...tempEditData, backup: value })}
+                                                        onAddPerson={handleAddPerson}
+                                                        validationErrors={validationErrors}
+                                                        setValidationErrors={setValidationErrors}
+                                                    />
                                                 )
                                             ) : (
                                                 item.backup
@@ -506,7 +460,7 @@ function Wipeout({ id, datas, errors }) {
                                                 <Form.Control
                                                     type="number"
                                                     value={tempEditData.shares}
-                                                    onChange={(e) => handleDropdownSelect(index, 'shares', Number(e.target.value))}
+                                                    onChange={(e) => setTempEditData({ ...tempEditData, shares: Number(e.target.value) })}
                                                 />
                                             ) : (
                                                 item.shares
@@ -517,7 +471,7 @@ function Wipeout({ id, datas, errors }) {
                                                 <Form.Control
                                                     as="select"
                                                     value={tempEditData.type}
-                                                    onChange={(e) => handleDropdownSelect(index, 'type', e.target.value)}
+                                                    onChange={(e) => setTempEditData({ ...tempEditData, type: e.target.value })}
                                                 >
                                                     <option value="Per Stirpes">Per Stirpes</option>
                                                     <option value="Per Capita">Per Capita</option>
@@ -561,23 +515,6 @@ function Wipeout({ id, datas, errors }) {
                 onClose={() => setShowToast(false)}
                 message={toastMessage}
             />
-
-            <Modal show={showAddPersonModal} onHide={handleCloseAddPersonModal}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Add New Person</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <AddHuman human={true} errors={validationErrors} />
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" size="sm" onClick={handleCloseAddPersonModal}>
-                        Close
-                    </Button>
-                    <Button variant="primary" size="sm" onClick={handleSaveAddPersonModal}>
-                        Save Changes
-                    </Button>
-                </Modal.Footer>
-            </Modal>
         </Container>
     );
 }

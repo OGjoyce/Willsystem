@@ -1,25 +1,10 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Link, Head } from '@inertiajs/react';
 import React, { useState, useEffect } from 'react';
-import { Dialog } from '@headlessui/react';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
-import Table from 'react-bootstrap/Table';
-import Button from 'react-bootstrap/Button';
-import AddHuman from './AddHuman';
-import { getHumanData } from './AddHuman';
-import Modal from 'react-bootstrap/Modal';
-import ButtonGroup from 'react-bootstrap/ButtonGroup';
-import Dropdown from 'react-bootstrap/Dropdown';
+import { Form, Button, Table, Collapse } from 'react-bootstrap';
+import AddPersonDropdown from './AddPersonDropdown';
 import ConfirmationModal from './AdditionalComponents/ConfirmationModal';
 import CustomToast from './AdditionalComponents/CustomToast';
-import DropdownButton from 'react-bootstrap/DropdownButton';
-import { Row, Col, DropdownToggle, DropdownMenu, DropdownItem } from 'react-bootstrap';
-import Form from 'react-bootstrap/Form';
-import Collapse from 'react-bootstrap/Collapse';
 import { validate } from './Validations';
 
-var all_data = [];
-var identifiers_names = [];
 var bequestArrObj = [];
 var bequestindex = 0;
 var globalCounter = 0;
@@ -29,13 +14,13 @@ export function getBequestArrObj() {
 }
 
 function Bequest({ id, datas, errors }) {
-    const [show, setShow] = useState(false);
     const [showExecutor, setShowExecutor] = useState(false);
     const [open, setOpen] = useState(false);
     const [firstRender, setFirstRender] = useState(true);
     const [table_dataBequest, setTable_dataBequest] = useState([]);
     const [selectedRecepient, setSelectedRecepient] = useState(null);
     const [selectedBackup, setSelectedBackup] = useState(null);
+    const [identifiers_names, setIdentifiersNames] = useState([]);
     const [isMarried, setIsMarried] = useState(false);
     const [isSpouseFirst, setIsSpouseFirst] = useState(false);
     const [isCustomBequest, setIsCustomBequest] = useState(false);
@@ -165,8 +150,6 @@ function Bequest({ id, datas, errors }) {
                     setIsSharedBequest(true);
                     setPendingShares(pendingShares - shares);
                     if (pendingShares - shares > 0) {
-                        // set placeholder for shares input
-                        //document.getElementById('sharesID').placeholder = `Pending shares for this bequest: ${pendingShares - shares}%`;
                         setSharesInput('');
                         setBequestText(bequest);
                         newErrors.sharedBequest = "Please continue distributing shares for current bequest";
@@ -176,7 +159,6 @@ function Bequest({ id, datas, errors }) {
                         }
                     } else if (pendingShares - shares <= 0) {
                         setSharesInput('');
-                        //document.getElementById('sharesID').placeholder = 100;
                         setBequestText('');
                         setValidationErrors({});
                         setIsSharedBequest(false);
@@ -187,7 +169,6 @@ function Bequest({ id, datas, errors }) {
                 } else {
                     setValidationErrors({});
                     setSharesInput('');
-                    //document.getElementById('sharesID').placeholder = 100;
                     setBequestText('');
                 }
             }
@@ -234,60 +215,6 @@ function Bequest({ id, datas, errors }) {
                 localStorage.setItem('formValues', JSON.stringify(storedValues));
             }
         }
-    };
-
-    const setCurrentRecepient = (eventKey) => {
-        if (eventKey === 'add-person') {
-            handleShow();
-        } else {
-            setSelectedRecepient(eventKey);
-        }
-    };
-
-    const setCurrentBackup = (eventKey) => {
-        if (eventKey === 'add-person') {
-            handleShow();
-        } else {
-            setSelectedBackup(eventKey);
-        }
-    };
-
-    const handleClose = () => {
-        const newrelative = getHumanData();
-
-        var errors = validate.addHumanData(newrelative);
-
-        if (Object.keys(errors).length <= 0) {
-            const names = newrelative.firstName + " " + newrelative.lastName;
-            identifiers_names.push(names);
-
-            let len = Object.keys(datas[5].relatives).length;
-            datas[5].relatives[len] = newrelative;
-            console.log(datas);
-
-            setValidationErrors({});
-            setShow(false);
-        } else {
-            setValidationErrors(errors);
-            console.log(errors);
-        }
-    };
-
-    const handleCloseNosave = () => {
-        setShow(false);
-    };
-
-    const handleShow = () => {
-        console.log("Opening Add Human Modal");
-        setShow(true);
-    };
-
-    // Gestiona la selección en la tabla
-    const handleSelect = (selectedItem) => {
-        setSelectedBackup(selectedItem);
-        const updatedBequests = [...table_dataBequest];
-        updatedBequests[index].names = selectedItem;
-        setTable_dataBequest(updatedBequests);
     };
 
     const handleDelete = (itemId) => {
@@ -359,36 +286,65 @@ function Bequest({ id, datas, errors }) {
         setTempData({});
     };
 
-    all_data = datas;
+    const handleRecepientSelect = (eventKey) => {
+        if (eventKey === 'Spouse First') {
+            setIsSpouseFirst(true);
+        } else {
+            setIsSpouseFirst(false);
+        }
+        setSelectedRecepient(eventKey);
+    };
 
-    if (all_data != null && firstRender) {
-        identifiers_names = [];
-        const married = all_data[2]?.married;
-        const kids = all_data[4]?.kids;
-        const relatives = all_data[5]?.relatives;
-        const kidsq = all_data[3].kidsq?.selection;
+    const handleBackupSelect = (eventKey) => {
+        setSelectedBackup(eventKey);
+    };
 
-        var dataobj = { married, kids, relatives };
+    const onAddPerson = (newPerson) => {
+        const name = `${newPerson.firstName} ${newPerson.lastName}`;
+        setIdentifiersNames(prevNames => [...prevNames, name]);
 
-        var married_names = married?.firstName && married?.lastName ? married?.firstName + " " + married?.lastName : null;
+        // Update datas[5].relatives
+        const updatedDatas = { ...datas };
+        const relatives = updatedDatas[5].relatives || {};
+        const len = Object.keys(relatives).length;
+        relatives[len] = newPerson;
+        updatedDatas[5].relatives = relatives;
+        datas[5].relatives = relatives; // Update datas
 
-        if (married_names !== null) { setIsMarried(true); }
-        if (kidsq === "true") {
-            var kids_names = kids?.firstName + " " + kids?.lastName;
-            for (let child in kids) {
-                const names = kids[child]?.firstName + " " + kids[child]?.lastName;
-                identifiers_names.push(names);
+        setValidationErrors({});
+    };
+
+    useEffect(() => {
+        if (datas != null && firstRender) {
+            let names = [];
+            const married = datas[2]?.married;
+            const kids = datas[4]?.kids;
+            const relatives = datas[5]?.relatives;
+            const kidsq = datas[3].kidsq?.selection;
+
+            var dataobj = { married, kids, relatives };
+
+            var married_names = married?.firstName && married?.lastName ? married?.firstName + " " + married?.lastName : null;
+
+            if (married_names !== null) { setIsMarried(true); }
+            if (kidsq === "true") {
+                for (let child in kids) {
+                    const childName = kids[child]?.firstName + " " + kids[child]?.lastName;
+                    names.push(childName);
+                }
             }
-        }
-        identifiers_names.push(married_names);
+            if (married_names) {
+                names.push(married_names);
+            }
+            for (let key in relatives) {
+                const namesRel = relatives[key]?.firstName + " " + relatives[key]?.lastName;
+                names.push(namesRel);
+            }
 
-        for (let key in relatives) {
-            const names = relatives[key]?.firstName + " " + relatives[key]?.lastName;
-            identifiers_names.push(names);
+            setIdentifiersNames(names);
+            setFirstRender(false);
         }
-
-        setFirstRender(false);
-    }
+    }, [datas, firstRender]);
 
     return (
         <>
@@ -417,79 +373,41 @@ function Bequest({ id, datas, errors }) {
                 />
                 {isCustomBequest && (
                     <>
-                        <Col sm={12}>
-                            <Button style={{ width: "80%", margin: "5%" }} variant="outline-success" onClick={() => addRecepient()} >Add Custom Bequest</Button>
-                        </Col>
-                        <Col sm={12}>
-                            <Button
-                                onClick={() => setOpen(!open)}
-                                aria-controls="example-collapse-text"
-                                aria-expanded={open}
-                                style={{ width: "80%", margin: "5%" }}
-                                variant="outline-dark"
-                            >
-                                See Bequest information
-                            </Button>
-                        </Col>
+                        <Button style={{ width: "80%", margin: "5%" }} variant="outline-success" onClick={() => addRecepient()} >Add Custom Bequest</Button>
+                        <Button
+                            onClick={() => setOpen(!open)}
+                            aria-controls="example-collapse-text"
+                            aria-expanded={open}
+                            style={{ width: "80%", margin: "5%" }}
+                            variant="outline-dark"
+                        >
+                            See Bequest information
+                        </Button>
                     </>
                 )}
                 {!isCustomBequest && (
                     <>
-                        <Row >
-                            <Col sm={12}>
-                                <Dropdown style={{ width: "100%" }} onSelect={setCurrentRecepient} >
-                                    <Dropdown.Toggle style={{ width: "100%" }} variant={isSpouseFirst ? "outline-success" : "outline-dark"} caret="true" id="size-dropdown">
-                                        {
-                                            isSpouseFirst
-                                                ? <>
-                                                    <strong>Selected Beneficiary:</strong> {selectedRecepient}
-                                                </>
-                                                : (selectedRecepient !== null
-                                                    ? <>
-                                                        <strong>Selected Beneficiary:</strong> {selectedRecepient}
-                                                    </>
-                                                    : "Select Beneficiary"
-                                                )
-                                        }
-
-                                    </Dropdown.Toggle>
-                                    <Dropdown.Menu className={'text-center'} style={{ width: "100%" }}>
-                                        {isMarried && !isSharedBequest && (
-                                            <DropdownItem key='spouse-first' eventKey='Spouse First'>Spouse First</DropdownItem>
-                                        )}
-                                        <Dropdown.Divider />
-                                        {identifiers_names.map(size => (
-                                            <DropdownItem key={size} eventKey={size}>{size}</DropdownItem>
-                                        ))}
-                                        <Dropdown.Divider />
-                                        <DropdownItem eventKey='add-person' className='text-primary'>Add Person</DropdownItem>
-                                    </Dropdown.Menu>
-                                </Dropdown>
-                            </Col>
-                        </Row>
+                        <AddPersonDropdown
+                            options={identifiers_names}
+                            extraOptions={isMarried && !isSharedBequest ? ['Spouse First'] : []}
+                            label="Select Beneficiary"
+                            selected={selectedRecepient}
+                            onSelect={handleRecepientSelect}
+                            onAddPerson={onAddPerson}
+                            validationErrors={validationErrors}
+                            setValidationErrors={setValidationErrors}
+                            variant={isSpouseFirst ? "outline-success" : "outline-dark"}
+                        />
                         {validationErrors.beneficiary && <p className="mt-2 text-center text-red-600">{validationErrors.beneficiary}</p>}
-                        <Row >
-                            <Col sm={12}>
-                                <Dropdown style={{ width: "100%", marginTop: "12px" }} onSelect={setCurrentBackup} >
-                                    <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" caret="true" id="size-dropdown">
-                                        {
-                                            selectedBackup !== null
-                                                ? <>
-                                                    <strong>Selected Backup:</strong> {selectedBackup}
-                                                </>
-                                                : 'Select Bequest Backup'
-                                        }
-                                    </Dropdown.Toggle>
-                                    <Dropdown.Menu className={'text-center'} style={{ width: "100%" }}>
-                                        {identifiers_names.map(size => (
-                                            <DropdownItem key={size} eventKey={size}>{size}</DropdownItem>
-                                        ))}
-                                        <Dropdown.Divider />
-                                        <DropdownItem eventKey='add-person' className='text-primary'>Add Person</DropdownItem>
-                                    </Dropdown.Menu>
-                                </Dropdown>
-                            </Col>
-                        </Row>
+                        <AddPersonDropdown
+                            options={identifiers_names}
+                            label="Select Bequest Backup"
+                            selected={selectedBackup}
+                            onSelect={handleBackupSelect}
+                            onAddPerson={onAddPerson}
+                            validationErrors={validationErrors}
+                            setValidationErrors={setValidationErrors}
+                        />
                         {validationErrors.backupSameAsBeneficiary && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.backupSameAsBeneficiary}</p>}
                         <Form.Group className="mb-3 text-center mt-12" controlId="sharesID">
                             <Form.Control
@@ -510,28 +428,16 @@ function Bequest({ id, datas, errors }) {
                                 }
                             </Form.Label>
 
-                            <Row>
-                                <Col sm={6}>
-                                    <Button style={{ width: "80%", margin: "5%" }} variant="outline-success" onClick={() => addRecepient()} >Add Recipient</Button>
-                                </Col>
-                                {/* Eliminar el botón "Add New Beneficiary" */}
-                                {/* <Col sm={6}>
-                                    <Button style={{ width: "80%", margin: "5%" }} variant="outline-info" onClick={() => handleShow()}>Add New Beneficiary</Button>
-                                </Col> */}
-                            </Row>
-                            <Row>
-                                <Col sm={12}>
-                                    <Button
-                                        onClick={() => setOpen(!open)}
-                                        aria-controls="example-collapse-text"
-                                        aria-expanded={open}
-                                        style={{ width: "80%", margin: "5%" }}
-                                        variant="outline-dark"
-                                    >
-                                        See Bequest information
-                                    </Button>
-                                </Col>
-                            </Row>
+                            <Button style={{ width: "80%", margin: "5%" }} variant="outline-success" onClick={() => addRecepient()} >Add Recipient</Button>
+                            <Button
+                                onClick={() => setOpen(!open)}
+                                aria-controls="example-collapse-text"
+                                aria-expanded={open}
+                                style={{ width: "80%", margin: "5%" }}
+                                variant="outline-dark"
+                            >
+                                See Bequest information
+                            </Button>
                         </Form.Group>
                     </>
                 )}
@@ -568,38 +474,30 @@ function Bequest({ id, datas, errors }) {
                                             <td>{item.id}</td>
                                             <td>
                                                 {editingRow === index ? (
-                                                    <Dropdown style={{ width: '100%' }} onSelect={(eventKey) => handleDropdownSelect(index, 'names', eventKey)}>
-                                                        <Dropdown.Toggle style={{ width: '100%' }} variant="outline-dark" id={`dropdown-names-${index}`}>
-                                                            {item.names || 'Select Beneficiary'}
-                                                        </Dropdown.Toggle>
-                                                        <Dropdown.Menu className="text-center" style={{ width: '100%' }}>
-                                                            {identifiers_names.map(name => (
-                                                                <Dropdown.Item key={name} eventKey={name}>
-                                                                    {name}
-                                                                </Dropdown.Item>
-                                                            ))}
-                                                            <Dropdown.Divider />
-                                                        </Dropdown.Menu>
-                                                    </Dropdown>
+                                                    <AddPersonDropdown
+                                                        options={identifiers_names}
+                                                        label="Select Beneficiary"
+                                                        selected={item.names}
+                                                        onSelect={(value) => handleDropdownSelect(index, 'names', value)}
+                                                        onAddPerson={onAddPerson}
+                                                        validationErrors={validationErrors}
+                                                        setValidationErrors={setValidationErrors}
+                                                    />
                                                 ) : (
                                                     item.names
                                                 )}
                                             </td>
                                             <td>
                                                 {editingRow === index ? (
-                                                    <Dropdown style={{ width: '100%' }} onSelect={(eventKey) => handleDropdownSelect(index, 'backup', eventKey)}>
-                                                        <Dropdown.Toggle style={{ width: '100%' }} variant="outline-dark" id={`dropdown-backup-${index}`}>
-                                                            {item.backup || 'Select Backup'}
-                                                        </Dropdown.Toggle>
-                                                        <Dropdown.Menu className="text-center" style={{ width: '100%' }}>
-                                                            {identifiers_names.map(name => (
-                                                                <Dropdown.Item key={name} eventKey={name}>
-                                                                    {name}
-                                                                </Dropdown.Item>
-                                                            ))}
-                                                            <Dropdown.Divider />
-                                                        </Dropdown.Menu>
-                                                    </Dropdown>
+                                                    <AddPersonDropdown
+                                                        options={identifiers_names}
+                                                        label="Select Backup"
+                                                        selected={item.backup}
+                                                        onSelect={(value) => handleDropdownSelect(index, 'backup', value)}
+                                                        onAddPerson={onAddPerson}
+                                                        validationErrors={validationErrors}
+                                                        setValidationErrors={setValidationErrors}
+                                                    />
                                                 ) : (
                                                     item.backup
                                                 )}
@@ -679,23 +577,6 @@ function Bequest({ id, datas, errors }) {
                     </Table>
                 </div>
             </Collapse>
-
-            <Modal show={show} onHide={handleCloseNosave}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Add New Person</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <AddHuman human={true} errors={validationErrors} />
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" size="sm" onClick={handleCloseNosave}>
-                        Close
-                    </Button>
-                    <Button variant="primary" size="sm" onClick={handleClose}>
-                        Save Changes
-                    </Button>
-                </Modal.Footer>
-            </Modal>
 
             <ConfirmationModal
                 show={showDeleteModal}
