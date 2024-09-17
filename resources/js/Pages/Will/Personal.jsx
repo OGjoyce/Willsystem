@@ -195,6 +195,36 @@ export default function Personal({ auth }) {
                     return null;
                 }
 
+                // Set the default structure for objectStatus
+                if (!updatedObjectStatus.find(obj => obj.hasOwnProperty('marriedq'))) {
+                    const initialObjectStructure = [
+                        [{ name: 'marriedq', data: {} }],
+                        [{ name: 'married', data: {} }],
+                        [{ name: 'kidsq', data: {} }],
+                        [{ name: 'kids', data: [] }],
+                        [{ name: 'executors', data: [] },
+                        { name: 'relatives', data: [] }],
+                        [{ name: 'bequests', data: {} }],
+                        [{ name: 'residue', data: {} }],
+                        [{ name: 'wipeout', data: {} }],
+                        [{ name: 'trusting', data: {} }],
+                        [{ name: 'guardians', data: {} }],
+                        [{ name: 'pets', data: {} }],
+                        [{ name: 'additional', data: {} }],
+                        [{ name: 'poa', data: {} }],
+                        [{ name: 'finalDetails', data: {} }],
+                        [{ name: 'documentDOM', data: {} }],
+                    ]
+
+                    initialObjectStructure.map(
+                        obj => {
+                            const tempData = updateOrCreateProperty(updatedObjectStatus, obj)
+                            setObjectStatus(tempData)
+                            updatedObjectStatus = tempData
+                        }
+                    )
+                }
+
                 break;
 
             case 1:
@@ -529,26 +559,110 @@ export default function Personal({ auth }) {
 
     const stepHasData = (step) => {
         const stepDataMap = {
-            0: 'personal',
-            1: 'marriedq',
-            2: 'married',
-            3: 'kidsq',
-            4: 'kids',
-            5: 'relatives',
-            6: 'bequests',
-            7: 'residue',
-            8: 'wipeout',
-            9: 'trusting',
-            10: 'guardians',
-            11: 'pets',
-            12: 'additional',
-            13: 'poa',
-            14: 'finalDetails',
-            15: 'documentDOM',
+            0: {
+                key: 'personal',
+                check: (data) => data && data.fullName && data.fullName !== '' && data.email && data.email !== '',
+            },
+            1: {
+                key: 'marriedq',
+                check: (data) => data && data.selection && data.selection !== '',
+            },
+            2: {
+                key: 'married',
+                check: (data) => data && data.firstName && data.firstName !== '',
+            },
+            3: {
+                key: 'kidsq',
+                check: (data) => data && data.selection && data.selection !== '',
+            },
+            4: {
+                key: 'kids',
+                check: (data) => data && Array.isArray(data) && data.length > 0,
+            },
+            5: {
+                key: 'executors',
+                check: (data) => data && Array.isArray(data) && data.length > 0,
+            },
+            6: {
+                key: 'bequests',
+                check: (data) => {
+                    if (data && typeof data === 'object') {
+                        const keys = Object.keys(data).filter(k => k !== 'timestamp');
+                        return keys.length > 0;
+                    }
+                    return false;
+                },
+            },
+            7: {
+                key: 'residue',
+                check: (data) => data && data.selected && data.selected !== '',
+            },
+            8: {
+                key: 'wipeout',
+                check: (data) => data && data.wipeout && Object.keys(data.wipeout).length > 0,
+            },
+            9: {
+                key: 'trusting',
+                check: (data) => {
+                    if (data && typeof data === 'object') {
+                        const keys = Object.keys(data).filter(k => k !== 'timestamp');
+                        return keys.length > 0;
+                    }
+                    return false;
+                },
+            },
+            10: {
+                key: 'guardians',
+                check: (data) => {
+                    if (data && typeof data === 'object') {
+                        const keys = Object.keys(data).filter(k => k !== 'timestamp');
+                        return keys.length > 0;
+                    }
+                    return false;
+                },
+            },
+            11: {
+                key: 'pets',
+                check: (data) => {
+                    if (data && typeof data === 'object') {
+                        const keys = Object.keys(data).filter(k => k !== 'timestamp');
+                        return keys.length > 0;
+                    }
+                    return false;
+                },
+            },
+            12: {
+                key: 'additional',
+                check: (data) => data && data.standard && Object.keys(data.standard).length > 0,
+            },
+            13: {
+                key: 'poa',
+                check: (data) => data && Object.keys(data).length > 0,
+            },
+            14: {
+                key: 'finalDetails',
+                check: (data) => data && Object.keys(data).length > 0,
+            },
+            15: {
+                key: 'documentDOM',
+                check: (data) => data && Object.keys(data).length > 0,
+            },
         };
 
-        return objectStatus.some((obj) => obj.hasOwnProperty(stepDataMap[step]));
+        const { key, check } = stepDataMap[step] || {};
+        if (!key || !check) return false;
+
+        for (const obj of objectStatus) {
+            if (obj.hasOwnProperty(key)) {
+                const data = obj[key];
+                if (check(data)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     };
+
 
     // Function to determine if a step is clickable in the breadcrumb navigation
     const isStepClickable = (index) => {
