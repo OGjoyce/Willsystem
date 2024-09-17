@@ -36,7 +36,7 @@ function Bequest({ id, datas, errors }) {
     const [table_dataBequest, setTable_dataBequest] = useState([]);
     const [selectedRecepient, setSelectedRecepient] = useState(null);
     const [selectedBackup, setSelectedBackup] = useState(null);
-    const [isMarried, setIsMarried] = useState(false)
+    const [isMarried, setIsMarried] = useState(false);
     const [isSpouseFirst, setIsSpouseFirst] = useState(false);
     const [isCustomBequest, setIsCustomBequest] = useState(false);
     const [isSharedBequest, setIsSharedBequest] = useState(false);
@@ -45,31 +45,32 @@ function Bequest({ id, datas, errors }) {
     const [validationErrors, setValidationErrors] = useState({});
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showToast, setShowToast] = useState(false);
-    const [toastMessage, setToastMessage] = useState("")
+    const [toastMessage, setToastMessage] = useState("");
     const [bequestToDelete, setBequestToDelete] = useState(null);
-    const [editingRow, setEditingRow] = useState(null); // Estado para manejar la fila en edición
+    const [editingRow, setEditingRow] = useState(null);
     const [currentSharedUuid, setCurrentSharedUuid] = useState(1);
     const [tempData, setTempData] = useState({});
-
+    const [bequestText, setBequestText] = useState('');
+    const [sharesInput, setSharesInput] = useState('');
 
     useEffect(() => {
-        let newErrors = {}
-        const bequest = document.getElementById('bequestTextArea').value
+        let newErrors = {};
+        const bequest = bequestText;
         if (isCustomBequest) {
-            document.getElementById('bequestTextArea').placeholder = "(e.g., Charitable Donation)"
+            // placeholder is handled in the Form.Control component
         } else {
-            document.getElementById('bequestTextArea').placeholder = "(i.e... Gold Chain)"
+            // placeholder is handled in the Form.Control component
         }
         if (bequest === "" && isCustomBequest) {
             newErrors.bequestItem = "Please add a custom bequest in the section above";
         }
 
         if (Object.keys(newErrors).length > 0) {
-            setValidationErrors(newErrors)
+            setValidationErrors(newErrors);
         } else {
-            setValidationErrors({})
+            setValidationErrors({});
         }
-    }, [isCustomBequest])
+    }, [isCustomBequest]);
 
     useEffect(() => {
         setValidationErrors(errors);
@@ -90,18 +91,27 @@ function Bequest({ id, datas, errors }) {
         }
     }, [selectedRecepient]);
 
-    const reviewBequestSum = (index) => {
-        var counter = 0;
-        var obj = table_dataBequest[index];
+    const handleTextAreaChange = (event) => {
+        setBequestText(event.target.value);
+
+        if (isSharedBequest) {
+            // Reset shared bequest logic
+            setIsSharedBequest(false);
+            setPendingShares(100);
+            setCurrentSharedUuid(prevValue => prevValue + 1);
+            globalCounter = 0;
+            setReadOnly(false);
+            setSharesInput(''); // Reset shares input
+            // Reset any other related state variables if necessary
+        }
     };
 
     const addRecepient = () => {
         setValidationErrors({});
-        var bequest, selected, backup, shares;
-        bequest = document.getElementById('bequestTextArea').value;
-        selected = isCustomBequest ? 'NA' : selectedRecepient;
-        backup = isCustomBequest ? 'NA' : selectedBackup;
-        shares = isCustomBequest || isSpouseFirst ? 100 : document.getElementById('sharesID').value;
+        var bequest = bequestText;
+        var selected = isCustomBequest ? 'NA' : selectedRecepient;
+        var backup = isCustomBequest ? 'NA' : selectedBackup;
+        var shares = isCustomBequest || isSpouseFirst ? 100 : sharesInput;
 
         if (bequest === "" || selected === null || backup === null || shares === "" || shares > 100 || shares <= 0 || selected === backup) {
             let newErrors = {};
@@ -114,19 +124,19 @@ function Bequest({ id, datas, errors }) {
             }
 
             if (!isCustomBequest && selected !== null && backup !== null && selected === backup) {
-                newErrors.backupSameAsBeneficiary = "Beneficiary and Backup can´t be the same person"
+                newErrors.backupSameAsBeneficiary = "Beneficiary and Backup can't be the same person";
             }
 
             if (shares === "") {
-                newErrors.shares = "Please enter a percentage value for shares"
+                newErrors.shares = "Please enter a percentage value for shares";
             }
             if (shares > 100 || shares <= 0) {
-                newErrors.shares = "Shares must be a percentage between 1 and 100"
+                newErrors.shares = "Shares must be a percentage between 1 and 100";
             }
 
             if (Object.keys(newErrors).length > 0) {
                 setValidationErrors(newErrors);
-                return null
+                return null;
             }
         }
 
@@ -141,7 +151,7 @@ function Bequest({ id, datas, errors }) {
                 "shared_uuid": 0
             };
 
-            document.getElementById('bequestTextArea').value = "";
+            setBequestText('');
             if (!isCustomBequest) {
                 if (isSpouseFirst) {
                     setSelectedRecepient("Spouse First");
@@ -151,33 +161,34 @@ function Bequest({ id, datas, errors }) {
                 setSelectedBackup(null);
                 let newErrors = {};
                 if (shares < 100) {
-                    obj.shared_uuid = currentSharedUuid
+                    obj.shared_uuid = currentSharedUuid;
                     setIsSharedBequest(true);
                     setPendingShares(pendingShares - shares);
                     if (pendingShares - shares > 0) {
-                        document.getElementById('sharesID').placeholder = `Pending shares for this bequest: ${pendingShares - shares}%`;
-                        document.getElementById('sharesID').value = "";
-                        document.getElementById('bequestTextArea').value = bequest;
+                        // set placeholder for shares input
+                        //document.getElementById('sharesID').placeholder = `Pending shares for this bequest: ${pendingShares - shares}%`;
+                        setSharesInput('');
+                        setBequestText(bequest);
                         newErrors.sharedBequest = "Please continue distributing shares for current bequest";
 
                         if (Object.keys(newErrors).length > 0) {
                             setValidationErrors(newErrors);
                         }
                     } else if (pendingShares - shares <= 0) {
-                        document.getElementById('sharesID').value = "";
-                        document.getElementById('sharesID').placeholder = 100;
-                        document.getElementById('bequestTextArea').value = "";
-                        setValidationErrors({})
-                        setIsSharedBequest(false)
-                        setPendingShares(100)
-                        setCurrentSharedUuid(prevValue => prevValue + 1)
+                        setSharesInput('');
+                        //document.getElementById('sharesID').placeholder = 100;
+                        setBequestText('');
+                        setValidationErrors({});
+                        setIsSharedBequest(false);
+                        setPendingShares(100);
+                        setCurrentSharedUuid(prevValue => prevValue + 1);
                     }
 
                 } else {
                     setValidationErrors({});
-                    document.getElementById('sharesID').value = "";
-                    document.getElementById('sharesID').placeholder = 100;
-                    document.getElementById('bequestTextArea').value = "";
+                    setSharesInput('');
+                    //document.getElementById('sharesID').placeholder = 100;
+                    setBequestText('');
                 }
             }
 
@@ -195,7 +206,7 @@ function Bequest({ id, datas, errors }) {
                     globalCounter = globalSemaphore;
                 } else if (globalCounter <= 100) {
                     shouldAddBequest = true;
-                    setReadOnly(true);
+                    setReadOnly(false); // keep it editable
                     if (!open) {
                         setOpen(true);
                     }
@@ -212,11 +223,11 @@ function Bequest({ id, datas, errors }) {
                 setTable_dataBequest(updatedBequests);
                 bequestArrObj = updatedBequests;
                 bequestindex += 1;
-                setToastMessage(isCustomBequest ? 'Custom bequest added succesfully' : 'Bequest added successfully')
+                setToastMessage(isCustomBequest ? 'Custom bequest added successfully' : 'Bequest added successfully');
                 setTimeout(() => {
-                    setToastMessage('')
-                }, 4000)
-                setShowToast(true)
+                    setToastMessage('');
+                }, 4000);
+                setShowToast(true);
                 // Save to localStorage
                 const storedValues = JSON.parse(localStorage.getItem('formValues')) || {};
                 storedValues.bequests = updatedBequests;
@@ -224,35 +235,6 @@ function Bequest({ id, datas, errors }) {
             }
         }
     };
-
-    function addAnotherRelative() { }
-
-    function finishBequest() {
-        var flag = false;
-        var sum = sumValuesBySameIds(table_dataBequest);
-        let len = Object.keys(sum).length;
-        for (let index = 0; index < len; index++) {
-            if (sum[index] !== 100) {
-                alert("Please fix the bequest with id: " + index);
-                flag = true;
-            }
-        }
-        if (!flag) {
-            bequestArrObj = table_dataBequest;
-        }
-    }
-
-    function sumValuesBySameIds(containerObject) {
-        let sums = {};
-        containerObject.forEach(obj => {
-            if (sums.hasOwnProperty(obj.id)) {
-                sums[obj.id] += parseFloat(obj.shares);
-            } else {
-                sums[obj.id] = parseFloat(obj.shares);
-            }
-        });
-        return sums;
-    }
 
     const setCurrentRecepient = (eventKey) => {
         if (eventKey === 'add-person') {
@@ -300,46 +282,37 @@ function Bequest({ id, datas, errors }) {
         setShow(true);
     };
 
-    //Manage event on table dropdowns
+    // Gestiona la selección en la tabla
     const handleSelect = (selectedItem) => {
         setSelectedBackup(selectedItem);
-        // Actualiza el valor en tableDataBequest
-        const updatedBequests = [...tableDataBequest];
+        const updatedBequests = [...table_dataBequest];
         updatedBequests[index].names = selectedItem;
-        setTableDataBequest(updatedBequests);
+        setTable_dataBequest(updatedBequests);
     };
 
     const handleDelete = (itemId) => {
-        setBequestToDelete(itemId); // Establecer el ID del bequest a eliminar
+        setBequestToDelete(itemId);
         setShowDeleteModal(true);
     };
 
     const confirmDelete = () => {
-        setToastMessage('Bequest removed succesfully')
+        setToastMessage('Bequest removed successfully');
         setTimeout(() => {
-            setToastMessage('')
-        }, 4000)
+            setToastMessage('');
+        }, 4000);
 
-        setShowToast(true)
+        setShowToast(true);
         if (bequestToDelete !== null) {
-            // Filter out the deleted item
             const updatedBequests = table_dataBequest.filter(obj => obj.id !== bequestToDelete);
 
-            // Update the state
             setTable_dataBequest(updatedBequests);
-
-            // Update the global variable
             bequestArrObj = updatedBequests;
-
-            // Decrease the index
             bequestindex -= 1;
 
-            // Update localStorage
             const storedValues = JSON.parse(localStorage.getItem('formValues')) || {};
             storedValues.bequests = updatedBequests;
             localStorage.setItem('formValues', JSON.stringify(storedValues));
 
-            // Reset and close modal
             setBequestToDelete(null);
             setShowDeleteModal(false);
         }
@@ -355,16 +328,15 @@ function Bequest({ id, datas, errors }) {
         setTable_dataBequest(updatedBequests);
         bequestArrObj = updatedBequests;
 
-        // Save to localStorage
         const storedValues = JSON.parse(localStorage.getItem('formValues')) || {};
         storedValues.bequests = updatedBequests;
         localStorage.setItem('formValues', JSON.stringify(storedValues));
 
-        setToastMessage('Bequest updated successfully')
+        setToastMessage('Bequest updated successfully');
         setTimeout(() => {
-            setToastMessage('')
-        }, 4000)
-        setShowToast(true)
+            setToastMessage('');
+        }, 4000);
+        setShowToast(true);
         setEditingRow(null);
         setTempData({});
     };
@@ -400,7 +372,7 @@ function Bequest({ id, datas, errors }) {
 
         var married_names = married?.firstName && married?.lastName ? married?.firstName + " " + married?.lastName : null;
 
-        if (married_names !== null) { setIsMarried(true) }
+        if (married_names !== null) { setIsMarried(true); }
         if (kidsq === "true") {
             var kids_names = kids?.firstName + " " + kids?.lastName;
             for (let child in kids) {
@@ -422,9 +394,14 @@ function Bequest({ id, datas, errors }) {
         <>
             <Form>
                 <Form.Group className="mb-3" controlId="bequestTextArea">
-
                     <Form.Label style={{ fontWeight: "bold" }}>Bequest:</Form.Label>
-                    <Form.Control as="textarea" rows={3} placeholder="(i.e... Gold chain...)" readOnly={readOnly} />
+                    <Form.Control
+                        as="textarea"
+                        rows={3}
+                        placeholder={isCustomBequest ? "(e.g., Charitable Donation)" : "(i.e... Gold Chain)"}
+                        value={bequestText}
+                        onChange={handleTextAreaChange}
+                    />
                     {validationErrors.bequestItem && <p className="mt-2 text-sm text-red-600">{validationErrors.bequestItem}</p>}
                 </Form.Group>
 
@@ -455,8 +432,6 @@ function Bequest({ id, datas, errors }) {
                             </Button>
                         </Col>
                     </>
-
-
                 )}
                 {!isCustomBequest && (
                     <>
@@ -517,7 +492,14 @@ function Bequest({ id, datas, errors }) {
                         </Row>
                         {validationErrors.backupSameAsBeneficiary && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.backupSameAsBeneficiary}</p>}
                         <Form.Group className="mb-3 text-center mt-12" controlId="sharesID">
-                            <Form.Control readOnly={isSpouseFirst} controlId="sharesInput" className="text-center" type="number" placeholder="100" />
+                            <Form.Control
+                                className="text-center"
+                                type="number"
+                                placeholder="100"
+                                value={sharesInput}
+                                onChange={(e) => setSharesInput(e.target.value)}
+                                readOnly={isSpouseFirst}
+                            />
                             {validationErrors.shares && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.shares}</p>}
                             {validationErrors.sharedBequest && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.sharedBequest}</p>}
                             <Form.Label className="text-center">
@@ -530,7 +512,7 @@ function Bequest({ id, datas, errors }) {
 
                             <Row>
                                 <Col sm={6}>
-                                    <Button style={{ width: "80%", margin: "5%" }} variant="outline-success" onClick={() => addRecepient()} >Add Recepient</Button>
+                                    <Button style={{ width: "80%", margin: "5%" }} variant="outline-success" onClick={() => addRecepient()} >Add Recipient</Button>
                                 </Col>
                                 {/* Eliminar el botón "Add New Beneficiary" */}
                                 {/* <Col sm={6}>
@@ -718,7 +700,7 @@ function Bequest({ id, datas, errors }) {
             <ConfirmationModal
                 show={showDeleteModal}
                 onClose={() => setShowDeleteModal(false)}
-                onConfirm={confirmDelete} // Pasar la función para confirmar la eliminación
+                onConfirm={confirmDelete}
                 message="Are you sure you want to delete this bequest?"
             />
             <CustomToast
