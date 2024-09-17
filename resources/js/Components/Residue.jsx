@@ -1,25 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import Form from 'react-bootstrap/Form';
-import Button from 'react-bootstrap/Button';
-import Table from 'react-bootstrap/Table';
-import InputGroup from 'react-bootstrap/InputGroup';
-import { Dropdown, OverlayTrigger, Tooltip, ButtonGroup, DropdownButton } from 'react-bootstrap';
-import Container from 'react-bootstrap/Container';
-import Col from 'react-bootstrap/Col';
-import Row from 'react-bootstrap/Row';
+import {
+  Container, Dropdown, Row, Col, Form, Button, Table, InputGroup, OverlayTrigger, Tooltip
+} from 'react-bootstrap';
 import ConfirmationModal from './AdditionalComponents/ConfirmationModal';
 import CustomToast from './AdditionalComponents/CustomToast';
+import AddPersonDropdown from './AddPersonDropdown';
+import { validate } from './Validations';
 
-
-var identifiers_names = [];
-var all_data;
-var obj = {};
-var backupBeneficiaryData = [];
-var bequestindex = 1;
+let identifiers_names = [];
+let all_data;
+let obj = {};
+let backupBeneficiaryData = [];
+let bequestindex = 1;
 
 export function getOptObject() {
-  var userSelection = obj.selectedOption;
-  var returnobject = {};
+  const userSelection = obj.selectedOption;
+  let returnobject = {};
   if (userSelection === "Specific Beneficiaries") {
     returnobject = {
       "selected": userSelection,
@@ -41,7 +37,6 @@ export function getOptObject() {
 }
 
 function Residue({ id, datas, errors }) {
-
 
   const marriedStatus = datas[1].marriedq?.selection === "true";
   const sosoStatus = datas[1].marriedq?.selection === "soso";
@@ -65,7 +60,7 @@ function Residue({ id, datas, errors }) {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [residueToDelete, setResidueToDelete] = useState(null);
-
+  const [identifiersNames, setIdentifiersNames] = useState([]);
 
   useEffect(() => {
     setValidationErrors(errors);
@@ -147,27 +142,28 @@ function Residue({ id, datas, errors }) {
 
   useEffect(() => {
     if (firstRender && all_data != null) {
-      identifiers_names = [];
+      let names = [];
       const married = all_data[2]?.married;
       const kids = all_data[4]?.kids;
       const relatives = all_data[5]?.relatives;
       const kidsq = all_data[3].kidsq?.selection;
 
-      var married_names = married?.firstName && married?.lastName ? married?.firstName + " " + married?.lastName : null;
-      identifiers_names.push(married_names);
+      const married_names = married?.firstName && married?.lastName ? married?.firstName + " " + married?.lastName : null;
+      if (married_names) names.push(married_names);
 
       if (kidsq === "true") {
         for (let child in kids) {
-          const names = kids[child]?.firstName + " " + kids[child]?.lastName;
-          identifiers_names.push(names);
+          const childName = kids[child]?.firstName + " " + kids[child]?.lastName;
+          names.push(childName);
         }
       }
 
       for (let key in relatives) {
-        const names = relatives[key].firstName + " " + relatives[key].lastName;
-        identifiers_names.push(names);
+        const relativeName = relatives[key]?.firstName + " " + relatives[key]?.lastName;
+        names.push(relativeName);
       }
 
+      setIdentifiersNames(names);
       setFirstRender(false);
     }
   }, [firstRender, all_data]);
@@ -203,28 +199,36 @@ function Residue({ id, datas, errors }) {
     setValidationErrors({});
   };
 
-  const handleSelectBeneficiary = (key) => {
-    obj = { ...obj, selectedBeneficiary: key };
+  const handleSelectBeneficiary = (value) => {
+    obj = { ...obj, selectedBeneficiary: value };
     setSelected(obj);
+    setValidationErrors(prevErrors => ({ ...prevErrors, identifiers: '' }));
   };
 
-  const handleSelectBackup = (key) => {
-    obj = { ...obj, selectedBackup: key };
+  const handleSelectBackup = (value) => {
+    obj = { ...obj, selectedBackup: value };
     setSelected(obj);
+    setValidationErrors(prevErrors => ({ ...prevErrors, identifiers: '' }));
   };
 
+  const handleAddPerson = (newPerson) => {
+    const name = `${newPerson.firstName} ${newPerson.lastName}`;
+    setIdentifiersNames(prevNames => [...prevNames, name]);
+
+    let len = Object.keys(datas[5].relatives).length;
+    datas[5].relatives[len] = newPerson;
+  };
 
   const AddBackupButton = () => {
     setValidationErrors({});
-    var shares = document.getElementById('basic-url').value;
-    shares = Number(shares);
-    var totalShares = backupBeneficiaryData.length > 0
+    let shares = Number(document.getElementById('basic-url').value);
+    let totalShares = backupBeneficiaryData.length > 0
       ? shares + backupBeneficiaryData?.map(backup => backup.shares).reduce((a, b) => a + b)
       : shares;
 
-    var beneficiary = selected.selectedBeneficiary || null;
-    var backup = selected.selectedBackup || null;
-    var selectedType = selectedOption === 'A' ? 'per stirpes' : (selectedOption === 'B' ? 'per capita' : null);
+    const beneficiary = selected.selectedBeneficiary || null;
+    const backup = selected.selectedBackup || null;
+    const selectedType = selectedOption === 'A' ? 'per stirpes' : (selectedOption === 'B' ? 'per capita' : null);
 
     let newErrors = {};
 
@@ -240,24 +244,20 @@ function Residue({ id, datas, errors }) {
       newErrors.backupType = 'Backup type is required';
     }
 
-    if (shares === 0) {
+    if (!Number(shares) || shares <= 0) {
       newErrors.shares = 'Shares for backup must be a valid percent';
     }
 
-    if (!Number(shares)) {
-      newErrors.shares = 'Shares for backup must be a Number';
-    }
-
     if (shares > 100 || totalShares > 100) {
-      newErrors.shares = 'Shares for backup must be equal to 100%';
+      newErrors.shares = 'Total shares must not exceed 100%';
     }
 
     if (Object.keys(newErrors).length > 0) {
       setValidationErrors(newErrors);
-      return null;
+      return;
     }
 
-    var objtopush = {
+    const objToPush = {
       "id": bequestindex,
       "beneficiary": beneficiary,
       "backup": backup,
@@ -265,7 +265,7 @@ function Residue({ id, datas, errors }) {
       "shares": shares
     };
 
-    backupBeneficiaryData.push(objtopush);
+    backupBeneficiaryData.push(objToPush);
     setTable_dataBequest([...backupBeneficiaryData]);
     bequestindex++;
     setAvailableShares(100 - totalShares);
@@ -305,7 +305,6 @@ function Residue({ id, datas, errors }) {
     setTempEditData(null);
   };
 
-
   const handleCancel = () => {
     setEditingRow(null);
     setTempEditData(null);
@@ -328,7 +327,7 @@ function Residue({ id, datas, errors }) {
         : 100;
       setAvailableShares(totalShares);
 
-      // Actualizar localStorage
+      // Update localStorage
       const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
       formValues.residue = {
         ...formValues.residue,
@@ -365,7 +364,6 @@ function Residue({ id, datas, errors }) {
       {props.type === 'per capita' ? 'Distribute shares equally among all beneficiaries.' : 'Distribute shares according to the number of descendants per line.'}
     </Tooltip>
   );
-
 
   return (
     <Container>
@@ -408,49 +406,32 @@ function Residue({ id, datas, errors }) {
                 <p>Please select a beneficiary for the residue following with a backup beneficiary</p>
               </Col>
             </Row>
-            <Row >
+            <Row>
               <Col sm={12}>
-                <Dropdown onSelect={handleSelectBeneficiary} style={{ width: '100%' }}>
-                  <Dropdown.Toggle style={{ width: '100%' }} variant="outline-dark" id="dropdown-basic-button">
-                    {
-                      selected.selectedBeneficiary != null
-                        ? <><strong>Selected Beneficiary:</strong> {selected.selectedBeneficiary}</>
-                        : 'Select beneficiary'
-                    }
-                  </Dropdown.Toggle>
-                  <Dropdown.Menu className={'text-center'} style={{ width: '100%' }}>
-                    {identifiers_names.map((option, index) => (
-                      <Dropdown.Item key={index} eventKey={option}>
-                        {option}
-                      </Dropdown.Item>
-                    ))}
-                  </Dropdown.Menu>
-                </Dropdown>
+                <AddPersonDropdown
+                  options={identifiersNames}
+                  label="Select beneficiary"
+                  selected={selected.selectedBeneficiary}
+                  onSelect={handleSelectBeneficiary}
+                  onAddPerson={handleAddPerson}
+                  validationErrors={validationErrors}
+                  setValidationErrors={setValidationErrors}
+                />
               </Col>
             </Row>
             <Row className='mt-3'>
               <Col sm={12}>
-
-                <Dropdown onSelect={handleSelectBackup} style={{ width: '100%' }}>
-                  <Dropdown.Toggle style={{ width: '100%' }} variant="outline-dark" id="dropdown-basic-button">
-                    {
-                      selected.selectedBackup != null
-                        ? <><strong>Selected Backup:</strong> {selected.selectedBackup}</>
-                        : 'Select backup'
-                    }
-                  </Dropdown.Toggle>
-                  <Dropdown.Menu className={'text-center'} style={{ width: '100%' }}>
-                    {identifiers_names.map((option, index) => (
-                      <Dropdown.Item key={index} eventKey={option}>
-                        {option}
-                      </Dropdown.Item>
-                    ))}
-                  </Dropdown.Menu>
-                </Dropdown>
-
+                <AddPersonDropdown
+                  options={identifiersNames}
+                  label="Select backup"
+                  selected={selected.selectedBackup}
+                  onSelect={handleSelectBackup}
+                  onAddPerson={handleAddPerson}
+                  validationErrors={validationErrors}
+                  setValidationErrors={setValidationErrors}
+                />
                 {validationErrors.identifiers && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.identifiers}</p>}
               </Col>
-
             </Row>
             <Row>
               <Col sm={12}>
@@ -531,32 +512,30 @@ function Residue({ id, datas, errors }) {
                           <td>{item.id}</td>
                           <td>
                             {editingRow === index ? (
-                              <Dropdown onSelect={(eventKey) => handleDropdownSelect(index, 'beneficiary', eventKey)}>
-                                <Dropdown.Toggle variant="outline-dark" id={`dropdown-beneficiary-${index}`}>
-                                  {tempEditData.beneficiary || 'Select Beneficiary'}
-                                </Dropdown.Toggle>
-                                <Dropdown.Menu>
-                                  {identifiers_names.map((name, idx) => (
-                                    <Dropdown.Item key={idx} eventKey={name}>{name}</Dropdown.Item>
-                                  ))}
-                                </Dropdown.Menu>
-                              </Dropdown>
+                              <AddPersonDropdown
+                                options={identifiersNames}
+                                label="Select beneficiary"
+                                selected={tempEditData.beneficiary}
+                                onSelect={(value) => handleDropdownSelect(index, 'beneficiary', value)}
+                                onAddPerson={handleAddPerson}
+                                validationErrors={validationErrors}
+                                setValidationErrors={setValidationErrors}
+                              />
                             ) : (
                               item.beneficiary
                             )}
                           </td>
                           <td>
                             {editingRow === index ? (
-                              <Dropdown onSelect={(eventKey) => handleDropdownSelect(index, 'backup', eventKey)}>
-                                <Dropdown.Toggle variant="outline-dark" id={`dropdown-backup-${index}`}>
-                                  {tempEditData.backup || 'Select Backup'}
-                                </Dropdown.Toggle>
-                                <Dropdown.Menu>
-                                  {identifiers_names.map((name, idx) => (
-                                    <Dropdown.Item key={idx} eventKey={name}>{name}</Dropdown.Item>
-                                  ))}
-                                </Dropdown.Menu>
-                              </Dropdown>
+                              <AddPersonDropdown
+                                options={identifiersNames}
+                                label="Select backup"
+                                selected={tempEditData.backup}
+                                onSelect={(value) => handleDropdownSelect(index, 'backup', value)}
+                                onAddPerson={handleAddPerson}
+                                validationErrors={validationErrors}
+                                setValidationErrors={setValidationErrors}
+                              />
                             ) : (
                               item.backup
                             )}
@@ -607,7 +586,6 @@ function Residue({ id, datas, errors }) {
                 </Table>
               </Col>
             </Row>
-
           </>
         )}
         {custom && (
@@ -648,6 +626,4 @@ function Residue({ id, datas, errors }) {
   );
 }
 
-export default Residue
-
-
+export default Residue;
