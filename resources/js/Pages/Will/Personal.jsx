@@ -664,6 +664,7 @@ export default function Personal({ auth }) {
     };
 
 
+
     // Function to determine if a step is clickable in the breadcrumb navigation
     const isStepClickable = (index) => {
         // Prevent navigating to other steps until Personal Information is completed
