@@ -8,7 +8,7 @@ import { Listbox, Transition } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import Form from 'react-bootstrap/Form';
 
-var selected_value = "";
+let selected_value = "";
 export function getMarriedData() {
     return selected_value;
 }
@@ -27,6 +27,7 @@ function Married({ humanSelector }) {
         }
     });
 
+    selected_value = selected
     useEffect(() => {
         const key = 'formValues';
         const savedValues = localStorage.getItem(key);
@@ -56,7 +57,7 @@ function Married({ humanSelector }) {
                                 id="1"
                                 label="Yes I am Married"
                                 value="true"
-                                checked={selected === "true"}
+                                checked={selected == "true"}
                                 onChange={handleOptionChange}
                             />
                             <Form.Check
@@ -64,7 +65,7 @@ function Married({ humanSelector }) {
                                 id="2"
                                 label="No I am not Married"
                                 value="false"
-                                checked={selected === "false"}
+                                checked={selected == "false"}
                                 onChange={handleOptionChange}
                             />
                             <Form.Check
@@ -72,7 +73,7 @@ function Married({ humanSelector }) {
                                 id="3"
                                 label="I am in a common law relationship"
                                 value="soso"
-                                checked={selected === "soso"}
+                                checked={selected == "soso"}
                                 onChange={handleOptionChange}
                             />
                         </div>
@@ -89,7 +90,7 @@ function Married({ humanSelector }) {
                                 id="4"
                                 label="I do have kids"
                                 value="true"
-                                checked={selected === "true"}
+                                checked={selected == "true"}
                                 onChange={handleOptionChange}
                             />
                             <Form.Check
@@ -97,7 +98,7 @@ function Married({ humanSelector }) {
                                 id="5"
                                 label="I do not have kids"
                                 value="false"
-                                checked={selected === "false"}
+                                checked={selected == "false"}
                                 onChange={handleOptionChange}
                             />
                         </div>
