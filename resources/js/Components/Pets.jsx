@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Button, Container, Row, Col, Table, Dropdown } from 'react-bootstrap';
+import { Form, Button, Container, Row, Col, Table } from 'react-bootstrap';
 import FloatingLabel from 'react-bootstrap/FloatingLabel';
 import ConfirmationModal from './AdditionalComponents/ConfirmationModal';
 import CustomToast from './AdditionalComponents/CustomToast';
+import AddPersonDropdown from './AddPersonDropdown';
+import { validate } from './Validations';
 
 let guardianDataStack = [];
 
@@ -16,6 +18,7 @@ function Pets({ datas, errors }) {
     const [petGuardianData, setPetGuardianData] = useState([]);
     const [validationErrors, setValidationErrors] = useState(errors);
     const [tableData, setTableData] = useState([]);
+    const [identifiersNames, setIdentifiersNames] = useState([]);
     const [idTable, setIdTable] = useState(1);
     const [editingRow, setEditingRow] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -27,48 +30,56 @@ function Pets({ datas, errors }) {
     useEffect(() => {
         setValidationErrors(errors);
     }, [errors]);
+
     useEffect(() => {
         if (datas != null) {
             let newTableData = [];
             let newId = 1;
+            let namesList = [];
 
             datas.forEach(element => {
                 if (element?.married?.firstName && element.married?.lastName && element.married?.relative !== "NA") {
+                    const fullName = `${element.married.firstName} ${element.married.lastName}`;
                     newTableData.push({
                         id: newId++,
-                        firstName: element.married?.firstName,
-                        lastName: element.married?.lastName,
-                        relative: element.married?.relative
+                        firstName: element.married.firstName,
+                        lastName: element.married.lastName,
+                        relative: element.married.relative
                     });
+                    namesList.push(fullName);
                 }
                 if (element?.relatives) {
                     element.relatives.forEach(relative => {
+                        const fullName = `${relative.firstName} ${relative.lastName}`;
                         newTableData.push({
                             id: newId++,
-                            firstName: relative?.firstName,
-                            lastName: relative?.lastName,
-                            relative: relative?.relative
+                            firstName: relative.firstName,
+                            lastName: relative.lastName,
+                            relative: relative.relative
                         });
+                        namesList.push(fullName);
                     });
                 }
             });
 
             if (datas[3]?.kidsq?.selection === "true") {
                 Object.values(datas[4]?.kids || []).forEach(child => {
+                    const fullName = `${child.firstName} ${child.lastName}`;
                     newTableData.push({
                         id: newId++,
                         firstName: child.firstName,
                         lastName: child.lastName,
                         relative: child.relative
                     });
+                    namesList.push(fullName);
                 });
             }
 
             setTableData(newTableData);
+            setIdentifiersNames(namesList);
             setIdTable(newId);
         }
     }, [datas]);
-
 
     useEffect(() => {
         const savedData = JSON.parse(localStorage.getItem('formValues'));
@@ -85,18 +96,38 @@ function Pets({ datas, errors }) {
         localStorage.setItem('formValues', JSON.stringify(formValues));
     };
 
-    const handleSubmit = (e) => {
+    const handleAddPerson = (newPerson) => {
+        const fullName = `${newPerson.firstName} ${newPerson.lastName}`;
+        setIdentifiersNames(prevNames => [...prevNames, fullName]);
+
+        // Also add to tableData
+        setTableData(prevData => [...prevData, {
+            id: idTable,
+            firstName: newPerson.firstName,
+            lastName: newPerson.lastName,
+            relative: newPerson.relative
+        }]);
+        setIdTable(prevId => prevId + 1);
+
+        // Also update datas[5].relatives
+        let len = datas[5]?.relatives?.length || 0;
+        if (!datas[5]) datas[5] = {};
+        if (!datas[5].relatives) datas[5].relatives = [];
+        datas[5].relatives[len] = newPerson;
+    };
+
+    const handleSubmit = () => {
         setValidationErrors({});
-        var amountid = document.getElementById('amountId').value;
+        let amountid = document.getElementById('amountId').value;
         if (amountid !== "" && amountid !== null) {
             amountid = parseFloat(amountid);
         }
-        var obj = {
+        const obj = {
             "id": idTable,
             "guardian": selectedOptionGuardian,
             "backup": selectedOptionBackup,
             "amount": amountid
-        }
+        };
 
         let newErrors = {};
         if (!Number(amountid) || Number(amountid) <= 0 || selectedOptionGuardian === '' || selectedOptionBackup === '' || selectedOptionBackup === selectedOptionGuardian) {
@@ -117,7 +148,7 @@ function Pets({ datas, errors }) {
             }
 
             setValidationErrors(newErrors);
-            return null;
+            return;
         }
 
         if (obj) {
@@ -184,34 +215,28 @@ function Pets({ datas, errors }) {
                     <Form>
                         <Form.Group controlId="formGuardian">
                             <Form.Label>Select Primary Guardian </Form.Label>
-                            <Dropdown onSelect={(eventKey) => setSelectedOptionGuardian(eventKey)}>
-                                <Dropdown.Toggle className="w-[100%]" variant="outline-dark" id="dropdown-guardian">
-                                    {selectedOptionGuardian || 'Choose...'}
-                                </Dropdown.Toggle>
-                                <Dropdown.Menu className="w-[100%]" >
-                                    {tableData.map((name, index) => (
-                                        <Dropdown.Item className="w-[100%] text-center" key={index} eventKey={`${name.firstName} ${name.lastName}`}>
-                                            {name.firstName + ' ' + name.lastName}
-                                        </Dropdown.Item>
-                                    ))}
-                                </Dropdown.Menu>
-                            </Dropdown>
+                            <AddPersonDropdown
+                                options={identifiersNames}
+                                label="Choose..."
+                                selected={selectedOptionGuardian}
+                                onSelect={(value) => setSelectedOptionGuardian(value)}
+                                onAddPerson={handleAddPerson}
+                                validationErrors={validationErrors}
+                                setValidationErrors={setValidationErrors}
+                            />
                             {validationErrors.guardian && <p className="mt-2 text-sm text-danger">{validationErrors.guardian}</p>}
                         </Form.Group>
                         <Form.Group controlId="formBackup">
                             <Form.Label>Select Backup </Form.Label>
-                            <Dropdown onSelect={(eventKey) => setSelectedOptionBackup(eventKey)}>
-                                <Dropdown.Toggle className="w-[100%]" variant="outline-dark" id="dropdown-backup">
-                                    {selectedOptionBackup || 'Choose...'}
-                                </Dropdown.Toggle>
-                                <Dropdown.Menu className="w-[100%]" >
-                                    {tableData.map((name, index) => (
-                                        <Dropdown.Item className="w-[100%] text-center" key={index} eventKey={`${name.firstName} ${name.lastName}`}>
-                                            {name.firstName + ' ' + name.lastName}
-                                        </Dropdown.Item>
-                                    ))}
-                                </Dropdown.Menu>
-                            </Dropdown>
+                            <AddPersonDropdown
+                                options={identifiersNames}
+                                label="Choose..."
+                                selected={selectedOptionBackup}
+                                onSelect={(value) => setSelectedOptionBackup(value)}
+                                onAddPerson={handleAddPerson}
+                                validationErrors={validationErrors}
+                                setValidationErrors={setValidationErrors}
+                            />
                             {validationErrors.backup && <p className="mt-2 text-sm text-danger">{validationErrors.backup}</p>}
                         </Form.Group>
                         <br />
@@ -248,36 +273,30 @@ function Pets({ datas, errors }) {
                                 <td>{item.id}</td>
                                 <td>
                                     {editingRow === index ? (
-                                        <Dropdown onSelect={(eventKey) => handleDropdownSelect('guardian', eventKey)}>
-                                            <Dropdown.Toggle className="w-[100%]" variant="outline-dark" id={`dropdown-guardian-${index}`}>
-                                                {tempData.guardian || 'Choose...'}
-                                            </Dropdown.Toggle>
-                                            <Dropdown.Menu>
-                                                {tableData.map((name, idx) => (
-                                                    <Dropdown.Item key={idx} eventKey={`${name.firstName} ${name.lastName}`}>
-                                                        {name.firstName + ' ' + name.lastName}
-                                                    </Dropdown.Item>
-                                                ))}
-                                            </Dropdown.Menu>
-                                        </Dropdown>
+                                        <AddPersonDropdown
+                                            options={identifiersNames}
+                                            label="Choose..."
+                                            selected={tempData.guardian}
+                                            onSelect={(value) => handleDropdownSelect('guardian', value)}
+                                            onAddPerson={handleAddPerson}
+                                            validationErrors={validationErrors}
+                                            setValidationErrors={setValidationErrors}
+                                        />
                                     ) : (
                                         item.guardian
                                     )}
                                 </td>
                                 <td>
                                     {editingRow === index ? (
-                                        <Dropdown onSelect={(eventKey) => handleDropdownSelect('backup', eventKey)}>
-                                            <Dropdown.Toggle className="w-[100%]" variant="outline-dark" id={`dropdown-backup-${index}`}>
-                                                {tempData.backup || 'Choose...'}
-                                            </Dropdown.Toggle>
-                                            <Dropdown.Menu>
-                                                {tableData.map((name, idx) => (
-                                                    <Dropdown.Item key={idx} eventKey={`${name.firstName} ${name.lastName}`}>
-                                                        {name.firstName + ' ' + name.lastName}
-                                                    </Dropdown.Item>
-                                                ))}
-                                            </Dropdown.Menu>
-                                        </Dropdown>
+                                        <AddPersonDropdown
+                                            options={identifiersNames}
+                                            label="Choose..."
+                                            selected={tempData.backup}
+                                            onSelect={(value) => handleDropdownSelect('backup', value)}
+                                            onAddPerson={handleAddPerson}
+                                            validationErrors={validationErrors}
+                                            setValidationErrors={setValidationErrors}
+                                        />
                                     ) : (
                                         item.backup
                                     )}
