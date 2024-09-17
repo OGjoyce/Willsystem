@@ -429,7 +429,7 @@ function Bequest({ id, datas, errors }) {
                 </Form.Group>
 
                 <Form.Check
-                    className='mb-6'
+                    className='mb-6 hidden'
                     type="checkbox"
                     id="custom-bequest-checkbox"
                     label="Custom Bequest"
