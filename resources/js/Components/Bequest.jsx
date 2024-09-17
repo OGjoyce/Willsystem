@@ -106,16 +106,8 @@ function Bequest({ id, datas, errors }) {
         if (bequest === "" || selected === null || backup === null || shares === "" || shares > 100 || shares <= 0 || selected === backup) {
             let newErrors = {};
 
-            if (backup === null) {
-                newErrors.backup = "Backup selection is required";
-            }
             if (selected === null) {
                 newErrors.beneficiary = "Beneficiary selection is required";
-            }
-            if (selected === null && backup === null) {
-                delete newErrors.beneficiary
-                delete newErrors.backup
-                newErrors.beneficiaryAndBackup = "Beneficiary and Backup are required";
             }
             if (bequest === "") {
                 newErrors.bequestItem = "Please add a bequest in the section above";
@@ -142,7 +134,7 @@ function Bequest({ id, datas, errors }) {
             var obj = {
                 "id": bequestindex + 1,
                 "names": selected,
-                "backup": backup,
+                "backup": backup || "NA",
                 "shares": shares,
                 "bequest": bequest,
                 "isCustom": isCustomBequest,
@@ -523,9 +515,7 @@ function Bequest({ id, datas, errors }) {
                                 </Dropdown>
                             </Col>
                         </Row>
-                        {validationErrors.beneficiaryAndBackup && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.beneficiaryAndBackup}</p>}
                         {validationErrors.backupSameAsBeneficiary && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.backupSameAsBeneficiary}</p>}
-                        {validationErrors.backup && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.backup}</p>}
                         <Form.Group className="mb-3 text-center mt-12" controlId="sharesID">
                             <Form.Control readOnly={isSpouseFirst} controlId="sharesInput" className="text-center" type="number" placeholder="100" />
                             {validationErrors.shares && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.shares}</p>}
