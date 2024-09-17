@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Form, Dropdown, Button, Table, Card, Tabs, Tab, Modal, OverlayTrigger, Tooltip, Popover } from 'react-bootstrap';
+import {
+    Container, Row, Col, Form, Button, Table, Card, Tabs, Tab, OverlayTrigger, Tooltip, Popover
+} from 'react-bootstrap';
 import ConfirmationModal from './AdditionalComponents/ConfirmationModal';
 import CustomToast from './AdditionalComponents/CustomToast';
+import AddPersonDropdown from './AddPersonDropdown';
+import { validate } from './Validations';
 
 let poaData = {
     poaProperty: null,
@@ -86,8 +90,18 @@ const Poa = ({ datas, errors }) => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleDropdownSelect = (field, value) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
+    const handleSelectAttorney = (value) => {
+        setFormData(prev => ({ ...prev, attorney: value }));
+        setValidationErrors(prevErrors => ({ ...prevErrors, attorney: '' }));
+    };
+
+    const handleAddPerson = (newPerson) => {
+        const name = `${newPerson.firstName} ${newPerson.lastName}`;
+        setIdentifiersNames(prevNames => [...prevNames, name]);
+
+        if (!datas[5]) datas[5] = {};
+        if (!datas[5].relatives) datas[5].relatives = [];
+        datas[5].relatives.push(newPerson);
     };
 
     const addBackup = () => {
@@ -101,6 +115,7 @@ const Poa = ({ datas, errors }) => {
         const newBackups = [...formData.backups];
         newBackups[index] = value;
         setFormData(prev => ({ ...prev, backups: newBackups }));
+        setValidationErrors(prevErrors => ({ ...prevErrors, backups: '' }));
     };
 
     const handleDeleteBackup = (index) => {
@@ -110,6 +125,21 @@ const Poa = ({ datas, errors }) => {
 
     const handleSubmit = () => {
         setValidationErrors({});
+
+        let errors = {};
+
+        if (!formData.attorney) {
+            errors.attorney = 'Attorney is required';
+        }
+
+        if (formData.backups.includes(formData.attorney)) {
+            errors.backups = 'Backup cannot be the same as the attorney';
+        }
+
+        if (Object.values(errors).length > 0) {
+            setValidationErrors(errors);
+            return;
+        }
 
         const newPoa = { ...formData };
         if (activeTab === 'Property') {
@@ -174,9 +204,28 @@ const Poa = ({ datas, errors }) => {
             ...currentPoa,
             backups: currentPoa.backups || []
         });
+        if (type === 'Health') {
+            setOrganDonation(poaData.organDonation);
+            setDnr(poaData.dnr);
+        }
     };
 
     const handleSave = () => {
+        let errors = {};
+
+        if (!tempData.attorney) {
+            errors.attorney = 'Attorney is required';
+        }
+
+        if (tempData.backups.includes(tempData.attorney)) {
+            errors.backups = 'Backup cannot be the same as the attorney';
+        }
+
+        if (Object.values(errors).length > 0) {
+            setValidationErrors(errors);
+            return;
+        }
+
         const updatedPoa = {
             attorney: tempData.attorney,
             backups: tempData.backups,
@@ -236,17 +285,16 @@ const Poa = ({ datas, errors }) => {
                             <Col sm={12}>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Attorney</Form.Label>
-                                    <Dropdown onSelect={(eventKey) => handleDropdownSelect('attorney', eventKey)}>
-                                        <Dropdown.Toggle variant="outline-dark" id="dropdown-attorney" className="w-100">
-                                            {formData.attorney || 'Select attorney...'}
-                                        </Dropdown.Toggle>
-                                        <Dropdown.Menu className="w-100 text-center">
-                                            {identifiersNames.map((name, index) => (
-                                                <Dropdown.Item key={index} eventKey={name}>{name}</Dropdown.Item>
-                                            ))}
-                                        </Dropdown.Menu>
-                                    </Dropdown>
-                                    <Form.Control.Feedback type="invalid">{validationErrors.attorney}</Form.Control.Feedback>
+                                    <AddPersonDropdown
+                                        options={identifiersNames}
+                                        label="Select attorney..."
+                                        selected={formData.attorney}
+                                        onSelect={handleSelectAttorney}
+                                        onAddPerson={handleAddPerson}
+                                        validationErrors={validationErrors}
+                                        setValidationErrors={setValidationErrors}
+                                    />
+                                    {validationErrors.attorney && <p className="text-danger">{validationErrors.attorney}</p>}
                                 </Form.Group>
                             </Col>
                         </Row>
@@ -255,16 +303,15 @@ const Poa = ({ datas, errors }) => {
                             <Form.Label>Backups (optional):</Form.Label>
                             {formData.backups.map((backup, index) => (
                                 <div key={index} className="d-flex align-items-center mb-2">
-                                    <Dropdown className="flex-grow-1" onSelect={(eventKey) => handleBackupChange(index, eventKey)}>
-                                        <Dropdown.Toggle variant="outline-secondary" id={`dropdown-backup-${index}`} className="w-100  ">
-                                            {backup || `Select backup ${index + 1}...`}
-                                        </Dropdown.Toggle>
-                                        <Dropdown.Menu className="w-100 text-center">
-                                            {identifiersNames.map((name, idx) => (
-                                                <Dropdown.Item key={idx} eventKey={name}>{name}</Dropdown.Item>
-                                            ))}
-                                        </Dropdown.Menu>
-                                    </Dropdown>
+                                    <AddPersonDropdown
+                                        options={identifiersNames}
+                                        label={`Select backup ${index + 1}...`}
+                                        selected={backup}
+                                        onSelect={(value) => handleBackupChange(index, value)}
+                                        onAddPerson={handleAddPerson}
+                                        validationErrors={validationErrors}
+                                        setValidationErrors={setValidationErrors}
+                                    />
                                     <Button variant="outline-danger" onClick={() => handleDeleteBackup(index)} className="ms-2">
                                         <i className="bi bi-trash me-2"></i>Delete
                                     </Button>
@@ -274,7 +321,7 @@ const Poa = ({ datas, errors }) => {
                             <Button variant="outline-secondary" onClick={addBackup} className="mt-2 w-100">
                                 <i className="bi bi-plus-circle me-2"></i>Add Backup
                             </Button>
-                            <Form.Control.Feedback type="invalid">{validationErrors.backups}</Form.Control.Feedback>
+                            {validationErrors.backups && <p className="text-danger">{validationErrors.backups}</p>}
                         </Form.Group>
 
                         <Form.Group className="mb-3">
@@ -286,9 +333,7 @@ const Poa = ({ datas, errors }) => {
                                 value={formData.restrictions}
                                 onChange={handleInputChange}
                                 placeholder="Enter restrictions..."
-                                isInvalid={!!validationErrors.restrictions}
                             />
-                            <Form.Control.Feedback type="invalid">{validationErrors.restrictions}</Form.Control.Feedback>
                         </Form.Group>
 
                         {type === 'Health' && (
@@ -406,31 +451,34 @@ const Poa = ({ datas, errors }) => {
                                         <tr key={type}>
                                             <td>{type}</td>
                                             <td>{editingType === type ?
-                                                <Dropdown onSelect={(eventKey) => setTempData({ ...tempData, attorney: eventKey })}>
-                                                    <Dropdown.Toggle variant="outline-dark" className="w-100">{tempData.attorney}</Dropdown.Toggle>
-                                                    <Dropdown.Menu className="w-100">
-                                                        {identifiersNames.map((name, idx) => (
-                                                            <Dropdown.Item key={idx} eventKey={name}>{name}</Dropdown.Item>
-                                                        ))}
-                                                    </Dropdown.Menu>
-                                                </Dropdown> : item.attorney}
+                                                <AddPersonDropdown
+                                                    options={identifiersNames}
+                                                    label="Select attorney..."
+                                                    selected={tempData.attorney}
+                                                    onSelect={(value) => setTempData({ ...tempData, attorney: value })}
+                                                    onAddPerson={handleAddPerson}
+                                                    validationErrors={validationErrors}
+                                                    setValidationErrors={setValidationErrors}
+                                                />
+                                                : item.attorney}
                                             </td>
                                             <td>{editingType === type ?
                                                 <>
                                                     {tempData.backups.map((backup, idx) => (
                                                         <div key={idx} className="d-flex align-items-center mb-2">
-                                                            <Dropdown className="flex-grow-1" onSelect={(eventKey) => {
-                                                                const newBackups = [...tempData.backups];
-                                                                newBackups[idx] = eventKey;
-                                                                setTempData({ ...tempData, backups: newBackups });
-                                                            }}>
-                                                                <Dropdown.Toggle variant="outline-dark" className="w-100">{backup}</Dropdown.Toggle>
-                                                                <Dropdown.Menu className="w-100">
-                                                                    {identifiersNames.map((name, nameIdx) => (
-                                                                        <Dropdown.Item key={nameIdx} eventKey={name}>{name}</Dropdown.Item>
-                                                                    ))}
-                                                                </Dropdown.Menu>
-                                                            </Dropdown>
+                                                            <AddPersonDropdown
+                                                                options={identifiersNames}
+                                                                label={`Select backup ${idx + 1}...`}
+                                                                selected={backup}
+                                                                onSelect={(value) => {
+                                                                    const newBackups = [...tempData.backups];
+                                                                    newBackups[idx] = value;
+                                                                    setTempData({ ...tempData, backups: newBackups });
+                                                                }}
+                                                                onAddPerson={handleAddPerson}
+                                                                validationErrors={validationErrors}
+                                                                setValidationErrors={setValidationErrors}
+                                                            />
                                                             <Button variant="outline-danger" onClick={() => {
                                                                 const newBackups = [...tempData.backups];
                                                                 newBackups.splice(idx, 1);
@@ -448,6 +496,7 @@ const Poa = ({ datas, errors }) => {
                                                     >
                                                         <i className="bi bi-plus-circle me-2"></i>Add Backup
                                                     </Button>
+                                                    {validationErrors.backups && <p className="text-danger">{validationErrors.backups}</p>}
                                                 </>
                                                 : item.backups.join(', ')}
                                             </td>
@@ -468,15 +517,12 @@ const Poa = ({ datas, errors }) => {
                                                         </>
                                                     ) : (
                                                         <>
-
                                                             <Button variant="outline-warning" size="sm" onClick={() => handleEdit(type)} className="me-1 w-50">
                                                                 <i className="bi bi-pencil me-1"></i>Edit
                                                             </Button>
-
                                                             <Button variant="outline-danger" size="sm" onClick={() => handleDelete(type)} className="w-50">
                                                                 <i className="bi bi-trash me-1"></i>Delete
                                                             </Button>
-
                                                         </>
                                                     )}
                                                 </div>
