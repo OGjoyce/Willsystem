@@ -263,11 +263,19 @@ function Bequest({ id, datas, errors }) {
     }
 
     const setCurrentRecepient = (eventKey) => {
-        setSelectedRecepient(eventKey);
+        if (eventKey === 'add-person') {
+            handleShow();
+        } else {
+            setSelectedRecepient(eventKey);
+        }
     };
 
     const setCurrentBackup = (eventKey) => {
-        setSelectedBackup(eventKey);
+        if (eventKey === 'add-person') {
+            handleShow();
+        } else {
+            setSelectedBackup(eventKey);
+        }
     };
 
     const handleClose = () => {
@@ -296,7 +304,7 @@ function Bequest({ id, datas, errors }) {
     };
 
     const handleShow = () => {
-        console.log("nice");
+        console.log("Opening Add Human Modal");
         setShow(true);
     };
 
@@ -486,6 +494,8 @@ function Bequest({ id, datas, errors }) {
                                         {identifiers_names.map(size => (
                                             <DropdownItem key={size} eventKey={size}>{size}</DropdownItem>
                                         ))}
+                                        <Dropdown.Divider />
+                                        <DropdownItem eventKey='add-person' className='text-primary'>Add Person</DropdownItem>
                                     </Dropdown.Menu>
                                 </Dropdown>
                             </Col>
@@ -507,6 +517,8 @@ function Bequest({ id, datas, errors }) {
                                         {identifiers_names.map(size => (
                                             <DropdownItem key={size} eventKey={size}>{size}</DropdownItem>
                                         ))}
+                                        <Dropdown.Divider />
+                                        <DropdownItem eventKey='add-person' className='text-primary'>Add Person</DropdownItem>
                                     </Dropdown.Menu>
                                 </Dropdown>
                             </Col>
@@ -519,7 +531,7 @@ function Bequest({ id, datas, errors }) {
                             {validationErrors.shares && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.shares}</p>}
                             {validationErrors.sharedBequest && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.sharedBequest}</p>}
                             <Form.Label className="text-center">
-                                <i class="bi bi-exclamation-circle text-danger mx-2"></i>
+                                <i className="bi bi-exclamation-circle text-danger mx-2"></i>
                                 {isSpouseFirst
                                     ? 'If the bequest is allocated to the spouse first, they receive 100% of it.'
                                     : 'The total shares for each bequest, distributed among all recipients, must sum to 100%.'
@@ -530,9 +542,10 @@ function Bequest({ id, datas, errors }) {
                                 <Col sm={6}>
                                     <Button style={{ width: "80%", margin: "5%" }} variant="outline-success" onClick={() => addRecepient()} >Add Recepient</Button>
                                 </Col>
-                                <Col sm={6}>
+                                {/* Eliminar el botón "Add New Beneficiary" */}
+                                {/* <Col sm={6}>
                                     <Button style={{ width: "80%", margin: "5%" }} variant="outline-info" onClick={() => handleShow()}>Add New Beneficiary</Button>
-                                </Col>
+                                </Col> */}
                             </Row>
                             <Row>
                                 <Col sm={12}>
