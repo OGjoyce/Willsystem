@@ -77,6 +77,7 @@ export default function Personal({ auth }) {
 
     const username = auth.user.name;
 
+    // Load saved data from localStorage on component mount
     useEffect(() => {
         const savedData = localStorage.getItem('fullData');
         const savedPointer = localStorage.getItem('currentPointer');
@@ -103,6 +104,7 @@ export default function Personal({ auth }) {
         }
     }, []);
 
+    // Show or hide the Select Package Modal based on the current step
     useEffect(() => {
         if (pointer === 0) {
             setShowSelectModal(true);
@@ -122,6 +124,7 @@ export default function Personal({ auth }) {
         setShowSelectModal(false);
     };
 
+    // Helper function to update or create properties in objectStatus
     const updateOrCreateProperty = (prevStatus, propertiesAndData) => {
         const newStatus = [...prevStatus];
         const existingIndex = newStatus.findIndex((obj) =>
@@ -145,6 +148,17 @@ export default function Personal({ auth }) {
         return newStatus;
     };
 
+    // Helper function to find the first incomplete step
+    const findFirstIncompleteStep = () => {
+        for (let i = 0; i < stepper.length; i++) {
+            if (!stepHasData(stepper[i].step)) {
+                return stepper[i].step;
+            }
+        }
+        return stepper.length - 1; // If all steps are complete, return the last step
+    };
+
+    // Function to handle advancing to the next step
     const pushInfo = async (step) => {
         let propertiesAndData = [];
 
@@ -216,7 +230,7 @@ export default function Personal({ auth }) {
                         [{ name: 'documentDOM', data: {} }],
                     ]
 
-                    initialObjectStructure.map(
+                    initialObjectStructure.forEach(
                         obj => {
                             const tempData = updateOrCreateProperty(updatedObjectStatus, obj)
                             setObjectStatus(tempData)
@@ -463,36 +477,27 @@ export default function Personal({ auth }) {
         return updatedObjectStatus;
     };
 
-    const backStep = (prevStep) => {
+    // Modified backStep function to navigate to the first incomplete step
+    const backStep = () => {
+        // Find the first incomplete step using the helper function
+        const firstIncompleteStep = findFirstIncompleteStep();
 
-        //Skip kids Information step if no kids option selected
-        const noKids = objectStatus.some(
-            (obj) => obj.kidsq && (obj.kidsq.selection === 'false' || obj.kidsq.selection === '')
-        );
-        if (prevStep === 4 && noKids) {
-            prevStep = 3;
+        // If the first incomplete step is the current step or earlier, navigate to it
+        // Otherwise, navigate to the previous step
+        if (firstIncompleteStep <= pointer) {
+            setPointer(firstIncompleteStep);
+            localStorage.setItem('currentPointer', firstIncompleteStep.toString());
+        } else {
+            // If all steps up to the current one are complete, navigate to the previous step
+            const newStep = pointer - 1 >= 0 ? pointer - 1 : 0;
+            setPointer(newStep);
+            localStorage.setItem('currentPointer', newStep.toString());
         }
 
-        //Skip spouse's Information if no spouse option selected
-        const noSpouse = objectStatus.some(
-            (obj) => obj.marriedq && (obj.marriedq.selection === 'false' || obj.marriedq.selection === '')
-        );
-        if (prevStep === 2 && noSpouse) {
-            prevStep = 1;
-        }
-
-        // Remove the last element from objectStatus when going back
-        setObjectStatus((prevStatus) => {
-            const newStatus = [...prevStatus];
-            newStatus.pop();
-            localStorage.setItem('fullData', JSON.stringify(newStatus));
-            return newStatus;
-        });
-        setPointer(prevStep);
-        localStorage.setItem('currentPointer', prevStep.toString());
         return true;
     };
 
+    // Function to handle exiting the form
     const handleExit = () => {
         // Clear localStorage
         localStorage.removeItem('currIdObjDB');
@@ -507,6 +512,7 @@ export default function Personal({ auth }) {
         router.get(route('dashboard'));
     };
 
+    // Modified nextStep function to ensure consistent navigation
     const nextStep = async (nextStepValue) => {
         const objectStatusResult = await pushInfo(pointer);
         if (!objectStatusResult) {
@@ -557,6 +563,7 @@ export default function Personal({ auth }) {
         return true;
     };
 
+    // Function to check if a step has data
     const stepHasData = (step) => {
         const stepDataMap = {
             0: {
@@ -663,8 +670,6 @@ export default function Personal({ auth }) {
         return false;
     };
 
-
-
     // Function to determine if a step is clickable in the breadcrumb navigation
     const isStepClickable = (index) => {
         // Prevent navigating to other steps until Personal Information is completed
@@ -674,6 +679,7 @@ export default function Personal({ auth }) {
         return true;
     };
 
+    // Function to get the list of visible steps based on current data
     const getVisibleSteps = (objectStatusToUse = objectStatus) => {
         const hasSpouse = objectStatusToUse.some(
             (obj) => obj.marriedq && (obj.marriedq.selection === 'true' || obj.marriedq.selection === 'soso')
@@ -803,7 +809,7 @@ export default function Personal({ auth }) {
                                     <Col xs={6} className="d-flex justify-content-start">
                                         {pointer > 0 && pointer < 15 && (
                                             <Button
-                                                onClick={() => backStep(pointer - 1)}
+                                                onClick={backStep} // Updated to use the modified backStep function
                                                 variant="outline-dark"
                                                 size="lg"
                                                 style={{ width: '100%' }}
@@ -853,4 +859,5 @@ export default function Personal({ auth }) {
             </div>
         </AuthenticatedLayout>
     );
+
 }
