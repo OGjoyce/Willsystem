@@ -26,6 +26,7 @@ function Pets({ datas, errors }) {
     const [toastMessage, setToastMessage] = useState("");
     const [itemToDelete, setItemToDelete] = useState(null);
     const [tempData, setTempData] = useState({});
+    const [petName, setPetName] = useState('');
 
     useEffect(() => {
         setValidationErrors(errors);
@@ -118,18 +119,23 @@ function Pets({ datas, errors }) {
 
     const handleSubmit = () => {
         setValidationErrors({});
+        const petNameTrimmed = petName.trim();
         let amountid = document.getElementById('amountId').value;
         if (amountid !== "" && amountid !== null) {
             amountid = parseFloat(amountid);
         }
         const obj = {
             "id": idTable,
+            "petName": petNameTrimmed,
             "guardian": selectedOptionGuardian,
             "backup": selectedOptionBackup,
             "amount": amountid
         };
 
         let newErrors = {};
+        if (!petNameTrimmed) {
+            newErrors.petName = "Pet name is required";
+        }
         if (!Number(amountid) || Number(amountid) <= 0 || selectedOptionGuardian === '' || selectedOptionBackup === '' || selectedOptionBackup === selectedOptionGuardian) {
             if (!Number(amountid) || Number(amountid) <= 0) {
                 newErrors.amount = "A valid amount is required";
@@ -146,7 +152,9 @@ function Pets({ datas, errors }) {
             if (selectedOptionBackup === '') {
                 newErrors.backup = "A relative selection for backup is required";
             }
+        }
 
+        if (Object.keys(newErrors).length > 0) {
             setValidationErrors(newErrors);
             return;
         }
@@ -159,6 +167,7 @@ function Pets({ datas, errors }) {
         }
         setSelectedOptionBackup('');
         setSelectedOptionGuardian('');
+        setPetName('');
         document.getElementById('amountId').value = '';
 
         setToastMessage('Pet guardian added successfully');
@@ -213,8 +222,24 @@ function Pets({ datas, errors }) {
             <Row className="justify-content-md-center">
                 <Col md="6">
                     <Form>
-                        <Form.Group controlId="formGuardian">
-                            <Form.Label>Select Primary Guardian </Form.Label>
+                        {/* Pet Name Field */}
+                        <Form.Group controlId="formPetName" className="mb-3">
+                            <Form.Label>Pet Name</Form.Label>
+                            <Form.Control
+                                type="text"
+                                placeholder="Enter pet's name"
+                                value={petName}
+                                onChange={(e) => setPetName(e.target.value)}
+                                isInvalid={!!validationErrors.petName}
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                {validationErrors.petName}
+                            </Form.Control.Feedback>
+                        </Form.Group>
+
+                        {/* Primary Guardian Selection */}
+                        <Form.Group controlId="formGuardian" className="mb-3">
+                            <Form.Label>Select Primary Guardian</Form.Label>
                             <AddPersonDropdown
                                 options={identifiersNames}
                                 label="Choose..."
@@ -226,8 +251,10 @@ function Pets({ datas, errors }) {
                             />
                             {validationErrors.guardian && <p className="mt-2 text-sm text-danger">{validationErrors.guardian}</p>}
                         </Form.Group>
-                        <Form.Group controlId="formBackup">
-                            <Form.Label>Select Backup </Form.Label>
+
+                        {/* Backup Guardian Selection */}
+                        <Form.Group controlId="formBackup" className="mb-3">
+                            <Form.Label>Select Backup</Form.Label>
                             <AddPersonDropdown
                                 options={identifiersNames}
                                 label="Choose..."
@@ -239,14 +266,18 @@ function Pets({ datas, errors }) {
                             />
                             {validationErrors.backup && <p className="mt-2 text-sm text-danger">{validationErrors.backup}</p>}
                         </Form.Group>
-                        <br />
-                        <Form.Group className="text-sm" controlId="formAmount">
-                            <FloatingLabel controlId="floatingNumber" label="How much money should we give to the guardian?">
-                                <Form.Control size="sm" type="number" placeholder="0.00" id="amountId" />
+
+                        {/* Amount Field */}
+                        <Form.Group className="text-sm mb-3" controlId="formAmount">
+                            <FloatingLabel controlId="floatingNumber" label="Amount to Allocate to Guardian">
+                                <Form.Control size="sm" type="number" placeholder="0.00" id="amountId" isInvalid={!!validationErrors.amount} />
+                                <Form.Control.Feedback type="invalid">
+                                    {validationErrors.amount}
+                                </Form.Control.Feedback>
                             </FloatingLabel>
-                            {validationErrors.amount && <p className="mt-2 text-sm text-danger">{validationErrors.amount}</p>}
                         </Form.Group>
-                        <br />
+
+                        {/* Submit Button */}
                         <Button size="lg" variant="outline-primary" style={{ width: "100%" }} onClick={handleSubmit}>
                             Add
                         </Button>
@@ -254,13 +285,17 @@ function Pets({ datas, errors }) {
                 </Col>
             </Row>
 
+            {/* Validation Error for Pets */}
             {validationErrors.pets && <p className="mt-2 text-sm text-center text-danger">{validationErrors.pets}</p>}
             <br />
+
+            {/* Guardians Table */}
             {petGuardianData.length > 0 ? (
                 <Table striped bordered hover responsive style={{ margin: "auto auto 148px auto" }}>
                     <thead>
                         <tr>
                             <td>Id</td>
+                            <th>Pet Name</th>
                             <th>Guardian</th>
                             <th>Backup</th>
                             <th>Amount</th>
@@ -271,6 +306,21 @@ function Pets({ datas, errors }) {
                         {petGuardianData.map((item, index) => (
                             <tr key={index}>
                                 <td>{item.id}</td>
+                                <td>
+                                    {editingRow === index ? (
+                                        <Form.Control
+                                            type="text"
+                                            value={tempData.petName}
+                                            onChange={(e) => handleDropdownSelect('petName', e.target.value)}
+                                            isInvalid={!tempData.petName}
+                                        />
+                                    ) : (
+                                        item.petName
+                                    )}
+                                    {editingRow === index && !tempData.petName && (
+                                        <p className="mt-2 text-sm text-danger">Pet name is required</p>
+                                    )}
+                                </td>
                                 <td>
                                     {editingRow === index ? (
                                         <AddPersonDropdown
@@ -307,22 +357,26 @@ function Pets({ datas, errors }) {
                                             type="number"
                                             value={tempData.amount}
                                             onChange={(e) => handleDropdownSelect('amount', e.target.value)}
+                                            isInvalid={!tempData.amount || Number(tempData.amount) <= 0}
                                         />
                                     ) : (
-                                        item.amount
+                                        `$${item.amount.toFixed(2)}`
+                                    )}
+                                    {editingRow === index && (!tempData.amount || Number(tempData.amount) <= 0) && (
+                                        <p className="mt-2 text-sm text-danger">A valid amount is required</p>
                                     )}
                                 </td>
                                 <td>
                                     <div className='d-flex justify-content-around gap-3'>
                                         {editingRow === index ? (
                                             <>
-                                                <Button className="w-[50%]" variant="outline-success" size="sm" onClick={() => handleSave(index)}>Save</Button>
-                                                <Button className="w-[50%]" variant="outline-secondary" size="sm" onClick={handleCancel}>Cancel</Button>
+                                                <Button className="w-50" variant="outline-success" size="sm" onClick={() => handleSave(index)}>Save</Button>
+                                                <Button className="w-50" variant="outline-secondary" size="sm" onClick={handleCancel}>Cancel</Button>
                                             </>
                                         ) : (
                                             <>
-                                                <Button className="w-[50%]" variant="outline-danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button>
-                                                <Button className="w-[50%]" variant="outline-warning" size="sm" onClick={() => handleEdit(index)}>Edit</Button>
+                                                <Button className="w-50" variant="outline-danger" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button>
+                                                <Button className="w-50" variant="outline-warning" size="sm" onClick={() => handleEdit(index)}>Edit</Button>
                                             </>
                                         )}
                                     </div>
@@ -332,9 +386,10 @@ function Pets({ datas, errors }) {
                     </tbody>
                 </Table>
             ) : (
-                <p>Add guardian to see information...</p>
+                <p>Add guardians to see information...</p>
             )}
 
+            {/* Confirmation Modal */}
             <ConfirmationModal
                 show={showDeleteModal}
                 onClose={() => setShowDeleteModal(false)}
@@ -342,6 +397,7 @@ function Pets({ datas, errors }) {
                 message="Are you sure you want to delete this pet guardian?"
             />
 
+            {/* Toast Notification */}
             <CustomToast
                 show={showToast}
                 onClose={() => setShowToast(false)}
