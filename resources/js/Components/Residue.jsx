@@ -7,36 +7,47 @@ import CustomToast from './AdditionalComponents/CustomToast';
 import AddPersonDropdown from './AddPersonDropdown';
 import { validate } from './Validations';
 
-// Function to generate the options object based on user selection
-export function getOptObject(selectedOption, backupBeneficiaryData, customClause) {
-  let returnObject = {};
-  if (selectedOption === "Specific Beneficiaries") {
-    returnObject = {
-      "selected": selectedOption,
+// Define obj globally to be accessible by getOptObject
+let obj = {};
+
+// Define identifiers_names and all_data globally if needed
+let identifiers_names = [];
+let all_data;
+
+// Define backupBeneficiaryData and bequestindex globally
+let backupBeneficiaryData = [];
+let bequestindex = 1;
+
+// Function to retrieve the current state of obj
+export function getOptObject() {
+  const userSelection = obj.selectedOption;
+  let returnobject = {};
+  if (userSelection === "Specific Beneficiaries") {
+    returnobject = {
+      "selected": userSelection,
       "beneficiary": backupBeneficiaryData
     };
-  } else if (selectedOption === "Custom Clause") {
-    returnObject = {
-      "selected": selectedOption,
-      "clause": customClause
+  } else if (userSelection === "Custom Clause") {
+    returnobject = {
+      "selected": userSelection,
+      "clause": obj.customClause
     };
-  } else if (selectedOption === null || selectedOption === undefined) {
-    returnObject = {};
+  } else if (userSelection === null || userSelection === undefined) {
+    returnobject = {};
   } else {
-    returnObject = {
-      "selected": selectedOption
+    returnobject = {
+      "selected": userSelection
     };
   }
-  return returnObject;
+  return returnobject;
 }
 
 function Residue({ id, datas, errors }) {
-  // Determine statuses based on 'datas'
+
   const marriedStatus = datas[1].marriedq?.selection === "true";
   const sosoStatus = datas[1].marriedq?.selection === "soso";
   const hasKids = datas[3].kidsq?.selection === "true";
 
-  // State variables
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [options, setOptions] = useState([]);
   const [bloodlineOptions, setBloodlineOptions] = useState([]);
@@ -44,9 +55,9 @@ function Residue({ id, datas, errors }) {
   const [specific, setSpecific] = useState(false);
   const [clauseValue, setClauseValue] = useState("");
   const [firstRender, setFirstRender] = useState(true);
-  const [tableDataBequest, setTableDataBequest] = useState([]);
+  const [table_dataBequest, setTable_dataBequest] = useState([]);
   const [selectedOption, setSelectedOption] = useState(null);
-  const [selected, setSelected] = useState({});
+  const [selected, setSelected] = useState(obj);
   const [validationErrors, setValidationErrors] = useState(errors);
   const [availableShares, setAvailableShares] = useState(100);
   const [editingRow, setEditingRow] = useState(null);
@@ -56,10 +67,18 @@ function Residue({ id, datas, errors }) {
   const [toastMessage, setToastMessage] = useState("");
   const [residueToDelete, setResidueToDelete] = useState(null);
   const [identifiersNames, setIdentifiersNames] = useState([]);
-  const [bequestIndex, setBequestIndex] = useState(1);
-  const [relatives, setRelatives] = useState(datas[5].relatives || {});
+  const [isOrganization, setIsOrganization] = useState(false); // New state for organization
 
-  // Load data from localStorage when component mounts
+  // Synchronize backupBeneficiaryData with state
+  useEffect(() => {
+    backupBeneficiaryData = table_dataBequest;
+    bequestindex = table_dataBequest.length > 0 ? Math.max(...table_dataBequest.map(item => item.id)) + 1 : 1;
+  }, [table_dataBequest]);
+
+  useEffect(() => {
+    setValidationErrors(errors);
+  }, [errors]);
+
   useEffect(() => {
     const savedData = JSON.parse(localStorage.getItem('formValues')) || {};
 
@@ -68,49 +87,35 @@ function Residue({ id, datas, errors }) {
     setClauseValue(savedData.residue?.clauseValue || '');
     setCustom(savedData.residue?.custom || false);
     setSpecific(savedData.residue?.specific || false);
-    setTableDataBequest(savedData.residue?.tableDataBequest || []);
+    setTable_dataBequest(savedData.residue?.table_dataBequest || []);
     setAvailableShares(savedData.residue?.availableShares || 100);
-    setBequestIndex(savedData.residue?.bequestIndex || 1);
-    setIdentifiersNames(savedData.residue?.identifiersNames || []);
-    setRelatives(savedData.residue?.relatives || datas[5].relatives || {});
+    setIsOrganization(savedData.residue?.isOrganization || false); // Restore organization state
+
+    if (savedData.residue?.obj) {
+      obj = savedData.residue.obj;
+      obj.selectedBeneficiary = null;
+      obj.selectedBackup = null;
+      setSelected(obj);
+    }
+
+    if (savedData.residue?.backupBeneficiaryData) {
+      backupBeneficiaryData = savedData.residue.backupBeneficiaryData;
+      bequestindex = savedData.residue.bequestindex || 1;
+    }
 
     if (savedData.residue?.selectedCategory === 'Custom Selection') {
       setOptions(['Custom Clause', 'Specific Beneficiaries']);
     } else if (savedData.residue?.selectedCategory === 'Bloodline Selection') {
       setOptions(bloodlineOptions);
     }
-  }, [bloodlineOptions, datas]);
+  }, []);
 
-  // Save relevant state to localStorage whenever dependencies change
+  // Update availableShares based on table_dataBequest
   useEffect(() => {
-    const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
-    formValues.residue = {
-      selectedCategory,
-      selectedOption,
-      clauseValue,
-      custom,
-      specific,
-      tableDataBequest,
-      availableShares,
-      bequestIndex,
-      identifiersNames,
-      relatives
-    };
-    localStorage.setItem('formValues', JSON.stringify(formValues));
-  }, [
-    selectedCategory,
-    selectedOption,
-    clauseValue,
-    custom,
-    specific,
-    tableDataBequest,
-    availableShares,
-    bequestIndex,
-    identifiersNames,
-    relatives
-  ]);
+    let totalShares = table_dataBequest.reduce((sum, item) => sum + Number(item.shares), 0);
+    setAvailableShares(100 - totalShares);
+  }, [table_dataBequest]);
 
-  // Update bloodline options based on marital and familial status
   useEffect(() => {
     let newBloodlineOptions = [
       'Have the residue go to parents then siblings per stirpes',
@@ -130,45 +135,35 @@ function Residue({ id, datas, errors }) {
     }
   }, [marriedStatus, hasKids, sosoStatus, selectedCategory]);
 
-  // Calculate availableShares whenever tableDataBequest changes
-  useEffect(() => {
-    const totalShares = tableDataBequest.reduce((sum, item) => sum + Number(item.shares), 0);
-    setAvailableShares(100 - totalShares);
-  }, [tableDataBequest]);
-
-  // Initialize identifiersNames on first render
   useEffect(() => {
     if (firstRender && datas != null) {
       let names = [];
       const married = datas[2]?.married;
       const kids = datas[4]?.kids;
-      const relativesObj = relatives;
+      const relatives = datas[5]?.relatives;
       const kidsq = datas[3].kidsq?.selection;
 
-      // Add spouse's name if married
-      const marriedName = married?.firstName && married?.lastName ? `${married.firstName} ${married.lastName}` : null;
-      if (marriedName) names.push(marriedName);
+      const married_names = married?.firstName && married?.lastName ? married?.firstName + " " + married?.lastName : null;
+      if (married_names) names.push(married_names);
 
-      // Add children's names if applicable
       if (kidsq === "true") {
-        Object.values(kids).forEach(child => {
-          const childName = `${child?.firstName} ${child?.lastName}`;
+        for (let child in kids) {
+          const childName = kids[child]?.firstName + " " + kids[child]?.lastName;
           names.push(childName);
-        });
+        }
       }
 
-      // Add relatives' names
-      Object.values(relativesObj).forEach(relative => {
-        const relativeName = `${relative?.firstName} ${relative?.lastName}`;
+      for (let key in relatives) {
+        const relativeName = relatives[key]?.firstName + " " + relatives[key]?.lastName;
         names.push(relativeName);
-      });
+      }
 
       setIdentifiersNames(names);
       setFirstRender(false);
     }
-  }, [firstRender, datas, relatives]);
+  }, [firstRender, datas]);
 
-  // Handle category selection from dropdown
+  // Handle category selection
   const handleCategorySelect = (category) => {
     setSelectedCategory(category);
     setValidationErrors({});
@@ -179,82 +174,111 @@ function Residue({ id, datas, errors }) {
     }
     setCustom(false);
     setSpecific(false);
-    setSelected({});
-    setSelectedOption(null);
+    obj = { ...obj, selectedOption: null };
+    setSelected(obj);
+    setIsOrganization(false);
   };
 
-  // Handle checkbox changes for options
+  // Handle checkbox changes
   const handleCheckboxChange = (option) => {
     if (option === 'Custom Clause') {
-      setCustom(prev => !prev);
+      setCustom(!custom);
       setSpecific(false);
+      obj = { ...obj, customClause: clauseValue };
     } else if (option === 'Specific Beneficiaries') {
-      setSpecific(prev => !prev);
+      setSpecific(!specific);
       setCustom(false);
     } else {
       setCustom(false);
       setSpecific(false);
     }
-    setSelectedOption(option);
+    obj = { ...obj, selectedOption: option };
+    setSelected(obj);
     setValidationErrors({});
   };
 
   // Handle beneficiary selection
   const handleSelectBeneficiary = (value) => {
-    setSelected(prev => ({ ...prev, selectedBeneficiary: value }));
+    obj = { ...obj, selectedBeneficiary: value };
+    setSelected(obj);
     setValidationErrors(prevErrors => ({ ...prevErrors, identifiers: '' }));
   };
 
   // Handle backup selection
   const handleSelectBackup = (value) => {
-    setSelected(prev => ({ ...prev, selectedBackup: value }));
+    obj = { ...obj, selectedBackup: value };
+    setSelected(obj);
     setValidationErrors(prevErrors => ({ ...prevErrors, identifiers: '' }));
   };
 
-  // Handle adding a new person to relatives
+  // Handle adding a new person
   const handleAddPerson = (newPerson) => {
     const name = `${newPerson.firstName} ${newPerson.lastName}`;
     setIdentifiersNames(prevNames => [...prevNames, name]);
 
-    // Update the relatives object
-    const newRelatives = { ...relatives };
-    const newKey = Object.keys(newRelatives).length;
-    newRelatives[newKey] = newPerson;
-    setRelatives(newRelatives);
+    let len = Object.keys(datas[5].relatives).length;
+    datas[5].relatives[len] = newPerson;
   };
 
-  // Handle adding a new backup beneficiary
-  const handleAddBackup = () => {
+  // Handle organization checkbox
+  const handleOrganizationChange = (e) => {
+    setIsOrganization(e.target.checked);
+    if (e.target.checked) {
+      obj = { ...obj, isOrganization: true, selectedBackup: null };
+      setSelected(obj);
+    } else {
+      obj = { ...obj, isOrganization: false };
+      setSelected(obj);
+    }
     setValidationErrors({});
-    const sharesInput = document.getElementById('shares-input');
-    let shares = Number(sharesInput.value);
-    let totalShares = tableDataBequest.reduce((sum, backup) => sum + Number(backup.shares), 0) + shares;
+  };
 
-    const beneficiary = selected.selectedBeneficiary || null;
-    const backup = selected.selectedBackup || null;
+  // Handle adding a backup beneficiary or organization
+  const AddBackupButton = () => {
+    setValidationErrors({});
+    let shares = Number(document.getElementById('shares-input').value);
+    let totalShares = shares + table_dataBequest.reduce((sum, backup) => sum + backup.shares, 0);
+
+    const beneficiary = selected.isOrganization ? selected.beneficiary : selected.selectedBeneficiary || null;
+    const backup = selected.isOrganization ? "N/A" : selected.selectedBackup || null;
     const selectedType = selectedOption === 'A' ? 'per stirpes' : (selectedOption === 'B' ? 'per capita' : null);
 
     let newErrors = {};
 
-    // Validation checks
-    if (beneficiary === backup) {
-      newErrors.identifiers = "Beneficiary and backup can't be the same person";
-    }
+    if (selected.isOrganization) {
+      // When it's an organization, only beneficiary and shares are required
+      if (!beneficiary) {
+        newErrors.beneficiary = 'Organization name is required';
+      }
 
-    if (beneficiary === null) {
-      newErrors.identifiers = 'Beneficiary is required';
-    }
+      if (!Number(shares) || shares <= 0) {
+        newErrors.shares = 'Shares must be a valid percent';
+      }
 
-    if (selectedType === null) {
-      newErrors.backupType = 'Backup type is required';
-    }
+      if (shares > 100 || totalShares > 100) {
+        newErrors.shares = 'Total shares must not exceed 100%';
+      }
+    } else {
+      // Existing validation for personal beneficiaries
+      if (beneficiary === backup) {
+        newErrors.identifiers = "Beneficiary and backup can't be the same person";
+      }
 
-    if (!Number(shares) || shares <= 0) {
-      newErrors.shares = 'Shares for backup must be a valid percent';
-    }
+      if (beneficiary === null) {
+        newErrors.identifiers = 'Beneficiary is required';
+      }
 
-    if (shares > 100 || totalShares > 100) {
-      newErrors.shares = 'Total shares must not exceed 100%';
+      if (selectedType === null) {
+        newErrors.backupType = 'Backup type is required';
+      }
+
+      if (!Number(shares) || shares <= 0) {
+        newErrors.shares = 'Shares for backup must be a valid percent';
+      }
+
+      if (shares > 100 || totalShares > 100) {
+        newErrors.shares = 'Total shares must not exceed 100%';
+      }
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -262,28 +286,28 @@ function Residue({ id, datas, errors }) {
       return;
     }
 
-    const newBackup = {
-      "id": bequestIndex,
+    const objToPush = {
+      "id": bequestindex,
       "beneficiary": beneficiary,
-      "backup": backup || "NA",
-      "type": selectedType,
-      "shares": shares
+      "backup": selected.isOrganization ? "N/A" : backup || "NA",
+      "type": selected.isOrganization ? "N/A" : selectedType,
+      "shares": shares,
+      "isOrganization": selected.isOrganization // Store organization status
     };
 
-    setTableDataBequest(prevData => [...prevData, newBackup]);
-    setBequestIndex(prevIndex => prevIndex + 1);
-    setAvailableShares(prevAvailable => prevAvailable - shares);
-    setSelected({ selectedBeneficiary: null, selectedBackup: null });
-    sharesInput.value = '';
-
+    setTable_dataBequest([...backupBeneficiaryData, objToPush]);
+    setAvailableShares(100 - (backupBeneficiaryData.reduce((sum, backup) => sum + backup.shares, 0) + shares));
+    setSelected(prev => ({ ...prev, selectedBeneficiary: null, selectedBackup: null, isOrganization: false }));
+    setIsOrganization(false);
+    document.getElementById('shares-input').value = '';
     // Show toast notification
     setToastMessage('Beneficiary added successfully');
     setShowToast(true);
   };
 
-  // Function to calculate maximum shares allowed when editing
+  // Function to calculate the maximum shares allowed when editing a row
   const getMaxShares = (index) => {
-    const totalOtherShares = tableDataBequest.reduce((sum, item, idx) => {
+    const totalOtherShares = table_dataBequest.reduce((sum, item, idx) => {
       if (idx !== index) return sum + Number(item.shares);
       return sum;
     }, 0);
@@ -293,49 +317,62 @@ function Residue({ id, datas, errors }) {
   // Handle editing a row
   const handleEdit = (index) => {
     setEditingRow(index);
-    setTempEditData({ ...tableDataBequest[index] });
+    setTempEditData({ ...table_dataBequest[index] });
     setValidationErrors({});
   };
 
-  // Handle saving an edited row
+  // Handle saving changes to an edited row
   const handleSave = (index) => {
-    const updatedBackupBeneficiaryData = [...tableDataBequest];
-    const originalShares = updatedBackupBeneficiaryData[index].shares;
+    const originalShares = table_dataBequest[index].shares;
     const newShares = tempEditData.shares;
 
-    // Validate shares
-    if (!Number(newShares) || newShares <= 0) {
-      setValidationErrors({ shares: 'Shares must be a valid percent' });
-      return;
-    }
+    // Calculate the difference
+    const shareDifference = newShares - originalShares;
 
-    const totalShares = tableDataBequest.reduce((sum, item, idx) => {
+    // Validate shares
+    const totalShares = table_dataBequest.reduce((sum, item, idx) => {
       if (idx === index) return sum + Number(newShares);
       return sum + Number(item.shares);
     }, 0);
 
     if (totalShares > 100) {
-      setValidationErrors({ shares: `Total shares must be 100%. Currently, it's ${totalShares}%.` });
+      setValidationErrors({ shares: `The total shares must not exceed 100%. Currently, it is ${totalShares}%.` });
       return;
     }
 
+    // Update the shares in table_dataBequest
+    const updatedBackupBeneficiaryData = [...table_dataBequest];
     updatedBackupBeneficiaryData[index] = tempEditData;
-    setTableDataBequest(updatedBackupBeneficiaryData);
+    setTable_dataBequest(updatedBackupBeneficiaryData);
+
+    // Adjust availableShares by the difference
+    setAvailableShares(prevAvailable => prevAvailable - shareDifference);
+
+    // Update obj and localStorage
+    obj = { ...updatedBackupBeneficiaryData[index] };
+    setSelected(obj);
+
+    const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
+    formValues.residue = {
+      ...formValues.residue,
+      table_dataBequest: updatedBackupBeneficiaryData,
+      availableShares: 100 - updatedBackupBeneficiaryData.reduce((sum, backup) => sum + backup.shares, 0)
+    };
+    localStorage.setItem('formValues', JSON.stringify(formValues));
+
+    setToastMessage('Residue updated successfully');
+    setShowToast(true);
     setEditingRow(null);
     setTempEditData(null);
     setValidationErrors({});
-
-    // Show toast notification
-    setToastMessage('Residue updated successfully');
-    setShowToast(true);
   };
 
-  // Handle cancelling the edit
+  // Handle canceling the edit
   const handleCancel = () => {
     setEditingRow(null);
     setTempEditData(null);
     setValidationErrors({});
-  };
+  }
 
   // Handle deleting a row
   const handleDelete = (itemId) => {
@@ -343,19 +380,32 @@ function Residue({ id, datas, errors }) {
     setShowDeleteModal(true);
   };
 
-  // Confirm deletion of a row
+  // Confirm the deletion of a row
   const confirmDelete = () => {
     if (residueToDelete !== null) {
-      const updatedBackupBeneficiaryData = tableDataBequest.filter(obj => obj.id !== residueToDelete);
-      setTableDataBequest(updatedBackupBeneficiaryData);
-      setBequestIndex(prevIndex => prevIndex - 1);
+      const itemToDelete = table_dataBequest.find(obj => obj.id === residueToDelete);
+      const updatedBackupBeneficiaryData = table_dataBequest.filter(obj => obj.id !== residueToDelete);
+      setTable_dataBequest(updatedBackupBeneficiaryData);
 
-      const totalShares = updatedBackupBeneficiaryData.length > 0
-        ? 100 - updatedBackupBeneficiaryData.reduce((sum, backup) => sum + backup.shares, 0)
-        : 100;
-      setAvailableShares(totalShares);
+      // Adjust availableShares by adding back the shares of the deleted item
+      if (itemToDelete) {
+        setAvailableShares(prevAvailable => prevAvailable + Number(itemToDelete.shares));
+      }
 
-      // Show toast notification
+      // Update obj
+      obj = {};
+
+      // Update localStorage
+      const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
+      formValues.residue = {
+        ...formValues.residue,
+        table_dataBequest: updatedBackupBeneficiaryData,
+        backupBeneficiaryData: updatedBackupBeneficiaryData,
+        bequestindex: bequestindex - 1,
+        availableShares: 100 - updatedBackupBeneficiaryData.reduce((sum, backup) => sum + backup.shares, 0)
+      };
+      localStorage.setItem('formValues', JSON.stringify(formValues));
+
       setToastMessage('Residue deleted successfully');
       setShowToast(true);
       setResidueToDelete(null);
@@ -382,21 +432,28 @@ function Residue({ id, datas, errors }) {
     }
 
     if (editingRow === index) {
-      setTempEditData(prevData => ({ ...prevData, [key]: value }));
+      setTempEditData({ ...tempEditData, [key]: value });
+    } else {
+      const updatedBackupBeneficiaryData = [...table_dataBequest];
+      updatedBackupBeneficiaryData[index][key] = value;
+      setTable_dataBequest(updatedBackupBeneficiaryData);
+      obj = { ...updatedBackupBeneficiaryData[index] };
+      setSelected(obj);
     }
   };
 
-  // Render tooltips based on type
+  // Render tooltips
   const renderTooltip = (props) => (
     <Tooltip id="button-tooltip" {...props}>
-      {props.type === 'per capita' ? 'Distribute shares equally among all beneficiaries.' : 'Distribute shares based on the number of descendants per line.'}
+      {props.type === 'per capita'
+        ? 'Distributes the shares equally among all beneficiaries.'
+        : 'Distributes the shares according to the number of descendants per line.'}
     </Tooltip>
   );
 
   return (
     <Container>
       <Form>
-        {/* Category Selection Dropdown */}
         <Row>
           <Col sm={12}>
             <Dropdown onSelect={handleCategorySelect} style={{ width: "100%" }}>
@@ -410,8 +467,6 @@ function Residue({ id, datas, errors }) {
             </Dropdown>
           </Col>
         </Row>
-
-        {/* Options based on selected category */}
         {selectedCategory && (
           <Row className='mt-3'>
             <Col sm={12}>
@@ -421,7 +476,7 @@ function Residue({ id, datas, errors }) {
                     key={index}
                     type="checkbox"
                     label={option}
-                    checked={selectedOption === option}
+                    checked={selected.selectedOption === option}
                     onChange={() => handleCheckboxChange(option)}
                     id={`checkbox-${index}`}
                   />
@@ -430,113 +485,130 @@ function Residue({ id, datas, errors }) {
             </Col>
           </Row>
         )}
-
-        {/* Specific Beneficiaries Section */}
         {specific && (
           <>
-            {/* Instructions */}
             <Row className='mt-3 text-center'>
               <Col sm={12}>
-                <p>Please select a beneficiary for the residue along with a backup beneficiary.</p>
+                <p>Please select a beneficiary for the residue.</p>
               </Col>
             </Row>
-
-            {/* Beneficiary Selection */}
-            <Row>
-              <Col sm={12}>
-                <AddPersonDropdown
-                  options={identifiersNames}
-                  label="Select beneficiary"
-                  selected={selected.selectedBeneficiary}
-                  onSelect={handleSelectBeneficiary}
-                  onAddPerson={handleAddPerson}
-                  validationErrors={validationErrors}
-                  setValidationErrors={setValidationErrors}
-                />
-              </Col>
-            </Row>
-
-            {/* Backup Selection */}
             <Row className='mt-3'>
               <Col sm={12}>
-                <AddPersonDropdown
-                  options={identifiersNames}
-                  label="Select backup"
-                  selected={selected.selectedBackup}
-                  onSelect={handleSelectBackup}
-                  onAddPerson={handleAddPerson}
-                  validationErrors={validationErrors}
-                  setValidationErrors={setValidationErrors}
+                <Form.Check
+                  type="checkbox"
+                  id="organization-checkbox"
+                  label="Organization"
+                  checked={isOrganization}
+                  onChange={handleOrganizationChange}
                 />
-                {validationErrors.identifiers && <p className="mt-2 text-sm text-center text-danger">{validationErrors.identifiers}</p>}
               </Col>
             </Row>
-
-            {/* Backup Type Selection and Shares Input */}
             <Row>
               <Col sm={12}>
-                <Form>
-                  <OverlayTrigger
-                    placement="right"
-                    delay={{ show: 250, hide: 400 }}
-                    overlay={renderTooltip({ type: 'per stirpes' })}
-                  >
-                    <div style={{ width: "174px" }}>
-                      <Form.Check
-                        type="radio"
-                        label="Per Stirpes Backup"
-                        name="options"
-                        value="A"
-                        checked={selectedOption === 'A'}
-                        onChange={(e) => setSelectedOption(e.target.value)}
-                        id="optionA"
-                      />
-                    </div>
-                  </OverlayTrigger>
-                  <OverlayTrigger
-                    placement="right"
-                    delay={{ show: 250, hide: 400 }}
-                    overlay={renderTooltip({ type: 'per capita' })}
-                  >
-                    <div style={{ width: "174px" }}>
-                      <Form.Check
-                        type="radio"
-                        label="Per Capita Backup"
-                        name="options"
-                        value="B"
-                        checked={selectedOption === 'B'}
-                        onChange={(e) => setSelectedOption(e.target.value)}
-                        id="optionB"
-                      />
-                    </div>
-                  </OverlayTrigger>
-                  {validationErrors.backupType && <p className="mt-2 text-sm text-danger">{validationErrors.backupType}</p>}
-                  <InputGroup className="mt-3 mb-3">
-                    <InputGroup.Text id="shares-addon">
-                      Shares for Backup (Available: {availableShares}%)
-                    </InputGroup.Text>
+                {isOrganization ? (
+                  <Form.Group controlId="organizationName">
+                    <Form.Label>Organization Name</Form.Label>
                     <Form.Control
-                      id="shares-input"
-                      aria-describedby="shares-addon"
-                      type="number"
-                      min="1"
-                      max={availableShares}
-                      placeholder="Enter shares"
+                      type="text"
+                      placeholder="Enter organization name"
+                      value={selected.beneficiary || ''}
+                      onChange={(e) => {
+                        setSelected(prev => ({ ...prev, beneficiary: e.target.value }));
+                        obj = { ...obj, beneficiary: e.target.value };
+                      }}
                     />
-                  </InputGroup>
-                </Form>
+                    {validationErrors.beneficiary && <p className="mt-2 text-sm text-center text-danger">{validationErrors.beneficiary}</p>}
+                  </Form.Group>
+                ) : (
+                  <AddPersonDropdown
+                    options={identifiersNames}
+                    label="Select beneficiary"
+                    selected={selected.selectedBeneficiary}
+                    onSelect={handleSelectBeneficiary}
+                    onAddPerson={handleAddPerson}
+                    validationErrors={validationErrors}
+                    setValidationErrors={setValidationErrors}
+                  />
+                )}
+              </Col>
+            </Row>
+            {!isOrganization && (
+              <Row className='mt-3'>
+                <Col sm={12}>
+                  <AddPersonDropdown
+                    options={identifiersNames}
+                    label="Select backup"
+                    selected={selected.selectedBackup}
+                    onSelect={handleSelectBackup}
+                    onAddPerson={handleAddPerson}
+                    validationErrors={validationErrors}
+                    setValidationErrors={setValidationErrors}
+                  />
+                  {validationErrors.identifiers && <p className="mt-2 text-sm text-center text-danger">{validationErrors.identifiers}</p>}
+                </Col>
+              </Row>
+            )}
+            <Row>
+              <Col sm={12}>
+                {!isOrganization && (
+                  <>
+                    <OverlayTrigger
+                      placement="right"
+                      delay={{ show: 250, hide: 400 }}
+                      overlay={renderTooltip({ type: 'per stirpes' })}
+                    >
+                      <div style={{ width: "174px" }}>
+                        <Form.Check
+                          type="radio"
+                          label="Per Stirpes Backup"
+                          name="options"
+                          value="A"
+                          checked={selectedOption === 'A'}
+                          onChange={(e) => setSelectedOption(e.target.value)}
+                          id="optionA"
+                        />
+                      </div>
+                    </OverlayTrigger>
+                    <OverlayTrigger
+                      placement="right"
+                      delay={{ show: 250, hide: 400 }}
+                      overlay={renderTooltip({ type: 'per capita' })}
+                    >
+                      <div style={{ width: "174px" }}>
+                        <Form.Check
+                          type="radio"
+                          label="Per Capita Backup"
+                          name="options"
+                          value="B"
+                          checked={selectedOption === 'B'}
+                          onChange={(e) => setSelectedOption(e.target.value)}
+                          id="optionB"
+                        />
+                      </div>
+                    </OverlayTrigger>
+                    {validationErrors.backupType && <p className="mt-2 text-sm text-danger">{validationErrors.backupType}</p>}
+                  </>
+                )}
+                <InputGroup className="mt-3 mb-3">
+                  <InputGroup.Text id="shares-addon">
+                    Shares {isOrganization ? "(Available: " : "for Backup (Available: "} {availableShares}%{isOrganization ? ")" : ")"}
+                  </InputGroup.Text>
+                  <Form.Control
+                    id="shares-input"
+                    aria-describedby="shares-addon"
+                    type="number"
+                    min="1"
+                    max={availableShares}
+                  />
+                </InputGroup>
                 {validationErrors.shares && <p className="mt-2 text-sm text-center text-danger">{validationErrors.shares}</p>}
               </Col>
             </Row>
-
-            {/* Submit Button */}
             <Row>
               <Col sm={12}>
-                <Button style={{ width: '100%' }} variant="outline-success" onClick={handleAddBackup}>Submit</Button>
+                <Button style={{ width: '100%' }} variant="outline-success" onClick={AddBackupButton}>Submit</Button>
               </Col>
             </Row>
-
-            {/* Beneficiaries Table */}
             <Row>
               <Col sm={12}>
                 <Table striped bordered hover responsive className="mt-3">
@@ -551,55 +623,74 @@ function Residue({ id, datas, errors }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {tableDataBequest.length === 0 ? (
+                    {backupBeneficiaryData.length === 0 ? (
                       <tr>
                         <td colSpan="6">
                           <p>No information added yet. Press <b>"Submit"</b> to add.</p>
                         </td>
                       </tr>
                     ) : (
-                      tableDataBequest.map((item, index) => (
+                      backupBeneficiaryData.map((item, index) => (
                         <tr key={item.id}>
                           <td>{item.id}</td>
                           <td>
                             {editingRow === index ? (
-                              <AddPersonDropdown
-                                options={identifiersNames}
-                                label="Select beneficiary"
-                                selected={tempEditData.beneficiary}
-                                onSelect={(value) => handleDropdownSelect(index, 'beneficiary', value)}
-                                onAddPerson={handleAddPerson}
-                                validationErrors={validationErrors}
-                                setValidationErrors={setValidationErrors}
-                              />
+                              item.isOrganization ? (
+                                <Form.Control
+                                  type="text"
+                                  value={tempEditData.beneficiary}
+                                  onChange={(e) => {
+                                    handleDropdownSelect(index, 'beneficiary', e.target.value);
+                                  }}
+                                  placeholder="Enter organization name"
+                                />
+                              ) : (
+                                <AddPersonDropdown
+                                  options={identifiersNames}
+                                  label="Select beneficiary"
+                                  selected={tempEditData.beneficiary}
+                                  onSelect={(value) => handleDropdownSelect(index, 'beneficiary', value)}
+                                  onAddPerson={handleAddPerson}
+                                  validationErrors={validationErrors}
+                                  setValidationErrors={setValidationErrors}
+                                />
+                              )
                             ) : (
                               item.beneficiary
                             )}
                           </td>
                           <td>
-                            {editingRow === index ? (
-                              <AddPersonDropdown
-                                options={identifiersNames}
-                                label="Select backup"
-                                selected={tempEditData.backup}
-                                onSelect={(value) => handleDropdownSelect(index, 'backup', value)}
-                                onAddPerson={handleAddPerson}
-                                validationErrors={validationErrors}
-                                setValidationErrors={setValidationErrors}
-                              />
+                            {item.isOrganization ? (
+                              "N/A"
                             ) : (
-                              item.backup
+                              editingRow === index ? (
+                                <AddPersonDropdown
+                                  options={identifiersNames}
+                                  label="Select backup"
+                                  selected={tempEditData.backup}
+                                  onSelect={(value) => handleDropdownSelect(index, 'backup', value)}
+                                  onAddPerson={handleAddPerson}
+                                  validationErrors={validationErrors}
+                                  setValidationErrors={setValidationErrors}
+                                />
+                              ) : (
+                                item.backup
+                              )
                             )}
                           </td>
                           <td>
                             {editingRow === index ? (
-                              <Form.Select
-                                value={tempEditData.type}
-                                onChange={(e) => handleDropdownSelect(index, 'type', e.target.value)}
-                              >
-                                <option value="per stirpes">Per Stirpes</option>
-                                <option value="per capita">Per Capita</option>
-                              </Form.Select>
+                              item.isOrganization ? (
+                                "N/A"
+                              ) : (
+                                <Form.Select
+                                  value={tempEditData.type}
+                                  onChange={(e) => handleDropdownSelect(index, 'type', e.target.value)}
+                                >
+                                  <option value="per stirpes">Per Stirpes</option>
+                                  <option value="per capita">Per Capita</option>
+                                </Form.Select>
+                              )
                             ) : (
                               item.type
                             )}
@@ -641,8 +732,6 @@ function Residue({ id, datas, errors }) {
             </Row>
           </>
         )}
-
-        {/* Custom Clause Section */}
         {custom && (
           <Row className='mt-3'>
             <Col sm={12}>
@@ -655,29 +744,23 @@ function Residue({ id, datas, errors }) {
                     value={clauseValue}
                     onChange={(e) => {
                       setClauseValue(e.target.value);
-                      setSelected(prev => ({ ...prev, customClause: e.target.value }));
+                      obj = { ...obj, customClause: e.target.value };
+                      setSelected(obj);
                     }}
-                    placeholder="Enter custom clause here..."
                   />
                 </Form.Group>
               </Form>
             </Col>
           </Row>
         )}
-
-        {/* Residue Validation Error */}
         {validationErrors.residue && <p className="mt-2 text-sm text-center text-danger">{validationErrors.residue}</p>}
       </Form>
-
-      {/* Confirmation Modal for Deletion */}
       <ConfirmationModal
         show={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
         onConfirm={confirmDelete}
         message="Are you sure you want to delete this residue?"
       />
-
-      {/* Custom Toast Notification */}
       <CustomToast
         show={showToast}
         onClose={() => setShowToast(false)}
