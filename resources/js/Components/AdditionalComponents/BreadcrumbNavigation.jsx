@@ -72,7 +72,7 @@ const BreadcrumbNavigation = ({ steps, currentStep, onStepClick, stepHasData, is
                                 className={buttonClasses}
                                 disabled={!clickable}
                             >
-                                <span className="font-medium">{step.title}</span>
+                                <span className="font-medium"> {index + 1}. {step.title}</span>
                             </button>
                         </li>
                     );
