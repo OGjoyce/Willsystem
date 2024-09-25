@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Form, Button, Table, Dropdown, InputGroup } from 'react-bootstrap';
+import {
+    Container, Row, Col, Form, Button, Table, Dropdown
+} from 'react-bootstrap';
 import ConfirmationModal from './AdditionalComponents/ConfirmationModal';
 import CustomToast from './AdditionalComponents/CustomToast';
+import AddPersonDropdown from './AddPersonDropdown';
+import { validate } from './Validations';
 
-var returndata;
+let returndata;
 export function getWipeoutData() {
     return returndata;
 }
 
-var bequestindex = 0;
+let bequestindex = 0;
 
 function Wipeout({ id, datas, errors }) {
     const [selectedCategory, setSelectedCategory] = useState(null);
@@ -27,7 +31,13 @@ function Wipeout({ id, datas, errors }) {
     const [itemToDelete, setItemToDelete] = useState(null);
     const [isSpecificBeneficiary, setIsSpecificBeneficiary] = useState(false);
     const [isOrganization, setIsOrganization] = useState(false);
+    const [firstRender, setFirstRender] = useState(true);
 
+    // State variables for form inputs
+    const [beneficiary, setBeneficiary] = useState('');
+    const [backup, setBackup] = useState('');
+    const [shares, setShares] = useState('');
+    const [type, setType] = useState('');
 
     useEffect(() => {
         setValidationErrors(errors);
@@ -97,7 +107,11 @@ function Wipeout({ id, datas, errors }) {
         ];
 
         setOptions(newOptions);
-    }, [datas]);
+
+        if (firstRender) {
+            setFirstRender(false);
+        }
+    }, [datas, firstRender]);
 
     const handleCategorySelect = (category) => {
         setSelectedCategory(category);
@@ -125,14 +139,12 @@ function Wipeout({ id, datas, errors }) {
 
     const handleOrganizationChange = (e) => {
         setIsOrganization(e.target.checked);
+        // Reset beneficiary and backup when changing organization status
+        setBeneficiary('');
+        setBackup('');
     };
 
     const handleAddItem = () => {
-        const beneficiary = document.getElementById("beneficiary").value;
-        const backup = document.getElementById("backup").value;
-        const shares = parseFloat(document.getElementById('shares').value);
-        const type = isOrganization ? "N/A" : document.getElementById('type').value;
-
         let newErrors = {};
 
         if (!beneficiary) {
@@ -143,10 +155,12 @@ function Wipeout({ id, datas, errors }) {
             newErrors.backup = "Backup is required";
         }
         if (beneficiary === backup) {
-            newErrors.backup = "Beneficiary and backup can't be the same"
+            newErrors.backup = "Beneficiary and backup can't be the same";
         }
 
-        if (isNaN(shares) || shares <= 0 || shares > availableShares) {
+        const sharesNum = parseFloat(shares);
+
+        if (isNaN(sharesNum) || sharesNum <= 0 || sharesNum > availableShares) {
             newErrors.shares = `Please enter a valid number between 0 and ${availableShares}`;
         }
 
@@ -163,20 +177,20 @@ function Wipeout({ id, datas, errors }) {
             id: bequestindex,
             beneficiary,
             backup,
-            shares,
-            type
+            shares: sharesNum,
+            type: isOrganization ? "N/A" : type
         };
 
         setTable_dataBequest([...table_dataBequest, newItem]);
-        setAvailableShares(availableShares - shares);
+        setAvailableShares(availableShares - sharesNum);
         bequestindex++;
 
         // Reset form
-        document.getElementById("beneficiary").value = "";
-        document.getElementById("backup").value = "";
-        document.getElementById("shares").value = "";
+        setBeneficiary('');
+        setBackup('');
+        setShares('');
         if (!isOrganization) {
-            document.getElementById("type").value = "";
+            setType('');
         }
         setValidationErrors({});
 
@@ -192,8 +206,13 @@ function Wipeout({ id, datas, errors }) {
 
     const handleSave = (index) => {
         const updatedTable_dataBequest = [...table_dataBequest];
+        const previousShares = table_dataBequest[index].shares;
         updatedTable_dataBequest[index] = tempEditData;
         setTable_dataBequest(updatedTable_dataBequest);
+
+        // Update available shares
+        const sharesDifference = tempEditData.shares - previousShares;
+        setAvailableShares(availableShares - sharesDifference);
 
         setToastMessage('Wipeout beneficiary updated successfully');
         setShowToast(true);
@@ -213,8 +232,8 @@ function Wipeout({ id, datas, errors }) {
 
     const confirmDelete = () => {
         if (itemToDelete !== null) {
-            const updatedTable_dataBequest = table_dataBequest.filter(item => item.id !== itemToDelete);
             const deletedItem = table_dataBequest.find(item => item.id === itemToDelete);
+            const updatedTable_dataBequest = table_dataBequest.filter(item => item.id !== itemToDelete);
 
             setTable_dataBequest(updatedTable_dataBequest);
             setAvailableShares(availableShares + deletedItem.shares);
@@ -227,8 +246,22 @@ function Wipeout({ id, datas, errors }) {
         }
     };
 
-    const handleDropdownSelect = (index, key, value) => {
-        setTempEditData({ ...tempEditData, [key]: value });
+    const handleBeneficiarySelect = (value) => {
+        setBeneficiary(value);
+        setValidationErrors(prevErrors => ({ ...prevErrors, beneficiary: '' }));
+    };
+
+    const handleBackupSelect = (value) => {
+        setBackup(value);
+        setValidationErrors(prevErrors => ({ ...prevErrors, backup: '' }));
+    };
+
+    const handleAddPerson = (newPerson) => {
+        const name = `${newPerson.firstName} ${newPerson.lastName}`;
+        setIdentifiersNames(prevNames => [...prevNames, name]);
+
+        let len = Object.keys(datas[5].relatives).length;
+        datas[5].relatives[len] = newPerson;
     };
 
     return (
@@ -286,14 +319,22 @@ function Wipeout({ id, datas, errors }) {
                         <Form.Group controlId="beneficiary">
                             <Form.Label>Beneficiary</Form.Label>
                             {isOrganization ? (
-                                <Form.Control type="text" placeholder="Enter organization name" />
+                                <Form.Control
+                                    type="text"
+                                    placeholder="Enter organization name"
+                                    value={beneficiary}
+                                    onChange={(e) => setBeneficiary(e.target.value)}
+                                />
                             ) : (
-                                <Form.Control as="select">
-                                    <option value="">Select a beneficiary</option>
-                                    {identifiers_names.map((name, index) => (
-                                        <option key={index} value={name}>{name}</option>
-                                    ))}
-                                </Form.Control>
+                                <AddPersonDropdown
+                                    options={identifiers_names}
+                                    label="Select a beneficiary"
+                                    selected={beneficiary}
+                                    onSelect={handleBeneficiarySelect}
+                                    onAddPerson={handleAddPerson}
+                                    validationErrors={validationErrors}
+                                    setValidationErrors={setValidationErrors}
+                                />
                             )}
                             {validationErrors.beneficiary && <p className="text-danger">{validationErrors.beneficiary}</p>}
                         </Form.Group>
@@ -301,28 +342,44 @@ function Wipeout({ id, datas, errors }) {
                         <Form.Group controlId="backup">
                             <Form.Label>Backup</Form.Label>
                             {isOrganization ? (
-                                <Form.Control type="text" placeholder="Enter backup organization name" />
+                                <Form.Control
+                                    type="text"
+                                    placeholder="Enter backup organization name"
+                                    value={backup}
+                                    onChange={(e) => setBackup(e.target.value)}
+                                />
                             ) : (
-                                <Form.Control as="select">
-                                    <option value="">Select a backup</option>
-                                    {identifiers_names.map((name, index) => (
-                                        <option key={index} value={name}>{name}</option>
-                                    ))}
-                                </Form.Control>
+                                <AddPersonDropdown
+                                    options={identifiers_names}
+                                    label="Select a backup"
+                                    selected={backup}
+                                    onSelect={handleBackupSelect}
+                                    onAddPerson={handleAddPerson}
+                                    validationErrors={validationErrors}
+                                    setValidationErrors={setValidationErrors}
+                                />
                             )}
                             {validationErrors.backup && <p className="text-danger">{validationErrors.backup}</p>}
                         </Form.Group>
 
                         <Form.Group controlId="shares">
                             <Form.Label>Shares %</Form.Label>
-                            <Form.Control type="number" />
+                            <Form.Control
+                                type="number"
+                                value={shares}
+                                onChange={(e) => setShares(e.target.value)}
+                            />
                             {validationErrors.shares && <p className="text-danger">{validationErrors.shares}</p>}
                         </Form.Group>
 
                         {!isOrganization && (
                             <Form.Group controlId="type">
                                 <Form.Label>Type</Form.Label>
-                                <Form.Control as="select">
+                                <Form.Control
+                                    as="select"
+                                    value={type}
+                                    onChange={(e) => setType(e.target.value)}
+                                >
                                     <option value="">Select type</option>
                                     <option value="Per Stirpes">Per Stirpes</option>
                                     <option value="Per Capita">Per Capita</option>
@@ -354,22 +411,22 @@ function Wipeout({ id, datas, errors }) {
                                     <tr key={index}>
                                         <td>
                                             {editingRow === index ? (
-                                                tempEditData.type === "N/A" ? (
+                                                item.type === "N/A" ? (
                                                     <Form.Control
                                                         type="text"
                                                         value={tempEditData.beneficiary}
-                                                        onChange={(e) => handleDropdownSelect(index, 'beneficiary', e.target.value)}
+                                                        onChange={(e) => setTempEditData({ ...tempEditData, beneficiary: e.target.value })}
                                                     />
                                                 ) : (
-                                                    <Form.Control
-                                                        as="select"
-                                                        value={tempEditData.beneficiary}
-                                                        onChange={(e) => handleDropdownSelect(index, 'beneficiary', e.target.value)}
-                                                    >
-                                                        {identifiers_names.map((name, idx) => (
-                                                            <option key={idx} value={name}>{name}</option>
-                                                        ))}
-                                                    </Form.Control>
+                                                    <AddPersonDropdown
+                                                        options={identifiers_names}
+                                                        label="Select a beneficiary"
+                                                        selected={tempEditData.beneficiary}
+                                                        onSelect={(value) => setTempEditData({ ...tempEditData, beneficiary: value })}
+                                                        onAddPerson={handleAddPerson}
+                                                        validationErrors={validationErrors}
+                                                        setValidationErrors={setValidationErrors}
+                                                    />
                                                 )
                                             ) : (
                                                 item.beneficiary
@@ -377,22 +434,22 @@ function Wipeout({ id, datas, errors }) {
                                         </td>
                                         <td>
                                             {editingRow === index ? (
-                                                tempEditData.type === "N/A" ? (
+                                                item.type === "N/A" ? (
                                                     <Form.Control
                                                         type="text"
                                                         value={tempEditData.backup}
-                                                        onChange={(e) => handleDropdownSelect(index, 'backup', e.target.value)}
+                                                        onChange={(e) => setTempEditData({ ...tempEditData, backup: e.target.value })}
                                                     />
                                                 ) : (
-                                                    <Form.Control
-                                                        as="select"
-                                                        value={tempEditData.backup}
-                                                        onChange={(e) => handleDropdownSelect(index, 'backup', e.target.value)}
-                                                    >
-                                                        {identifiers_names.map((name, idx) => (
-                                                            <option key={idx} value={name}>{name}</option>
-                                                        ))}
-                                                    </Form.Control>
+                                                    <AddPersonDropdown
+                                                        options={identifiers_names}
+                                                        label="Select a backup"
+                                                        selected={tempEditData.backup}
+                                                        onSelect={(value) => setTempEditData({ ...tempEditData, backup: value })}
+                                                        onAddPerson={handleAddPerson}
+                                                        validationErrors={validationErrors}
+                                                        setValidationErrors={setValidationErrors}
+                                                    />
                                                 )
                                             ) : (
                                                 item.backup
@@ -403,18 +460,18 @@ function Wipeout({ id, datas, errors }) {
                                                 <Form.Control
                                                     type="number"
                                                     value={tempEditData.shares}
-                                                    onChange={(e) => handleDropdownSelect(index, 'shares', Number(e.target.value))}
+                                                    onChange={(e) => setTempEditData({ ...tempEditData, shares: Number(e.target.value) })}
                                                 />
                                             ) : (
                                                 item.shares
                                             )}
                                         </td>
                                         <td>
-                                            {editingRow === index && tempEditData.type !== "N/A" ? (
+                                            {editingRow === index && item.type !== "N/A" ? (
                                                 <Form.Control
                                                     as="select"
                                                     value={tempEditData.type}
-                                                    onChange={(e) => handleDropdownSelect(index, 'type', e.target.value)}
+                                                    onChange={(e) => setTempEditData({ ...tempEditData, type: e.target.value })}
                                                 >
                                                     <option value="Per Stirpes">Per Stirpes</option>
                                                     <option value="Per Capita">Per Capita</option>

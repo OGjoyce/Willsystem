@@ -195,8 +195,12 @@ function AddHuman({ married, childrens, human, errors, onDataChange }) {
                         <>
                             <Form.Control as="select" value={relative} onChange={handleRelativeChange}>
                                 <option value="">Select...</option>
+                                <option value="Mother">Mother</option>
+                                <option value="Father">Father</option>
                                 <option value="Brother">Brother</option>
+                                <option value="Sister">Sister</option>
                                 <option value="Uncle">Uncle</option>
+                                <option value="Aunt">Aunt</option>
                                 <option value="Other">Other</option>
                             </Form.Control>
                             {!showOther && validationErrors.relative && <p className="mt-2 text-sm text-red-600">{validationErrors.relative}</p>}

@@ -77,6 +77,7 @@ export default function Personal({ auth }) {
 
     const username = auth.user.name;
 
+    // Load saved data from localStorage on component mount
     useEffect(() => {
         const savedData = localStorage.getItem('fullData');
         const savedPointer = localStorage.getItem('currentPointer');
@@ -103,6 +104,7 @@ export default function Personal({ auth }) {
         }
     }, []);
 
+    // Show or hide the Select Package Modal based on the current step
     useEffect(() => {
         if (pointer === 0) {
             setShowSelectModal(true);
@@ -122,6 +124,7 @@ export default function Personal({ auth }) {
         setShowSelectModal(false);
     };
 
+    // Helper function to update or create properties in objectStatus
     const updateOrCreateProperty = (prevStatus, propertiesAndData) => {
         const newStatus = [...prevStatus];
         const existingIndex = newStatus.findIndex((obj) =>
@@ -145,6 +148,17 @@ export default function Personal({ auth }) {
         return newStatus;
     };
 
+    // Helper function to find the first incomplete step within visibleSteps
+    const findFirstIncompleteStep = () => {
+        for (let i = 0; i < visibleSteps.length; i++) {
+            if (!stepHasData(visibleSteps[i].step)) {
+                return visibleSteps[i].step;
+            }
+        }
+        return null; // All steps are complete
+    };
+
+    // Function to handle advancing to the next step
     const pushInfo = async (step) => {
         let propertiesAndData = [];
 
@@ -193,6 +207,36 @@ export default function Personal({ auth }) {
                     localStorage.setItem('currIdObjDB', dataFirstStore.id);
                 } else {
                     return null;
+                }
+
+                // Set the default structure for objectStatus if not already set
+                if (!updatedObjectStatus.find(obj => obj.hasOwnProperty('marriedq'))) {
+                    const initialObjectStructure = [
+                        [{ name: 'marriedq', data: {} }],
+                        [{ name: 'married', data: {} }],
+                        [{ name: 'kidsq', data: {} }],
+                        [{ name: 'kids', data: [] }],
+                        [{ name: 'executors', data: [] },
+                        { name: 'relatives', data: [] }],
+                        [{ name: 'bequests', data: {} }],
+                        [{ name: 'residue', data: {} }],
+                        [{ name: 'wipeout', data: {} }],
+                        [{ name: 'trusting', data: {} }],
+                        [{ name: 'guardians', data: {} }],
+                        [{ name: 'pets', data: {} }],
+                        [{ name: 'additional', data: {} }],
+                        [{ name: 'poa', data: {} }],
+                        [{ name: 'finalDetails', data: {} }],
+                        [{ name: 'documentDOM', data: {} }],
+                    ]
+
+                    initialObjectStructure.forEach(
+                        obj => {
+                            const tempData = updateOrCreateProperty(updatedObjectStatus, obj)
+                            setObjectStatus(tempData)
+                            updatedObjectStatus = tempData
+                        }
+                    )
                 }
 
                 break;
@@ -433,36 +477,31 @@ export default function Personal({ auth }) {
         return updatedObjectStatus;
     };
 
-    const backStep = (prevStep) => {
+    // Modified backStep function to navigate to the first incomplete step within visibleSteps
+    const backStep = () => {
+        // Find the first incomplete step within visibleSteps
+        const firstIncompleteStep = findFirstIncompleteStep();
 
-        //Skip kids Information step if no kids option selected
-        const noKids = objectStatus.some(
-            (obj) => obj.kidsq && (obj.kidsq.selection === 'false' || obj.kidsq.selection === '')
-        );
-        if (prevStep === 4 && noKids) {
-            prevStep = 3;
+        if (firstIncompleteStep !== null) {
+            setPointer(firstIncompleteStep);
+            localStorage.setItem('currentPointer', firstIncompleteStep.toString());
+        } else {
+            // If all steps are complete, navigate to the previous step
+            const currentIndex = visibleSteps.findIndex(step => step.step === pointer);
+            if (currentIndex > 0) {
+                const previousStep = visibleSteps[currentIndex - 1].step;
+                setPointer(previousStep);
+                localStorage.setItem('currentPointer', previousStep.toString());
+            } else {
+                // If already at the first step, do nothing or handle accordingly
+                console.log('Already at the first step.');
+            }
         }
 
-        //Skip spouse's Information if no spouse option selected
-        const noSpouse = objectStatus.some(
-            (obj) => obj.marriedq && (obj.marriedq.selection === 'false' || obj.marriedq.selection === '')
-        );
-        if (prevStep === 2 && noSpouse) {
-            prevStep = 1;
-        }
-
-        // Remove the last element from objectStatus when going back
-        setObjectStatus((prevStatus) => {
-            const newStatus = [...prevStatus];
-            newStatus.pop();
-            localStorage.setItem('fullData', JSON.stringify(newStatus));
-            return newStatus;
-        });
-        setPointer(prevStep);
-        localStorage.setItem('currentPointer', prevStep.toString());
         return true;
     };
 
+    // Function to handle exiting the form
     const handleExit = () => {
         // Clear localStorage
         localStorage.removeItem('currIdObjDB');
@@ -477,6 +516,7 @@ export default function Personal({ auth }) {
         router.get(route('dashboard'));
     };
 
+    // Modified nextStep function to ensure consistent navigation
     const nextStep = async (nextStepValue) => {
         const objectStatusResult = await pushInfo(pointer);
         if (!objectStatusResult) {
@@ -484,9 +524,9 @@ export default function Personal({ auth }) {
         }
 
         // Use the updated objectStatusResult
-        const visibleSteps = getVisibleSteps(objectStatusResult);
-        const currentIndex = visibleSteps.findIndex((step) => step.step === pointer);
-        let nextVisibleStep = visibleSteps[currentIndex + 1];
+        const newVisibleSteps = getVisibleSteps(objectStatusResult);
+        const currentIndex = newVisibleSteps.findIndex((step) => step.step === pointer);
+        let nextVisibleStep = newVisibleSteps[currentIndex + 1];
 
         const noSpouse = objectStatusResult.some(
             (obj) => obj.marriedq && (obj.marriedq.selection === 'false' || obj.marriedq.selection === '')
@@ -503,8 +543,8 @@ export default function Personal({ auth }) {
             const updatedObjectStatus = updateOrCreateProperty(objectStatusResult, propertiesAndData);
             setObjectStatus(updatedObjectStatus);
             // Recalculate visible steps
-            const newVisibleSteps = getVisibleSteps(updatedObjectStatus);
-            nextVisibleStep = newVisibleSteps.find((step) => step.step > pointer);
+            const updatedVisibleSteps = getVisibleSteps(updatedObjectStatus);
+            nextVisibleStep = updatedVisibleSteps.find((step) => step.step > pointer);
         }
 
         if (pointer === 3 && noKids) {
@@ -512,8 +552,8 @@ export default function Personal({ auth }) {
             const updatedObjectStatus = updateOrCreateProperty(objectStatusResult, propertiesAndData);
             setObjectStatus(updatedObjectStatus);
             // Recalculate visible steps
-            const newVisibleSteps = getVisibleSteps(updatedObjectStatus);
-            nextVisibleStep = newVisibleSteps.find((step) => step.step > pointer);
+            const updatedVisibleSteps = getVisibleSteps(updatedObjectStatus);
+            nextVisibleStep = updatedVisibleSteps.find((step) => step.step > pointer);
         }
 
         if (nextVisibleStep) {
@@ -527,27 +567,111 @@ export default function Personal({ auth }) {
         return true;
     };
 
+    // Function to check if a step has data
     const stepHasData = (step) => {
         const stepDataMap = {
-            0: 'personal',
-            1: 'marriedq',
-            2: 'married',
-            3: 'kidsq',
-            4: 'kids',
-            5: 'relatives',
-            6: 'bequests',
-            7: 'residue',
-            8: 'wipeout',
-            9: 'trusting',
-            10: 'guardians',
-            11: 'pets',
-            12: 'additional',
-            13: 'poa',
-            14: 'finalDetails',
-            15: 'documentDOM',
+            0: {
+                key: 'personal',
+                check: (data) => data && data.fullName && data.fullName.trim() !== '' && data.email && data.email.trim() !== '',
+            },
+            1: {
+                key: 'marriedq',
+                check: (data) => data && data.selection && data.selection.trim() !== '',
+            },
+            2: {
+                key: 'married',
+                check: (data) => data && data.firstName && data.firstName.trim() !== '',
+            },
+            3: {
+                key: 'kidsq',
+                check: (data) => data && data.selection && data.selection.trim() !== '',
+            },
+            4: {
+                key: 'kids',
+                check: (data) => data && Array.isArray(data) && data.length > 0,
+            },
+            5: {
+                key: 'executors',
+                check: (data) => data && Array.isArray(data) && data.length > 0,
+            },
+            6: {
+                key: 'bequests',
+                check: (data) => {
+                    if (data && typeof data === 'object') {
+                        const keys = Object.keys(data).filter(k => k !== 'timestamp');
+                        return keys.length > 0;
+                    }
+                    return false;
+                },
+            },
+            7: {
+                key: 'residue',
+                check: (data) => data && data.selected && data.selected.trim() !== '',
+            },
+            8: {
+                key: 'wipeout',
+                check: (data) => data && data.wipeout && Object.keys(data.wipeout).length > 0,
+            },
+            9: {
+                key: 'trusting',
+                check: (data) => {
+                    if (data && typeof data === 'object') {
+                        const keys = Object.keys(data).filter(k => k !== 'timestamp');
+                        return keys.length > 0;
+                    }
+                    return false;
+                },
+            },
+            10: {
+                key: 'guardians',
+                check: (data) => {
+                    if (data && typeof data === 'object') {
+                        const keys = Object.keys(data).filter(k => k !== 'timestamp');
+                        return keys.length > 0;
+                    }
+                    return false;
+                },
+            },
+            11: {
+                key: 'pets',
+                check: (data) => {
+                    if (data && typeof data === 'object') {
+                        const keys = Object.keys(data).filter(k => k !== 'timestamp');
+                        return keys.length > 0;
+                    }
+                    return false;
+                },
+            },
+            12: {
+                key: 'additional',
+                check: (data) => data && data.standard && Object.keys(data.standard).length > 0,
+            },
+            13: {
+                key: 'poa',
+                check: (data) => data && Object.keys(data).length > 0,
+            },
+            14: {
+                key: 'finalDetails',
+                check: (data) => data && Object.keys(data).length > 0,
+            },
+            15: {
+                key: 'documentDOM',
+                check: (data) => data && Object.keys(data).length > 0,
+            },
         };
 
-        return objectStatus.some((obj) => obj.hasOwnProperty(stepDataMap[step]));
+        const { key, check } = stepDataMap[step] || {};
+        if (!key || !check) return false;
+
+        for (const obj of objectStatus) {
+            if (obj.hasOwnProperty(key)) {
+                const data = obj[key];
+                if (check(data)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     };
 
     // Function to determine if a step is clickable in the breadcrumb navigation
@@ -559,6 +683,7 @@ export default function Personal({ auth }) {
         return true;
     };
 
+    // Function to get the list of visible steps based on current data
     const getVisibleSteps = (objectStatusToUse = objectStatus) => {
         const hasSpouse = objectStatusToUse.some(
             (obj) => obj.marriedq && (obj.marriedq.selection === 'true' || obj.marriedq.selection === 'soso')
@@ -577,6 +702,10 @@ export default function Personal({ auth }) {
     const currentStepIndex = visibleSteps.findIndex((step) => step.step === pointer);
 
     // Data for StepRedirect
+    const hasSpouse = objectStatus.some(
+        (obj) => obj.marriedq && (obj.marriedq.selection === 'true' || obj.marriedq.selection === 'soso')
+    );
+    const hasKids = objectStatus.some((obj) => obj.kidsq && obj.kidsq.selection === 'true');
     const hasSpouseData = objectStatus.some((obj) => obj.married);
     const hasKidsData = objectStatus.some((obj) => obj.kids && obj.kids.length > 0);
     const stepBack = !hasSpouseData ? 1 : !hasKidsData ? 3 : null;
@@ -618,9 +747,9 @@ export default function Personal({ auth }) {
                         {/* Render components based on the value of pointer */}
                         {pointer === 0 && <FormCity errors={validationErrors} />}
                         {pointer === 1 && <Married humanSelector="spouse" />}
-                        {pointer === 2 && <AddHuman married={true} errors={validationErrors} />}
+                        {pointer === 2 && hasSpouse && <AddHuman married={true} errors={validationErrors} />}
                         {pointer === 3 && <Married humanSelector="children" />}
-                        {pointer === 4 && <AddRelative relative="children" errors={validationErrors} datas={objectStatus} />}
+                        {pointer === 4 && hasKids && <AddRelative relative="children" errors={validationErrors} datas={objectStatus} />}
                         {pointer === 5 && <HumanTable datas={objectStatus} errors={validationErrors} />}
                         {
                             pointer === 6 && spouseData !== null && kidsData !== null ?
@@ -650,11 +779,10 @@ export default function Personal({ auth }) {
                                 )
                         }
                         {pointer === 9 && <Trusting datas={objectStatus} errors={validationErrors} />}
-                        {pointer === 10 && <GuardianForMinors datas={objectStatus} errors={validationErrors} />}
+                        {pointer === 10 && hasKids && <GuardianForMinors datas={objectStatus} errors={validationErrors} />}
                         {
                             pointer === 11 && spouseData !== null && kidsData !== null ?
                                 <Pets datas={objectStatus} errors={validationErrors} />
-
                                 : (
                                     pointer === 11
                                         ? <StepRedirect onGoToStep={setPointer} missingStep={stepBack} />
@@ -688,7 +816,7 @@ export default function Personal({ auth }) {
                                     <Col xs={6} className="d-flex justify-content-start">
                                         {pointer > 0 && pointer < 15 && (
                                             <Button
-                                                onClick={() => backStep(pointer - 1)}
+                                                onClick={backStep} // Updated to use the modified backStep function
                                                 variant="outline-dark"
                                                 size="lg"
                                                 style={{ width: '100%' }}
@@ -739,3 +867,4 @@ export default function Personal({ auth }) {
         </AuthenticatedLayout>
     );
 }
+
