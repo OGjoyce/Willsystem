@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Crypt;
 use Carbon\Carbon;
 use Inertia\Inertia;
 use App\Http\Controllers\ObjStatusController;
+use App\Http\Controllers\AllFilesController;
 use App\Http\Controllers\FilesReviewController;
 use App\Http\Controllers\PackageStatusController;
 use App\Http\Controllers\DocumentsApprovalController;
@@ -44,6 +45,10 @@ Route::get('/view', function () {
 Route::get('/packages', function () {
     return Inertia::render('Admin/Packages');
 })->name("packages");
+
+Route::get('/all-files', function () {
+    return Inertia::render('Admin/AllFiles');
+})->name("all-files");
 
 Route::get('/files-review', function () {
     return Inertia::render('Admin/FilesReview');
