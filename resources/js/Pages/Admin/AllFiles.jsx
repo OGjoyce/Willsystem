@@ -48,7 +48,6 @@ const AllFiles = () => {
                             approved: '0/0',
                             status: 'pending',
                             createdAt: 'N/A',
-                            updatedAt: 'N/A',
                         };
                     }
 
@@ -122,7 +121,7 @@ const AllFiles = () => {
                     console.log(`Final status for package ${packageInfo.name}:`, status);
 
                     const formattedCreationDate = creationTimestamp ? new Date(creationTimestamp).toLocaleDateString() : 'N/A';
-                    const formattedLatestDate = latestTimestamp ? new Date(latestTimestamp).toLocaleDateString() : 'N/A';
+
 
                     return {
                         id: item.id || null,
@@ -130,7 +129,6 @@ const AllFiles = () => {
                         name: packageInfo.name || 'unknown',
                         approved: `${approvedCount}/${totalCount}`,
                         createdAt: formattedCreationDate,
-                        updatedAt: formattedLatestDate,
                         status: status
                     };
 
@@ -229,11 +227,6 @@ const AllFiles = () => {
         {
             name: 'Created At',
             selector: row => row.createdAt,
-            sortable: true,
-        },
-        {
-            name: 'Updated At',
-            selector: row => row.updatedAt,
             sortable: true,
         },
         {
