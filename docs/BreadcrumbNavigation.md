@@ -1,4 +1,4 @@
-# BreadcrumbNavigation Component Documentation
+# BreadcrumbNavigation Component
 
 This document provides a comprehensive guide to the `BreadcrumbNavigation` component used in our project. The component facilitates breadcrumb-style navigation through different steps in a multi-step form or process, enhancing user experience by providing visual cues about their progress.
 
