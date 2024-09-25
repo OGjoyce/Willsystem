@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { Container, Row, Col, Form, Button, Dropdown, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, Dropdown, OverlayTrigger, Tooltip, Alert } from 'react-bootstrap';
 import { Link, Head } from '@inertiajs/react';
 import { debounce } from 'lodash';
 import axios from 'axios';
@@ -14,14 +14,39 @@ const AllFiles = () => {
     const [files, setFiles] = useState([]);
     const [fromDate, setFromDate] = useState(null);
     const [toDate, setToDate] = useState(null);
+    const [isFetchingByDate, setIsFetchingByDate] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
 
     useEffect(() => {
         fetchFiles();
-    }, []);
+    }, [fromDate, toDate]);
 
     const fetchFiles = async () => {
         try {
-            const response = await axios.get('/api/obj-status/all');
+            setErrorMessage(''); // Resetear mensaje de error
+
+            // Validación adicional
+            if (fromDate && toDate && fromDate > toDate) {
+                setErrorMessage("'From Date' no puede ser posterior a 'To Date'.");
+                return;
+            }
+
+            let response;
+            if (fromDate && toDate) {
+                setIsFetchingByDate(true);
+                // Formatear las fechas para incluir todo el día en tiempo local
+                const formattedFromDate = formatDateTime(fromDate, 'start');
+                const formattedToDate = formatDateTime(toDate, 'end');
+                response = await axios.get('/api/obj-status/date-range', {
+                    params: {
+                        from_date: formattedFromDate,
+                        to_date: formattedToDate,
+                    },
+                });
+            } else {
+                setIsFetchingByDate(false);
+                response = await axios.get('/api/obj-status/all');
+            }
 
             // Imprimir la estructura completa de la respuesta para depuración
             console.log('Full response:', response.data);
@@ -122,7 +147,6 @@ const AllFiles = () => {
 
                     const formattedCreationDate = creationTimestamp ? new Date(creationTimestamp).toLocaleDateString() : 'N/A';
 
-
                     return {
                         id: item.id || null,
                         user: owner,
@@ -131,7 +155,6 @@ const AllFiles = () => {
                         createdAt: formattedCreationDate,
                         status: status
                     };
-
                 }).filter(Boolean);
             }
 
@@ -149,8 +172,32 @@ const AllFiles = () => {
             console.log('Transformed data:', transformedData);
 
         } catch (error) {
-            console.error('Error fetching files:', error);
+            if (error.response && error.response.status === 422) {
+                setErrorMessage("Error de validación: Asegúrate de que 'From Date' no sea posterior a 'To Date'.");
+            } else {
+                setErrorMessage("Ocurrió un error al obtener los archivos. Por favor, intenta nuevamente.");
+                console.error('Error fetching files:', error);
+            }
         }
+    };
+
+    // Función para formatear las fechas en tiempo local
+    const formatDateTime = (date, type) => {
+        const d = new Date(date);
+        if (type === 'start') {
+            d.setHours(0, 0, 0, 0);
+        } else if (type === 'end') {
+            d.setHours(23, 59, 59, 999);
+        }
+
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const hours = String(d.getHours()).padStart(2, '0');
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+        const seconds = String(d.getSeconds()).padStart(2, '0');
+
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`; // Formato 'YYYY-MM-DD HH:MM:SS'
     };
 
     const filteredPackages = useMemo(() => {
@@ -189,7 +236,7 @@ const AllFiles = () => {
                         key={row.id}
                         placement='top'
                         overlay={
-                            <Tooltip id={row.id}>
+                            <Tooltip id={`tooltip-${row.id}`}>
                                 <strong>{row.status}</strong>
                             </Tooltip>
                         }
@@ -253,6 +300,11 @@ const AllFiles = () => {
                         <Container style={{ display: "flex", flexDirection: "column", height: "70vh", justifyContent: "space-between" }}>
                             <Row className="mb-3">
                                 <Col xs={12} md={9} className="mb-3 mb-md-0">
+                                    {errorMessage && (
+                                        <Alert variant="danger">
+                                            {errorMessage}
+                                        </Alert>
+                                    )}
                                     <Form.Group as={Row}>
                                         <Col xs={8} md={4}>
                                             <Form.Control
@@ -295,6 +347,8 @@ const AllFiles = () => {
                                                 dateFormat="yyyy-MM-dd"
                                                 className="form-control"
                                                 isClearable
+                                                placeholderText="Selecciona una fecha"
+                                                maxDate={toDate || null} // Limita la fecha máxima a `toDate`
                                             />
                                         </Col>
                                         <Col xs={12} md={6}>
@@ -305,13 +359,20 @@ const AllFiles = () => {
                                                 dateFormat="yyyy-MM-dd"
                                                 className="form-control"
                                                 isClearable
+                                                placeholderText="Selecciona una fecha"
+                                                minDate={fromDate || null} // Limita la fecha mínima a `fromDate`
                                             />
                                         </Col>
                                     </Form.Group>
                                 </Col>
                             </Row>
                             <div className="overflow-auto" style={{ maxHeight: '400px' }}>
-                                <p className="text-center mb-4">Start typing the owner's email or package to filter results in the table below.</p>
+                                <p className="text-center mb-4">
+                                    {isFetchingByDate
+                                        ? "Mostrando resultados dentro del rango de fechas seleccionado."
+                                        : "Start typing the owner's email or package to filter results in the table below."
+                                    }
+                                </p>
                                 <DataTable
                                     columns={columns}
                                     data={filteredPackages}
@@ -320,6 +381,7 @@ const AllFiles = () => {
                                     paginationRowsPerPageOptions={[10, 25, 50, 100]}
                                     highlightOnHover
                                     responsive
+                                    noDataComponent={isFetchingByDate ? "No se encontraron registros en el rango de fechas seleccionado." : "No hay datos para mostrar."}
                                 />
                             </div>
                             <Row style={{ marginBottom: "24px" }}>

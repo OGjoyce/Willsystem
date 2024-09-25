@@ -6,12 +6,15 @@ use App\Http\Controllers\ObjStatusController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\ContractController;
 
-Route::middleware('api')->group(function () {
-    Route::apiResource('obj-statuses', ObjStatusController::class);
-    Route::apiResource('/obj-status/all',ObjStatusController::class);
-    Route::apiResource('packages', PackageController::class);
-});
+// Rutas de recursos existentes
+Route::apiResource('obj-statuses', ObjStatusController::class);
+Route::apiResource('packages', PackageController::class);
 
+// Rutas personalizadas para ObjStatus
+Route::get('/obj-status/all', [ObjStatusController::class, 'getRecentStatuses']);
+Route::get('/obj-status/date-range', [ObjStatusController::class, 'getStatusesByDateRange']);
+
+// Rutas adicionales
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');

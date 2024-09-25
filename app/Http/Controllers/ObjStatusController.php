@@ -11,6 +11,41 @@ class ObjStatusController extends Controller
         return ObjStatus::all();
     }
 
+      // Método para obtener los 256 más recientes
+    public function getRecentStatuses()
+    {
+        try {
+            $statuses = ObjStatus::orderBy('created_at', 'desc')
+                                 ->take(256)
+                                 ->get();
+            return response()->json($statuses, 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al obtener los object statuses recientes.'], 500);
+        }
+    }
+
+    // Método para obtener por rango de fechas
+    public function getStatusesByDateRange(Request $request)
+    {
+        $request->validate([
+            'from_date' => 'required|date_format:Y-m-d H:i:s',
+            'to_date' => 'required|date_format:Y-m-d H:i:s|after_or_equal:from_date',
+        ]);
+
+        try {
+            $fromDate = $request->input('from_date');
+            $toDate = $request->input('to_date');
+
+            $statuses = ObjStatus::whereBetween('created_at', [$fromDate, $toDate])
+                                 ->orderBy('created_at', 'desc')
+                                 ->get();
+
+            return response()->json($statuses, 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al obtener los object statuses por rango de fechas.'], 500);
+        }
+    }
+
     public function store(Request $request)
     {
       //  \Log::info('THIS IS THE RQUESET ' . $request);
