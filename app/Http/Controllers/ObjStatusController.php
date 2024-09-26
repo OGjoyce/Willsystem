@@ -4,14 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\ObjStatus;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class ObjStatusController extends Controller
-{    public function index()
+{
+    // Método para obtener todos los registros
+    public function index()
     {
         return ObjStatus::all();
     }
 
-      // Método para obtener los 256 más recientes
+    // Método para obtener los 256 más recientes
     public function getRecentStatuses()
     {
         try {
@@ -48,8 +51,7 @@ class ObjStatusController extends Controller
 
     public function store(Request $request)
     {
-      //  \Log::info('THIS IS THE RQUESET ' . $request);
-
+        // \Log::info('THIS IS THE REQUEST ' . $request);
 
         $validatedData = $request->validate([
             'information' => 'required|string',
@@ -77,40 +79,32 @@ class ObjStatusController extends Controller
 
     public function update(Request $request, ObjStatus $objStatus)
     {
-        $request->validate([
-            'information' => 'required|json',
-            'related_id' => 'required|integer',
-        ]);
         $validatedData = $request->validate([
             'information' => 'required|string',
             'related_id' => 'required|integer',
         ]);
+
         $information = json_decode($validatedData['information'], true);
         if (is_array($information) && isset($information['data'])) {
             $information = $information['data'];
         }
 
-    
         $objStatus->update([
             'information' => $information,
             'related_id' => $validatedData['related_id'],
         ]);
-    
-        return response()->json($objStatus);
 
-       
-        
-        
-        
+        return response()->json($objStatus);
     }
 
-     public function getAllInformation(): JsonResponse
+    // Método corregido para obtener toda la información
+    public function getAllInformation(): JsonResponse
     {
-        // Obtén todos los registros de la columna `information`
-        $information = ObjStatus::pluck('all');
+        // Obtén todos los registros de la tabla `obj_statuses`
+        $information = ObjStatus::all();
 
         // Retorna los registros como una respuesta JSON
-        return response()->json($information);
+        return response()->json($information, 200);
     }
 
     public function destroy(ObjStatus $objStatus)
@@ -119,6 +113,7 @@ class ObjStatusController extends Controller
 
         return response()->noContent();
     }
+
     public function searchByEmail(Request $request)
     {
         $owner = $request->input('owner');
@@ -129,14 +124,12 @@ class ObjStatusController extends Controller
     }
 
     public function searchById(Request $request)
-{
-    $id = $request->input('id');
-   
-    $files = ObjStatus::where('id', $id)->get();
+    {
+        $id = $request->input('id');
+       
+        $files = ObjStatus::where('id', $id)->get();
 
-    \Log::info('Search results by ID: ' . $files);
-    return response()->json($files);
-}
-
-
+        \Log::info('Search results by ID: ' . $files);
+        return response()->json($files);
+    }
 }
