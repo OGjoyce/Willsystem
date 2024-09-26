@@ -1,40 +1,108 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+// Frontend: AllFiles.jsx
+
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { Container, Row, Col, Form, Button, Dropdown, OverlayTrigger, Tooltip, Alert } from 'react-bootstrap';
+import { Dropdown, Button, Container, Row, Col, Modal, Form, Alert, Spinner, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
-import { debounce } from 'lodash';
 import axios from 'axios';
 import DataTable from 'react-data-table-component';
 import DatePicker from 'react-datepicker';
+import { debounce } from "lodash"
 import 'react-datepicker/dist/react-datepicker.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+import PDFEditor from '@/Components/PDF/PDFEditor';
+import WillContent from '@/Components/PDF/Content/WillContent';
+import POA1Content from '@/Components/PDF/Content/POA1Content';
+import POA2Content from '@/Components/PDF/Content/POA2Content';
 
 const AllFiles = () => {
+    // Estados para la tabla y filtros
     const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState('All');
+    const [emailFilter, setEmailFilter] = useState('');
     const [files, setFiles] = useState([]);
     const [fromDate, setFromDate] = useState(null);
     const [toDate, setToDate] = useState(null);
     const [isFetchingByDate, setIsFetchingByDate] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    useEffect(() => {
-        fetchFiles();
-    }, [fromDate, toDate]);
+    // Estados para el manejo de modales y documentos
+    const [show, setShow] = useState(false);
+    const [docSelected, setDocSelected] = useState("Will");
+    const [idSelected, setIdSelected] = useState("");
+    const [documentVersions, setDocumentVersions] = useState([]);
+    const [selectedVersion, setSelectedVersion] = useState("");
+    const [finalSelection, setFinalSelection] = useState([]);
+    const [allDataFetched, setAllDataFetched] = useState([]);
+
+    const handleClose = () => setShow(false);
+
+    const handleShow = (id) => {
+        setIdSelected(id);
+        setShow(true);
+        searchById(id);
+    };
+
+    const saveData = (idItem) => {
+        const dataFetchedLarge = allDataFetched.length;
+        let obj = [];
+        for (let i = 0; i < dataFetchedLarge; i++) {
+            if (allDataFetched[i].id === idItem) {
+                obj = allDataFetched[i].information;
+                break;
+            }
+        }
+
+        localStorage.setItem('fullData', JSON.stringify(obj));
+        localStorage.setItem('currentPointer', obj.length.toString());
+        localStorage.setItem('currIdObjDB', idItem);
+
+        window.location.href = '/personal';
+    };
+
+    const searchById = (id) => {
+        let selectedInformation = {};
+        allDataFetched.forEach(function (arrayItem) {
+            if (arrayItem.id === id) {
+                selectedInformation = arrayItem.information;
+                const documentDOMs = selectedInformation.map(object => object.documentDOM ? object.documentDOM : null).filter(dom => dom !== null);
+                if (documentDOMs[0]) {
+                    const versionsObject = documentDOMs[0][docSelected];
+                    if (versionsObject) {
+                        const versionsArray = Object.entries(versionsObject).map(([key, value]) => ({
+                            key,
+                            value
+                        }));
+                        setDocumentVersions(versionsArray);
+                    } else {
+                        setDocumentVersions([]);
+                    }
+                }
+            }
+        });
+        setFinalSelection(selectedInformation);
+    };
+
+    const handleVersionSelect = (docType, version) => {
+        setDocSelected(docType);
+        setSelectedVersion(version);
+        setShow(false);
+    };
 
     const fetchFiles = async () => {
         try {
-            setErrorMessage(''); // Resetear mensaje de error
+            setErrorMessage('');
+            setIsLoading(true);
 
-            // Validación adicional
             if (fromDate && toDate && fromDate > toDate) {
                 setErrorMessage("'From Date' no puede ser posterior a 'To Date'.");
+                setIsLoading(false);
                 return;
             }
 
             let response;
             if (fromDate && toDate) {
                 setIsFetchingByDate(true);
-                // Formatear las fechas para incluir todo el día en tiempo local
                 const formattedFromDate = formatDateTime(fromDate, 'start');
                 const formattedToDate = formatDateTime(toDate, 'end');
                 response = await axios.get('/api/obj-status/date-range', {
@@ -48,128 +116,13 @@ const AllFiles = () => {
                 response = await axios.get('/api/obj-status/all');
             }
 
-            // Imprimir la estructura completa de la respuesta para depuración
             console.log('Full response:', response.data);
-
-            function transformData(data) {
-                if (!Array.isArray(data)) {
-                    console.error('Expected an array but got:', data);
-                    return [];
-                }
-
-                return data.flatMap(item => {
-                    // Buscar el objeto documentDOM dentro de la estructura de información
-                    const documentDOM = findDocumentDOM(item.information);
-                    const packageInfo = item.information?.find(info => info.packageInfo)?.packageInfo;
-                    const owner = item.information?.find(info => info.personal)?.personal?.email || 'unknown';
-                    const creationTimestamp = item.information?.find(info => info.personal)?.personal?.timestamp;
-                    let latestTimestamp = creationTimestamp;
-
-                    if (!packageInfo || !documentDOM) {
-                        return {
-                            id: item.id || null,
-                            user: owner,
-                            name: packageInfo?.name || 'unknown',
-                            approved: '0/0',
-                            status: 'pending',
-                            createdAt: 'N/A',
-                        };
-                    }
-
-                    if (documentDOM) {
-                        Object.values(documentDOM).forEach(doc => {
-                            Object.values(doc).forEach(version => {
-                                Object.values(version).forEach(v => {
-                                    if (v.timestamp && new Date(v.timestamp).getTime() > new Date(latestTimestamp).getTime()) {
-                                        latestTimestamp = v.timestamp;
-                                    }
-                                });
-                            });
-                        });
-                    }
-
-                    console.log('Processing documentDOM:', documentDOM);
-
-                    const documents = Object.entries(documentDOM);
-                    let hasChangesRequested = false;
-                    let allApproved = true;
-                    let totalCount = 0;
-                    let approvedCount = 0;
-
-                    documents.forEach(([key, versions]) => {
-                        // Evitar procesar documentos con nombre que empieza con 'timestamp'
-                        if (key.startsWith('timestamp')) {
-                            console.log(`Skipping document: ${key}`);
-                            return;
-                        }
-
-                        console.log(`Processing document: ${key}`);
-                        console.log(`Available versions for ${key}:`, Object.keys(versions));
-
-                        const versionKeys = Object.keys(versions).filter(vKey => vKey.startsWith('v'));
-                        if (versionKeys.length === 0) {
-                            console.log(`No version keys found for document: ${key}`);
-                            return;
-                        }
-
-                        // Obtener la última versión del documento
-                        const lastVersionKey = versionKeys.sort((a, b) => parseInt(b.replace('v', '')) - parseInt(a.replace('v', '')))[0];
-                        const lastVersion = versions[lastVersionKey];
-
-                        if (lastVersion) {
-                            console.log(`Document: ${key}, Version: ${lastVersionKey}, Status: ${lastVersion.status}`);
-                            const status = lastVersion.status;
-
-                            if (status === 'changes requested') {
-                                hasChangesRequested = true;
-                            } else if (status === 'approved') {
-                                approvedCount += 1;
-                            } else if (status === 'pending') {
-                                allApproved = false;
-                            }
-                        } else {
-                            console.log(`No last version found for document: ${key}`);
-                        }
-
-                        totalCount += 1;
-                    });
-
-                    let status = 'pending';
-                    if (hasChangesRequested) {
-                        status = 'changes requested';
-                    } else if (approvedCount === totalCount && totalCount > 0) {
-                        status = 'completed';
-                    } else if (!hasChangesRequested && !allApproved) {
-                        status = 'pending';
-                    }
-
-                    console.log(`Final status for package ${packageInfo.name}:`, status);
-
-                    const formattedCreationDate = creationTimestamp ? new Date(creationTimestamp).toLocaleDateString() : 'N/A';
-
-                    return {
-                        id: item.id || null,
-                        user: owner,
-                        name: packageInfo.name || 'unknown',
-                        approved: `${approvedCount}/${totalCount}`,
-                        createdAt: formattedCreationDate,
-                        status: status
-                    };
-                }).filter(Boolean);
-            }
-
-            function findDocumentDOM(infoArray) {
-                for (const obj of infoArray) {
-                    if (obj.documentDOM) {
-                        return obj.documentDOM;
-                    }
-                }
-                return null;
-            }
 
             const transformedData = transformData(response.data);
             setFiles(transformedData);
+            setAllDataFetched(response.data);
             console.log('Transformed data:', transformedData);
+            setIsLoading(false);
 
         } catch (error) {
             if (error.response && error.response.status === 422) {
@@ -178,10 +131,10 @@ const AllFiles = () => {
                 setErrorMessage("Ocurrió un error al obtener los archivos. Por favor, intenta nuevamente.");
                 console.error('Error fetching files:', error);
             }
+            setIsLoading(false);
         }
     };
 
-    // Función para formatear las fechas en tiempo local
     const formatDateTime = (date, type) => {
         const d = new Date(date);
         if (type === 'start') {
@@ -197,21 +150,76 @@ const AllFiles = () => {
         const minutes = String(d.getMinutes()).padStart(2, '0');
         const seconds = String(d.getSeconds()).padStart(2, '0');
 
-        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`; // Formato 'YYYY-MM-DD HH:MM:SS'
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    };
+
+    const transformData = (data) => {
+        if (!Array.isArray(data)) {
+            console.error('Expected an array but got:', data);
+            return [];
+        }
+
+        return data.flatMap(item => {
+            const packageInfo = item.information?.find(info => info.packageInfo)?.packageInfo;
+            const owner = item.information?.find(info => info.personal)?.personal?.email || 'unknown';
+            const creationTimestamp = item.created_at;
+            const lastModificationTimestamp = item.updated_at;
+
+            if (!packageInfo) {
+                return {
+                    id: item.id || null,
+                    email: owner,
+                    name: 'unknown',
+                    created: 'N/A',
+                    updated: 'N/A',
+                    leng: item.information.length,
+                };
+            }
+
+            const documentDOM = findDocumentDOM(item.information);
+            if (!documentDOM) {
+                return {
+                    id: item.id || null,
+                    email: owner,
+                    name: packageInfo.name || 'unknown',
+                    created: creationTimestamp ? new Date(creationTimestamp).toLocaleDateString() : 'N/A',
+                    updated: lastModificationTimestamp ? new Date(lastModificationTimestamp).toLocaleDateString() : 'N/A',
+                    leng: item.information.length,
+                };
+            }
+
+            return {
+                id: item.id || null,
+                email: owner,
+                name: packageInfo.name || 'unknown',
+                created: creationTimestamp ? new Date(creationTimestamp).toLocaleDateString() : 'N/A',
+                updated: lastModificationTimestamp ? new Date(lastModificationTimestamp).toLocaleDateString() : 'N/A',
+                leng: item.information.length,
+            };
+        }).filter(Boolean);
+    };
+
+    const findDocumentDOM = (infoArray) => {
+        for (const obj of infoArray) {
+            if (obj.documentDOM) {
+                return obj.documentDOM;
+            }
+        }
+        return null;
     };
 
     const filteredPackages = useMemo(() => {
         return files.filter(pkg => {
-            const matchesStatus = (statusFilter === 'All' || pkg.status.toLowerCase() === statusFilter.toLowerCase());
-            const matchesSearchTerm = (pkg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                pkg.user.toLowerCase().includes(searchTerm.toLowerCase()));
-            const createdAtDate = new Date(pkg.createdAt);
+            const matchesEmail = emailFilter ? pkg.email.toLowerCase().includes(emailFilter.toLowerCase()) : true;
+            const matchesSearchTerm = searchTerm ? (pkg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                pkg.email.toLowerCase().includes(searchTerm.toLowerCase())) : true;
+            const createdAtDate = new Date(pkg.created);
             const matchesFromDate = fromDate ? createdAtDate >= fromDate : true;
             const matchesToDate = toDate ? createdAtDate <= toDate : true;
 
-            return matchesStatus && matchesSearchTerm && matchesFromDate && matchesToDate;
+            return matchesEmail && matchesSearchTerm && matchesFromDate && matchesToDate;
         });
-    }, [files, statusFilter, searchTerm, fromDate, toDate]);
+    }, [files, searchTerm, emailFilter, fromDate, toDate]);
 
     const debouncedSearch = useMemo(
         () => debounce((value) => setSearchTerm(value), 300),
@@ -222,181 +230,274 @@ const AllFiles = () => {
         debouncedSearch(e.target.value);
     }, [debouncedSearch]);
 
-    const handleStatusFilterChange = useCallback((status) => {
-        setStatusFilter(status);
+    const handleEmailFilterChange = useCallback((e) => {
+        setEmailFilter(e.target.value);
     }, []);
 
     const columns = [
         {
-            name: 'Status',
-            selector: row => row.status,
+            name: 'File id',
+            selector: row => row.id,
+            sortable: true,
+            wrap: true,
+            cell: row => <span className="text-sm">{row.id}</span>,
+        },
+        {
+            name: 'Email',
+            selector: row => row.email,
+            sortable: true,
+            wrap: true,
             cell: row => (
-                <div className='text-center'>
-                    <OverlayTrigger
-                        key={row.id}
-                        placement='top'
-                        overlay={
-                            <Tooltip id={`tooltip-${row.id}`}>
-                                <strong>{row.status}</strong>
-                            </Tooltip>
-                        }
-                    >
-                        {
-                            row.status === 'completed'
-                                ? <i style={{ color: "#008857" }} className="bi bi-patch-check-fill"></i>
-                                : (
-                                    row.status === 'changes requested'
-                                        ? <i style={{ color: "#E53448" }} className="bi bi-patch-exclamation-fill"></i>
-                                        : <i style={{ color: "#FFC339" }} className="bi bi-patch-question-fill"></i>
-                                )
-                        }
-                    </OverlayTrigger>
-                </div>
-            ),
-            center: true,
-            width: '80px',
-        },
-        {
-            name: 'User',
-            selector: row => row.user,
-            sortable: true,
-        },
-        {
-            name: 'Package',
-            selector: row => row.name,
-            sortable: true,
-        },
-        {
-            name: 'Approved',
-            selector: row => row.approved,
-            sortable: true,
-        },
-        {
-            name: 'Created At',
-            selector: row => row.createdAt,
-            sortable: true,
-        },
-        {
-            name: 'Options',
-            cell: row => (
-                <Link href={route('package-status', { id: row.id })}>
-                    <Button className="w-100" variant="outline-info" size="sm">
-                        View
-                    </Button>
+                <Link href={route('profile.info', { email: row.email })}>
+                    {row.email}
                 </Link>
             ),
         },
+        {
+            name: 'Name',
+            selector: row => row.name,
+            sortable: true,
+            wrap: true,
+            cell: row => <span className="text-sm">{row.name}</span>,
+        },
+        {
+            name: 'Created',
+            selector: row => row.created,
+            sortable: true,
+            center: true,
+            cell: row => <span className="text-sm">{row.created}</span>,
+        },
+        {
+            name: 'Last Modification',
+            selector: row => row.updated,
+            sortable: true,
+            center: true,
+            cell: row => <span className="text-sm">{row.updated}</span>,
+        },
+        {
+            name: 'Step',
+            selector: row => row.leng,
+            sortable: true,
+            center: true,
+            cell: row => <span className="text-sm">{row.leng}/16</span>,
+        },
+        {
+            name: 'Edit Action',
+            cell: row => (
+                <>
+                    {row.leng > 15 ? (
+                        <Button variant="outline-warning" size="sm" onClick={() => handleShow(row.id)}>
+                            <i className="bi bi-eye"></i> View Documents
+                        </Button>
+                    ) : (
+                        <Button variant="outline-info" size="sm" onClick={() => saveData(row.id)}>
+                            <i className="bi bi-pencil"></i> Continue Editing
+                        </Button>
+                    )}
+                </>
+            ),
+            ignoreRowClick: true,
+            allowOverflow: true,
+            button: true,
+        },
     ];
+
+    const customStyles = {
+        headRow: {
+            style: {
+                backgroundColor: '#f8fafc',
+            },
+        },
+        headCells: {
+            style: {
+                fontWeight: '600',
+                fontSize: '0.875rem',
+                color: '#4B5563',
+            },
+        },
+        cells: {
+            style: {
+                fontSize: '0.875rem',
+                color: '#374151',
+            },
+        },
+    };
 
     return (
         <AuthenticatedLayout
             user={"Admin"}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">{"Files Review"}</h2>}
+            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">{"View Files"}</h2>}
         >
-            <Head title={"Welcome, Admin"} />
-            <div className="py-12" style={{ height: "100%", overflow: "hidden" }}>
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8" style={{ height: "inherit" }}>
-                    <div className="bg-white overflow-visible shadow-sm sm:rounded-lg container" style={{ height: "inherit" }}>
-                        <Container style={{ display: "flex", flexDirection: "column", height: "70vh", justifyContent: "space-between" }}>
-                            <Row className="mb-3">
-                                <Col xs={12} md={9} className="mb-3 mb-md-0">
-                                    {errorMessage && (
-                                        <Alert variant="danger">
-                                            {errorMessage}
-                                        </Alert>
-                                    )}
-                                    <Form.Group as={Row}>
-                                        <Col xs={8} md={4}>
-                                            <Form.Control
-                                                type="text"
-                                                placeholder="Search"
-                                                onChange={handleSearchChange}
-                                            />
-                                        </Col>
-                                        <Col xs={6} md={5}>
-                                            <Dropdown>
-                                                <Dropdown.Toggle
-                                                    variant="outline-dark"
-                                                    id="dropdown-basic"
-                                                    className="w-100 text-truncate"
-                                                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                                                >
-                                                    <span className="me-1">Filter for All Files:</span>
-                                                    <span className="text-truncate">{statusFilter}</span>
-                                                </Dropdown.Toggle>
-                                                <Dropdown.Menu className='w-100 text-center'>
-                                                    {['All', 'Pending', 'Changes Requested', 'Completed'].map((status) => (
-                                                        <Dropdown.Item
-                                                            key={status}
-                                                            onClick={() => handleStatusFilterChange(status)}
-                                                            className="text-truncate"
-                                                        >
-                                                            {status}
-                                                        </Dropdown.Item>
-                                                    ))}
-                                                </Dropdown.Menu>
-                                            </Dropdown>
-                                        </Col>
-                                    </Form.Group>
-                                    <Form.Group as={Row} className="mt-3">
-                                        <Col xs={12} md={6}>
-                                            <Form.Label>From Date:</Form.Label>
-                                            <DatePicker
-                                                selected={fromDate}
-                                                onChange={date => setFromDate(date)}
-                                                dateFormat="yyyy-MM-dd"
-                                                className="form-control"
-                                                isClearable
-                                                placeholderText="Selecciona una fecha"
-                                                maxDate={toDate || null} // Limita la fecha máxima a `toDate`
-                                            />
-                                        </Col>
-                                        <Col xs={12} md={6}>
-                                            <Form.Label>To Date:</Form.Label>
-                                            <DatePicker
-                                                selected={toDate}
-                                                onChange={date => setToDate(date)}
-                                                dateFormat="yyyy-MM-dd"
-                                                className="form-control"
-                                                isClearable
-                                                placeholderText="Selecciona una fecha"
-                                                minDate={fromDate || null} // Limita la fecha mínima a `fromDate`
-                                            />
-                                        </Col>
-                                    </Form.Group>
-
-                                </Col>
-                            </Row>
-                            <div className="overflow-auto" style={{ maxHeight: '400px' }}>
-                                <p className="text-center mb-4">
-                                    {isFetchingByDate
-                                        ? "Mostrando resultados dentro del rango de fechas seleccionado."
-                                        : "Start typing the owner's email or package to filter results in the table below."
-                                    }
-                                </p>
-                                <DataTable
-                                    columns={columns}
-                                    data={filteredPackages}
-                                    pagination
-                                    paginationPerPage={10}
-                                    paginationRowsPerPageOptions={[10, 25, 50, 100]}
-                                    highlightOnHover
-                                    responsive
-                                    noDataComponent={isFetchingByDate ? "No se encontraron registros en el rango de fechas seleccionado." : "No hay datos para mostrar."}
+            <Head title={"View Files"} />
+            <div className="py-12 bg-gray-100 min-h-screen">
+                <Container className="bg-white p-6 rounded-lg shadow-md">
+                    {errorMessage && (
+                        <Alert variant="danger" className="mb-4">
+                            {errorMessage}
+                        </Alert>
+                    )}
+                    <div className="d-flex flex-column flex-md-row justify-content-between mb-6">
+                        <div className="d-flex flex-column flex-md-row me-4 w-100">
+                            <Form.Group className="mb-4 mb-md-0 w-100 me-md-2">
+                                <Form.Control
+                                    type="text"
+                                    placeholder="Buscar por usuario o paquete"
+                                    onChange={handleSearchChange}
+                                    className="focus:ring-blue-500 focus:border-blue-500"
+                                    aria-label="Buscar"
                                 />
-                            </div>
-                            <Row style={{ marginBottom: "24px" }}>
-                                <Col xs={6}>
-                                    <Link href={route('dashboard')}>
-                                        <Button variant="outline-success" size="lg" className="w-100">
-                                            Back
-                                        </Button>
-                                    </Link>
-                                </Col>
-                            </Row>
-                        </Container>
+                            </Form.Group>
+                            <Form.Group className="mb-4 mb-md-0 w-100 me-md-2">
+                                <Form.Control
+                                    type="text"
+                                    placeholder="Filtrar por email"
+                                    onChange={handleEmailFilterChange}
+                                    className="focus:ring-blue-500 focus:border-blue-500"
+                                    aria-label="Filtrar por Email"
+                                />
+                            </Form.Group>
+                        </div>
+                        <div className="d-flex flex-column flex-md-row w-100 mt-4 mt-md-0">
+                            <Form.Group className="mb-4 mb-md-0 w-100 me-md-2">
+                                <Form.Label className="text-sm font-medium text-gray-700">From Date:</Form.Label>
+                                <DatePicker
+                                    selected={fromDate}
+                                    onChange={date => setFromDate(date)}
+                                    dateFormat="yyyy-MM-dd"
+                                    className="mt-1 block w-100 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                    isClearable
+                                    placeholderText="Selecciona una fecha"
+                                    maxDate={toDate || null}
+                                />
+                            </Form.Group>
+                            <Form.Group className="mb-4 mb-md-0 w-100 me-md-2">
+                                <Form.Label className="text-sm font-medium text-gray-700">To Date:</Form.Label>
+                                <DatePicker
+                                    selected={toDate}
+                                    onChange={date => setToDate(date)}
+                                    dateFormat="yyyy-MM-dd"
+                                    className="mt-1 block w-100 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                    isClearable
+                                    placeholderText="Selecciona una fecha"
+                                    minDate={fromDate || null}
+                                />
+                            </Form.Group>
+                        </div>
                     </div>
-                </div>
+                    <div className="d-flex justify-content-end mb-6">
+                        <Button
+                            variant="primary"
+                            onClick={fetchFiles}
+                            disabled={isLoading}
+                            className="d-flex align-items-center"
+                            aria-label="Fetch Files"
+                        >
+                            {isLoading && <Spinner animation="border" size="sm" className="me-2" />}
+                            <span>{isLoading ? "Fetching..." : "Fetch Files"}</span>
+                        </Button>
+                    </div>
+                    <div className="mb-6">
+                        <DataTable
+                            columns={columns}
+                            data={filteredPackages}
+                            pagination
+                            paginationPerPage={10}
+                            paginationRowsPerPageOptions={[10, 25, 50, 100]}
+                            highlightOnHover
+                            responsive
+                            noDataComponent={
+                                isFetchingByDate
+                                    ? "No se encontraron registros en el rango de fechas seleccionado."
+                                    : "No hay datos para mostrar."
+                            }
+                            customStyles={customStyles}
+                            progressPending={isLoading}
+                            progressComponent={<div className="d-flex justify-content-center align-items-center py-4"><Spinner animation="border" /></div>}
+                        />
+                    </div>
+                    <div className="d-flex justify-content-end">
+                        <Link href={route('dashboard')}>
+                            <Button variant="outline-success" size="lg" className="d-flex align-items-center" aria-label="Back to Dashboard">
+                                <i className="bi bi-arrow-left me-2"></i> Back
+                            </Button>
+                        </Link>
+                    </div>
+                </Container>
+
+                {/* Modal para seleccionar documento y versión */}
+                <Modal show={show} onHide={handleClose}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Select the document and version you want to see</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <Row className="mt-3">
+                            {['Will', 'POA1', 'POA2', 'POA3'].map((docType) => (
+                                <Col key={docType}>
+                                    <Dropdown className="w-100">
+                                        <Dropdown.Toggle
+                                            variant="outline-dark"
+                                            id={`dropdown-${docType.toLowerCase()}`}
+                                            className="w-100 d-flex align-items-center justify-content-between"
+                                        >
+                                            <span><i className={`bi bi-${docType === 'Will' ? 'file-text' : docType === 'POA1' ? 'house' : 'hospital'}`}></i> {docType}</span>
+                                        </Dropdown.Toggle>
+
+                                        <Dropdown.Menu>
+                                            {documentVersions.length !== 0 ? (
+                                                documentVersions.map((document, index) => (
+                                                    <Dropdown.Item
+                                                        className={'text-center'}
+                                                        style={{ width: "100%" }}
+                                                        key={index}
+                                                        onClick={() => handleVersionSelect(docType, document.key)}
+                                                    >
+                                                        {document.key} {new Date(document.value.timestamp).toLocaleDateString('en-GB')}
+                                                    </Dropdown.Item>
+                                                ))
+                                            ) : (
+                                                <Dropdown.Item disabled>No versions available</Dropdown.Item>
+                                            )}
+                                        </Dropdown.Menu>
+                                    </Dropdown>
+                                </Col>
+                            ))}
+                        </Row>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={handleClose}>
+                            Close
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+
+                {/* Renderizado del PDF Editor cuando se selecciona un documento y versión */}
+                {docSelected !== "" && selectedVersion !== "" && (
+                    <div className="position-fixed top-0 start-0 w-100 h-100 bg-white">
+                        <PDFEditor
+                            ContentComponent={
+                                docSelected === 'Will' ? WillContent :
+                                    docSelected === 'POA1' ? POA1Content :
+                                        POA2Content
+                            }
+                            datas={finalSelection}
+                            backendId={idSelected}
+                            documentType={docSelected}
+                            version={selectedVersion}
+                        />
+                        <Col sm={4} className="mt-3">
+                            <Link href={route('view')}>
+                                <Button
+                                    variant="outline-success"
+                                    size="lg"
+                                    style={{ width: "100%" }}
+                                    className={'mb-8'}
+                                >
+                                    Back
+                                </Button>
+                            </Link>
+                        </Col>
+                    </div>
+                )}
             </div>
         </AuthenticatedLayout>
     );
