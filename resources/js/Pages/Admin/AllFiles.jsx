@@ -7,13 +7,13 @@ import { Link, Head } from '@inertiajs/react';
 import axios from 'axios';
 import DataTable from 'react-data-table-component';
 import DatePicker from 'react-datepicker';
-import { debounce } from "lodash"
 import 'react-datepicker/dist/react-datepicker.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import PDFEditor from '@/Components/PDF/PDFEditor';
 import WillContent from '@/Components/PDF/Content/WillContent';
 import POA1Content from '@/Components/PDF/Content/POA1Content';
 import POA2Content from '@/Components/PDF/Content/POA2Content';
+import { debounce } from 'lodash';
 
 const AllFiles = () => {
     // Estados para la tabla y filtros
@@ -164,37 +164,20 @@ const AllFiles = () => {
             const owner = item.information?.find(info => info.personal)?.personal?.email || 'unknown';
             const creationTimestamp = item.created_at;
             const lastModificationTimestamp = item.updated_at;
+            const objectStatus = item.objectStatus || {}; // Aseguramos que objectStatus exista
 
-            if (!packageInfo) {
-                return {
-                    id: item.id || null,
-                    email: owner,
-                    name: 'unknown',
-                    created: 'N/A',
-                    updated: 'N/A',
-                    leng: item.information.length,
-                };
-            }
-
-            const documentDOM = findDocumentDOM(item.information);
-            if (!documentDOM) {
-                return {
-                    id: item.id || null,
-                    email: owner,
-                    name: packageInfo.name || 'unknown',
-                    created: creationTimestamp ? new Date(creationTimestamp).toLocaleDateString() : 'N/A',
-                    updated: lastModificationTimestamp ? new Date(lastModificationTimestamp).toLocaleDateString() : 'N/A',
-                    leng: item.information.length,
-                };
-            }
+            // Calcular los steps: contar las claves en objectStatus que tienen datos
+            const totalSteps = 16; // Asumiendo que siempre hay 16 pasos
+            const completedSteps = Object.values(objectStatus).filter(status => status && Object.keys(status).length > 0).length;
 
             return {
                 id: item.id || null,
                 email: owner,
-                name: packageInfo.name || 'unknown',
+                name: packageInfo?.name || 'unknown',
                 created: creationTimestamp ? new Date(creationTimestamp).toLocaleDateString() : 'N/A',
                 updated: lastModificationTimestamp ? new Date(lastModificationTimestamp).toLocaleDateString() : 'N/A',
-                leng: item.information.length,
+                leng: completedSteps,
+                totalSteps: totalSteps,
             };
         }).filter(Boolean);
     };
