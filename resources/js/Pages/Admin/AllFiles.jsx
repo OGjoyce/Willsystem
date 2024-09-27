@@ -1,5 +1,16 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { Dropdown, Button, Container, Row, Col, Modal, Form, Alert, Spinner } from 'react-bootstrap';
+import {
+    Dropdown,
+    Button,
+    Container,
+    Row,
+    Col,
+    Modal,
+    Form,
+    Alert,
+    Spinner,
+    InputGroup,
+} from 'react-bootstrap';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
 import axios from 'axios';
@@ -13,6 +24,50 @@ import POA1Content from '@/Components/PDF/Content/POA1Content';
 import POA2Content from '@/Components/PDF/Content/POA2Content';
 import { debounce } from 'lodash';
 
+// Reusable Component for Date Filter
+const DateFilter = ({ label, selectedDate, onChange, maxDate, minDate }) => (
+    <Form.Group className="mb-4">
+        <Form.Label className="text-sm font-medium text-gray-700">{label}:</Form.Label>
+        <DatePicker
+            selected={selectedDate}
+            onChange={onChange}
+            dateFormat="yyyy-MM-dd"
+            className="form-control rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            isClearable
+            placeholderText={`Select ${label.toLowerCase()}`}
+            maxDate={maxDate}
+            minDate={minDate}
+        />
+    </Form.Group>
+);
+
+// Reusable Component for Action Buttons in DataTable
+const ActionButton = ({ row, totalSteps, handleShow, saveData }) => (
+    <>
+        {row.leng === totalSteps ? (
+            <Button
+                variant="outline-warning"
+                size="sm"
+                onClick={() => handleShow(row.id)}
+                aria-label={`View documents for file ${row.id}`}
+                className="d-flex align-items-center"
+            >
+                <i className="bi bi-eye me-1"></i> View Documents
+            </Button>
+        ) : (
+            <Button
+                variant="outline-info"
+                size="sm"
+                onClick={() => saveData(row.id)}
+                aria-label={`Continue editing file ${row.id}`}
+                className="d-flex align-items-center"
+            >
+                <i className="bi bi-pencil me-1"></i> Continue Editing
+            </Button>
+        )}
+    </>
+);
+
 const AllFiles = () => {
     const totalSteps = 16;
     const [searchTerm, setSearchTerm] = useState('');
@@ -22,7 +77,7 @@ const AllFiles = () => {
     const [isFetchingByDate, setIsFetchingByDate] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [show, setShow] = useState(false);
+    const [showModal, setShowModal] = useState(false);
     const [docSelected, setDocSelected] = useState("Will");
     const [idSelected, setIdSelected] = useState("");
     const [documentVersions, setDocumentVersions] = useState([]);
@@ -30,60 +85,59 @@ const AllFiles = () => {
     const [finalSelection, setFinalSelection] = useState([]);
     const [allDataFetched, setAllDataFetched] = useState([]);
 
-    const handleClose = () => setShow(false);
-
+    // Handle Modal Visibility
+    const handleClose = () => setShowModal(false);
     const handleShow = (id) => {
         setIdSelected(id);
-        setShow(true);
+        setShowModal(true);
         searchById(id);
     };
 
+    // Save Data and Redirect
     const saveData = (idItem) => {
-        const dataFetchedLarge = allDataFetched.length;
-        let obj = [];
-        for (let i = 0; i < dataFetchedLarge; i++) {
-            if (allDataFetched[i].id === idItem) {
-                obj = allDataFetched[i].information;
-                break;
-            }
+        const dataItem = allDataFetched.find(item => item.id === idItem);
+        if (dataItem) {
+            const obj = dataItem.information;
+            localStorage.setItem('fullData', JSON.stringify(obj));
+            localStorage.setItem('currentPointer', 15);
+            localStorage.setItem('currIdObjDB', idItem);
+            window.location.href = '/personal';
         }
-
-        localStorage.setItem('fullData', JSON.stringify(obj));
-        localStorage.setItem('currentPointer', 15);
-        localStorage.setItem('currIdObjDB', idItem);
-
-        window.location.href = '/personal';
     };
 
+    // Search by ID to Fetch Document Versions
     const searchById = (id) => {
-        let selectedInformation = {};
-        allDataFetched.forEach(function (arrayItem) {
-            if (arrayItem.id === id) {
-                selectedInformation = arrayItem.information;
-                const documentDOMs = selectedInformation.map(object => object.documentDOM ? object.documentDOM : null).filter(dom => dom !== null);
-                if (documentDOMs[0]) {
-                    const versionsObject = documentDOMs[0][docSelected];
-                    if (versionsObject) {
-                        const versionsArray = Object.entries(versionsObject).map(([key, value]) => ({
-                            key,
-                            value
-                        }));
-                        setDocumentVersions(versionsArray);
-                    } else {
-                        setDocumentVersions([]);
-                    }
-                }
+        const selectedInformation = allDataFetched.find(item => item.id === id)?.information || [];
+        const documentDOMs = selectedInformation
+            .map(obj => obj.documentDOM ? obj.documentDOM : null)
+            .filter(dom => dom !== null);
+
+        if (documentDOMs.length > 0) {
+            const versionsObject = documentDOMs[0][docSelected];
+            if (versionsObject) {
+                const versionsArray = Object.entries(versionsObject).map(([key, value]) => ({
+                    key,
+                    value
+                }));
+                setDocumentVersions(versionsArray);
+            } else {
+                setDocumentVersions([]);
             }
-        });
+        } else {
+            setDocumentVersions([]);
+        }
+
         setFinalSelection(selectedInformation);
     };
 
+    // Handle Version Selection in Modal
     const handleVersionSelect = (docType, version) => {
         setDocSelected(docType);
         setSelectedVersion(version);
-        setShow(false);
+        setShowModal(false);
     };
 
+    // Fetch Files from API
     const fetchFiles = async () => {
         try {
             setErrorMessage('');
@@ -132,32 +186,23 @@ const AllFiles = () => {
         }
     };
 
+    // Format DateTime for API
     const formatDateTime = (date, type) => {
         const d = new Date(date);
-        if (type === 'start') {
-            d.setHours(0, 0, 0, 0);
-        } else if (type === 'end') {
-            d.setHours(23, 59, 59, 999);
-        }
+        type === 'start' ? d.setHours(0, 0, 0, 0) : d.setHours(23, 59, 59, 999);
 
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        const hours = String(d.getHours()).padStart(2, '0');
-        const minutes = String(d.getMinutes()).padStart(2, '0');
-        const seconds = String(d.getSeconds()).padStart(2, '0');
-
-        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        return d.toISOString().replace('T', ' ').substring(0, 19);
     };
 
+    // Transform API Data to Table Format
     const transformData = (data) => {
         if (!Array.isArray(data)) return [];
 
-        return data.flatMap(item => {
+        return data.map(item => {
             const packageInfo = item.information?.find(info => info.packageInfo)?.packageInfo;
             const owner = item.information?.find(info => info.personal)?.personal?.email || 'unknown';
-            const creationTimestamp = item.packageInfo?.created_at || item.created_at;
-            const lastModificationTimestamp = item.packageInfo?.updated_at || item.updated_at;
+            const creationTimestamp = packageInfo?.created_at || item.created_at;
+            const lastModificationTimestamp = packageInfo?.updated_at || item.updated_at;
             const objectStatus = item.information || [];
             const documentDOM = objectStatus.find(info => info.documentDOM)?.documentDOM || {};
 
@@ -196,10 +241,13 @@ const AllFiles = () => {
         }).filter(Boolean);
     };
 
+    // Filter Packages based on Search and Date
     const filteredPackages = useMemo(() => {
         return files.filter(pkg => {
-            const matchesSearchTerm = searchTerm ? (pkg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                pkg.email.toLowerCase().includes(searchTerm.toLowerCase())) : true;
+            const matchesSearchTerm = searchTerm
+                ? (pkg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    pkg.email.toLowerCase().includes(searchTerm.toLowerCase()))
+                : true;
             const createdAtDate = new Date(pkg.created);
             const matchesFromDate = fromDate ? createdAtDate >= fromDate : true;
             const matchesToDate = toDate ? createdAtDate <= toDate : true;
@@ -208,12 +256,14 @@ const AllFiles = () => {
         });
     }, [files, searchTerm, fromDate, toDate]);
 
+    // Debounced Search Input
     const debouncedSearch = useMemo(() => debounce((value) => setSearchTerm(value), 300), []);
 
     const handleSearchChange = useCallback((e) => {
         debouncedSearch(e.target.value);
     }, [debouncedSearch]);
 
+    // Status Icon Helper
     const getStatusIcon = (status) => {
         switch (status.toLowerCase()) {
             case 'completed':
@@ -226,9 +276,10 @@ const AllFiles = () => {
         }
     };
 
+    // Define DataTable Columns
     const columns = [
         {
-            name: 'File id',
+            name: 'File ID',
             selector: row => row.id,
             sortable: true,
             wrap: true,
@@ -260,7 +311,7 @@ const AllFiles = () => {
             cell: row => <span className="text-sm">{row.created}</span>,
         },
         {
-            name: 'Last Modification',
+            name: 'Last Modified',
             selector: row => row.updated,
             sortable: true,
             center: true,
@@ -274,48 +325,49 @@ const AllFiles = () => {
             cell: row => <span className="text-sm">{row.percentageCompleted}</span>,
         },
         {
-            name: 'Edit Action',
+            name: 'Actions',
             cell: row => (
-                <>
-                    {row.leng === totalSteps ? (
-                        <Button variant="outline-warning" size="sm" onClick={() => handleShow(row.id)}>
-                            <i className="bi bi-eye"></i> View Documents
-                        </Button>
-                    ) : (
-                        <Button variant="outline-info" size="sm" onClick={() => saveData(row.id)}>
-                            <i className="bi bi-pencil"></i> Continue Editing
-                        </Button>
-                    )}
-                </>
+                <ActionButton
+                    row={row}
+                    totalSteps={totalSteps}
+                    handleShow={handleShow}
+                    saveData={saveData}
+                />
             ),
             ignoreRowClick: true,
             allowOverflow: true,
             button: true,
+            width: '180px',
         }
-
     ];
 
+    // Custom Styles for DataTable
     const customStyles = {
         headRow: {
             style: {
-                backgroundColor: '#f8fafc',
+                backgroundColor: '#f1f5f9',
             },
         },
         headCells: {
             style: {
                 fontWeight: '600',
-                fontSize: '0.875rem',
-                color: '#4B5563',
+                fontSize: '0.9rem',
+                color: '#1f2937',
+                paddingLeft: '16px',
+                paddingRight: '16px',
             },
         },
         cells: {
             style: {
-                fontSize: '0.875rem',
+                fontSize: '0.85rem',
                 color: '#374151',
+                paddingLeft: '16px',
+                paddingRight: '16px',
             },
         },
     };
 
+    // Fetch Files on Component Mount
     useEffect(() => {
         fetchFiles();
     }, []);
@@ -323,124 +375,169 @@ const AllFiles = () => {
     return (
         <AuthenticatedLayout
             user={"Admin"}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">{"View Files"}</h2>}
+            header={<h2 className="font-semibold text-2xl text-gray-800 leading-tight">View Files</h2>}
         >
             <Head title={"View Files"} />
             <div className="py-12 bg-gray-100 min-h-screen">
                 <Container className="bg-white p-6 rounded-lg shadow-md">
+                    {/* Display Error Message */}
                     {errorMessage && (
                         <Alert variant="danger" className="mb-4">
                             {errorMessage}
                         </Alert>
                     )}
-                    <div className="d-flex flex-column flex-md-row justify-content-between mb-6">
-                        <div className="d-flex flex-column flex-md-row w-100 me-md-2">
-                            <Form.Group className="mb-4 w-100">
+
+                    {/* Filters Section */}
+                    <Row className="mb-6">
+                        {/* Search Filter */}
+                        <Col md={6} className="mb-4 mb-md-0">
+                            <InputGroup>
+                                <InputGroup.Text id="search-icon">
+                                    <i className="bi bi-filter"></i>
+                                </InputGroup.Text>
                                 <Form.Control
                                     type="text"
-                                    placeholder="Filter by email or Package"
+                                    placeholder="Filter by Email or Package Name"
                                     onChange={handleSearchChange}
-                                    className="focus:ring-blue-500 focus:border-blue-500"
-                                    aria-label="Search"
+                                    aria-label="Search Files"
+                                    aria-describedby="search-icon"
                                 />
-                            </Form.Group>
-                        </div>
-                        <div className="d-flex flex-column flex-md-row w-100">
-                            <Form.Group className="mb-4 w-100 me-md-2 z-50">
-                                <Form.Label className="text-sm font-medium text-gray-700">From Date:</Form.Label>
-                                <DatePicker
-                                    selected={fromDate}
-                                    onChange={date => setFromDate(date)}
-                                    dateFormat="yyyy-MM-dd"
-                                    className="block w-100 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                                    isClearable
-                                    placeholderText="Select a date"
-                                    maxDate={toDate || null}
-                                />
-                            </Form.Group>
-                            <Form.Group className="mb-4 w-100 me-md-2 z-50">
-                                <Form.Label className="text-sm font-medium text-gray-700">To Date:</Form.Label>
-                                <DatePicker
-                                    selected={toDate}
-                                    onChange={date => setToDate(date)}
-                                    dateFormat="yyyy-MM-dd"
-                                    className="block w-100 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                                    isClearable
-                                    placeholderText="Select a date"
-                                    minDate={fromDate || null}
-                                />
-                            </Form.Group>
+                            </InputGroup>
+                        </Col>
+
+                        {/* Date Filters */}
+                        <Col md={6}>
+                            <Row>
+                                <Col sm={6}>
+                                    <DateFilter
+                                        label="From Date"
+                                        className='z-50'
+                                        selectedDate={fromDate}
+                                        onChange={date => setFromDate(date)}
+                                        maxDate={toDate || null}
+                                    />
+                                </Col>
+                                <Col sm={6}>
+                                    <DateFilter
+                                        label="To Date"
+                                        className='z-50'
+                                        selectedDate={toDate}
+                                        onChange={date => setToDate(date)}
+                                        minDate={fromDate || null}
+                                    />
+                                </Col>
+                            </Row>
+                        </Col>
+                    </Row>
+
+                    {/* Search Button */}
+                    <Row className="mb-4">
+                        <Col className="d-flex justify-content-end">
                             <Button
                                 variant="primary"
                                 onClick={fetchFiles}
                                 disabled={isLoading}
-                                className="align-self-center"
                                 aria-label="Search Files"
                             >
-                                {isLoading && <Spinner animation="border" size="sm" className="me-2" />}
-                                <span>{isLoading ? "Searching..." : "Search Files"}</span>
+                                {isLoading ? (
+                                    <>
+                                        <Spinner
+                                            as="span"
+                                            animation="border"
+                                            size="sm"
+                                            role="status"
+                                            aria-hidden="true"
+                                            className="me-2"
+                                        />
+                                        Searching...
+                                    </>
+                                ) : (
+                                    <>
+                                        <i className="bi bi-search me-2"></i> Search Files
+                                    </>
+                                )}
                             </Button>
-                        </div>
-                    </div>
+                        </Col>
+                    </Row>
 
-                    <div className="mb-6">
-                        <DataTable
-                            columns={columns}
-                            data={filteredPackages}
-                            pagination
-                            paginationPerPage={10}
-                            paginationRowsPerPageOptions={[10, 25, 50, 100]}
-                            highlightOnHover
-                            responsive
-                            fixedHeader
-                            fixedHeaderScrollHeight="364px"
-                            noDataComponent={
-                                isFetchingByDate
-                                    ? "No records found in the selected date range."
-                                    : "No data to display."
-                            }
-                            customStyles={customStyles}
-                            progressPending={isLoading}
-                            progressComponent={<div className="d-flex justify-content-center align-items-center py-4"><Spinner animation="border" /></div>}
-                        />
-                    </div>
-                    <div className="d-flex justify-content-end">
-                        <Link href={route('dashboard')}>
-                            <Button variant="outline-success" size="lg" className="d-flex align-items-center" aria-label="Back to Dashboard">
-                                <i className="bi bi-arrow-left me-2"></i> Back
-                            </Button>
-                        </Link>
-                    </div>
+                    {/* Data Table */}
+                    <DataTable
+                        columns={columns}
+                        className='z-0'
+                        data={filteredPackages}
+                        pagination
+                        paginationPerPage={10}
+                        paginationRowsPerPageOptions={[10, 25, 50, 100]}
+                        highlightOnHover
+                        responsive
+                        fixedHeader
+                        fixedHeaderScrollHeight="500px"
+                        noDataComponent={
+                            isFetchingByDate
+                                ? "No records found in the selected date range."
+                                : "No data to display."
+                        }
+                        customStyles={customStyles}
+                        progressPending={isLoading}
+                        progressComponent={
+                            <div className="d-flex justify-content-center align-items-center py-4">
+                                <Spinner animation="border" role="status" aria-label="Loading">
+                                    <span className="visually-hidden">Loading...</span>
+                                </Spinner>
+                            </div>
+                        }
+                        aria-label="Files Data Table"
+                    />
+
+                    {/* Back to Dashboard Button */}
+                    <Row className="mt-6">
+                        <Col className="d-flex justify-content-end">
+                            <Link href={route('dashboard')}>
+                                <Button
+                                    variant="outline-success"
+                                    size="lg"
+                                    className="d-flex align-items-center"
+                                    aria-label="Back to Dashboard"
+                                >
+                                    <i className="bi bi-arrow-left me-2"></i> Back to Dashboard
+                                </Button>
+                            </Link>
+                        </Col>
+                    </Row>
                 </Container>
 
-                {/* Modal for selecting document and version */}
-                <Modal show={show} onHide={handleClose}>
+                {/* Modal for Selecting Document and Version */}
+                <Modal show={showModal} onHide={handleClose} centered>
                     <Modal.Header closeButton>
-                        <Modal.Title>Select the document and version you want to see</Modal.Title>
+                        <Modal.Title>Select Document and Version</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                        <Row className="mt-3">
+                        <Row className="g-3">
                             {['Will', 'POA1', 'POA2', 'POA3'].map((docType) => (
-                                <Col key={docType}>
+                                <Col xs={6} key={docType}>
                                     <Dropdown className="w-100">
                                         <Dropdown.Toggle
-                                            variant="outline-dark"
+                                            variant="outline-secondary"
                                             id={`dropdown-${docType.toLowerCase()}`}
-                                            className="w-100 d-flex align-items-center justify-content-between"
+                                            className="d-flex align-items-center justify-content-between"
                                         >
-                                            <span><i className={`bi bi-${docType === 'Will' ? 'file-text' : docType === 'POA1' ? 'house' : 'hospital'}`}></i> {docType}</span>
+                                            <span>
+                                                <i className={`bi bi-${docType === 'Will' ? 'file-earmark-text' : docType === 'POA1' ? 'house' : 'hospital'}`}></i> {docType}
+                                            </span>
                                         </Dropdown.Toggle>
 
-                                        <Dropdown.Menu>
-                                            {documentVersions.length !== 0 ? (
+                                        <Dropdown.Menu className="w-100">
+                                            {documentVersions.length > 0 ? (
                                                 documentVersions.map((document, index) => (
                                                     <Dropdown.Item
-                                                        className={'text-center'}
-                                                        style={{ width: "100%" }}
                                                         key={index}
                                                         onClick={() => handleVersionSelect(docType, document.key)}
+                                                        className="d-flex justify-content-between align-items-center"
                                                     >
-                                                        {document.key} {new Date(document.value.timestamp).toLocaleDateString('en-GB')}
+                                                        <span>{document.key}</span>
+                                                        <small className="text-muted">
+                                                            {new Date(document.value.timestamp).toLocaleDateString('en-GB')}
+                                                        </small>
                                                     </Dropdown.Item>
                                                 ))
                                             ) : (
@@ -453,38 +550,43 @@ const AllFiles = () => {
                         </Row>
                     </Modal.Body>
                     <Modal.Footer>
-                        <Button variant="secondary" onClick={handleClose}>
+                        <Button variant="secondary" onClick={handleClose} aria-label="Close Modal">
                             Close
                         </Button>
                     </Modal.Footer>
                 </Modal>
 
                 {/* Rendering the PDF Editor when a document and version are selected */}
-                {docSelected !== "" && selectedVersion !== "" && (
-                    <div className="position-fixed top-0 start-0 w-100 h-100 bg-white">
+                {docSelected && selectedVersion && (
+                    <div className="position-fixed top-0 start-0 w-100 h-100 bg-white z-1050 overflow-auto">
                         <PDFEditor
                             ContentComponent={
                                 docSelected === 'Will' ? WillContent :
                                     docSelected === 'POA1' ? POA1Content :
-                                        POA2Content
+                                        docSelected === 'POA2' ? POA2Content :
+                                            null
                             }
                             datas={finalSelection}
                             backendId={idSelected}
                             documentType={docSelected}
                             version={selectedVersion}
                         />
-                        <Col sm={4} className="mt-3">
-                            <Link href={route('view')}>
-                                <Button
-                                    variant="outline-success"
-                                    size="lg"
-                                    style={{ width: "100%" }}
-                                    className={'mb-8'}
-                                >
-                                    Back
-                                </Button>
-                            </Link>
-                        </Col>
+                        <Container className="mt-4">
+                            <Row>
+                                <Col sm={4}>
+                                    <Link href={route('view')}>
+                                        <Button
+                                            variant="outline-success"
+                                            size="lg"
+                                            style={{ width: "100%" }}
+                                            aria-label="Back to Files View"
+                                        >
+                                            <i className="bi bi-arrow-left me-2"></i> Back
+                                        </Button>
+                                    </Link>
+                                </Col>
+                            </Row>
+                        </Container>
                     </div>
                 )}
             </div>
