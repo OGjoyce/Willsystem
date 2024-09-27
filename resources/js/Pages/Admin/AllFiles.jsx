@@ -16,6 +16,9 @@ import POA2Content from '@/Components/PDF/Content/POA2Content';
 import { debounce } from 'lodash';
 
 const AllFiles = () => {
+    // Constante para el total de pasos
+    const totalSteps = 16;
+
     // Estados para la tabla y filtros
     const [searchTerm, setSearchTerm] = useState('');
     const [emailFilter, setEmailFilter] = useState('');
@@ -109,11 +112,17 @@ const AllFiles = () => {
                     params: {
                         from_date: formattedFromDate,
                         to_date: formattedToDate,
+                        limit: 256, // Limitar a 256 registros en el rango de fechas
                     },
                 });
             } else {
                 setIsFetchingByDate(false);
-                response = await axios.get('/api/obj-status/all');
+                response = await axios.get('/api/obj-status/all', {
+                    params: {
+                        limit: 256, // Limitar a los primeros 256 registros
+                        order: 'desc', // Orden descendente para obtener los más recientes
+                    },
+                });
             }
 
             console.log('Full response:', response.data);
@@ -162,13 +171,22 @@ const AllFiles = () => {
         return data.flatMap(item => {
             const packageInfo = item.information?.find(info => info.packageInfo)?.packageInfo;
             const owner = item.information?.find(info => info.personal)?.personal?.email || 'unknown';
-            const creationTimestamp = item.created_at;
-            const lastModificationTimestamp = item.updated_at;
-            const objectStatus = item.objectStatus || {}; // Aseguramos que objectStatus exista
+            const creationTimestamp = item.packageInfo?.created_at || item.created_at;
+            const lastModificationTimestamp = item.packageInfo?.updated_at || item.updated_at;
+            const objectStatus = item.objectStatus || []; // Ahora es un array de objetos
 
             // Calcular los steps: contar las claves en objectStatus que tienen datos
-            const totalSteps = 16; // Asumiendo que siempre hay 16 pasos
-            const completedSteps = Object.values(objectStatus).filter(status => status && Object.keys(status).length > 0).length;
+            const completedSteps = objectStatus.filter(stepObj => {
+                const stepKey = Object.keys(stepObj)[0];
+                const stepData = stepObj[stepKey].data;
+
+                if (Array.isArray(stepData)) {
+                    return stepData.length > 0;
+                } else if (typeof stepData === 'object' && stepData !== null) {
+                    return Object.keys(stepData).length > 0;
+                }
+                return false;
+            }).length;
 
             return {
                 id: item.id || null,
@@ -217,6 +235,18 @@ const AllFiles = () => {
         setEmailFilter(e.target.value);
     }, []);
 
+    const getStatusIcon = (status) => {
+        switch (status.toLowerCase()) {
+            case 'completed':
+                return <i className="bi bi-patch-check-fill text-success" aria-label="Completed"></i>;
+            case 'changes requested':
+                return <i className="bi bi-patch-exclamation-fill text-danger" aria-label="Changes Requested"></i>;
+            case 'pending':
+            default:
+                return <i className="bi bi-patch-question-fill text-warning" aria-label="Pending"></i>;
+        }
+    };
+
     const columns = [
         {
             name: 'File id',
@@ -262,19 +292,19 @@ const AllFiles = () => {
             selector: row => row.leng,
             sortable: true,
             center: true,
-            cell: row => <span className="text-sm">{row.leng}/16</span>,
+            cell: row => <span className="text-sm">{row.leng}/{row.totalSteps}</span>,
         },
         {
             name: 'Edit Action',
             cell: row => (
                 <>
-                    {row.leng > 15 ? (
-                        <Button variant="outline-warning" size="sm" onClick={() => handleShow(row.id)}>
-                            <i className="bi bi-eye"></i> View Documents
-                        </Button>
-                    ) : (
+                    {row.leng === row.totalSteps ? (
                         <Button variant="outline-info" size="sm" onClick={() => saveData(row.id)}>
                             <i className="bi bi-pencil"></i> Continue Editing
+                        </Button>
+                    ) : (
+                        <Button variant="outline-warning" size="sm" onClick={() => handleShow(row.id)}>
+                            <i className="bi bi-eye"></i> View Documents
                         </Button>
                     )}
                 </>
@@ -305,6 +335,12 @@ const AllFiles = () => {
             },
         },
     };
+
+    // useEffect para cargar los primeros 256 archivos al montar el componente
+    useEffect(() => {
+        fetchFiles();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <AuthenticatedLayout
@@ -367,6 +403,7 @@ const AllFiles = () => {
                             </Form.Group>
                         </div>
                     </div>
+                    {/* El botón de Fetch Files ya no es necesario porque los datos se cargan automáticamente */}
                     <div className="d-flex justify-content-end mb-6">
                         <Button
                             variant="primary"
@@ -388,6 +425,8 @@ const AllFiles = () => {
                             paginationRowsPerPageOptions={[10, 25, 50, 100]}
                             highlightOnHover
                             responsive
+                            fixedHeader
+                            fixedHeaderScrollHeight="80vh"
                             noDataComponent={
                                 isFetchingByDate
                                     ? "No se encontraron registros en el rango de fechas seleccionado."
