@@ -1,7 +1,5 @@
-// Frontend: AllFiles.jsx
-
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { Dropdown, Button, Container, Row, Col, Modal, Form, Alert, Spinner, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Dropdown, Button, Container, Row, Col, Modal, Form, Alert, Spinner } from 'react-bootstrap';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
 import axios from 'axios';
@@ -173,12 +171,12 @@ const AllFiles = () => {
             const owner = item.information?.find(info => info.personal)?.personal?.email || 'unknown';
             const creationTimestamp = item.packageInfo?.created_at || item.created_at;
             const lastModificationTimestamp = item.packageInfo?.updated_at || item.updated_at;
-            const objectStatus = item.objectStatus || []; // Ahora es un array de objetos
+            const objectStatus = item.information || [];
 
-            // Calcular los steps: contar las claves en objectStatus que tienen datos
+            // Calcular los steps completados: contar las claves en objectStatus que tienen datos
             const completedSteps = objectStatus.filter(stepObj => {
                 const stepKey = Object.keys(stepObj)[0];
-                const stepData = stepObj[stepKey].data;
+                const stepData = stepObj[stepKey]?.data || stepObj[stepKey];
 
                 if (Array.isArray(stepData)) {
                     return stepData.length > 0;
@@ -188,6 +186,9 @@ const AllFiles = () => {
                 return false;
             }).length;
 
+            // Calcular el porcentaje de pasos completados
+            const completionPercentage = (completedSteps / totalSteps) * 100;
+
             return {
                 id: item.id || null,
                 email: owner,
@@ -196,17 +197,9 @@ const AllFiles = () => {
                 updated: lastModificationTimestamp ? new Date(lastModificationTimestamp).toLocaleDateString() : 'N/A',
                 leng: completedSteps,
                 totalSteps: totalSteps,
+                percentageCompleted: completionPercentage.toFixed(2) + '%', // Porcentaje redondeado a dos decimales
             };
         }).filter(Boolean);
-    };
-
-    const findDocumentDOM = (infoArray) => {
-        for (const obj of infoArray) {
-            if (obj.documentDOM) {
-                return obj.documentDOM;
-            }
-        }
-        return null;
     };
 
     const filteredPackages = useMemo(() => {
@@ -292,7 +285,7 @@ const AllFiles = () => {
             selector: row => row.leng,
             sortable: true,
             center: true,
-            cell: row => <span className="text-sm">{row.leng}/{row.totalSteps}</span>,
+            cell: row => <span className="text-sm">{row.leng}/{row.totalSteps} ({row.percentageCompleted})</span>, // Mostrar porcentaje
         },
         {
             name: 'Edit Action',
@@ -403,7 +396,6 @@ const AllFiles = () => {
                             </Form.Group>
                         </div>
                     </div>
-                    {/* El botón de Fetch Files ya no es necesario porque los datos se cargan automáticamente */}
                     <div className="d-flex justify-content-end mb-6">
                         <Button
                             variant="primary"
