@@ -14,20 +14,14 @@ import POA2Content from '@/Components/PDF/Content/POA2Content';
 import { debounce } from 'lodash';
 
 const AllFiles = () => {
-    // Constante para el total de pasos
     const totalSteps = 16;
-
-    // Estados para la tabla y filtros
     const [searchTerm, setSearchTerm] = useState('');
-    const [emailFilter, setEmailFilter] = useState('');
     const [files, setFiles] = useState([]);
     const [fromDate, setFromDate] = useState(null);
     const [toDate, setToDate] = useState(null);
     const [isFetchingByDate, setIsFetchingByDate] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-
-    // Estados para el manejo de modales y documentos
     const [show, setShow] = useState(false);
     const [docSelected, setDocSelected] = useState("Will");
     const [idSelected, setIdSelected] = useState("");
@@ -96,7 +90,7 @@ const AllFiles = () => {
             setIsLoading(true);
 
             if (fromDate && toDate && fromDate > toDate) {
-                setErrorMessage("'From Date' no puede ser posterior a 'To Date'.");
+                setErrorMessage("'From Date' cannot be later than 'To Date'.");
                 setIsLoading(false);
                 return;
             }
@@ -110,33 +104,29 @@ const AllFiles = () => {
                     params: {
                         from_date: formattedFromDate,
                         to_date: formattedToDate,
-                        limit: 256, // Limitar a 256 registros en el rango de fechas
+                        limit: 256,
                     },
                 });
             } else {
                 setIsFetchingByDate(false);
                 response = await axios.get('/api/obj-status/all', {
                     params: {
-                        limit: 256, // Limitar a los primeros 256 registros
-                        order: 'desc', // Orden descendente para obtener los más recientes
+                        limit: 256,
+                        order: 'desc',
                     },
                 });
             }
 
-            console.log('Full response:', response.data);
-
             const transformedData = transformData(response.data);
             setFiles(transformedData);
             setAllDataFetched(response.data);
-            console.log('Transformed data:', transformedData);
             setIsLoading(false);
 
         } catch (error) {
             if (error.response && error.response.status === 422) {
-                setErrorMessage("Error de validación: Asegúrate de que 'From Date' no sea posterior a 'To Date'.");
+                setErrorMessage("Validation error: Ensure 'From Date' is not later than 'To Date'.");
             } else {
-                setErrorMessage("Ocurrió un error al obtener los archivos. Por favor, intenta nuevamente.");
-                console.error('Error fetching files:', error);
+                setErrorMessage("An error occurred while fetching the files. Please try again.");
             }
             setIsLoading(false);
         }
@@ -161,10 +151,7 @@ const AllFiles = () => {
     };
 
     const transformData = (data) => {
-        if (!Array.isArray(data)) {
-            console.error('Expected an array but got:', data);
-            return [];
-        }
+        if (!Array.isArray(data)) return [];
 
         return data.flatMap(item => {
             const packageInfo = item.information?.find(info => info.packageInfo)?.packageInfo;
@@ -172,11 +159,9 @@ const AllFiles = () => {
             const creationTimestamp = item.packageInfo?.created_at || item.created_at;
             const lastModificationTimestamp = item.packageInfo?.updated_at || item.updated_at;
             const objectStatus = item.information || [];
-
             const documentDOM = objectStatus.find(info => info.documentDOM)?.documentDOM || {};
 
             const allDocumentsHaveV1 = !Object.values(documentDOM).every(doc => doc?.v1 !== undefined && doc.v1 !== null);
-            console.log("v1", allDocumentsHaveV1)
 
             let completedSteps = objectStatus.filter(stepObj => {
                 const stepKey = Object.keys(stepObj)[0];
@@ -190,14 +175,12 @@ const AllFiles = () => {
                 return false;
             }).length;
 
-
             if (allDocumentsHaveV1 && completedSteps >= 15) {
-                completedSteps = totalSteps;  // 16 pasos completados
+                completedSteps = totalSteps;
             } else if (completedSteps >= 15) {
-                completedSteps = 15; // Si faltan documentos v1, solo hasta el paso 15
+                completedSteps = 15;
             }
 
-            // Calcular el porcentaje de pasos completados
             const completionPercentage = (completedSteps / totalSteps) * 100;
 
             return {
@@ -208,37 +191,28 @@ const AllFiles = () => {
                 updated: lastModificationTimestamp ? new Date(lastModificationTimestamp).toLocaleDateString() : 'N/A',
                 leng: completedSteps,
                 totalSteps: totalSteps,
-                percentageCompleted: Math.round(completionPercentage) + '%', // Porcentaje redondeado a dos decimales
+                percentageCompleted: Math.round(completionPercentage) + '%',
             };
         }).filter(Boolean);
     };
 
-
     const filteredPackages = useMemo(() => {
         return files.filter(pkg => {
-            const matchesEmail = emailFilter ? pkg.email.toLowerCase().includes(emailFilter.toLowerCase()) : true;
             const matchesSearchTerm = searchTerm ? (pkg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 pkg.email.toLowerCase().includes(searchTerm.toLowerCase())) : true;
             const createdAtDate = new Date(pkg.created);
             const matchesFromDate = fromDate ? createdAtDate >= fromDate : true;
             const matchesToDate = toDate ? createdAtDate <= toDate : true;
 
-            return matchesEmail && matchesSearchTerm && matchesFromDate && matchesToDate;
+            return matchesSearchTerm && matchesFromDate && matchesToDate;
         });
-    }, [files, searchTerm, emailFilter, fromDate, toDate]);
+    }, [files, searchTerm, fromDate, toDate]);
 
-    const debouncedSearch = useMemo(
-        () => debounce((value) => setSearchTerm(value), 300),
-        []
-    );
+    const debouncedSearch = useMemo(() => debounce((value) => setSearchTerm(value), 300), []);
 
     const handleSearchChange = useCallback((e) => {
         debouncedSearch(e.target.value);
     }, [debouncedSearch]);
-
-    const handleEmailFilterChange = useCallback((e) => {
-        setEmailFilter(e.target.value);
-    }, []);
 
     const getStatusIcon = (status) => {
         switch (status.toLowerCase()) {
@@ -297,7 +271,7 @@ const AllFiles = () => {
             selector: row => row.leng,
             sortable: true,
             center: true,
-            cell: row => <span className="text-sm">{row.percentageCompleted}</span>, // Mostrar porcentaje
+            cell: row => <span className="text-sm">{row.percentageCompleted}</span>,
         },
         {
             name: 'Edit Action',
@@ -342,10 +316,8 @@ const AllFiles = () => {
         },
     };
 
-    // useEffect para cargar los primeros 256 archivos al montar el componente
     useEffect(() => {
         fetchFiles();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
@@ -362,65 +334,55 @@ const AllFiles = () => {
                         </Alert>
                     )}
                     <div className="d-flex flex-column flex-md-row justify-content-between mb-6">
-                        <div className="d-flex flex-column flex-md-row me-4 w-100">
-                            <Form.Group className="mb-4 mb-md-0 w-100 me-md-2">
+                        <div className="d-flex flex-column flex-md-row w-100 me-md-2">
+                            <Form.Group className="mb-4 w-100">
                                 <Form.Control
                                     type="text"
-                                    placeholder="Buscar por usuario o paquete"
+                                    placeholder="Filter by email or Package"
                                     onChange={handleSearchChange}
                                     className="focus:ring-blue-500 focus:border-blue-500"
-                                    aria-label="Buscar"
-                                />
-                            </Form.Group>
-                            <Form.Group className="mb-4 mb-md-0 w-100 me-md-2">
-                                <Form.Control
-                                    type="text"
-                                    placeholder="Filtrar por email"
-                                    onChange={handleEmailFilterChange}
-                                    className="focus:ring-blue-500 focus:border-blue-500"
-                                    aria-label="Filtrar por Email"
+                                    aria-label="Search"
                                 />
                             </Form.Group>
                         </div>
-                        <div className="d-flex flex-column flex-md-row w-100 mt-4 mt-md-0">
-                            <Form.Group className="mb-4 mb-md-0 w-100 me-md-2">
+                        <div className="d-flex flex-column flex-md-row w-100">
+                            <Form.Group className="mb-4 w-100 me-md-2 z-50">
                                 <Form.Label className="text-sm font-medium text-gray-700">From Date:</Form.Label>
                                 <DatePicker
                                     selected={fromDate}
                                     onChange={date => setFromDate(date)}
                                     dateFormat="yyyy-MM-dd"
-                                    className="mt-1 block w-100 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                    className="block w-100 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
                                     isClearable
-                                    placeholderText="Selecciona una fecha"
+                                    placeholderText="Select a date"
                                     maxDate={toDate || null}
                                 />
                             </Form.Group>
-                            <Form.Group className="mb-4 mb-md-0 w-100 me-md-2">
+                            <Form.Group className="mb-4 w-100 me-md-2 z-50">
                                 <Form.Label className="text-sm font-medium text-gray-700">To Date:</Form.Label>
                                 <DatePicker
                                     selected={toDate}
                                     onChange={date => setToDate(date)}
                                     dateFormat="yyyy-MM-dd"
-                                    className="mt-1 block w-100 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                    className="block w-100 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
                                     isClearable
-                                    placeholderText="Selecciona una fecha"
+                                    placeholderText="Select a date"
                                     minDate={fromDate || null}
                                 />
                             </Form.Group>
+                            <Button
+                                variant="primary"
+                                onClick={fetchFiles}
+                                disabled={isLoading}
+                                className="align-self-center"
+                                aria-label="Search Files"
+                            >
+                                {isLoading && <Spinner animation="border" size="sm" className="me-2" />}
+                                <span>{isLoading ? "Searching..." : "Search Files"}</span>
+                            </Button>
                         </div>
                     </div>
-                    <div className="d-flex justify-content-end mb-6">
-                        <Button
-                            variant="primary"
-                            onClick={fetchFiles}
-                            disabled={isLoading}
-                            className="d-flex align-items-center"
-                            aria-label="Fetch Files"
-                        >
-                            {isLoading && <Spinner animation="border" size="sm" className="me-2" />}
-                            <span>{isLoading ? "Fetching..." : "Fetch Files"}</span>
-                        </Button>
-                    </div>
+
                     <div className="mb-6">
                         <DataTable
                             columns={columns}
@@ -434,8 +396,8 @@ const AllFiles = () => {
                             fixedHeaderScrollHeight="364px"
                             noDataComponent={
                                 isFetchingByDate
-                                    ? "No se encontraron registros en el rango de fechas seleccionado."
-                                    : "No hay datos para mostrar."
+                                    ? "No records found in the selected date range."
+                                    : "No data to display."
                             }
                             customStyles={customStyles}
                             progressPending={isLoading}
@@ -451,7 +413,7 @@ const AllFiles = () => {
                     </div>
                 </Container>
 
-                {/* Modal para seleccionar documento y versión */}
+                {/* Modal for selecting document and version */}
                 <Modal show={show} onHide={handleClose}>
                     <Modal.Header closeButton>
                         <Modal.Title>Select the document and version you want to see</Modal.Title>
@@ -497,7 +459,7 @@ const AllFiles = () => {
                     </Modal.Footer>
                 </Modal>
 
-                {/* Renderizado del PDF Editor cuando se selecciona un documento y versión */}
+                {/* Rendering the PDF Editor when a document and version are selected */}
                 {docSelected !== "" && selectedVersion !== "" && (
                     <div className="position-fixed top-0 start-0 w-100 h-100 bg-white">
                         <PDFEditor
