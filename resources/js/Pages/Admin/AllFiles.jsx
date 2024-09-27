@@ -173,8 +173,12 @@ const AllFiles = () => {
             const lastModificationTimestamp = item.packageInfo?.updated_at || item.updated_at;
             const objectStatus = item.information || [];
 
-            // Calcular los steps completados: contar las claves en objectStatus que tienen datos
-            const completedSteps = objectStatus.filter(stepObj => {
+            const documentDOM = objectStatus.find(info => info.documentDOM)?.documentDOM || {};
+
+            const allDocumentsHaveV1 = !Object.values(documentDOM).every(doc => doc?.v1 !== undefined && doc.v1 !== null);
+            console.log("v1", allDocumentsHaveV1)
+
+            let completedSteps = objectStatus.filter(stepObj => {
                 const stepKey = Object.keys(stepObj)[0];
                 const stepData = stepObj[stepKey]?.data || stepObj[stepKey];
 
@@ -185,6 +189,13 @@ const AllFiles = () => {
                 }
                 return false;
             }).length;
+
+
+            if (allDocumentsHaveV1 && completedSteps >= 15) {
+                completedSteps = totalSteps;  // 16 pasos completados
+            } else if (completedSteps >= 15) {
+                completedSteps = 15; // Si faltan documentos v1, solo hasta el paso 15
+            }
 
             // Calcular el porcentaje de pasos completados
             const completionPercentage = (completedSteps / totalSteps) * 100;
@@ -197,10 +208,11 @@ const AllFiles = () => {
                 updated: lastModificationTimestamp ? new Date(lastModificationTimestamp).toLocaleDateString() : 'N/A',
                 leng: completedSteps,
                 totalSteps: totalSteps,
-                percentageCompleted: completionPercentage.toFixed(2) + '%', // Porcentaje redondeado a dos decimales
+                percentageCompleted: Math.round(completionPercentage) + '%', // Porcentaje redondeado a dos decimales
             };
         }).filter(Boolean);
     };
+
 
     const filteredPackages = useMemo(() => {
         return files.filter(pkg => {
@@ -291,13 +303,13 @@ const AllFiles = () => {
             name: 'Edit Action',
             cell: row => (
                 <>
-                    {row.leng === row.totalSteps ? (
-                        <Button variant="outline-info" size="sm" onClick={() => saveData(row.id)}>
-                            <i className="bi bi-pencil"></i> Continue Editing
-                        </Button>
-                    ) : (
+                    {row.leng === totalSteps ? (
                         <Button variant="outline-warning" size="sm" onClick={() => handleShow(row.id)}>
                             <i className="bi bi-eye"></i> View Documents
+                        </Button>
+                    ) : (
+                        <Button variant="outline-info" size="sm" onClick={() => saveData(row.id)}>
+                            <i className="bi bi-pencil"></i> Continue Editing
                         </Button>
                     )}
                 </>
@@ -305,7 +317,8 @@ const AllFiles = () => {
             ignoreRowClick: true,
             allowOverflow: true,
             button: true,
-        },
+        }
+
     ];
 
     const customStyles = {
