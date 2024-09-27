@@ -293,11 +293,11 @@ const AllFiles = () => {
             cell: row => <span className="text-sm">{row.updated}</span>,
         },
         {
-            name: 'Step',
+            name: 'Progress',
             selector: row => row.leng,
             sortable: true,
             center: true,
-            cell: row => <span className="text-sm">{row.leng}/{row.totalSteps} ({row.percentageCompleted})</span>, // Mostrar porcentaje
+            cell: row => <span className="text-sm">{row.percentageCompleted}</span>, // Mostrar porcentaje
         },
         {
             name: 'Edit Action',
@@ -431,7 +431,7 @@ const AllFiles = () => {
                             highlightOnHover
                             responsive
                             fixedHeader
-                            fixedHeaderScrollHeight="80vh"
+                            fixedHeaderScrollHeight="364px"
                             noDataComponent={
                                 isFetchingByDate
                                     ? "No se encontraron registros en el rango de fechas seleccionado."
