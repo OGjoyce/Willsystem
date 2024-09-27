@@ -99,6 +99,14 @@ function HumanTable({ id, datas, errors }) {
                 });
             }
 
+            const relativesData = datas.find(item => item.relatives);
+            console.log('re', relativesData)
+            if (relativesData) {
+                relativesData.relatives.map(relative =>
+                    newAllRelatives.push(relative)
+                )
+            }
+
             newAllRelatives.push(...relatives);
 
             setAllRelatives(newAllRelatives);

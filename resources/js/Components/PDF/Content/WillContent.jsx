@@ -6,6 +6,7 @@ var WillContent = forwardRef((props, ref) => {
         return word.toUpperCase();
     };
 
+
     if (props != undefined) {
 
         var datasObj = props.props.datas;
@@ -22,16 +23,17 @@ var WillContent = forwardRef((props, ref) => {
         var spouseInfo = statusObject.married;
         var hasKids = statusObject.kidsq.selection === "true";
         var kids = Object.values(statusObject.kids);
-        var relatives = Object.values(statusObject.relatives);
-        var executors = Object.values(statusObject.executors);
-        var bequests = Object.values(statusObject.bequests).filter(item => typeof item === 'object');
-        var trusting = Object.values(statusObject.trusting).filter(item => typeof item === 'object');
+        var relatives = statusObject.relatives ? Object.values(statusObject.relatives) : [];
+        var executors = statusObject.executors ? Object.values(statusObject.executors) : [];
+        var bequests = statusObject.bequests ? Object.values(statusObject.bequests).filter(item => typeof item === 'object') : [];
+        var trusting = statusObject.trusting ? Object.values(statusObject.trusting).filter(item => typeof item === 'object') : [];
+        var pets = statusObject.pets ? Object.values(statusObject.pets).filter(item => typeof item === 'object') : [];
+        var guardians = statusObject.guardians ? Object.values(statusObject.guardians).filter(item => typeof item === 'object').sort((a, b) => a.position - b.position) : [];
         var minTrustingAge = trusting.length > 0
             ? trusting.map(trust => trust.age).reduce((prevValue, currentValue) => prevValue > currentValue ? currentValue : prevValue)
             : null
-        var pets = Object.values(statusObject.pets).filter(item => typeof item === 'object');
         var wipeoutInfo = statusObject.wipeout.wipeout
-        var guardians = Object.values(statusObject.guardians).filter(item => typeof item === 'object').sort((a, b) => a.position - b.position);
+
         var residueInfo = statusObject.residue;
         var additionalInfo = statusObject.additional;
         var POAInfo = statusObject.poa;
@@ -278,7 +280,7 @@ var WillContent = forwardRef((props, ref) => {
                                         ? <li>
                                             I direct my Executor to provide a maximum of {caretaker.amount} (CAD) out of the residue of my
                                             estate to the the pet caretaker assigned below as a one-time only sum to be used for
-                                            the future care, feeding and maintenance of my pet(s). Upon the death of all of my pets,
+                                            the future care, feeding and maintenance of my pet {caretaker.petName}. Upon the death of all of my pets,
                                             the remainder of any funds provided to the caretaker for the care and maintenance
                                             shall be given to a local animal rescue or humane shelter, to be decided upon by the
                                             caretaker
@@ -544,46 +546,49 @@ var WillContent = forwardRef((props, ref) => {
 
                             <br></br>
                             <p class="align-center"><strong>VII. GENERAL PROVISIONS</strong></p>
-                            <p><strong><u>Pets</u></strong></p>
-                            <ol>
-                                {pets && pets.length > 0 ? (
-                                    <>
+
+                            {pets && pets.length > 0 && (
+                                <>
+                                    <p><strong><u>Pets</u></strong></p>
+                                    <ol>
                                         {pets.map((caretaker, index) => {
                                             const guardianInfo = findPersonInfo(caretaker.guardian, relatives, Object.values(kids), spouseInfo);
                                             const backupInfo = caretaker.backup ? findPersonInfo(caretaker.backup, relatives, Object.values(kids), spouseInfo) : null;
+                                            console.log(caretaker.petName)
 
                                             return (
                                                 <React.Fragment key={index}>
                                                     <li>
-                                                        Where I leave one or more pets which are healthy, I appoint {capitalLetters(guardianInfo.fullName)} of {capitalLetters(guardianInfo.city)}, {capitalLetters(guardianInfo.province)}, {capitalLetters(guardianInfo.country)} to be the caretaker,
-                                                        to care for my pets as their own with all the rights and responsibilities of ownership.
-                                                    </li>
-                                                    {caretaker.backup && (
-                                                        <li>
-                                                            If {capitalLetters(guardianInfo.fullName)} should refuse or be unable to act or continue to act as my pet(s) guardian, then I
-                                                            appoint {capitalLetters(backupInfo.fullName)}, of {capitalLetters(backupInfo.city)}, {capitalLetters(backupInfo.province)}, {capitalLetters(backupInfo.country)} to act as my pet(s) guardian.
-                                                        </li>
-                                                    )}
-                                                    {caretaker.amount > 0 && (
-                                                        <li>
-                                                            I direct my Executor to provide a maximum of ${caretaker.amount} (CAD)
-                                                            out of the residue of my estate to the pet caretaker as a one-time only sum to be used
-                                                            for the future care, feeding and maintenance of my pet(s).
-                                                        </li>
-                                                    )}
-                                                    <li>
-                                                        Where any appointed caretaker cannot afford or refuses to accept the responsibilities of ownership for any pet
-                                                        of mine then I give my Executor the fullest possible discretion in the placement of that pet in an alternate
-                                                        permanent, safe and loving environment as soon as possible.
+                                                        Where I leave my pet {caretaker.petName} which is healthy, I appoint {capitalLetters(guardianInfo.fullName)} of {capitalLetters(guardianInfo.city)}, {capitalLetters(guardianInfo.province)}, {capitalLetters(guardianInfo.country)} to be the caretaker,
+                                                        to care of it as it's own with all the rights and responsibilities of ownership.
+
+                                                        {caretaker.backup && (
+                                                            <ul>
+                                                                If {capitalLetters(guardianInfo.fullName)} should refuse or be unable to act or continue to act as {caretaker.petName}'s guardian, then I
+                                                                appoint {capitalLetters(backupInfo.fullName)}, of {capitalLetters(backupInfo.city)}, {capitalLetters(backupInfo.province)}, {capitalLetters(backupInfo.country)} to act as it's guardian.
+                                                            </ul>
+                                                        )}
+                                                        {caretaker.amount > 0 && (
+                                                            <ul>
+                                                                I direct my Executor to provide a maximum of ${caretaker.amount} (CAD)
+                                                                out of the residue of my estate to the pet caretaker as a one-time only sum to be used
+                                                                for the future care, feeding and maintenance of my pet {caretaker.petName}.
+                                                            </ul>
+                                                        )}
                                                     </li>
                                                 </React.Fragment>
                                             );
                                         })}
-                                    </>
-                                ) : (
-                                    <li>No pet(s) guardian added in this my Will</li>
-                                )}
-                            </ol>
+                                        <li>
+                                            Where any appointed caretaker cannot afford or refuses to accept the responsibilities of ownership for any pet
+                                            of mine then I give my Executor the fullest possible discretion in the placement of that pet in an alternate
+                                            permanent, safe and loving environment as soon as possible.
+                                        </li>
+                                    </ol>
+                                </>
+
+                            )}
+
 
                             <p><strong><u>Family Law Act</u></strong></p>
                             <ol>

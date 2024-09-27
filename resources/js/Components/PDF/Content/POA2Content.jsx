@@ -1,9 +1,10 @@
+// POA2Content.js
 import React, { forwardRef } from 'react';
 import './content.css';
 
 const POA2Content = forwardRef((props, ref) => {
     const capitalLetters = (word) => {
-        return word.toUpperCase();
+        return word?.toUpperCase();
     };
 
     if (!props || !props.props) {
@@ -11,7 +12,7 @@ const POA2Content = forwardRef((props, ref) => {
     }
 
     const datasObj = props.props.datas || [];
-    const documentDOM = props.props.selectedDOMVersion
+    const documentDOM = props.props.selectedDOMVersion;
 
     const statusObject = {};
     datasObj.forEach(item => {
@@ -20,14 +21,13 @@ const POA2Content = forwardRef((props, ref) => {
         });
     });
 
-
-
     const personal = statusObject.personal || {};
     const spouseInfo = statusObject.married || {};
     const kids = Object.values(statusObject.kids || {});
     const relatives = Object.values(statusObject.relatives || {});
     const POAInfo = statusObject.poa || {};
 
+    // Function to find person information based on name
     function findPersonInfo(name, relatives, kids, spouseInfo) {
         if (!name) return { city: '', country: '', province: '', fullName: '', relation: '', telephone: '' };
         const names = name.trim();
@@ -59,8 +59,49 @@ const POA2Content = forwardRef((props, ref) => {
     }
 
     const attorneyOne = POAInfo.poaHealth ? findPersonInfo(POAInfo.poaHealth.attorney, relatives, kids, spouseInfo) : {};
-    const attorneyTwo = POAInfo.poaHealth ? findPersonInfo(POAInfo.poaHealth.join, relatives, kids, spouseInfo) : {};
+    const attorneyTwo = POAInfo.poaHealth && POAInfo.poaHealth.backups && POAInfo.poaHealth.backups.length > 0
+        ? findPersonInfo(POAInfo.poaHealth.backups[0], relatives, kids, spouseInfo)
+        : {};
     const restrictions = POAInfo.poaHealth ? (POAInfo.poaHealth.restrictions || '') : '';
+
+    // Define the same declarations as in Poa.jsx
+    const declarations = [
+        {
+            id: 'terminalCondition',
+            label: 'If I have an incurable and irreversible terminal condition that will result in my death, I direct that:',
+            options: [
+                'I not be given life support or other life-prolonging treatment;',
+                'I not receive tube feeding, even if withholding such feeding would hasten my death;',
+                'Should I develop another separate condition that threatens my life, I not be given active treatment for said illnesses.'
+            ]
+        },
+        {
+            id: 'persistentlyUnconscious',
+            label: 'If I am diagnosed as persistently unconscious and, to a reasonable degree of medical certainty, I will not regain consciousness, I direct that:',
+            options: [
+                'I not be kept on any artificial life support;',
+                'I not receive tube feeding, even if withholding such feeding would hasten my death;',
+                'Should I develop another separate condition that threatens my life, I not be given active treatment for said illnesses.'
+            ]
+        },
+        {
+            id: 'severelyImpaired',
+            label: 'If I am diagnosed as being severely and permanently mentally impaired, I direct that:',
+            options: [
+                'I not be kept on any artificial life support;',
+                'I not receive tube feeding, even if withholding such feeding would hasten my death;',
+                'Should I develop another separate condition that threatens my life, I not be given active treatment for said illnesses.'
+            ]
+        },
+        {
+            id: 'violentBehavior',
+            label: 'If I am suffering from one of the above-mentioned conditions and if my behaviour becomes violent or is otherwise degrading, I want my symptoms to be controlled with appropriate drugs, even if that would worsen my physical condition or shorten my life.'
+        },
+        {
+            id: 'painManagement',
+            label: 'If I am suffering from one of the above-mentioned conditions and I appear to be in pain, I want my symptoms to be controlled with appropriate drugs, even if that would worsen my physical condition or shorten my life.'
+        }
+    ];
 
     return (
 
@@ -96,11 +137,11 @@ const POA2Content = forwardRef((props, ref) => {
                         <p><strong>Designation of Attorney</strong></p>
                         <ol start="3">
                             <li>
-                                I designate my {attorneyOne.relation.toLowerCase()} {capitalLetters(attorneyOne.fullName)} (tel: {attorneyOne.telephone || 'N/A'}) to be my sole Attorney for
+                                I designate my {attorneyOne?.relation?.toLowerCase()} {capitalLetters(attorneyOne.fullName)} (tel: {attorneyOne.telephone || 'N/A'}) to be my sole Attorney for
                                 Personal Care (my "Attorney").
                             </li>
                             <li>
-                                If my {attorneyOne.relation.toLowerCase()} cannot or will not be my Attorney because of refusal, resignation, death, mental
+                                If my {attorneyOne?.relation?.toLowerCase()} cannot or will not be my Attorney because of refusal, resignation, death, mental
                                 incapacity, or removal by the court, I SUBSTITUTE {capitalLetters(attorneyTwo.fullName)} of {capitalLetters(attorneyTwo.city)}, {capitalLetters(attorneyTwo.province)} ({attorneyTwo.telephone || 'N/A'}) to
                                 be my sole Attorney.
                             </li>
@@ -146,44 +187,32 @@ const POA2Content = forwardRef((props, ref) => {
                                 and others involved in my care provide, withhold or withdraw treatment in accordance with my
                                 directions below:
                                 <ol type="a">
-                                    <li>
-                                        If I have an incurable and irreversible terminal condition that will result in my death, I direct that:
-                                        <ul>
-                                            <li>I not be given life support or other life-prolonging treatment;</li>
-                                            <li>I not receive tube feeding, even if withholding such feeding would hasten my death;</li>
-                                            <li>Should I develop another separate condition that threatens my life, I not be given active treatment
-                                                for said illnesses.</li>
-                                        </ul>
-                                    </li>
-                                    <li>
-                                        If I am diagnosed as persistently unconscious and, to a reasonable degree of medical certainty, I will
-                                        not regain consciousness, I direct that:
-                                        <ul>
-                                            <li>I not be kept on any artificial life support;</li>
-                                            <li>I not receive tube feeding, even if withholding such feeding would hasten my death;</li>
-                                            <li>Should I develop another separate condition that threatens my life, I not be given active treatment
-                                                for said illnesses.</li>
-                                        </ul>
-                                    </li>
-                                    <li>
-                                        If I am diagnosed as being severely and permanently mentally impaired, I direct that:
-                                        <ul>
-                                            <li>I not be kept on any artificial life support;</li>
-                                            <li>I not receive tube feeding, even if withholding such feeding would hasten my death;</li>
-                                            <li>Should I develop another separate condition that threatens my life, I not be given active treatment
-                                                for said illnesses.</li>
-                                        </ul>
-                                    </li>
-                                    <li>
-                                        If I am suffering from one of the above-mentioned conditions and if my behaviour becomes violent or
-                                        is otherwise degrading, I want my symptoms to be controlled with appropriate drugs, even if that would
-                                        worsen my physical condition or shorten my life.
-                                    </li>
-                                    <li>
-                                        If I am suffering from one of the above-mentioned conditions and I appear to be in pain, I want my
-                                        symptoms to be controlled with appropriate drugs, even if that would worsen my physical condition or
-                                        shorten my life.
-                                    </li>
+                                    {declarations.map(declaration => (
+                                        POAInfo.statements && POAInfo.statements[declaration.id] ? (
+                                            <li key={declaration.id}>
+                                                {declaration.label}
+                                                {declaration.options && (
+                                                    <ul>
+                                                        {declaration.options.map((option, idx) => (
+                                                            POAInfo.statements[`${declaration.id}_option_${idx}`] && (
+                                                                <li key={`${declaration.id}_option_${idx}`}>{option}</li>
+                                                            )
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                            </li>
+                                        ) : null
+                                    ))}
+                                    {POAInfo.organDonation && (
+                                        <li>
+                                            I wish for my organs and tissue to be used for transplantation upon my death.
+                                        </li>
+                                    )}
+                                    {!POAInfo.organDonation && (
+                                        <li>
+                                            I do not wish for my organs and tissue to be used for transplantation upon my death.
+                                        </li>
+                                    )}
                                 </ol>
                             </li>
                         </ol>
@@ -266,7 +295,7 @@ const POA2Content = forwardRef((props, ref) => {
                         <p>{capitalLetters(personal.city)} {personal.province ? `, ${capitalLetters(personal.province)}` : ''}</p>
                         <p>{personal.postalCode || 'POSTAL CODE:______________'}</p>
                         <p>
-                            SIGNED AND DECLARED by {capitalLetters(personal.fullName)} on this ____ day of ____________________, 20____to
+                            SIGNED AND DECLARED by {capitalLetters(personal.fullName)} on this ____ day of ____________________, 20____ to
                             be the Grantor's Power of Attorney for Personal Care, in our presence, remotely, who at the Grantor's
                             request and in the presence of the Grantor, via video conference and in the physical presence of each
                             other at Vaughan, Ontario, all being present at the same time, have signed our names as witnesses in
