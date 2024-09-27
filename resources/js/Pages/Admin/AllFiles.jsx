@@ -55,7 +55,7 @@ const AllFiles = () => {
         }
 
         localStorage.setItem('fullData', JSON.stringify(obj));
-        localStorage.setItem('currentPointer', obj.length.toString());
+        localStorage.setItem('currentPointer', 15);
         localStorage.setItem('currIdObjDB', idItem);
 
         window.location.href = '/personal';
