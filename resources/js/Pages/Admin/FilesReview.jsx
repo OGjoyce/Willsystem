@@ -505,11 +505,11 @@ const FilesReview = () => {
                                             size="sm"
                                             className="me-2"
                                         />
-                                        Refreshing...
+                                        Searching...
                                     </>
                                 ) : (
                                     <>
-                                        <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+                                        <i className="bi bi-search me-2"></i> Search
                                     </>
                                 )}
                             </Button>
