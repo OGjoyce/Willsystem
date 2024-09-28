@@ -203,8 +203,8 @@ const AllFiles = () => {
         return data.map(item => {
             const packageInfo = item.information?.find(info => info.packageInfo)?.packageInfo;
             const owner = item.information?.find(info => info.personal)?.personal?.email || 'unknown';
-            const creationTimestamp = packageInfo?.created_at || item.created_at;
-            const lastModificationTimestamp = packageInfo?.updated_at || item.updated_at;
+            const creationTimestamp = item.created_at || "NA"
+            const lastModificationTimestamp = item.updated_at || "NA";
             const objectStatus = item.information || [];
             const documentDOM = objectStatus.find(info => info.documentDOM)?.documentDOM || {};
 
@@ -422,7 +422,7 @@ const AllFiles = () => {
     return (
         <AuthenticatedLayout
             user={"Admin"}
-            header={<h2 className="font-semibold text-2xl text-gray-800 leading-tight">View Files</h2>}
+            header={<h2 className="font-semibold text-2xl text-gray-800 leading-tight">All Files</h2>}
         >
             <Head title={"View Files"} />
             <div className="py-12 bg-gray-100 min-h-screen">
@@ -633,19 +633,8 @@ const AllFiles = () => {
                                 backendId={idSelected}
                                 documentType={docSelected}
                                 version={selectedVersion}
+
                             />
-                            <div className="mt-6">
-                                <div className="flex justify-start">
-                                    <Link href={route('view')} className="w-1/3">
-                                        <button
-                                            className="bg-green-500 text-white py-3 px-6 rounded-lg w-full hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 transition"
-                                            aria-label="Back to Files View"
-                                        >
-                                            <i className="bi bi-arrow-left mr-2"></i> Back
-                                        </button>
-                                    </Link>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 )}
