@@ -1,153 +1,197 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { Container, Row, Col, Form, Button, Dropdown, Table, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import {
+    Dropdown,
+    Button,
+    Container,
+    Row,
+    Col,
+    Form,
+    Alert,
+    Spinner,
+    InputGroup,
+} from 'react-bootstrap';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
-import { debounce } from 'lodash';
 import axios from 'axios';
+import DataTable from 'react-data-table-component';
+import { debounce } from 'lodash';
+import { saveAs } from 'file-saver';
+import * as XLSX from 'xlsx';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Tooltip from 'react-bootstrap/Tooltip';
+
+// Reusable Component for Status Icon with Tooltip
+const StatusIcon = ({ status }) => {
+    const getStatusDetails = (status) => {
+        switch (status.toLowerCase()) {
+            case 'completed':
+                return { icon: 'bi-patch-check-fill', color: '#008857', label: 'Completed' };
+            case 'changes requested':
+                return { icon: 'bi-patch-exclamation-fill', color: '#E53448', label: 'Changes Requested' };
+            case 'pending':
+            default:
+                return { icon: 'bi-patch-question-fill', color: '#FFC339', label: 'Pending' };
+        }
+    };
+
+    const { icon, color, label } = getStatusDetails(status);
+
+    return (
+        <OverlayTrigger
+            placement="top"
+            overlay={<Tooltip id={`tooltip-${label}`}>{label}</Tooltip>}
+        >
+            <i className={`bi ${icon}`} style={{ color }} aria-label={label}></i>
+        </OverlayTrigger>
+    );
+};
+
+// Reusable Component for Action Buttons in DataTable
+const ActionButton = ({ row }) => (
+    <Link href={route('package-status', { id: row.id })}>
+        <Button
+            variant="outline-info"
+            size="sm"
+            className="d-flex align-items-center"
+            aria-label={`View details for package ${row.name}`}
+        >
+            <i className="bi bi-eye me-1"></i> View
+        </Button>
+    </Link>
+);
 
 const FilesReview = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
     const [files, setFiles] = useState([]);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
+    // Fetch Files on Component Mount
     useEffect(() => {
         fetchFiles();
     }, []);
 
+    // Fetch Files from API
     const fetchFiles = async () => {
         try {
+            setErrorMessage('');
+            setIsLoading(true);
             const response = await axios.get('/api/obj-status/all');
-
-            // Imprimir la estructura completa de la respuesta para depuración
-            console.log('Full response:', response.data);
-
-            function transformData(data) {
-                if (!Array.isArray(data)) {
-                    console.error('Expected an array but got:', data);
-                    return [];
-                }
-
-                return data.flatMap(item => {
-                    // Buscar el objeto documentDOM dentro de la estructura de información
-                    const documentDOM = findDocumentDOM(item.information);
-                    const packageInfo = item.information?.find(info => info.packageInfo)?.packageInfo;
-                    const owner = item.information?.find(info => info.personal)?.personal?.email || 'unknown';
-                    const creationTimestamp = item.information?.find(info => info.personal)?.personal?.timestamp;
-                    let latestTimestamp = creationTimestamp;
-
-                    if (!packageInfo || !documentDOM) {
-                        return {
-                            id: item.id || null,
-                            user: owner,
-                            name: packageInfo?.name || 'unknown',
-                            approved: '0/0',
-                            status: 'pending'
-                        };
-                    }
-
-                    if (documentDOM) {
-                        Object.values(documentDOM).forEach(doc => {
-                            Object.values(doc).forEach(version => {
-                                Object.values(version).forEach(v => {
-                                    if (v.timestamp && new Date(v.timestamp).getTime() > new Date(latestTimestamp).getTime()) {
-                                        latestTimestamp = v.timestamp;
-                                    }
-                                });
-                            });
-                        });
-                    }
-
-                    console.log('Processing documentDOM:', documentDOM);
-
-                    const documents = Object.entries(documentDOM);
-                    let hasChangesRequested = false;
-                    let allApproved = true;
-                    let totalCount = 0;
-                    let approvedCount = 0;
-
-                    documents.forEach(([key, versions]) => {
-                        // Evitar procesar documentos con nombre que empieza con 'timestamp'
-                        if (key.startsWith('timestamp')) {
-                            console.log(`Skipping document: ${key}`);
-                            return;
-                        }
-
-                        console.log(`Processing document: ${key}`);
-                        console.log(`Available versions for ${key}:`, Object.keys(versions));
-
-                        const versionKeys = Object.keys(versions).filter(vKey => vKey.startsWith('v'));
-                        if (versionKeys.length === 0) {
-                            console.log(`No version keys found for document: ${key}`);
-                            return;
-                        }
-
-                        // Obtener la última versión del documento
-                        const lastVersionKey = versionKeys.sort((a, b) => parseInt(b.replace('v', '')) - parseInt(a.replace('v', '')))[0];
-                        const lastVersion = versions[lastVersionKey];
-
-                        if (lastVersion) {
-                            console.log(`Document: ${key}, Version: ${lastVersionKey}, Status: ${lastVersion.status}`);
-                            const status = lastVersion.status;
-
-                            if (status === 'changes requested') {
-                                hasChangesRequested = true;
-                            } else if (status === 'approved') {
-                                approvedCount += 1;
-                            } else if (status === 'pending') {
-                                allApproved = false;
-                            }
-                        } else {
-                            console.log(`No last version found for document: ${key}`);
-                        }
-
-                        totalCount += 1;
-                    });
-
-                    let status = 'pending';
-                    if (hasChangesRequested) {
-                        status = 'changes requested';
-                    } else if (approvedCount === totalCount && totalCount > 0) {
-                        status = 'completed';
-                    } else if (!hasChangesRequested && !allApproved) {
-                        status = 'pending';
-                    }
-
-                    console.log(`Final status for package ${packageInfo.name}:`, status);
-
-                    const formattedCreationDate = creationTimestamp ? new Date(creationTimestamp).toLocaleDateString() : 'N/A';
-                    const formattedLatestDate = latestTimestamp ? new Date(latestTimestamp).toLocaleDateString() : 'N/A';
-
-                    return {
-                        id: item.id || null,
-                        user: owner,
-                        name: packageInfo.name || 'unknown',
-                        approved: `${approvedCount}/${totalCount}`,
-                        createdAt: formattedCreationDate,
-                        updatedAt: formattedLatestDate,
-                        status: status
-                    };
-
-                }).filter(Boolean);
-            }
-
-            function findDocumentDOM(infoArray) {
-                for (const obj of infoArray) {
-                    if (obj.documentDOM) {
-                        return obj.documentDOM;
-                    }
-                }
-                return null;
-            }
 
             const transformedData = transformData(response.data);
             setFiles(transformedData);
-            console.log('Transformed data:', transformedData);
-
+            setIsLoading(false);
         } catch (error) {
             console.error('Error fetching files:', error);
+            setErrorMessage('An error occurred while fetching the files. Please try again.');
+            setIsLoading(false);
         }
     };
 
+    // Transform API Data to Table Format
+    const transformData = (data) => {
+        if (!Array.isArray(data)) {
+            console.error('Expected an array but got:', data);
+            return [];
+        }
+
+        return data.flatMap(item => {
+            const documentDOM = findDocumentDOM(item.information);
+            const packageInfo = item.information?.find(info => info.packageInfo)?.packageInfo;
+            const owner = item.information?.find(info => info.personal)?.personal?.email || 'unknown';
+            const creationTimestamp = item.information?.find(info => info.personal)?.personal?.timestamp;
+            let latestTimestamp = creationTimestamp;
+
+            if (!packageInfo || !documentDOM) {
+                return {
+                    id: item.id || null,
+                    user: owner,
+                    name: packageInfo?.name || 'unknown',
+                    approved: '0/0',
+                    createdAt: creationTimestamp ? new Date(creationTimestamp).toLocaleDateString() : 'N/A',
+                    updatedAt: 'N/A',
+                    status: 'pending'
+                };
+            }
+
+            // Process documentDOM to determine status
+            const documents = Object.entries(documentDOM);
+            let hasChangesRequested = false;
+            let allApproved = true;
+            let totalCount = 0;
+            let approvedCount = 0;
+
+            documents.forEach(([key, versions]) => {
+                // Skip documents with keys starting with 'timestamp'
+                if (key.startsWith('timestamp')) {
+                    return;
+                }
+
+                const versionKeys = Object.keys(versions).filter(vKey => vKey.startsWith('v'));
+                if (versionKeys.length === 0) {
+                    return;
+                }
+
+                // Get the latest version
+                const lastVersionKey = versionKeys.sort((a, b) => parseInt(b.replace('v', '')) - parseInt(a.replace('v', '')))[0];
+                const lastVersion = versions[lastVersionKey];
+
+                if (lastVersion) {
+                    const status = lastVersion.status;
+
+                    if (status === 'changes requested') {
+                        hasChangesRequested = true;
+                    } else if (status === 'approved') {
+                        approvedCount += 1;
+                    } else if (status === 'pending') {
+                        allApproved = false;
+                    }
+
+                    // Update latestTimestamp
+                    if (lastVersion.timestamp && new Date(lastVersion.timestamp).getTime() > new Date(latestTimestamp).getTime()) {
+                        latestTimestamp = lastVersion.timestamp;
+                    }
+                }
+
+                totalCount += 1;
+            });
+
+            let status = 'pending';
+            if (hasChangesRequested) {
+                status = 'changes requested';
+            } else if (approvedCount === totalCount && totalCount > 0) {
+                status = 'completed';
+            } else if (!hasChangesRequested && !allApproved) {
+                status = 'pending';
+            }
+
+            const formattedCreationDate = creationTimestamp ? new Date(creationTimestamp).toLocaleDateString() : 'N/A';
+            const formattedLatestDate = latestTimestamp ? new Date(latestTimestamp).toLocaleDateString() : 'N/A';
+
+            return {
+                id: item.id || null,
+                user: owner,
+                name: packageInfo.name || 'unknown',
+                approved: `${approvedCount}/${totalCount}`,
+                createdAt: formattedCreationDate,
+                updatedAt: formattedLatestDate,
+                status: status
+            };
+        }).filter(Boolean);
+    };
+
+    // Helper Function to Find documentDOM
+    const findDocumentDOM = (infoArray) => {
+        for (const obj of infoArray) {
+            if (obj.documentDOM) {
+                return obj.documentDOM;
+            }
+        }
+        return null;
+    };
+
+    // Filter Packages based on Search and Status
     const filteredPackages = useMemo(() => {
         return files.filter(pkg =>
             (statusFilter === 'All' || pkg.status.toLowerCase() === statusFilter.toLowerCase()) &&
@@ -156,10 +200,8 @@ const FilesReview = () => {
         );
     }, [files, statusFilter, searchTerm]);
 
-    const debouncedSearch = useMemo(
-        () => debounce((value) => setSearchTerm(value), 300),
-        []
-    );
+    // Debounced Search Input
+    const debouncedSearch = useMemo(() => debounce((value) => setSearchTerm(value), 300), []);
 
     const handleSearchChange = useCallback((e) => {
         debouncedSearch(e.target.value);
@@ -169,123 +211,288 @@ const FilesReview = () => {
         setStatusFilter(status);
     }, []);
 
-    const renderTableRow = useCallback((pkg) => (
-        <tr key={pkg.id}>
-            <td className='text-center'>
-                <OverlayTrigger
-                    key={pkg.id}
-                    placement='top'
-                    overlay={
-                        <Tooltip id={pkg.id}>
-                            <strong>{pkg.status}</strong>
-                        </Tooltip>
-                    }
-                >
-                    {
-                        pkg.status === 'completed'
-                            ? <i style={{ color: "#008857" }} className="bi bi-patch-check-fill"></i>
-                            : (
-                                pkg.status === 'changes requested'
-                                    ? <i style={{ color: "#E53448" }} className="bi bi-patch-exclamation-fill"></i>
-                                    : <i style={{ color: "#FFC339" }} className="bi bi-patch-question-fill"></i>
-                            )
-                    }
-                </OverlayTrigger>
-            </td>
-            <td>{pkg.user}</td>
-            <td>{pkg.name}</td>
-            <td>{pkg.approved}</td>
-            <td>{pkg.createdAt}</td>
-            <td>{pkg.updatedAt}</td>
-            <td>
-                <Link href={route('package-status', { id: pkg.id })}>
-                    <Button className="w-100" variant="outline-info" size="sm">
-                        View
-                    </Button>
-                </Link>
-            </td>
-        </tr>
+    // Define DataTable Columns
+    const columns = [
+        {
+            name: 'Status',
+            selector: row => row.status,
+            sortable: true,
+            center: true,
+            cell: row => <StatusIcon status={row.status} />,
+            width: '100px',
+        },
+        {
+            name: 'User',
+            selector: row => row.user,
+            sortable: true,
+            wrap: true,
+            cell: row => <span className="text-sm">{row.user}</span>,
+        },
+        {
+            name: 'Package',
+            selector: row => row.name,
+            sortable: true,
+            wrap: true,
+            cell: row => <span className="text-sm">{row.name}</span>,
+        },
+        {
+            name: 'Approved',
+            selector: row => row.approved,
+            sortable: true,
+            center: true,
+            cell: row => <span className="text-sm">{row.approved}</span>,
+        },
+        {
+            name: 'Created At',
+            selector: row => row.createdAt,
+            sortable: true,
+            center: true,
+            cell: row => <span className="text-sm">{row.createdAt}</span>,
+        },
+        {
+            name: 'Updated At',
+            selector: row => row.updatedAt,
+            sortable: true,
+            center: true,
+            cell: row => <span className="text-sm">{row.updatedAt}</span>,
+        },
+        {
+            name: 'Options',
+            cell: row => <ActionButton row={row} />,
+            ignoreRowClick: true,
+            allowOverflow: true,
+            button: true,
+            width: '120px',
+        }
+    ];
 
-    ), []);
+    // Custom Styles for DataTable
+    const customStyles = {
+        headRow: {
+            style: {
+                backgroundColor: '#f1f5f9',
+            },
+        },
+        headCells: {
+            style: {
+                fontWeight: '600',
+                fontSize: '0.9rem',
+                color: '#1f2937',
+                paddingLeft: '16px',
+                paddingRight: '16px',
+            },
+        },
+        cells: {
+            style: {
+                fontSize: '0.85rem',
+                color: '#374151',
+                paddingLeft: '16px',
+                paddingRight: '16px',
+            },
+        },
+    };
+
+    // Function to Export Data as CSV
+    const exportCSV = () => {
+        const headers = columns.map(col => col.name).filter(name => name !== 'Options');
+        const rows = filteredPackages.map(pkg => [
+            pkg.status,
+            pkg.user,
+            pkg.name,
+            pkg.approved,
+            pkg.createdAt,
+            pkg.updatedAt,
+        ]);
+
+        let csvContent = '';
+        csvContent += headers.join(',') + '\n';
+        rows.forEach(row => {
+            csvContent += row.map(item => `"${item}"`).join(',') + '\n';
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        saveAs(blob, 'files_review_data.csv');
+    };
+
+    // Function to Export Data as Excel
+    const exportExcel = () => {
+        const worksheetData = [
+            columns.map(col => col.name).filter(name => name !== 'Options'),
+            ...filteredPackages.map(pkg => [
+                pkg.status,
+                pkg.user,
+                pkg.name,
+                pkg.approved,
+                pkg.createdAt,
+                pkg.updatedAt,
+            ]),
+        ];
+
+        const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'FilesReviewData');
+
+        const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+        const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+        saveAs(blob, 'files_review_data.xlsx');
+    };
 
     return (
         <AuthenticatedLayout
             user={"Admin"}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">{"Files Review"}</h2>}
+            header={<h2 className="font-semibold text-2xl text-gray-800 leading-tight">Files Review</h2>}
         >
-            <Head title={"Welcome, Admin"} />
-            <div className="py-12" style={{ height: "100%", overflow: "hidden" }}>
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8" style={{ height: "inherit" }}>
-                    <div className="bg-white overflow-visible shadow-sm sm:rounded-lg container" style={{ height: "inherit" }}>
-                        <Container style={{ display: "flex", flexDirection: "column", height: "70vh", justifyContent: "space-between" }}>
-                            <Row className="mb-3">
-                                <Col xs={12} md={9} className="mb-3 mb-md-0">
-                                    <Form.Group as={Row}>
-                                        <Col xs={8} md={4}>
-                                            <Form.Control
-                                                type="text"
-                                                placeholder="Search"
-                                                onChange={handleSearchChange}
-                                            />
-                                        </Col>
-                                        <Col xs={6} md={5}>
-                                            <Dropdown>
-                                                <Dropdown.Toggle
-                                                    variant="outline-dark"
-                                                    id="dropdown-basic"
-                                                    className="w-100 text-truncate"
-                                                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                                                >
-                                                    <span className="me-1">Filter:</span>
-                                                    <span className="text-truncate">{statusFilter}</span>
-                                                </Dropdown.Toggle>
-                                                <Dropdown.Menu className='w-100 text-center'>
-                                                    {['All', 'Pending', 'Changes Requested', 'Completed'].map((status) => (
-                                                        <Dropdown.Item
-                                                            key={status}
-                                                            onClick={() => handleStatusFilterChange(status)}
-                                                            className="text-truncate"
-                                                        >
-                                                            {status}
-                                                        </Dropdown.Item>
-                                                    ))}
-                                                </Dropdown.Menu>
-                                            </Dropdown>
-                                        </Col>
+            <Head title={"Files Review"} />
+            <div className="py-12 bg-gray-100 min-h-screen">
+                <Container className="bg-white p-6 rounded-lg shadow-md">
+                    {/* Display Error Message */}
+                    {errorMessage && (
+                        <Alert variant="danger" className="mb-4">
+                            {errorMessage}
+                        </Alert>
+                    )}
+
+                    {/* Filters Section */}
+                    <Row className="mb-6">
+                        {/* Search Filter */}
+                        <Col md={6} className="mb-4 mb-md-0">
+                            <InputGroup>
+                                <InputGroup.Text id="search-icon">
+                                    <i className="bi bi-filter"></i>
+                                </InputGroup.Text>
+                                <Form.Control
+                                    type="text"
+                                    placeholder="Filter by user email or package name"
+                                    onChange={handleSearchChange}
+                                    aria-label="Search Files"
+                                    aria-describedby="search-icon"
+                                />
+                            </InputGroup>
+                        </Col>
+
+                        {/* Status Filter */}
+                        <Col md={6}>
+                            <Row>
+                                <Col sm={6}>
+                                    <Form.Group className="mb-3">
+                                        <Form.Label className="text-sm font-medium text-gray-700">Status:</Form.Label>
+                                        <Dropdown onSelect={(eventKey) => handleStatusFilterChange(eventKey)}>
+                                            <Dropdown.Toggle
+                                                variant="outline-secondary"
+                                                id="dropdown-status"
+                                                className="w-100 text-left"
+                                            >
+                                                {statusFilter}
+                                            </Dropdown.Toggle>
+
+                                            <Dropdown.Menu className="w-100">
+                                                {['All', 'Pending', 'Changes Requested', 'Completed'].map((status) => (
+                                                    <Dropdown.Item
+                                                        key={status}
+                                                        eventKey={status}
+                                                    >
+                                                        {status}
+                                                    </Dropdown.Item>
+                                                ))}
+                                            </Dropdown.Menu>
+                                        </Dropdown>
                                     </Form.Group>
                                 </Col>
                             </Row>
-                            <div className="overflow-auto" style={{ maxHeight: '400px' }}>
-                                <p className="text-center mb-4">Start typing the owner's email or package to filter results in the table below.</p>
-                                <Table striped bordered hover>
-                                    <thead>
-                                        <tr>
-                                            <th>Status</th>
-                                            <th>User</th>
-                                            <th>Package</th>
-                                            <th>Approved</th>
-                                            <th>Created At</th>
-                                            <th>Updated At</th>
-                                            <th>Options</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {filteredPackages.map(renderTableRow)}
-                                    </tbody>
-                                </Table>
+                        </Col>
+                    </Row>
+
+                    {/* Action Buttons */}
+                    <Row className="mb-4">
+                        <Col className="d-flex justify-content-end gap-2">
+                            <Button
+                                variant="outline-success"
+                                onClick={exportExcel}
+                                aria-label="Export as Excel"
+                                className="d-flex align-items-center"
+                            >
+                                <i className="bi bi-file-earmark-spreadsheet me-2"></i> Export Excel
+                            </Button>
+                            <Button
+                                variant="outline-primary"
+                                onClick={exportCSV}
+                                aria-label="Export as CSV"
+                                className="d-flex align-items-center"
+                            >
+                                <i className="bi bi-file-earmark-arrow-down me-2"></i> Export CSV
+                            </Button>
+                            <Button
+                                variant="primary"
+                                onClick={fetchFiles}
+                                disabled={isLoading}
+                                aria-label="Refresh Files"
+                                className="d-flex align-items-center"
+                            >
+                                {isLoading ? (
+                                    <>
+                                        <Spinner
+                                            as="span"
+                                            animation="border"
+                                            size="sm"
+                                            role="status"
+                                            aria-hidden="true"
+                                            className="me-2"
+                                        />
+                                        Refreshing...
+                                    </>
+                                ) : (
+                                    <>
+                                        <i className="bi bi-arrow-clockwise me-2"></i> Refresh
+                                    </>
+                                )}
+                            </Button>
+                        </Col>
+                    </Row>
+
+                    {/* Data Table */}
+                    <DataTable
+                        columns={columns}
+                        data={filteredPackages}
+                        pagination
+                        paginationPerPage={10}
+                        paginationRowsPerPageOptions={[10, 25, 50, 100, 256]}
+                        highlightOnHover
+                        responsive
+                        fixedHeader
+                        fixedHeaderScrollHeight="500px"
+                        noDataComponent={
+                            isLoading
+                                ? "Loading data..."
+                                : "No data to display."
+                        }
+                        customStyles={customStyles}
+                        progressPending={isLoading}
+                        progressComponent={
+                            <div className="d-flex justify-content-center align-items-center py-4">
+                                <Spinner animation="border" role="status" aria-label="Loading">
+                                    <span className="visually-hidden">Loading...</span>
+                                </Spinner>
                             </div>
-                            <Row style={{ marginBottom: "24px" }}>
-                                <Col xs={6}>
-                                    <Link href={route('dashboard')}>
-                                        <Button variant="outline-success" size="lg" className="w-100">
-                                            Back
-                                        </Button>
-                                    </Link>
-                                </Col>
-                            </Row>
-                        </Container>
-                    </div>
-                </div>
+                        }
+                        aria-label="Files Review Data Table"
+                    />
+
+                    {/* Back to Dashboard Button */}
+                    <Row className="mt-6">
+                        <Col className="d-flex justify-content-end">
+                            <Link href={route('dashboard')}>
+                                <Button
+                                    variant="outline-success"
+                                    size="lg"
+                                    className="d-flex align-items-center"
+                                    aria-label="Back to Dashboard"
+                                >
+                                    <i className="bi bi-arrow-left me-2"></i> Back to Dashboard
+                                </Button>
+                            </Link>
+                        </Col>
+                    </Row>
+                </Container>
             </div>
         </AuthenticatedLayout>
     );
