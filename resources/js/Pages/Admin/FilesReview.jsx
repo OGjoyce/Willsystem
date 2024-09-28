@@ -418,9 +418,9 @@ const FilesReview = () => {
 
                     {/* Filters Section */}
                     <Row className="mb-6">
-                        {/* Search Filter */}
-                        <Col md={6} className="mb-4 mb-md-0">
-                            <InputGroup>
+                        <Col md={6}>
+                            {/* Search Filter */}
+                            <InputGroup className="mb-4">
                                 <InputGroup.Text id="search-icon">
                                     <i className="bi bi-filter"></i>
                                 </InputGroup.Text>
@@ -434,10 +434,10 @@ const FilesReview = () => {
                             </InputGroup>
                         </Col>
 
-                        {/* Status and Date Filters */}
                         <Col md={6}>
                             <Row>
-                                <Col sm={6}>
+                                {/* From Date Filter */}
+                                <Col sm={6} className="mb-3 mb-sm-0">
                                     <DateFilter
                                         label="From Date"
                                         selectedDate={fromDate}
@@ -445,6 +445,8 @@ const FilesReview = () => {
                                         maxDate={toDate || null}
                                     />
                                 </Col>
+
+                                {/* To Date Filter */}
                                 <Col sm={6}>
                                     <DateFilter
                                         label="To Date"
@@ -454,70 +456,53 @@ const FilesReview = () => {
                                     />
                                 </Col>
                             </Row>
-                            <Row className="mt-3">
-                                <Col sm={6}>
-                                    <Form.Group>
-                                        <Form.Label className="text-sm font-medium text-gray-700">Status:</Form.Label>
-                                        <Dropdown onSelect={(eventKey) => handleStatusFilterChange(eventKey)}>
-                                            <Dropdown.Toggle
-                                                variant="outline-secondary"
-                                                id="dropdown-status"
-                                                className="w-100 text-left"
-                                            >
-                                                {statusFilter}
-                                            </Dropdown.Toggle>
-
-                                            <Dropdown.Menu className="w-100">
-                                                {['All', 'Pending', 'Changes Requested', 'Completed'].map((status) => (
-                                                    <Dropdown.Item
-                                                        key={status}
-                                                        eventKey={status}
-                                                    >
-                                                        {status}
-                                                    </Dropdown.Item>
-                                                ))}
-                                            </Dropdown.Menu>
-                                        </Dropdown>
-                                    </Form.Group>
-                                </Col>
-                            </Row>
                         </Col>
+
+                        {/* Status Filter */}
+
                     </Row>
 
                     {/* Action Buttons */}
-                    <Row className="mb-4">
+                    <Row className="mb-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                        <Col sm={3} className="mt-3 mt-md-0">
+                            <Form.Group>
+                                <Form.Label className="text-sm font-medium text-gray-700">Status:</Form.Label>
+                                <Dropdown onSelect={(eventKey) => handleStatusFilterChange(eventKey)}>
+                                    <Dropdown.Toggle
+                                        variant="outline-secondary"
+                                        id="dropdown-status"
+                                        className="w-100 flex justify-between"
+                                    >
+                                        {statusFilter}
+                                    </Dropdown.Toggle>
+
+                                    <Dropdown.Menu className="w-100">
+                                        {['All', 'Pending', 'Changes Requested', 'Completed'].map((status) => (
+                                            <Dropdown.Item
+                                                key={status}
+                                                eventKey={status}
+                                            >
+                                                {status}
+                                            </Dropdown.Item>
+                                        ))}
+                                    </Dropdown.Menu>
+                                </Dropdown>
+                            </Form.Group>
+                        </Col>
                         <Col className="d-flex justify-content-end gap-2">
-                            <Button
-                                variant="outline-success"
-                                onClick={exportExcel}
-                                aria-label="Export as Excel"
-                                className="d-flex align-items-center"
-                            >
+                            <Button variant="outline-success" onClick={exportExcel} className="d-flex align-items-center">
                                 <i className="bi bi-file-earmark-spreadsheet me-2"></i> Export Excel
                             </Button>
-                            <Button
-                                variant="outline-primary"
-                                onClick={exportCSV}
-                                aria-label="Export as CSV"
-                                className="d-flex align-items-center"
-                            >
+                            <Button variant="outline-primary" onClick={exportCSV} className="d-flex align-items-center">
                                 <i className="bi bi-file-earmark-arrow-down me-2"></i> Export CSV
                             </Button>
-                            <Button
-                                variant="primary"
-                                onClick={fetchFiles}
-                                disabled={isLoading}
-                                aria-label="Refresh Files"
-                                className="d-flex align-items-center"
-                            >
+                            <Button variant="primary" onClick={fetchFiles} disabled={isLoading} className="d-flex align-items-center">
                                 {isLoading ? (
                                     <>
                                         <Spinner
                                             as="span"
                                             animation="border"
                                             size="sm"
-                                            role="status"
-                                            aria-hidden="true"
                                             className="me-2"
                                         />
                                         Refreshing...
@@ -530,6 +515,7 @@ const FilesReview = () => {
                             </Button>
                         </Col>
                     </Row>
+
 
                     {/* Data Table */}
                     <DataTable
