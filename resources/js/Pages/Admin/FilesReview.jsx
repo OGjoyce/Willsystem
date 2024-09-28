@@ -14,11 +14,31 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
 import axios from 'axios';
 import DataTable from 'react-data-table-component';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 import { debounce } from 'lodash';
-import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
+
+// Reusable Component for Date Filter
+const DateFilter = ({ label, selectedDate, onChange, maxDate, minDate }) => (
+    <Form.Group className="mb-4">
+        <Form.Label className="text-sm font-medium text-gray-700">{label}:</Form.Label>
+        <DatePicker
+            selected={selectedDate}
+            onChange={onChange}
+            dateFormat="yyyy-MM-dd"
+            className="form-control rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            isClearable
+            placeholderText={`Select ${label.toLowerCase()}`}
+            maxDate={maxDate}
+            minDate={minDate}
+        />
+    </Form.Group>
+);
 
 // Reusable Component for Status Icon with Tooltip
 const StatusIcon = ({ status }) => {
@@ -63,30 +83,70 @@ const ActionButton = ({ row }) => (
 const FilesReview = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
+    const [fromDate, setFromDate] = useState(null);
+    const [toDate, setToDate] = useState(null);
     const [files, setFiles] = useState([]);
     const [errorMessage, setErrorMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    // Fetch Files on Component Mount
+    // Fetch Files on Component Mount and when filters change
     useEffect(() => {
         fetchFiles();
-    }, []);
+    }, [fromDate, toDate]);
 
-    // Fetch Files from API
+    // Fetch Files from API with Date Filters
     const fetchFiles = async () => {
         try {
             setErrorMessage('');
             setIsLoading(true);
-            const response = await axios.get('/api/obj-status/all');
+
+            // Validate Date Range
+            if (fromDate && toDate && fromDate > toDate) {
+                setErrorMessage("'From Date' cannot be later than 'To Date'.");
+                setIsLoading(false);
+                return;
+            }
+
+            let response;
+            if (fromDate && toDate) {
+                const formattedFromDate = formatDateTime(fromDate, 'start');
+                const formattedToDate = formatDateTime(toDate, 'end');
+                response = await axios.get('/api/obj-status/date-range', {
+                    params: {
+                        from_date: formattedFromDate,
+                        to_date: formattedToDate,
+                        limit: 256,
+                    },
+                });
+            } else {
+                response = await axios.get('/api/obj-status/all', {
+                    params: {
+                        limit: 256,
+                        order: 'desc',
+                    },
+                });
+            }
 
             const transformedData = transformData(response.data);
             setFiles(transformedData);
             setIsLoading(false);
         } catch (error) {
             console.error('Error fetching files:', error);
-            setErrorMessage('An error occurred while fetching the files. Please try again.');
+            if (error.response && error.response.status === 422) {
+                setErrorMessage("Validation error: Ensure 'From Date' is not later than 'To Date'.");
+            } else {
+                setErrorMessage("An error occurred while fetching the files. Please try again.");
+            }
             setIsLoading(false);
         }
+    };
+
+    // Format DateTime for API
+    const formatDateTime = (date, type) => {
+        const d = new Date(date);
+        type === 'start' ? d.setHours(0, 0, 0, 0) : d.setHours(23, 59, 59, 999);
+
+        return d.toISOString().replace('T', ' ').substring(0, 19);
     };
 
     // Transform API Data to Table Format
@@ -191,13 +251,17 @@ const FilesReview = () => {
         return null;
     };
 
-    // Filter Packages based on Search and Status
+    // Filter Packages based on Search, Status, and Dates
     const filteredPackages = useMemo(() => {
-        return files.filter(pkg =>
-            (statusFilter === 'All' || pkg.status.toLowerCase() === statusFilter.toLowerCase()) &&
-            (pkg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                pkg.user.toLowerCase().includes(searchTerm.toLowerCase()))
-        );
+        return files.filter(pkg => {
+            const matchesStatus = statusFilter === 'All' || pkg.status.toLowerCase() === statusFilter.toLowerCase();
+            const matchesSearch = searchTerm
+                ? (pkg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    pkg.user.toLowerCase().includes(searchTerm.toLowerCase()))
+                : true;
+
+            return matchesStatus && matchesSearch;
+        });
     }, [files, statusFilter, searchTerm]);
 
     // Debounced Search Input
@@ -370,11 +434,29 @@ const FilesReview = () => {
                             </InputGroup>
                         </Col>
 
-                        {/* Status Filter */}
+                        {/* Status and Date Filters */}
                         <Col md={6}>
                             <Row>
                                 <Col sm={6}>
-                                    <Form.Group className="mb-3">
+                                    <DateFilter
+                                        label="From Date"
+                                        selectedDate={fromDate}
+                                        onChange={date => setFromDate(date)}
+                                        maxDate={toDate || null}
+                                    />
+                                </Col>
+                                <Col sm={6}>
+                                    <DateFilter
+                                        label="To Date"
+                                        selectedDate={toDate}
+                                        onChange={date => setToDate(date)}
+                                        minDate={fromDate || null}
+                                    />
+                                </Col>
+                            </Row>
+                            <Row className="mt-3">
+                                <Col sm={6}>
+                                    <Form.Group>
                                         <Form.Label className="text-sm font-medium text-gray-700">Status:</Form.Label>
                                         <Dropdown onSelect={(eventKey) => handleStatusFilterChange(eventKey)}>
                                             <Dropdown.Toggle
