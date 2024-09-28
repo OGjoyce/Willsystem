@@ -160,8 +160,8 @@ const FilesReview = () => {
             const documentDOM = findDocumentDOM(item.information);
             const packageInfo = item.information?.find(info => info.packageInfo)?.packageInfo;
             const owner = item.information?.find(info => info.personal)?.personal?.email || 'unknown';
-            const creationTimestamp = item.information?.find(info => info.personal)?.personal?.timestamp;
-            let latestTimestamp = creationTimestamp;
+            const creationTimestamp = item.created_at
+            let latestTimestamp = item.updated_at;
 
             if (!packageInfo || !documentDOM) {
                 return {
@@ -170,7 +170,7 @@ const FilesReview = () => {
                     name: packageInfo?.name || 'unknown',
                     approved: '0/0',
                     createdAt: creationTimestamp ? new Date(creationTimestamp).toLocaleDateString() : 'N/A',
-                    updatedAt: 'N/A',
+                    updatedAt: latestTimestamp,
                     status: 'pending'
                 };
             }
@@ -208,10 +208,7 @@ const FilesReview = () => {
                         allApproved = false;
                     }
 
-                    // Update latestTimestamp
-                    if (lastVersion.timestamp && new Date(lastVersion.timestamp).getTime() > new Date(latestTimestamp).getTime()) {
-                        latestTimestamp = lastVersion.timestamp;
-                    }
+
                 }
 
                 totalCount += 1;
