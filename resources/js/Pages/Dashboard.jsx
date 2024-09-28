@@ -107,20 +107,8 @@ export default function Dashboard({ auth }) {
                 window.location.href = url;
                 break;
 
-            case 'packages':
-                window.location.href = url;
-                break;
-
-            case 'files-review':
-                window.location.href = url;
-                break;
-
-            case 'documents-approval':
-                window.location.href = url;
-                break;
-
             default:
-                console.error('Unknown selection:', selected);
+                window.location.href = url;
         }
     };
 
@@ -160,11 +148,11 @@ export default function Dashboard({ auth }) {
                                 <CustomCard>
                                     <CardBody>
                                         <IconWrapper>
-                                            <i className="bi bi-search"></i>
+                                            <i className="bi bi-archive"></i>
                                         </IconWrapper>
-                                        <CardTitle>Search Files</CardTitle>
-                                        <CardText>Quickly locate and access all documents for specific users.</CardText>
-                                        <Button onClick={(e) => handleLinkClick(e, route('view'), 'view')} variant="outline-dark">Search Now</Button>
+                                        <CardTitle>All Files</CardTitle>
+                                        <CardText>Access all documents for all users.</CardText>
+                                        <Button onClick={(e) => handleLinkClick(e, route('all-files'), 'all-files')} variant="outline-dark">Go Now</Button>
                                     </CardBody>
                                 </CustomCard>
                             </Col>
@@ -173,11 +161,11 @@ export default function Dashboard({ auth }) {
                                 <CustomCard>
                                     <CardBody>
                                         <IconWrapper>
-                                            <i className="bi bi-box-seam"></i>
+                                            <i className="bi bi-search"></i>
                                         </IconWrapper>
-                                        <CardTitle>View Packages</CardTitle>
-                                        <CardText>Manage the legal document packages.</CardText>
-                                        <Button onClick={(e) => handleLinkClick(e, route('packages'), 'packages')} variant="outline-dark">View Packages</Button>
+                                        <CardTitle>Search Files</CardTitle>
+                                        <CardText>Quickly locate and access all documents for specific users.</CardText>
+                                        <Button onClick={(e) => handleLinkClick(e, route('view'), 'view')} variant="outline-dark">Search Now</Button>
                                     </CardBody>
                                 </CustomCard>
                             </Col>
@@ -207,7 +195,18 @@ export default function Dashboard({ auth }) {
                                     </CardBody>
                                 </CustomCard>
                             </Col>
-
+                            <Col>
+                                <CustomCard>
+                                    <CardBody>
+                                        <IconWrapper>
+                                            <i className="bi bi-box-seam"></i>
+                                        </IconWrapper>
+                                        <CardTitle>View Packages</CardTitle>
+                                        <CardText>Manage the legal document packages.</CardText>
+                                        <Button onClick={(e) => handleLinkClick(e, route('packages'), 'packages')} variant="outline-dark">View Packages</Button>
+                                    </CardBody>
+                                </CustomCard>
+                            </Col>
                             <Col className='hidden'>
                                 <CustomCard>
                                     <CardBody>
