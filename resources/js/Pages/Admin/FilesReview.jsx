@@ -466,7 +466,19 @@ const FilesReview = () => {
                                 <Form.Label className="text-sm font-medium text-gray-700">Status:</Form.Label>
                                 <Dropdown onSelect={(eventKey) => handleStatusFilterChange(eventKey)}>
                                     <Dropdown.Toggle
-                                        variant="outline-secondary"
+                                        variant={
+                                            statusFilter == "Completed"
+                                                ? "outline-success"
+                                                : (
+                                                    statusFilter === "Pending"
+                                                        ? "outline-warning"
+                                                        : (
+                                                            statusFilter == "Changes Requested"
+                                                                ? "outline-danger"
+                                                                : "outline-dark"
+                                                        )
+                                                )
+                                        }
                                         id="dropdown-status"
                                         className="w-100 flex justify-between"
                                     >
@@ -560,7 +572,7 @@ const FilesReview = () => {
                     </Row>
                 </Container>
             </div>
-        </AuthenticatedLayout>
+        </AuthenticatedLayout >
     );
 };
 
