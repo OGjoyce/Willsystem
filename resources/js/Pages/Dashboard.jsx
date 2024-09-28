@@ -107,24 +107,8 @@ export default function Dashboard({ auth }) {
                 window.location.href = url;
                 break;
 
-            case 'packages':
-                window.location.href = url;
-                break;
-
-            case 'files-review':
-                window.location.href = url;
-                break;
-
-            case 'documents-approval':
-                window.location.href = url;
-                break;
-
-            case 'all-files':
-                window.location.href = url;
-                break;
-
             default:
-                console.error('Unknown selection:', selected);
+                window.location.href = url;
         }
     };
 
