@@ -38,6 +38,8 @@
         "bootstrap-icons": "^1.11.3",
         "jspdf-autotable": "^3.8.2",
         "react-bootstrap": "^2.10.4",
+        "react-data-table-component": "^7.6.2",
+        "react-datepicker": "^7.4.0",
         "react-html2pdf": "^1.0.1",
         "react-to-print": "^2.15.1",
         "styled-components": "^6.1.12",
