@@ -557,6 +557,7 @@ const FilesReview = () => {
                             </div>
                         }
                         aria-label="Files Review Data Table"
+                        className='z-0'
                     />
 
                     {/* Back to Dashboard Button */}
