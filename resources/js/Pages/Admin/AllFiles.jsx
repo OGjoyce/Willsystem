@@ -23,6 +23,8 @@ import WillContent from '@/Components/PDF/Content/WillContent';
 import POA1Content from '@/Components/PDF/Content/POA1Content';
 import POA2Content from '@/Components/PDF/Content/POA2Content';
 import { debounce } from 'lodash';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 // Reusable Component for Date Filter
 const DateFilter = ({ label, selectedDate, onChange, maxDate, minDate }) => (
@@ -372,6 +374,51 @@ const AllFiles = () => {
         fetchFiles();
     }, []);
 
+    // Function to Export Data as CSV
+    const exportCSV = () => {
+        const headers = columns.map(col => col.name).filter(name => name !== 'Actions');
+        const rows = filteredPackages.map(pkg => [
+            pkg.id,
+            pkg.email,
+            pkg.name,
+            pkg.created,
+            pkg.updated,
+            pkg.percentageCompleted,
+        ]);
+
+        let csvContent = '';
+        csvContent += headers.join(',') + '\n';
+        rows.forEach(row => {
+            csvContent += row.map(item => `"${item}"`).join(',') + '\n';
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        saveAs(blob, 'files_data.csv');
+    };
+
+    // Function to Export Data as Excel
+    const exportExcel = () => {
+        const worksheetData = [
+            columns.map(col => col.name).filter(name => name !== 'Actions'),
+            ...filteredPackages.map(pkg => [
+                pkg.id,
+                pkg.email,
+                pkg.name,
+                pkg.created,
+                pkg.updated,
+                pkg.percentageCompleted,
+            ]),
+        ];
+
+        const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'FilesData');
+
+        const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+        const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+        saveAs(blob, 'files_data.xlsx');
+    };
+
     return (
         <AuthenticatedLayout
             user={"Admin"}
@@ -397,7 +444,7 @@ const AllFiles = () => {
                                 </InputGroup.Text>
                                 <Form.Control
                                     type="text"
-                                    placeholder="Filter by Email or Package Name"
+                                    placeholder="Filter by email or package name"
                                     onChange={handleSearchChange}
                                     aria-label="Search Files"
                                     aria-describedby="search-icon"
@@ -411,7 +458,6 @@ const AllFiles = () => {
                                 <Col sm={6}>
                                     <DateFilter
                                         label="From Date"
-                                        className='z-50'
                                         selectedDate={fromDate}
                                         onChange={date => setFromDate(date)}
                                         maxDate={toDate || null}
@@ -420,7 +466,6 @@ const AllFiles = () => {
                                 <Col sm={6}>
                                     <DateFilter
                                         label="To Date"
-                                        className='z-50'
                                         selectedDate={toDate}
                                         onChange={date => setToDate(date)}
                                         minDate={fromDate || null}
@@ -430,14 +475,31 @@ const AllFiles = () => {
                         </Col>
                     </Row>
 
-                    {/* Search Button */}
+                    {/* Action Buttons */}
                     <Row className="mb-4">
-                        <Col className="d-flex justify-content-end">
+                        <Col className="d-flex justify-content-end gap-2">
+                            <Button
+                                variant="outline-success"
+                                onClick={exportExcel}
+                                aria-label="Export as Excel"
+                                className="d-flex align-items-center"
+                            >
+                                <i className="bi bi-file-earmark-spreadsheet me-2"></i> Export Excel
+                            </Button>
+                            <Button
+                                variant="outline-primary"
+                                onClick={exportCSV}
+                                aria-label="Export as CSV"
+                                className="d-flex align-items-center"
+                            >
+                                <i className="bi bi-file-earmark-arrow-down me-2"></i> Export CSV
+                            </Button>
                             <Button
                                 variant="primary"
                                 onClick={fetchFiles}
                                 disabled={isLoading}
                                 aria-label="Search Files"
+                                className="d-flex align-items-center"
                             >
                                 {isLoading ? (
                                     <>
@@ -467,7 +529,7 @@ const AllFiles = () => {
                         data={filteredPackages}
                         pagination
                         paginationPerPage={10}
-                        paginationRowsPerPageOptions={[10, 25, 50, 100]}
+                        paginationRowsPerPageOptions={[10, 25, 50, 100, 256]}
                         highlightOnHover
                         responsive
                         fixedHeader
@@ -519,7 +581,7 @@ const AllFiles = () => {
                                         <Dropdown.Toggle
                                             variant="outline-secondary"
                                             id={`dropdown-${docType.toLowerCase()}`}
-                                            className="d-flex align-items-center justify-content-between"
+                                            className="d-flex align-items-center justify-content-between w-100 text-center font-semibold"
                                         >
                                             <span>
                                                 <i className={`bi bi-${docType === 'Will' ? 'file-earmark-text' : docType === 'POA1' ? 'house' : 'hospital'}`}></i> {docType}
@@ -558,35 +620,33 @@ const AllFiles = () => {
 
                 {/* Rendering the PDF Editor when a document and version are selected */}
                 {docSelected && selectedVersion && (
-                    <div className="position-fixed top-0 start-0 w-100 h-100 bg-white z-1050 overflow-auto">
-                        <PDFEditor
-                            ContentComponent={
-                                docSelected === 'Will' ? WillContent :
-                                    docSelected === 'POA1' ? POA1Content :
-                                        docSelected === 'POA2' ? POA2Content :
-                                            null
-                            }
-                            datas={finalSelection}
-                            backendId={idSelected}
-                            documentType={docSelected}
-                            version={selectedVersion}
-                        />
-                        <Container className="mt-4">
-                            <Row>
-                                <Col sm={4}>
-                                    <Link href={route('view')}>
-                                        <Button
-                                            variant="outline-success"
-                                            size="lg"
-                                            style={{ width: "100%" }}
+                    <div className="fixed inset-0 flex justify-center items-center bg-gray-100 z-50 overflow-auto">
+                        <div className="relative w-full max-w-5xl bg-white shadow-lg rounded-lg p-6">
+                            <PDFEditor
+                                ContentComponent={
+                                    docSelected === 'Will' ? WillContent :
+                                        docSelected === 'POA1' ? POA1Content :
+                                            docSelected === 'POA2' ? POA2Content :
+                                                null
+                                }
+                                datas={finalSelection}
+                                backendId={idSelected}
+                                documentType={docSelected}
+                                version={selectedVersion}
+                            />
+                            <div className="mt-6">
+                                <div className="flex justify-start">
+                                    <Link href={route('view')} className="w-1/3">
+                                        <button
+                                            className="bg-green-500 text-white py-3 px-6 rounded-lg w-full hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 transition"
                                             aria-label="Back to Files View"
                                         >
-                                            <i className="bi bi-arrow-left me-2"></i> Back
-                                        </Button>
+                                            <i className="bi bi-arrow-left mr-2"></i> Back
+                                        </button>
                                     </Link>
-                                </Col>
-                            </Row>
-                        </Container>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>
