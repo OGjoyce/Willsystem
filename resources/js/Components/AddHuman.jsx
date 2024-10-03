@@ -1,34 +1,28 @@
-// AddHuman.js
+// components/AddHuman.js
 
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
-import { useState, useEffect, Fragment } from 'react';
-import { Dialog, Listbox, Transition } from '@headlessui/react';
-import { Bars3Icon, XMarkIcon, CheckIcon, ChevronUpDownIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect } from 'react';
 import Form from 'react-bootstrap/Form';
-import { FormCheck } from 'react-bootstrap';
 
 // Import the CityAutocomplete component
 import CityAutocomplete from './CityAutocomplete';
-
-var selected_value = "";
-
 
 let city = undefined
 let country = undefined
 let province = undefined
 
 export function getHumanData(params) {
-    if (params != false) {
-        var firstName = document.getElementById('firstNameId').value;
-        var middleName = document.getElementById('middleNameId').value;
-        var lastName = document.getElementById('lastNameId').value;
-        var relative = document.getElementById('relativeId').value;
+    if (params !== false) {
+        const firstName = document.getElementById('firstNameId').value;
+        const middleName = document.getElementById('middleNameId').value;
+        const lastName = document.getElementById('lastNameId').value;
+        let relative = document.getElementById('relativeId').value;
         if (relative === 'Other') {
             relative = document.getElementById('otherRelativeId').value;
         }
 
-        var obj;
+        let obj;
         if (params === "childrens") {
             obj = {
                 firstName: firstName,
@@ -42,8 +36,8 @@ export function getHumanData(params) {
                 country: country
             };
         } else {
-            var control = 0;
-            var email = "NA";
+            let control = 0;
+            let email = "NA";
             try {
                 email = document.getElementById('emailId0').value;
             } catch (error) {
@@ -51,7 +45,7 @@ export function getHumanData(params) {
                 email = document.getElementById('emailId1').value;
             }
 
-            var phone = document.getElementById('phoneId').value;
+            const phone = document.getElementById('phoneId').value;
             obj = {
                 firstName: firstName,
                 middleName: middleName,
@@ -78,7 +72,7 @@ export function getHumanData(params) {
 }
 
 function AddHuman({ married, childrens, human, errors, onDataChange }) {
-    var relationType = null;
+    let relationType = null;
     if (married) { relationType = 'spouse'; }
     if (childrens) { relationType = 'child'; }
 
@@ -143,7 +137,7 @@ function AddHuman({ married, childrens, human, errors, onDataChange }) {
         const formattedPhoneNumber = formatPhoneNumber(e.target.value);
         setPhone(formattedPhoneNumber);
 
-        if (relationType !== 'Child') {
+        if (relationType !== 'child') {
             setFormValues((prevValues) => {
                 const newValues = { ...prevValues, phone: formattedPhoneNumber };
                 return newValues;
@@ -151,31 +145,17 @@ function AddHuman({ married, childrens, human, errors, onDataChange }) {
         }
     };
 
-    const handleCitySelect = (selectedOption) => {
-        if (selectedOption) {
-            setFormValues((prevValues) => ({
-                ...prevValues,
-                city: selectedOption.city,
-                province: selectedOption.province,
-                country: selectedOption.country,
-            }));
+    const handleCitySelect = (selectedData) => {
+        setFormValues((prevValues) => ({
+            ...prevValues,
+            city: selectedData.city,
+            province: selectedData.province,
+            country: selectedData.country,
+        }));
 
-            city = selectedOption.city,
-                province = selectedOption.province,
-                country = selectedOption.country
-
-        } else {
-            // If no city is selected
-            setFormValues((prevValues) => ({
-                ...prevValues,
-                city: '',
-                province: '',
-                country: '',
-            }));
-            city = '',
-                province = '',
-                country = ''
-        }
+        city = selectedData.city,
+            province = selectedData.province,
+            country = selectedData.country
     };
 
     const isRelativeReadOnly = married || childrens;
@@ -184,7 +164,7 @@ function AddHuman({ married, childrens, human, errors, onDataChange }) {
 
     return (
         <>
-            {married ? <h1>Spouse Details</h1> : <h1>Information details</h1>}
+            {married ? <h1>Spouse Details</h1> : <h1>Information Details</h1>}
             <Form>
                 <Form.Group className="mb-3" controlId="firstNameId">
                     <Form.Label>First Name</Form.Label>
@@ -249,44 +229,13 @@ function AddHuman({ married, childrens, human, errors, onDataChange }) {
                             {validationErrors.otherRelative && <p className="mt-2 text-sm text-red-600">{validationErrors.otherRelative}</p>}
                         </>
                     )}
-                    {married && (
-                        <>
-                            <Form.Group className="mb-3" controlId="emailId0">
-                                <Form.Label>Email for notifications:</Form.Label>
-                                <Form.Control
-                                    type="email"
-                                    placeholder="example@dot.com"
-                                    value={formValues?.email || ''}
-                                    onChange={handleInputChange}
-                                />
-                                {!childrens && validationErrors.email && <p className="mt-2 text-sm text-red-600">{validationErrors.email}</p>}
-                            </Form.Group>
-                            <Form.Group className="mb-3" controlId="phoneId">
-                                <Form.Label>Phone</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    placeholder="+1(XXX)XXX-XXXX"
-                                    onChange={handlePhoneChange}
-                                    value={formValues?.phone || phone}
-                                />
-                                {!childrens && validationErrors.phone && <p className="mt-2 text-sm text-red-600">{validationErrors.phone}</p>}
-                            </Form.Group>
-                        </>
-                    )}
-                    {childrens && (
+                    {(married || human) && (
                         <>
                             <Form.Group className="mb-3" controlId="emailId1">
-                                {/* Email input can be added here if needed */}
-                            </Form.Group>
-                        </>
-                    )}
-                    {human && (
-                        <>
-                            <Form.Group className="mb-3" controlId="emailId1">
-                                <Form.Label>Email for notifications:</Form.Label>
+                                <Form.Label>Email for Notifications:</Form.Label>
                                 <Form.Control
                                     type="email"
-                                    placeholder="example@dot.com"
+                                    placeholder="example@domain.com"
                                     value={formValues?.email || ''}
                                     onChange={handleInputChange}
                                 />
@@ -305,34 +254,9 @@ function AddHuman({ married, childrens, human, errors, onDataChange }) {
                         </>
                     )}
                 </Form.Group>
-                {/* City Autocomplete */}
-                <Form.Group className="mb-3" controlId="city">
-                    <Form.Label>City</Form.Label>
-                    <CityAutocomplete onCitySelect={handleCitySelect} />
-                    {validationErrors.city && <p className="mt-2 text-sm text-red-600">{validationErrors.city}</p>}
-                </Form.Group>
-                {/* Province/State */}
-                <Form.Group className="mb-3" controlId="province">
-                    <Form.Label>Province/State:</Form.Label>
-                    <Form.Control
-                        type="text"
-                        placeholder="..."
-                        value={formValues?.province || ''}
-                        onChange={handleInputChange}
-                    />
-                    {validationErrors.province && <p className="mt-2 text-sm text-red-600">{validationErrors.province}</p>}
-                </Form.Group>
-                {/* Country */}
-                <Form.Group className="mb-3" controlId="country">
-                    <Form.Label>Country:</Form.Label>
-                    <Form.Control
-                        type="text"
-                        placeholder="..."
-                        value={formValues?.country || ''}
-                        onChange={handleInputChange}
-                    />
-                    {validationErrors.country && <p className="mt-2 text-sm text-red-600">{validationErrors.country}</p>}
-                </Form.Group>
+
+                {/* Integrate CityAutocomplete */}
+                <CityAutocomplete onCitySelect={handleCitySelect} validationErrors={validationErrors} />
             </Form>
         </>
     );
