@@ -30,7 +30,6 @@ const handleCitySelect = (selectedData) => {
     city = selectedData.city,
         province = selectedData.province,
         country = selectedData.country
-    console.log(selectedData)
 };
 
 export function getFormData() {
