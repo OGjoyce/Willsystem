@@ -1,20 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
-import { Dialog } from '@headlessui/react'
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
-import { Fragment } from 'react'
-import { Listbox, Transition } from '@headlessui/react'
-import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
-import Image from 'react-bootstrap/Image';
-import donorIcon from '../../organdonation.png'
-import customIcon from '../../customicon.png'
-import blendedFamily from '../../blendedfamily.png'
-import dualHanded from '../../dualhands.png'
+import { Dialog } from '@headlessui/react';
+import { Fragment } from 'react';
 import OrganDonation from '@/Components/AdditionalComponents/OrganDonation';
 import ClauseArea from '@/Components/AdditionalComponents/ClauseArea';
 import OtherWishes from '@/Components/AdditionalComponents/ClauseArea';
-import { Form, Button, Container, Row, Col, Table } from 'react-bootstrap';
+import { Form, Button, Container, Row, Col, Table } from 'react-bootstrap';  // Bootstrap imports
 
 let additionalInfo = {
     additional: {}
@@ -28,24 +20,18 @@ export function getAdditionalInformation() {
 function Additional({ datas, errors }) {
     const [dataPointer2, setDataPointer2] = useState(null);
     const [updatePointerSelector, setUpdatePointerSelector] = useState({});
-    const [checkedState, setCheckedState] = useState({
-        blendedFamily: false
-    });
-    const [validationErrors, setValidationErrors] = useState(errors)
+    const [checkedState, setCheckedState] = useState({});
+    const [validationErrors, setValidationErrors] = useState(errors);
 
     useEffect(() => {
-        setValidationErrors(errors)
-    }, [errors])
+        setValidationErrors(errors);
+    }, [errors]);
 
     useEffect(() => {
-        // Cargar datos del localStorage al iniciar
+        // Load data from localStorage on startup
         const storedFormValues = JSON.parse(localStorage.getItem('formValues')) || {};
         if (storedFormValues.additional) {
             additionalInfo.additional = storedFormValues.additional;
-            setCheckedState(prevState => ({
-                ...prevState,
-                blendedFamily: additionalInfo.additional.blendedFamily || false
-            }));
         }
     }, []);
 
@@ -54,7 +40,6 @@ function Additional({ datas, errors }) {
         formValues.additional = additionalInfo.additional;
         localStorage.setItem('formValues', JSON.stringify(formValues));
     };
-
 
     const handleCheckboxChange = (event) => {
         const { name, checked } = event.target;
@@ -77,24 +62,23 @@ function Additional({ datas, errors }) {
                 ...obj
             };
 
-            // Eliminar la cláusula opuesta si existe
+            // Remove the opposite clause if it exists
             if (newObj.Master === "standard" || newObj.Master === "custom") {
                 delete additionalInfo.additional.custom;
                 delete additionalInfo.additional.standard;
-
             }
 
-            // Actualizar o agregar la nueva información
-            delete additionalInfo.additional.temp_custom
+            // Update or add the new information
+            delete additionalInfo.additional.temp_custom;
             additionalInfo.additional[newObj.Master] = newObj;
             updateLocalStorage();
         }
-    }
+    };
 
     const handleSwitch = (pointer) => {
-        setValidationErrors({})
+        setValidationErrors({});
         setDataPointer2(pointer);
-    }
+    };
 
     return (
         <>
@@ -102,7 +86,7 @@ function Additional({ datas, errors }) {
                 <Container>
                     <Row>
                         <Col sm={4}>
-                            <Image style={{ position: "relative", left: "30%", width: "100px", height: "110px" }} src={donorIcon} rounded />
+                            <i class="bi bi-clipboard" style={{ fontSize: "4rem", position: "relative", left: "30%" }}></i> {/* Bootstrap Icon for Standard Clause */}
                         </Col>
                         <Col sm={4}>
                             <Button variant="outline-dark" type="submit" onClick={() => handleSwitch(0)} style={{ width: "100%", position: "relative", top: "40%" }}>Standard Clause</Button>
@@ -110,31 +94,19 @@ function Additional({ datas, errors }) {
                     </Row>
                     <Row>
                         <Col sm={4}>
-                            <Image style={{ position: "relative", left: "30%", width: "100px", height: "110px" }} src={customIcon} rounded />
+                            <i class="bi bi-clipboard-plus" style={{ fontSize: "4rem", position: "relative", left: "30%" }}></i> {/* Bootstrap Icon for Custom Clause */}
                         </Col>
                         <Col sm={4}>
                             <Button variant="outline-dark" type="submit" onClick={() => handleSwitch(1)} style={{ width: "100%", position: "relative", top: "40%" }}>Custom Clause</Button>
                         </Col>
                     </Row>
                     <Row>
-                        <Col sm={4}>
-                            <Image style={{ position: "relative", left: "30%", width: "100px", height: "110px" }} src={blendedFamily} rounded />
-                        </Col>
-                        <Col sm={4}>
-                            <Form.Check
-                                style={{ position: "relative", top: "40%" }}
-                                type="checkbox"
-                                id="blendedFamily"
-                                name="blendedFamily"
-                                label="Blended Family"
-                                checked={checkedState.blendedFamily}
-                                onChange={handleCheckboxChange}
-                            />
-                        </Col>
+                        {/* Blended Family Checkbox hidden */}
+                        {/* Hidden due to potential issues */}
                     </Row>
                     <Row>
                         <Col sm={4}>
-                            <Image style={{ position: "relative", left: "30%", width: "100px", height: "110px" }} src={dualHanded} rounded />
+                            <i class="bi bi-list-check" style={{ fontSize: "4rem", position: "relative", left: "30%" }}></i> {/* Bootstrap Icon for Other Wishes */}
                         </Col>
                         <Col sm={4}>
                             <Button variant="outline-dark" type="submit" onClick={() => handleSwitch(3)} style={{ width: "100%", position: "relative", top: "40%" }}>Other Wishes</Button>
