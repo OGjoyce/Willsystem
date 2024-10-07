@@ -8,9 +8,7 @@ import {
     Col,
     Form,
 } from 'react-bootstrap';
-import 'bootstrap-icons/font/bootstrap-icons.css';
-import ConfirmationModal from '@/Components/AdditionalComponents/ConfirmationModal';
-import CustomToast from '@/Components/AdditionalComponents/CustomToast';
+
 
 /**
  * Function to retrieve additional information.
@@ -53,13 +51,9 @@ function Additional({ datas, errors }) {
                 checkboxes,
             } = savedFormValues.additional;
             setSelectedClause(selectedClause || 'Standard Clause');
-            setCustomClauseText(customClauseText || '');
-            setOtherWishes(otherWishes || '');
-            setCheckboxes(checkboxes || {
-                organdonation: false,
-                cremation: false,
-                buried: false,
-            });
+            setCustomClauseText(customClauseText);
+            setOtherWishes(otherWishes);
+            setCheckboxes(checkboxes);
         }
     }, []);
 
@@ -105,65 +99,6 @@ function Additional({ datas, errors }) {
     // Handle changes in the Other Wishes text area
     const handleOtherWishesChange = (e) => {
         setOtherWishes(e.target.value);
-    };
-
-    // Validate inputs before proceeding
-    const validateInputs = () => {
-        let errors = {};
-
-        if (selectedClause === 'Custom Clause') {
-            if (!customClauseText.trim()) {
-                errors.customClauseText = 'Custom Clause cannot be empty.';
-            }
-        }
-
-        if (!otherWishes.trim()) {
-            errors.otherWishes = 'Other Wishes cannot be empty.';
-        }
-
-        setValidationErrors(errors);
-
-        return Object.keys(errors).length === 0;
-    };
-
-    // Handle the proceed action (e.g., clicking "Next" in the parent component)
-    const handleProceed = () => {
-        if (validateInputs()) {
-            setToastMessage('Data validated successfully. Proceeding...');
-            setShowToast(true);
-            // Here you can call a function from the parent component to advance
-            // For example, props.onProceed(getAdditionalInformation())
-        } else {
-            setToastMessage('Please correct the errors before proceeding.');
-            setShowToast(true);
-        }
-    };
-
-    // Handle data deletion (if necessary in the future)
-    const handleDelete = () => {
-        setModalMessage('Are you sure you want to delete all data?');
-        setShowDeleteModal(true);
-    };
-
-    // Confirm deletion of data
-    const confirmDelete = () => {
-        setSelectedClause('Standard Clause');
-        setCustomClauseText('');
-        setOtherWishes('');
-        setCheckboxes({
-            organdonation: false,
-            cremation: false,
-            buried: false,
-        });
-        setValidationErrors({});
-        setToastMessage('Data deleted successfully.');
-        setShowToast(true);
-        setShowDeleteModal(false);
-
-        // Clear localStorage
-        const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
-        delete formValues.additional;
-        localStorage.setItem('formValues', JSON.stringify(formValues));
     };
 
     return (
@@ -278,36 +213,6 @@ function Additional({ datas, errors }) {
                     </Form>
                 </Col>
             </Row>
-
-            {/* Action Buttons (Remove if not needed) */}
-            {/*
-      <Row className="mt-4">
-        <Col sm={6}>
-          <Button
-            variant="danger"
-            onClick={handleDelete}
-            style={{ width: '100%' }}
-          >
-            <i className="bi bi-trash"></i> Delete Data
-          </Button>
-        </Col>
-      </Row>
-      */}
-
-            {/* Notification Toast */}
-            <CustomToast
-                show={showToast}
-                onClose={() => setShowToast(false)}
-                message={toastMessage}
-            />
-
-            {/* Confirmation Modal */}
-            <ConfirmationModal
-                show={showDeleteModal}
-                onClose={() => setShowDeleteModal(false)}
-                onConfirm={confirmDelete}
-                message={modalMessage}
-            />
         </Container >
     );
 }
