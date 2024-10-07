@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ObjStatusController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\ContractController;
+use App\Http\Controllers\CityController;
 
 // Rutas de recursos existentes
 Route::apiResource('obj-statuses', ObjStatusController::class);
@@ -24,3 +25,6 @@ Route::get('/obj-status/search', [ObjStatusController::class, 'searchById']);
 
 // Ruta específica para obtener contratos
 Route::get('/contracts', [ContractController::class, 'index']);
+
+// routes/api.php
+Route::get('/cities', [CityController::class, 'search']);

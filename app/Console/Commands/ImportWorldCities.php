@@ -18,7 +18,7 @@ class ImportWorldCities extends Command
 
     public function handle()
     {
-           $filePath = base_path('database/data/worldcities.csv');
+        $filePath = base_path('database/data/worldcities.csv');
         
         if (!file_exists($filePath) || !is_readable($filePath)) {
             $this->error('CSV file not found or is not readable.');
@@ -35,14 +35,14 @@ class ImportWorldCities extends Command
             DB::table('worldcities')->insert([
                 'city' => $row[0],
                 'city_ascii' => $row[1],
-                'lat' => $row[2],
-                'lng' => $row[3],
+                'lat' => (float)$row[2], // Ensure lat and lng are cast to float
+                'lng' => (float)$row[3],
                 'country' => $row[4],
                 'iso2' => $row[5],
                 'iso3' => $row[6],
                 'admin_name' => $row[7],
                 'capital' => $row[8],
-               'population' => $row[9] !== '' ? $row[9] : null,
+                'population' => $row[9] !== '' ? (int)$row[9] : null, // Cast population to integer
                 'id' => $row[10],
             ]);
         }
