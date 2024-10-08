@@ -55,6 +55,7 @@ export default function Personal({ auth }) {
     const [validationErrors, setValidationErrors] = useState({});
     const [selectedPackage, setSelectedPackage] = useState(null);
     const [showSelectModal, setShowSelectModal] = useState(false);
+    const [availableDocuments, setAvailableDocuments] = useState([])
 
     const stepper = [
         { step: 0, title: 'Personal Information' },
@@ -74,6 +75,17 @@ export default function Personal({ auth }) {
         { step: 14, title: 'Final Details' },
         { step: 15, title: 'Review, Edit and Download your Documents' },
     ];
+
+    // Define a mapping of package IDs to document types
+    const packageDocuments = {
+        'One will only': ['Will'],
+        'One will and one POA (property)': ['Will', 'POA1'],
+        'One will and one POA (health)': ['Will', 'POA2'],
+        3: ['Will', 'POA2'],
+        4: ['Will', 'POA1', 'POA2'],
+        // Continue mapping based on packages
+    };
+
 
     const username = auth.user.name;
 
@@ -203,6 +215,7 @@ export default function Personal({ auth }) {
 
                     const dataFirstStore = await storeDataObject(dataObj);
                     setCurrIdObjDB(dataFirstStore.id);
+                    setAvailableDocuments(packageDocuments[selectedPackage.description] || [])
 
                     localStorage.setItem('currIdObjDB', dataFirstStore.id);
                 } else {
@@ -242,6 +255,8 @@ export default function Personal({ auth }) {
                 break;
 
             case 1:
+                console.log(availableDocuments)
+
                 propertiesAndData = [
                     {
                         name: 'marriedq',
@@ -253,6 +268,7 @@ export default function Personal({ auth }) {
                 break;
 
             case 2:
+                console.log(availableDocuments)
                 const humanData = getHumanData();
 
                 if (checkValidation(validate.addHumanData(humanData))) {
@@ -267,6 +283,7 @@ export default function Personal({ auth }) {
                 break;
 
             case 3:
+                console.log(availableDocuments)
                 propertiesAndData = [
                     {
                         name: 'kidsq',
@@ -644,7 +661,7 @@ export default function Personal({ auth }) {
             },
             12: {
                 key: 'additional',
-                check: (data) => data && data.standard && Object.keys(data.standard).length > 0,
+                check: (data) => data && Object.keys(data).length > 0,
             },
             13: {
                 key: 'poa',
@@ -800,6 +817,7 @@ export default function Personal({ auth }) {
                                 onSelect={(doc) => {
                                     setValidationErrors({});
                                 }}
+                                availableDocuments={availableDocuments}
                             />
                         )}
 
