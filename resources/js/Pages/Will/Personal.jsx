@@ -81,8 +81,7 @@ export default function Personal({ auth }) {
         'One will only': ['Will'],
         'One will and one POA (property)': ['Will', 'POA1'],
         'One will and one POA (health)': ['Will', 'POA2'],
-        3: ['Will', 'POA2'],
-        4: ['Will', 'POA1', 'POA2'],
+        'One will and two POAs': ['Will', 'POA1', 'POA2'],
         // Continue mapping based on packages
     };
 
