@@ -52,3 +52,9 @@
         }
 
   
+                                            {true && <><i className="bi bi-file-text"></i> Will</>}
+                                            {true && <><i className="bi bi-file-earmark-text"></i> Secondary Will</>}
+                                            {true && <><i className="bi bi-people"></i> Spousal Wills</>}
+                                            {true && <><i className="bi bi-people-fill"></i> Secondary Spousal Wills</>}
+                                            {true && <><i className="bi bi-house"></i> POA Property</>}
+                                            {true && <><i className="bi bi-hospital"></i> POA Health</>}
