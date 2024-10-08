@@ -254,8 +254,6 @@ export default function Personal({ auth }) {
                 break;
 
             case 1:
-                console.log(availableDocuments)
-
                 propertiesAndData = [
                     {
                         name: 'marriedq',
@@ -267,7 +265,6 @@ export default function Personal({ auth }) {
                 break;
 
             case 2:
-                console.log(availableDocuments)
                 const humanData = getHumanData();
 
                 if (checkValidation(validate.addHumanData(humanData))) {
@@ -282,7 +279,6 @@ export default function Personal({ auth }) {
                 break;
 
             case 3:
-                console.log(availableDocuments)
                 propertiesAndData = [
                     {
                         name: 'kidsq',
