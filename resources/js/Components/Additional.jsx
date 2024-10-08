@@ -1,14 +1,10 @@
-// src/Components/Additional.jsx
-
 import React, { useState, useEffect } from 'react';
 import {
     Container,
-    Dropdown,
     Row,
     Col,
     Form,
 } from 'react-bootstrap';
-
 
 /**
  * Function to retrieve additional information.
@@ -20,8 +16,7 @@ export const getAdditionalInformation = () => {
 };
 
 function Additional({ datas, errors }) {
-    // State management for clause selection and inputs
-    const [selectedClause, setSelectedClause] = useState('Standard Clause'); // Initially 'Standard Clause'
+    // State management for clause inputs
     const [customClauseText, setCustomClauseText] = useState('');
     const [otherWishes, setOtherWishes] = useState('');
     const [checkboxes, setCheckboxes] = useState({
@@ -30,10 +25,6 @@ function Additional({ datas, errors }) {
         buried: false,
     });
     const [validationErrors, setValidationErrors] = useState({});
-    const [showToast, setShowToast] = useState(false);
-    const [toastMessage, setToastMessage] = useState('');
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [modalMessage, setModalMessage] = useState('');
 
     // Effect to synchronize validation errors
     useEffect(() => {
@@ -45,15 +36,17 @@ function Additional({ datas, errors }) {
         const savedFormValues = JSON.parse(localStorage.getItem('formValues')) || {};
         if (savedFormValues.additional) {
             const {
-                selectedClause,
                 customClauseText,
                 otherWishes,
                 checkboxes,
             } = savedFormValues.additional;
-            setSelectedClause(selectedClause || 'Standard Clause');
-            setCustomClauseText(customClauseText);
-            setOtherWishes(otherWishes);
-            setCheckboxes(checkboxes);
+            setCustomClauseText(customClauseText || '');
+            setOtherWishes(otherWishes || '');
+            setCheckboxes(checkboxes || {
+                organdonation: false,
+                cremation: false,
+                buried: false,
+            });
         }
     }, []);
 
@@ -61,26 +54,13 @@ function Additional({ datas, errors }) {
     useEffect(() => {
         const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
         formValues.additional = {
-            selectedClause,
             customClauseText,
             otherWishes,
             checkboxes,
             timestamp: Date.now(),
         };
         localStorage.setItem('formValues', JSON.stringify(formValues));
-    }, [selectedClause, customClauseText, otherWishes, checkboxes]);
-
-    // Handle selection in the Dropdown
-    const handleDropdownSelect = (eventKey) => {
-        setSelectedClause(eventKey);
-        setValidationErrors({});
-        setCustomClauseText('');
-        setCheckboxes({
-            organdonation: false,
-            cremation: false,
-            buried: false,
-        });
-    };
+    }, [customClauseText, otherWishes, checkboxes]);
 
     // Handle changes in the checkboxes
     const handleCheckboxChange = (e) => {
@@ -106,92 +86,73 @@ function Additional({ datas, errors }) {
             {/* Standard Clause Section */}
             <Row>
                 <Col sm={12}>
-
-                    <Dropdown onSelect={handleDropdownSelect} className="mb-3 mt-3 w-100">
-                        <Dropdown.Toggle
-                            variant={selectedClause ? 'outline-success' : 'outline-dark'}
-                            id="standard-clause-dropdown"
-                            style={{ width: '100%' }}
-                        >
-                            {selectedClause}
-                        </Dropdown.Toggle>
-
-                        <Dropdown.Menu className='w-100 text-center'>
-                            <Dropdown.Item eventKey="Standard Clause">Standard Clause</Dropdown.Item>
-                            <Dropdown.Item eventKey="Custom Clause">Custom Clause</Dropdown.Item>
-                        </Dropdown.Menu>
-                    </Dropdown>
-                    {validationErrors.selectedClause && (
-                        <p className="text-danger">{validationErrors.selectedClause}</p>
-                    )}
+                    <h3>Standard Clause</h3>
+                </Col>
+            </Row>
+            {/* Checkboxes for Standard Clause */}
+            <Row className="mt-3">
+                <Col sm={12}>
+                    <Form>
+                        <div className="d-flex align-items-center mb-2">
+                            <i className="bi bi-clipboard-heart me-2" style={{ fontSize: '1.5rem' }}></i>
+                            <Form.Check
+                                type="checkbox"
+                                id="organdonation"
+                                name="organdonation"
+                                label="Organ Donation"
+                                checked={checkboxes.organdonation}
+                                onChange={handleCheckboxChange}
+                            />
+                        </div>
+                        <div className="d-flex align-items-center mb-2">
+                            <i className="bi bi-fire me-2" style={{ fontSize: '1.5rem' }}></i>
+                            <Form.Check
+                                type="checkbox"
+                                id="cremation"
+                                name="cremation"
+                                label="Body Cremation"
+                                checked={checkboxes.cremation}
+                                onChange={handleCheckboxChange}
+                            />
+                        </div>
+                        <div className="d-flex align-items-center mb-2">
+                            <i className="bi bi-usb-mini me-2" style={{ fontSize: '1.5rem' }}></i>
+                            <Form.Check
+                                type="checkbox"
+                                id="buried"
+                                name="buried"
+                                label="Buried"
+                                checked={checkboxes.buried}
+                                onChange={handleCheckboxChange}
+                            />
+                        </div>
+                    </Form>
                 </Col>
             </Row>
 
-            {/* Checkboxes for Standard Clause */}
-            {selectedClause === 'Standard Clause' && (
-                <Row className="mt-3">
-                    <Col sm={12}>
-                        <Form>
-                            <div className="d-flex align-items-center mb-2">
-                                <i className="bi bi-clipboard-heart me-2" style={{ fontSize: '1.5rem' }}></i>
-                                <Form.Check
-                                    type="checkbox"
-                                    id="organdonation"
-                                    name="organdonation"
-                                    label="Organ Donation"
-                                    checked={checkboxes.organdonation}
-                                    onChange={handleCheckboxChange}
-                                />
-                            </div>
-                            <div className="d-flex align-items-center mb-2">
-                                <i className="bi bi-fire me-2" style={{ fontSize: '1.5rem' }}></i>
-                                <Form.Check
-                                    type="checkbox"
-                                    id="cremation"
-                                    name="cremation"
-                                    label="Body Cremation"
-                                    checked={checkboxes.cremation}
-                                    onChange={handleCheckboxChange}
-                                />
-                            </div>
-                            <div className="d-flex align-items-center mb-2">
-                                <i className="bi bi-usb-mini me-2" style={{ fontSize: '1.5rem' }}></i>
-                                <Form.Check
-                                    type="checkbox"
-                                    id="buried"
-                                    name="buried"
-                                    label="Buried"
-                                    checked={checkboxes.buried}
-                                    onChange={handleCheckboxChange}
-                                />
-                            </div>
-                        </Form>
-                    </Col>
-                </Row>
-            )
-            }
-
+            {/* Custom Clause Section */}
+            <Row className="mt-4">
+                <Col sm={12}>
+                    <h3>Custom Clause</h3>
+                </Col>
+            </Row>
             {/* Text Area for Custom Clause */}
-            {
-                selectedClause === 'Custom Clause' && (
-                    <Row>
-                        <Col sm={12}>
-                            <Form.Group controlId="customClause">
-                                <Form.Control
-                                    as="textarea"
-                                    rows={3}
-                                    value={customClauseText}
-                                    onChange={handleCustomClauseChange}
-                                    placeholder="Enter your custom clause here..."
-                                />
-                                {validationErrors.customClauseText && (
-                                    <p className="text-danger">{validationErrors.customClauseText}</p>
-                                )}
-                            </Form.Group>
-                        </Col>
-                    </Row>
-                )
-            }
+            <Row>
+                <Col sm={12}>
+                    <Form.Group controlId="customClause">
+                        <Form.Control
+                            as="textarea"
+                            rows={3}
+                            value={customClauseText}
+                            onChange={handleCustomClauseChange}
+                            placeholder="Enter your custom clause here..."
+                        />
+                        {validationErrors.customClauseText && (
+                            <p className="text-danger">{validationErrors.customClauseText}</p>
+                        )}
+                    </Form.Group>
+                </Col>
+            </Row>
 
             {/* Other Wishes Section */}
             <Row className="mt-5">
@@ -213,7 +174,7 @@ function Additional({ datas, errors }) {
                     </Form>
                 </Col>
             </Row>
-        </Container >
+        </Container>
     );
 }
 
