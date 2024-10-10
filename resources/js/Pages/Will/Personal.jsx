@@ -82,33 +82,34 @@ export default function Personal({ auth }) {
 
     // Define a mapping of package descriptions to document types
     const packageDocuments = {
-        'One will only': ['Will'],
-        'One will and one POA (property)': ['Will', 'POA1'],
-        'One will and one POA (health)': ['Will', 'POA2'],
-        'One will and two POAs': ['Will', 'POA1', 'POA2'],
-        'One will and one secondary will': ['Will', 'SecondaryWill'],
-        'One will and one secondary will and one POA (property)': ['Will', 'SecondaryWill', 'POA1'],
-        'One will and one secondary will and one POA (health)': ['Will', 'SecondaryWill', 'POA2'],
-        'One will and one secondary will and two POAs': ['Will', 'SecondaryWill', 'POA1', 'POA2'],
-        'Two spousal wills only': ['SpousalWill'],
-        'Two spousal wills and two POAs (property)': ['SpousalWill', 'POA1', 'POA1'],
-        'Two spousal wills and two POAs (health)': ['SpousalWill', 'POA2', 'POA2'],
-        'Two spousal wills and four POAs': ['SpousalWill', 'POA1', 'POA1', 'POA2', 'POA2'],
-        'Two spousal wills and one secondary will': ['SpousalWill', 'SecondaryWill'],
-        'Two spousal wills and one secondary will and two POAs (property)': ['SpousalWill', 'SecondaryWill', 'POA1', 'POA1'],
-        'Two spousal wills and one secondary will and two POAs (health)': ['SpousalWill', 'SecondaryWill', 'POA2', 'POA2'],
-        'Two spousal wills and one secondary will and four POAs': ['SpousalWill', 'SecondaryWill', 'POA1', 'POA1', 'POA2', 'POA2'],
-        'Two spousal wills and two secondary wills': ['SpousalWill', 'SecondarySpousalWill'],
-        'Two spousal wills and two secondary wills and two POAs (property)': ['SpousalWill', 'SecondarySpousalWill', 'POA1', 'POA1'],
-        'Two spousal wills and two secondary wills and two POAs (health)': ['SpousalWill', 'SecondarySpousalWill', 'POA2', 'POA2'],
-        'Two spousal wills and two secondary wills and four POAs': ['SpousalWill', 'SecondarySpousalWill', 'POA1', 'POA1', 'POA2', 'POA2'],
-        '1 X POA health only (no will)': ['POA2'],
-        '1 X POA property only (no will)': ['POA1'],
-        '1 X POA health and POA property (no will)': ['POA1', 'POA2'],
-        '2 X POA health only (no will)': ['POA2', 'POA2'],
-        '2 X POA property only (no will)': ['POA1', 'POA1'],
-        '2 X POA health and POA property (no will)': ['POA1', 'POA1', 'POA2', 'POA2'],
+        'One will only': ['primaryWill'],
+        'One will and one POA (property)': ['primaryWill', 'poaProperty'],
+        'One will and one POA (health)': ['primaryWill', 'poaHealth'],
+        'One will and two POAs': ['primaryWill', 'poaProperty', 'poaHealth'],
+        'One will and one secondary will': ['primaryWill', 'secondaryWill'],
+        'One will and one secondary will and one POA (property)': ['primaryWill', 'secondaryWill', 'poaProperty'],
+        'One will and one secondary will and one POA (health)': ['primaryWill', 'secondaryWill', 'poaHealth'],
+        'One will and one secondary will and two POAs': ['primaryWill', 'secondaryWill', 'poaProperty', 'poaHealth'],  // POAS?
+        'Two spousal wills only': ['primaryWill', 'spousalWill'],
+        'Two spousal wills and two POAs (property)': ['primaryWill', 'spousalWill', 'poaProperty', 'poaPropery'],
+        'Two spousal wills and two POAs (health)': ['primaryWill', 'spousalWill', 'poaHealth', 'poaHealth'],
+        'Two spousal wills and four POAs': ['primaryWill', 'spousalWill', 'poaProperty', 'poaProperty', 'poaHealth', 'poaHealth'],
+        'Two spousal wills and one secondary will': ['primaryWill', 'spousalWill', 'secondaryWill'],
+        'Two spousal wills and one secondary will and two POAs (property)': ['primaryWill', 'spousalWill', 'secondaryWill', 'poaProperty', 'poaProperty'], //POAS?
+        'Two spousal wills and one secondary will and two POAs (health)': ['primaryWill', 'spousalWill', 'secondaryWill', 'poaHealth', 'poaHealth'], //POAS?
+        'Two spousal wills and one secondary will and four POAs': ['primaryWill', 'spousalWill', 'secondaryWills', 'poaProperty', 'poaProperty', 'poaHealth', 'poaHealth'], // POAS?
+        'Two spousal wills and two secondary wills': ['primaryWill', 'spousalWill', 'secondaryWill', 'secondaryWill'],
+        'Two spousal wills and two secondary wills and two POAs (property)': ['primaryWill', 'spousalWill', 'secondaryWill', 'secondaryWill', 'poaProperty', 'poaProperty'], //POAS?
+        'Two spousal wills and two secondary wills and two POAs (health)': ['primaryWill', 'spousalWill', 'secondaryWill', 'secondaryWill', 'poaHealth', 'poaHealth'], //POAS?
+        'Two spousal wills and two secondary wills and four POAs': ['primaryWill', 'spousalWill', 'secondaryWill', 'secondaryWill', 'poaProperty', 'poaProperty', 'poaHealth', 'poaHealth'], //POAS?
+        '1 X POA health only (no will)': ['poaHealth'],
+        '1 X POA property only (no will)': ['poaProperty'],
+        '1 X POA health and POA property (no will)': ['poaProperty', 'poaHealth'],
+        '2 X POA health only (no will)': ['poaHealth', 'poaHealth'],
+        '2 X POA property only (no will)': ['poaProperty', 'poaProperty'],
+        '2 X POA health and POA property (no will)': ['poaProperty', 'poaProperty', 'poaHealth', 'poaHealth'],
     };
+
 
     const username = auth.user.name;
 
