@@ -108,7 +108,7 @@ const object_status = {
       data: { 'executors': {}, 'bequest': {}, "etc": {} },
       documentDOM: { v1: {}, v2: {} },
     },
-    secondaryWills: [
+    secondaryWill: [
       {
         profileKey: '1', // Reference to secondary profile 1
         data: { 'executors': {}, 'bequest': {}, "etc": {} },
