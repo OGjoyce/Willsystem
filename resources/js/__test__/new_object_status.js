@@ -137,6 +137,11 @@ const object_status = {
         data: { /* POA Property data for secondary profile 1 */ },
         documentDOM: { v1: {}, v2: {} },
       },
+      {
+        profileKey: '2', // Reference to secondary profile 2
+        data: { /* POA Property data for secondary profile 2 */ },
+        documentDOM: { v1: {}, v2: {} },
+      },
       // Additional POA Properties can be added as needed
     ],
     poaHealth: [
@@ -153,6 +158,11 @@ const object_status = {
       {
         profileKey: '1', // Reference to secondary profile 1
         data: { /* POA Health data for secondary profile 1 */ },
+        documentDOM: { v1: {}, v2: {} },
+      },
+       {
+        profileKey: '2', // Reference to secondary profile 2
+        data: { /* POA Health data for secondary profile 2 */ },
         documentDOM: { v1: {}, v2: {} },
       },
       // Additional POA Health documents can be added as needed
