@@ -181,6 +181,8 @@ export const validate = {
     const errors = {};
 
     // Validate poaProperty
+
+    {/*
     if (!data.poaProperty || typeof data.poaProperty !== 'object') {
       errors.poaProperty = 'poaProperty is required';
     } else {
@@ -214,7 +216,7 @@ export const validate = {
     if (!data || !data.Will) {
       errors.documentDOM = 'Please Save your Document to proceed';
     }
-
+ */ }
     return errors;
   },
 }
