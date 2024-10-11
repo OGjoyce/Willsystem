@@ -721,16 +721,16 @@ export default function Personal({ auth }) {
             if (step.step === 10 && !hasKids) return false;   // Guardian For Minors
 
             // Exclude steps when 'Will' is not included
-            if (!availableDocs.includes('Will') && !availableDocs.includes('SpousalWill')) {
+            if (!availableDocs.includes('primaryWill') && !availableDocs.includes('SpousalWill')) {
                 const stepsToExclude = [4, 5, 6, 7, 8, 9, 10, 11]; // Steps related to 'Will'
                 if (stepsToExclude.includes(step.step)) return false;
             }
 
             // Exclude POA Property step if 'POA1' is not included
-            if (!availableDocs.includes('POA1') && step.step === 12) return false;
+            if (!availableDocs.includes('poaProperty') && step.step === 12) return false;
 
             // Exclude POA Health step if 'POA2' is not included
-            if (!availableDocs.includes('POA2') && step.step === 13) return false;
+            if (!availableDocs.includes('poaHealth') && step.step === 13) return false;
 
             // Exclude Final Details and Document Review if neither 'Will' nor 'POA' is included
             if (!availableDocs.some(doc => ['Will', 'SpousalWill', 'POA1', 'POA2'].includes(doc))) {
