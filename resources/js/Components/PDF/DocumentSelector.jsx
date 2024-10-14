@@ -17,12 +17,21 @@ const contentComponents = {
     // Agregar más mapeos si es necesario
 };
 
-const DocumentSelector = ({ onSelect, errors, object_status, currIdObjDB, availableDocuments }) => {
+const DocumentSelector = ({ onSelect, errors, object_status, currIdObjDB, availableDocuments, setCurrentDocument, setCurrentProfile }) => {
     const [selectedDoc, setSelectedDoc] = useState(null);
+
+    // Function to check if a document can be selected
+    const isDocumentUnlocked = (doc, index) => {
+        // Verificamos si los documentos anteriores están completos
+        if (index === 0) return true; // El primer documento siempre está desbloqueado
+        return object_status[availableDocuments[index - 1]]?.completed; // Verifica si el anterior está completado
+    };
 
     const handleSelect = (doc) => {
         setSelectedDoc(doc);
         onSelect(doc);
+        setCurrentDocument(doc); // Aquí se setea el documento actual
+        setCurrentProfile(object_status.personal.email); // Aquí se setea el perfil actual
     };
 
     const handleBack = () => {
@@ -35,9 +44,14 @@ const DocumentSelector = ({ onSelect, errors, object_status, currIdObjDB, availa
                 <>
                     <h3>Select a Document to View, Edit or Download</h3>
                     <Row className="mt-3">
-                        {availableDocuments.map((doc) => (
+                        {availableDocuments.map((doc, index) => (
                             <Col key={doc}>
-                                <Button onClick={() => handleSelect(doc)} style={{ width: "100%" }} variant="outline-dark">
+                                <Button
+                                    onClick={() => handleSelect(doc)}
+                                    style={{ width: "100%" }}
+                                    variant="outline-dark"
+                                    disabled={!isDocumentUnlocked(doc, index)} // Deshabilitamos si no está desbloqueado
+                                >
                                     {doc === 'primaryWill' && <><i className="bi bi-file-text"></i> Will</>}
                                     {doc === 'spousalWill' && <><i className="bi bi-file-text"></i> Spousal Will</>}
                                     {doc === 'secondaryWill' && <><i className="bi bi-file-text"></i> Secondary Will</>}
@@ -54,7 +68,7 @@ const DocumentSelector = ({ onSelect, errors, object_status, currIdObjDB, availa
                 <PDFEditor
                     ContentComponent={contentComponents[selectedDoc]} // Aquí seleccionamos el componente correcto
                     datas={object_status}
-                    documentType='POA1'
+                    documentType={selectedDoc}
                     errors={errors}
                     backendId={currIdObjDB}
                     onBack={handleBack}
