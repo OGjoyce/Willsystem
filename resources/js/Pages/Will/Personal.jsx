@@ -74,9 +74,9 @@ export default function Personal({ auth }) {
         { step: 9, title: 'Testamentary Trust' },
         { step: 10, title: 'Guardian For Minors' },
         { step: 11, title: 'Guardian For Pets' },
-        { step: 12, title: 'Additional Information' },
-        { step: 13, title: 'Power Of Attorney Property' },
-        { step: 14, title: 'Power Of Attorney Health' },
+        { step: 12, title: 'Power Of Attorney Property' },
+        { step: 13, title: 'Power Of Attorney Health' },
+        { step: 14, title: 'Additional Information' },
         { step: 15, title: 'Final Details' },
         { step: 16, title: 'Review, Edit and Download your Documents' },
     ];
@@ -454,7 +454,8 @@ export default function Personal({ auth }) {
             case 12:
                 const poaPropertyData = getPoaProperty();
 
-                if (checkValidation(validate.poa(poaProperyData))) {
+
+                if (checkValidation(validate.poa(poaPropertyData))) {
                     propertiesAndData = [
                         { name: 'poaProperty', data: { ...poaPropertyData, timestamp: Date.now() } },
                     ];
@@ -590,11 +591,11 @@ export default function Personal({ auth }) {
         const currentIndex = newVisibleSteps.findIndex((step) => step.step === pointer);
         let nextVisibleStep = newVisibleSteps[currentIndex + 1];
 
-        const noSpouse = objectStatusResult.some(
+        const noSpouse = getObjectStatus(objectStatusResult, currentProfile).some(
             (obj) => obj.marriedq && (obj.marriedq.selection === 'false' || obj.marriedq.selection === '')
         );
 
-        const noKids = objectStatusResult.some(
+        const noKids = getObjectStatus(objectStatusResult, currentProfile).some(
             (obj) => obj.kidsq && (obj.kidsq.selection === 'false' || obj.kidsq.selection === '')
         );
 
@@ -602,7 +603,7 @@ export default function Personal({ auth }) {
             const propertiesAndData = [
                 { name: 'married', data: { timestamp: Date.now() } },
             ];
-            const updatedObjectStatus = updateOrCreateProperty(objectStatusResult, propertiesAndData);
+            const updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatusResult);
             setObjectStatus(updatedObjectStatus);
             // Recalculate visible steps
             const updatedVisibleSteps = getVisibleSteps(updatedObjectStatus);
@@ -611,7 +612,7 @@ export default function Personal({ auth }) {
 
         if (pointer === 3 && noKids) {
             const propertiesAndData = [{ name: 'kids', data: [] }];
-            const updatedObjectStatus = updateOrCreateProperty(objectStatusResult, propertiesAndData);
+            const updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatusResult);
             setObjectStatus(updatedObjectStatus);
             // Recalculate visible steps
             const updatedVisibleSteps = getVisibleSteps(updatedObjectStatus);
@@ -629,7 +630,6 @@ export default function Personal({ auth }) {
         return true;
     };
 
-    // Function to check if a step has data
     const stepHasData = (step) => {
         const stepDataMap = {
             0: {
@@ -704,7 +704,6 @@ export default function Personal({ auth }) {
                     return false;
                 },
             },
-
             12: {
                 key: 'poaProperty',
                 check: (data) => data && Object.keys(data).length > 0,
@@ -727,10 +726,14 @@ export default function Personal({ auth }) {
             },
         };
 
+        // Usar getObjectStatus para obtener los datos del perfil correcto
+        const profileData = getObjectStatus(objectStatus, currentProfile);
+
         const { key, check } = stepDataMap[step] || {};
         if (!key || !check) return false;
 
-        for (const obj of objectStatus) {
+        // Buscar los datos en el perfil correspondiente
+        for (const obj of profileData) {
             if (obj.hasOwnProperty(key)) {
                 const data = obj[key];
                 if (check(data)) {
@@ -741,14 +744,13 @@ export default function Personal({ auth }) {
         return false;
     };
 
+
     // Function to determine if a step is clickable in the breadcrumb navigation
     const isStepClickable = (index) => {
-        // Prevent navigating to other steps until Personal Information is completed
-        if (!stepHasData(0) && index !== 0) {
-            return false;
-        }
+
         return true;
     };
+
 
     // Function to get the list of visible steps based on current data
     const getVisibleSteps = (objectStatusToUse = getObjectStatus(objectStatus, currentProfile)) => {
@@ -816,11 +818,11 @@ export default function Personal({ auth }) {
                         {pointer === 1 && <Married humanSelector="spouse" />}
                         {pointer === 2 && hasSpouse && <AddHuman married={true} errors={validationErrors} />}
                         {pointer === 3 && <Married humanSelector="children" />}
-                        {pointer === 4 && hasKids && <AddRelative relative="children" errors={validationErrors} datas={objectStatus} />}
-                        {pointer === 5 && <HumanTable datas={objectStatus} errors={validationErrors} />}
+                        {pointer === 4 && hasKids && <AddRelative relative="children" errors={validationErrors} datas={getObjectStatus(objectStatus, currentProfile)} />}
+                        {pointer === 5 && <HumanTable datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
                         {
                             pointer === 6 && spouseData !== null && kidsData !== null ?
-                                <Bequest datas={objectStatus} errors={validationErrors} />
+                                <Bequest datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />
                                 : (
                                     pointer === 6
                                         ? <StepRedirect onGoToStep={setPointer} missingStep={stepBack} />
@@ -829,7 +831,7 @@ export default function Personal({ auth }) {
                         }
                         {
                             pointer === 7 && spouseData !== null && kidsData !== null ?
-                                <Residue datas={objectStatus} errors={validationErrors} />
+                                <Residue datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />
                                 : (
                                     pointer === 7
                                         ? <StepRedirect onGoToStep={setPointer} missingStep={stepBack} />
@@ -838,34 +840,35 @@ export default function Personal({ auth }) {
                         }
                         {
                             pointer === 8 && spouseData !== null && kidsData !== null ?
-                                <Wipeout datas={objectStatus} errors={validationErrors} />
+                                <Wipeout datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />
                                 : (
                                     pointer === 8
                                         ? <StepRedirect onGoToStep={setPointer} missingStep={stepBack} />
                                         : null
                                 )
                         }
-                        {pointer === 9 && <Trusting datas={objectStatus} errors={validationErrors} />}
-                        {pointer === 10 && hasKids && <GuardianForMinors datas={objectStatus} errors={validationErrors} />}
+                        {pointer === 9 && <Trusting datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
+                        {pointer === 10 && hasKids && <GuardianForMinors datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
                         {
                             pointer === 11 && spouseData !== null && kidsData !== null ?
-                                <Pets datas={objectStatus} errors={validationErrors} />
+                                <Pets datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />
                                 : (
                                     pointer === 11
                                         ? <StepRedirect onGoToStep={setPointer} missingStep={stepBack} />
                                         : null
                                 )
                         }
-                        {pointer === 12 && <PoaProperty datas={objectStatus} errors={validationErrors} />}
-                        {pointer === 13 && <PoaHealth datas={objectStatus} errors={validationErrors} />}
-                        {pointer === 14 && <Additional datas={objectStatus} errors={validationErrors} />}
+                        {pointer === 12 && <PoaProperty datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
+                        {pointer === 13 && <PoaHealth datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
+                        {pointer === 14 && <Additional datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
 
-                        {pointer === 15 && <FinalDetails datas={objectStatus} />}
+                        {pointer === 15 && <FinalDetails datas={getObjectStatus(objectStatus, currentProfile)} />}
                         {pointer === 16 && (
                             <DocumentSelector
                                 errors={validationErrors}
-                                object_status={objectStatus}
+                                object_status={getObjectStatus(objectStatus, currentProfile)}
                                 currIdObjDB={currIdObjDB}
+                                availableDocuments={availableDocuments}
                                 onSelect={(doc) => {
                                     setValidationErrors({});
                                 }}
@@ -895,7 +898,7 @@ export default function Personal({ auth }) {
                                         )}
                                     </Col>
                                     <Col xs={6} className="d-flex justify-content-end">
-                                        {pointer < 15 ? (
+                                        {pointer < 16 ? (
                                             <Button
                                                 onClick={async () => {
                                                     const canAdvance = await nextStep(pointer + 1);
