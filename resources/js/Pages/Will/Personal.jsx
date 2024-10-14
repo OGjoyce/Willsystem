@@ -161,7 +161,7 @@ export default function Personal({ auth }) {
     };
 
     // Helper function to update or create properties in objectStatus
-    const updateOrCreateProperty = (prevStatus, propertiesAndData) => {
+    let updateOrCreateProperty = (prevStatus, propertiesAndData) => {
         const newStatus = [...prevStatus];
         const existingIndex = newStatus.findIndex((obj) =>
             propertiesAndData.some((prop) => obj.hasOwnProperty(prop.name))
@@ -183,6 +183,29 @@ export default function Personal({ auth }) {
 
         return newStatus;
     };
+
+    const handleProfileData = (currentProfile, propertiesAndData, prevStatus) => {
+        // Clonamos el estado anterior para no modificarlo directamente
+        const newStatus = [...prevStatus];
+
+        // Buscamos si existe un perfil que coincida con el currentProfile (en el campo personal.email)
+        const existingProfileIndex = newStatus.findIndex(profile => {
+            return profile.some(dataObj => dataObj.personal?.email === currentProfile);
+        });
+
+        if (existingProfileIndex !== -1) {
+            // Si encontramos un perfil existente, actualizamos sus datos con updateOrCreateProperty
+            const updatedProfile = updateOrCreateProperty(newStatus[existingProfileIndex], propertiesAndData);
+            newStatus[existingProfileIndex] = updatedProfile;
+        } else {
+            // Si no encontramos un perfil, creamos un nuevo perfil
+            const newProfile = updateOrCreateProperty([], propertiesAndData);
+            newStatus.push(newProfile);
+        }
+
+        return newStatus;
+    };
+
 
 
 
@@ -235,8 +258,8 @@ export default function Personal({ auth }) {
                         { name: 'owner', data: dataObj.owner },
                         { name: 'packageInfo', data: selectedPackage },
                     ];
-
-                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    setCurrentProfile(personalData.email)
+                    updatedObjectStatus = handleProfileData(personalData.email, propertiesAndData, objectStatus);
                     setObjectStatus(updatedObjectStatus);
 
                     const dataFirstStore = await storeDataObject(dataObj);
@@ -248,35 +271,7 @@ export default function Personal({ auth }) {
                 }
 
                 // Set the default structure for objectStatus if not already set
-                if (!updatedObjectStatus.find(obj => obj.hasOwnProperty('marriedq'))) {
-                    const initialObjectStructure = [
-                        [{ name: 'marriedq', data: {} }],
-                        [{ name: 'married', data: {} }],
-                        [{ name: 'kidsq', data: {} }],
-                        [{ name: 'kids', data: [] }],
-                        [{ name: 'executors', data: [] },
-                        { name: 'relatives', data: [] }],
-                        [{ name: 'bequests', data: {} }],
-                        [{ name: 'residue', data: {} }],
-                        [{ name: 'wipeout', data: {} }],
-                        [{ name: 'trusting', data: {} }],
-                        [{ name: 'guardians', data: {} }],
-                        [{ name: 'pets', data: {} }],
-                        [{ name: 'additional', data: {} }],
-                        [{ name: 'poaProperty', data: {} }],
-                        [{ name: 'poaHealth', data: {} }],
-                        [{ name: 'finalDetails', data: {} }],
-                        [{ name: 'documentDOM', data: {} }],
-                    ]
 
-                    initialObjectStructure.forEach(
-                        obj => {
-                            const tempData = updateOrCreateProperty(updatedObjectStatus, obj)
-                            setObjectStatus(tempData)
-                            updatedObjectStatus = tempData
-                        }
-                    )
-                }
 
                 break;
 
@@ -287,7 +282,7 @@ export default function Personal({ auth }) {
                         data: { selection: getMarriedData(), timestamp: Date.now() },
                     },
                 ];
-                updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                updatedObjectStatus = handleProfileData('e@essaqsdsd.com', propertiesAndData, objectStatus);
                 setObjectStatus(updatedObjectStatus);
 
                 break;
@@ -299,7 +294,7 @@ export default function Personal({ auth }) {
                     propertiesAndData = [
                         { name: 'married', data: { ...humanData, timestamp: Date.now() } },
                     ];
-                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    updatedObjectStatus = handleProfileData('testasasasdasadsasd2@email.com', propertiesAndData, objectStatus);
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
@@ -314,7 +309,7 @@ export default function Personal({ auth }) {
                         data: { selection: getMarriedData(), timestamp: Date.now() },
                     },
                 ];
-                updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                updatedObjectStatus = handleProfileData('emaildsaasfcsq@de.com', propertiesAndData, objectStatus);
                 setObjectStatus(updatedObjectStatus);
                 break;
 
@@ -325,7 +320,7 @@ export default function Personal({ auth }) {
                     propertiesAndData = [
                         { name: 'kids', data: [...kidsData] },
                     ];
-                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    updatedObjectStatus = handleProfileData('tes@asdsaddasdase.coma', propertiesAndData, objectStatus);
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
