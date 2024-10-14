@@ -184,6 +184,8 @@ export default function Personal({ auth }) {
         return newStatus;
     };
 
+
+
     // Helper function to find the first incomplete step within visibleSteps
     const findFirstIncompleteStep = () => {
         for (let i = 0; i < visibleSteps.length; i++) {
@@ -287,6 +289,7 @@ export default function Personal({ auth }) {
                 ];
                 updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
                 setObjectStatus(updatedObjectStatus);
+
                 break;
 
             case 2:
@@ -301,6 +304,7 @@ export default function Personal({ auth }) {
                 } else {
                     return null;
                 }
+
                 break;
 
             case 3:
