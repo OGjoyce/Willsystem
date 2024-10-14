@@ -1,6 +1,5 @@
-// Personal.jsx
-
-import React, { useState, useEffect } from 'react';
+// Necessary imports
+import React, { useState, useEffect, useRef } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { Container, Row, Col, Button } from 'react-bootstrap';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -75,14 +74,13 @@ export default function Personal({ auth }) {
         { step: 9, title: 'Testamentary Trust' },
         { step: 10, title: 'Guardian For Minors' },
         { step: 11, title: 'Guardian For Pets' },
-        { step: 12, title: 'Power of Attorney Property' },
-        { step: 13, title: 'Power of Attorney Health' },
-        { step: 14, title: 'Additional Information' },
+        { step: 12, title: 'Additional Information' },
+        { step: 13, title: 'Power Of Attorney Property' },
+        { step: 14, title: 'Power Of Attorney Health' },
         { step: 15, title: 'Final Details' },
         { step: 16, title: 'Review, Edit and Download your Documents' },
     ];
 
-    // Define a mapping of package descriptions to document types
     const packageDocuments = {
         'One will only': ['primaryWill'],
         'One will and one POA (property)': ['primaryWill', 'poaProperty'],
@@ -163,109 +161,38 @@ export default function Personal({ auth }) {
     };
 
     // Helper function to update or create properties in objectStatus
-    // Updated updateOrCreateProperty function
-    // Helper function to update or create properties in objectStatus
-    const updateOrCreateProperty = (objectStatus, propertiesAndData, currentProfile) => {
-        // Estructura predeterminada con el formato correcto
-        const defaultStructure = [
-            { name: 'personal', data: {} },            // Siempre existe
-            { name: 'owner', data: '' },               // Solo en el primer array
-            { name: 'packageInfo', data: {} },         // Solo en el primer array
-            { name: 'marriedq', data: {} },
-            { name: 'married', data: {} },
-            { name: 'kidsq', data: {} },
-            { name: 'kids', data: [] },
-            { name: 'executors', data: [] },
-            { name: 'relatives', data: [] },
-            { name: 'bequests', data: {} },
-            { name: 'residue', data: {} },
-            { name: 'wipeout', data: {} },
-            { name: 'trusting', data: {} },
-            { name: 'guardians', data: {} },
-            { name: 'pets', data: {} },
-            { name: 'additional', data: {} },
-            { name: 'poaProperty', data: {} },
-            { name: 'poaProperty', data: {} },
-            { name: 'finalDetails', data: {} },
-            { name: 'documentDOM', data: {} }
-        ];
-
-        // Buscar si ya existe un sub-array para el currentProfile
-        const existingProfileIndex = objectStatus.findIndex(profileArray =>
-            profileArray.some(doc => doc.personal && doc.personal.email === currentProfile)
+    const updateOrCreateProperty = (prevStatus, propertiesAndData) => {
+        const newStatus = [...prevStatus];
+        const existingIndex = newStatus.findIndex((obj) =>
+            propertiesAndData.some((prop) => obj.hasOwnProperty(prop.name))
         );
 
-        // Si el perfil existe, actualizamos los datos
-        if (existingProfileIndex !== -1) {
-            const newStatus = [...objectStatus];
-            const existingProfileArray = newStatus[existingProfileIndex];
-
-            // Iteramos sobre la estructura predeterminada para mantener el orden correcto
-            defaultStructure.forEach((defaultField) => {
-                const existingFieldIndex = existingProfileArray.findIndex(field => field.hasOwnProperty(defaultField.name));
-
-                // Si existe el campo, lo actualizamos con los datos proporcionados
-                const providedData = propertiesAndData.find(prop => prop.name === defaultField.name);
-                if (providedData) {
-                    if (existingFieldIndex !== -1) {
-                        // Si el campo ya existe, lo actualizamos
-                        existingProfileArray[existingFieldIndex][defaultField.name] = providedData.data;
-                    } else {
-                        // Si no existe, lo agregamos
-                        const newField = {};
-                        newField[defaultField.name] = providedData.data;
-                        existingProfileArray.push(newField);
-                    }
-                }
+        if (existingIndex !== -1) {
+            // Update existing object
+            propertiesAndData.forEach((prop) => {
+                newStatus[existingIndex][prop.name] = prop.data;
             });
-
-            // Actualizamos el array de perfil con los nuevos datos en el orden correcto
-            newStatus[existingProfileIndex] = existingProfileArray;
-            return newStatus;
         } else {
-            // Si el perfil no existe, creamos un nuevo array de perfil con la estructura predeterminada
-
-            // Inicializamos un nuevo array para el perfil
-            const newProfileArray = defaultStructure.map(defaultField => {
-                const newObject = {};
-                newObject[defaultField.name] = defaultField.data;
-                return newObject;
+            // Add new object
+            const newObject = {};
+            propertiesAndData.forEach((prop) => {
+                newObject[prop.name] = prop.data;
             });
-
-            // Agregamos los datos proporcionados respetando la estructura
-            propertiesAndData.forEach(prop => {
-                const fieldIndex = newProfileArray.findIndex(field => field.hasOwnProperty(prop.name));
-                if (fieldIndex !== -1) {
-                    // Actualizamos el valor dentro de la estructura predeterminada
-                    newProfileArray[fieldIndex][prop.name] = prop.data;
-                }
-            });
-
-            // Asegurarse de que el 'personal.email' sea igual a currentProfile
-            const personalObj = newProfileArray.find(obj => obj.hasOwnProperty('personal'));
-            if (personalObj) {
-                personalObj.personal.email = currentProfile;
-            }
-
-            // Si es el primer perfil, agregar owner y packageInfo
-            if (objectStatus.length === 0) {
-                const ownerObj = newProfileArray.find(obj => obj.hasOwnProperty('owner'));
-                if (ownerObj) {
-                    ownerObj.owner = currentProfile;
-                }
-                const packageInfoObj = newProfileArray.find(obj => obj.hasOwnProperty('packageInfo'));
-                if (packageInfoObj) {
-                    packageInfoObj.packageInfo = propertiesAndData.find(prop => prop.name === 'packageInfo')?.data || {};
-                }
-            }
-
-            // Agregamos el nuevo perfil a objectStatus
-            return [...objectStatus, newProfileArray];
+            newStatus.push(newObject);
         }
+
+        return newStatus;
     };
 
-
-
+    // Helper function to find the first incomplete step within visibleSteps
+    const findFirstIncompleteStep = () => {
+        for (let i = 0; i < visibleSteps.length; i++) {
+            if (!stepHasData(visibleSteps[i].step)) {
+                return visibleSteps[i].step;
+            }
+        }
+        return null; // All steps are complete
+    };
 
     // Function to handle advancing to the next step
     const pushInfo = async (step) => {
@@ -289,10 +216,8 @@ export default function Personal({ auth }) {
         switch (step) {
             case 0:
                 const personalData = getFormData();
-                setCurrentProfile(personalData.email);
 
                 if (checkValidation(validate.formData(personalData))) {
-                    // Definir los datos principales para personal
                     const dataObj = {
                         personal: {
                             ...stepper[step],
@@ -303,60 +228,75 @@ export default function Personal({ auth }) {
                         packageInfo: selectedPackage,
                     };
 
-                    // Si es el primer perfil (es decir, objectStatus está vacío)
-                    if (objectStatus.length === 0) {
-                        propertiesAndData = [
-                            { name: 'personal', data: dataObj.personal },
-                            { name: 'owner', data: dataObj.owner },
-                            { name: 'packageInfo', data: selectedPackage },
-                        ];
-                    } else {
-                        // Si ya hay perfiles, solo agregar personal
-                        propertiesAndData = [
-                            { name: 'personal', data: dataObj.personal }
-                        ];
-                    }
+                    propertiesAndData = [
+                        { name: 'personal', data: dataObj.personal },
+                        { name: 'owner', data: dataObj.owner },
+                        { name: 'packageInfo', data: selectedPackage },
+                    ];
 
-                    // Actualizamos el objectStatus usando la función updateOrCreateProperty
-                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData, personalData.email);
-
-                    // Actualizamos el estado con el nuevo perfil o actualización
+                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
                     setObjectStatus(updatedObjectStatus);
 
-                    // Almacenar los datos en la base de datos
                     const dataFirstStore = await storeDataObject(dataObj);
                     setCurrIdObjDB(dataFirstStore.id);
                     setAvailableDocuments(packageDocuments[selectedPackage.description] || []);
-
-                    // Guardar en localStorage
                     localStorage.setItem('currIdObjDB', dataFirstStore.id);
                 } else {
                     return null;
                 }
 
+                // Set the default structure for objectStatus if not already set
+                if (!updatedObjectStatus.find(obj => obj.hasOwnProperty('marriedq'))) {
+                    const initialObjectStructure = [
+                        [{ name: 'marriedq', data: {} }],
+                        [{ name: 'married', data: {} }],
+                        [{ name: 'kidsq', data: {} }],
+                        [{ name: 'kids', data: [] }],
+                        [{ name: 'executors', data: [] },
+                        { name: 'relatives', data: [] }],
+                        [{ name: 'bequests', data: {} }],
+                        [{ name: 'residue', data: {} }],
+                        [{ name: 'wipeout', data: {} }],
+                        [{ name: 'trusting', data: {} }],
+                        [{ name: 'guardians', data: {} }],
+                        [{ name: 'pets', data: {} }],
+                        [{ name: 'additional', data: {} }],
+                        [{ name: 'poaProperty', data: {} }],
+                        [{ name: 'poaHealth', data: {} }],
+                        [{ name: 'finalDetails', data: {} }],
+                        [{ name: 'documentDOM', data: {} }],
+                    ]
+
+                    initialObjectStructure.forEach(
+                        obj => {
+                            const tempData = updateOrCreateProperty(updatedObjectStatus, obj)
+                            setObjectStatus(tempData)
+                            updatedObjectStatus = tempData
+                        }
+                    )
+                }
+
                 break;
 
             case 1:
-                setCurrentProfile('test3@eail.com')
                 propertiesAndData = [
                     {
                         name: 'marriedq',
                         data: { selection: getMarriedData(), timestamp: Date.now() },
                     },
                 ];
-                updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData, currentProfile);
+                updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
                 setObjectStatus(updatedObjectStatus);
                 break;
 
             case 2:
-                setCurrentProfile('testw3@eail.com')
                 const humanData = getHumanData();
 
                 if (checkValidation(validate.addHumanData(humanData))) {
                     propertiesAndData = [
                         { name: 'married', data: { ...humanData, timestamp: Date.now() } },
                     ];
-                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData, currentProfile);
+                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
@@ -364,14 +304,13 @@ export default function Personal({ auth }) {
                 break;
 
             case 3:
-                setCurrentProfile('testqw3@eail.com')
                 propertiesAndData = [
                     {
                         name: 'kidsq',
                         data: { selection: getMarriedData(), timestamp: Date.now() },
                     },
                 ];
-                updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData, currentProfile);
+                updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
                 setObjectStatus(updatedObjectStatus);
                 break;
 
@@ -501,10 +440,11 @@ export default function Personal({ auth }) {
                 }
                 break;
 
+
             case 12:
                 const poaPropertyData = getPoaProperty();
 
-                if (checkValidation(validate.poa(poaPropertyData))) {
+                if (checkValidation(validate.poa(poaProperyData))) {
                     propertiesAndData = [
                         { name: 'poaProperty', data: { ...poaPropertyData, timestamp: Date.now() } },
                     ];
@@ -528,8 +468,6 @@ export default function Personal({ auth }) {
                     return null;
                 }
                 break;
-
-
             case 14:
                 const additionalData = getAdditionalInformation();
 
@@ -591,29 +529,54 @@ export default function Personal({ auth }) {
         return updatedObjectStatus;
     };
 
-    // Modified backStep function to navigate to the previous visible step
+    // Modified backStep function to navigate to the first incomplete step within visibleSteps
     const backStep = () => {
-        const currentIndex = visibleSteps.findIndex(step => step.step === pointer);
-        if (currentIndex > 0) {
-            const previousStep = visibleSteps[currentIndex - 1].step;
-            setPointer(previousStep);
-            localStorage.setItem('currentPointer', previousStep.toString());
+        // Find the first incomplete step within visibleSteps
+        const firstIncompleteStep = findFirstIncompleteStep();
+
+        if (firstIncompleteStep !== null) {
+            setPointer(firstIncompleteStep);
+            localStorage.setItem('currentPointer', firstIncompleteStep.toString());
         } else {
-            // If already at the first step, do nothing or handle accordingly
-            console.log('Already at the first step.');
+            // If all steps are complete, navigate to the previous step
+            const currentIndex = visibleSteps.findIndex(step => step.step === pointer);
+            if (currentIndex > 0) {
+                const previousStep = visibleSteps[currentIndex - 1].step;
+                setPointer(previousStep);
+                localStorage.setItem('currentPointer', previousStep.toString());
+            } else {
+                // If already at the first step, do nothing or handle accordingly
+                console.log('Already at the first step.');
+            }
         }
+
         return true;
     };
 
+    // Function to handle exiting the form
+    const handleExit = () => {
+        // Clear localStorage
+        localStorage.removeItem('currIdObjDB');
+        localStorage.removeItem('currentPointer');
+        localStorage.removeItem('fullData');
+        localStorage.removeItem('formValues');
+        // Reset state
+        setObjectStatus([]);
+        setDupMarried(false);
+        setDupKids(false);
+        setPointer(0);
+        router.get(route('dashboard'));
+    };
+
     // Modified nextStep function to ensure consistent navigation
-    const nextStep = async () => {
+    const nextStep = async (nextStepValue) => {
         const objectStatusResult = await pushInfo(pointer);
         if (!objectStatusResult) {
             return false;
         }
 
         // Use the updated objectStatusResult
-        const newVisibleSteps = getVisibleSteps(objectStatusResult, availableDocuments);
+        const newVisibleSteps = getVisibleSteps(objectStatusResult);
         const currentIndex = newVisibleSteps.findIndex((step) => step.step === pointer);
         let nextVisibleStep = newVisibleSteps[currentIndex + 1];
 
@@ -632,7 +595,7 @@ export default function Personal({ auth }) {
             const updatedObjectStatus = updateOrCreateProperty(objectStatusResult, propertiesAndData);
             setObjectStatus(updatedObjectStatus);
             // Recalculate visible steps
-            const updatedVisibleSteps = getVisibleSteps(updatedObjectStatus, availableDocuments);
+            const updatedVisibleSteps = getVisibleSteps(updatedObjectStatus);
             nextVisibleStep = updatedVisibleSteps.find((step) => step.step > pointer);
         }
 
@@ -641,7 +604,7 @@ export default function Personal({ auth }) {
             const updatedObjectStatus = updateOrCreateProperty(objectStatusResult, propertiesAndData);
             setObjectStatus(updatedObjectStatus);
             // Recalculate visible steps
-            const updatedVisibleSteps = getVisibleSteps(updatedObjectStatus, availableDocuments);
+            const updatedVisibleSteps = getVisibleSteps(updatedObjectStatus);
             nextVisibleStep = updatedVisibleSteps.find((step) => step.step > pointer);
         }
 
@@ -742,7 +705,7 @@ export default function Personal({ auth }) {
             },
             14: {
                 key: 'additional',
-                check: (data) => data && Object.keys(data).length > 0,
+                check: (data) => data && data.standard && Object.keys(data.standard).length > 0,
             },
             15: {
                 key: 'finalDetails',
@@ -777,42 +740,22 @@ export default function Personal({ auth }) {
         return true;
     };
 
-    // Function to get the list of visible steps based on current data and availableDocuments
-    const getVisibleSteps = (objectStatusToUse = objectStatus, availableDocs = availableDocuments) => {
+    // Function to get the list of visible steps based on current data
+    const getVisibleSteps = (objectStatusToUse = objectStatus) => {
         const hasSpouse = objectStatusToUse.some(
             (obj) => obj.marriedq && (obj.marriedq.selection === 'true' || obj.marriedq.selection === 'soso')
         );
         const hasKids = objectStatusToUse.some((obj) => obj.kidsq && obj.kidsq.selection === 'true');
 
-        return stepper.filter((step) => {
-            // Exclude steps based on marriage and kids status
-            if (step.step === 2 && !hasSpouse) return false; // Spouse Information
-            if (step.step === 4 && !hasKids) return false;    // Children Information
-            if (step.step === 10 && !hasKids) return false;   // Guardian For Minors
-
-            // Exclude steps when 'Will' is not included
-            if (!availableDocs.includes('primaryWill') && !availableDocs.includes('SpousalWill')) {
-                const stepsToExclude = [4, 5, 6, 7, 8, 9, 10, 11]; // Steps related to 'Will'
-                if (stepsToExclude.includes(step.step)) return false;
-            }
-
-            // Exclude POA Property step if 'POA1' is not included
-            if (!availableDocs.includes('poaProperty') && step.step === 12) return false;
-
-            // Exclude POA Health step if 'POA2' is not included
-            if (!availableDocs.includes('poaHealth') && step.step === 13) return false;
-
-            // Exclude Final Details and Document Review if neither 'Will' nor 'POA' is included
-            if (!availableDocs.some(doc => ['Will', 'SpousalWill', 'POA1', 'POA2'].includes(doc))) {
-                const stepsToExclude = [15, 16];
-                if (stepsToExclude.includes(step.step)) return false;
-            }
-
+        return stepper.filter((step, index) => {
+            if (index === 2 && !hasSpouse) return false; // Spouse Information
+            if (index === 4 && !hasKids) return false; // Children Information
+            if (index === 10 && !hasKids) return false; // Guardian For Minors
             return true;
         });
     };
 
-    const visibleSteps = getVisibleSteps(objectStatus, availableDocuments);
+    const visibleSteps = getVisibleSteps();
     const currentStepIndex = visibleSteps.findIndex((step) => step.step === pointer);
 
     // Data for StepRedirect
@@ -827,22 +770,6 @@ export default function Personal({ auth }) {
     const spouseData = objectStatus.some((obj) => obj.married) ? objectStatus.find((obj) => obj.married) : null;
     const kidsData = objectStatus.some((obj) => obj.kids) ? objectStatus.find((obj) => obj.kids) : null;
 
-    // Function to handle exiting the form
-    const handleExit = () => {
-        // Clear localStorage
-        localStorage.removeItem('currIdObjDB');
-        localStorage.removeItem('currentPointer');
-        localStorage.removeItem('fullData');
-        localStorage.removeItem('formValues');
-        // Reset state
-        setObjectStatus([]);
-        setDupMarried(false);
-        setDupKids(false);
-        setPointer(0);
-        router.get(route('dashboard'));
-    };
-
-    // Render the component
     return (
         <AuthenticatedLayout
             user={auth.user}
@@ -919,10 +846,10 @@ export default function Personal({ auth }) {
                                         : null
                                 )
                         }
-
-                        {pointer === 12 && availableDocuments.includes('POA1') && <PoaProperty datas={objectStatus} errors={validationErrors} />}
-                        {pointer === 13 && availableDocuments.includes('POA2') && <PoaHealth datas={objectStatus} errors={validationErrors} />}
+                        {pointer === 12 && <PoaProperty datas={objectStatus} errors={validationErrors} />}
+                        {pointer === 13 && <PoaHealth datas={objectStatus} errors={validationErrors} />}
                         {pointer === 14 && <Additional datas={objectStatus} errors={validationErrors} />}
+
                         {pointer === 15 && <FinalDetails datas={objectStatus} />}
                         {pointer === 16 && (
                             <DocumentSelector
@@ -932,7 +859,6 @@ export default function Personal({ auth }) {
                                 onSelect={(doc) => {
                                     setValidationErrors({});
                                 }}
-                                availableDocuments={availableDocuments}
                             />
                         )}
 
@@ -947,9 +873,9 @@ export default function Personal({ auth }) {
                             <Container fluid="md">
                                 <Row>
                                     <Col xs={6} className="d-flex justify-content-start">
-                                        {pointer > 0 && pointer < 16 && (
+                                        {pointer > 0 && pointer < 15 && (
                                             <Button
-                                                onClick={backStep}
+                                                onClick={backStep} // Updated to use the modified backStep function
                                                 variant="outline-dark"
                                                 size="lg"
                                                 style={{ width: '100%' }}
@@ -959,10 +885,10 @@ export default function Personal({ auth }) {
                                         )}
                                     </Col>
                                     <Col xs={6} className="d-flex justify-content-end">
-                                        {pointer < 16 ? (
+                                        {pointer < 15 ? (
                                             <Button
                                                 onClick={async () => {
-                                                    const canAdvance = await nextStep();
+                                                    const canAdvance = await nextStep(pointer + 1);
                                                     if (!canAdvance) {
                                                         console.log('Cannot advance due to validation errors');
                                                     }
@@ -1000,3 +926,4 @@ export default function Personal({ auth }) {
         </AuthenticatedLayout>
     );
 }
+
