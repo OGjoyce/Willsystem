@@ -58,8 +58,8 @@ export default function Personal({ auth }) {
     const [selectedPackage, setSelectedPackage] = useState(null);
     const [showSelectModal, setShowSelectModal] = useState(false);
     const [availableDocuments, setAvailableDocuments] = useState([]);
-    const [currentDocument, setCurrentDocument] = useState(null);
-    const [currentProfile, setCurrentProfile] = useState()
+    const [currentDocument, setCurrentDocument] = useState();
+    const [currentProfile, setCurrentProfile] = useState(null)
 
     const stepper = [
         { step: 0, title: 'Personal Information' },
@@ -140,6 +140,38 @@ export default function Personal({ auth }) {
         }
     }, []);
 
+
+    useEffect(() => {
+        // Inicializa la estructura por defecto si no está presente
+        if (!getObjectStatus(objectStatus, currentProfile).some(obj => obj.hasOwnProperty('marriedq')) && currentProfile !== null) {
+            const initialObjectStructure = [
+                { name: 'marriedq', data: {} },
+                { name: 'married', data: {} },
+                { name: 'kidsq', data: {} },
+                { name: 'kids', data: [] },
+                { name: 'executors', data: [] },
+                { name: 'relatives', data: [] },
+                { name: 'bequests', data: {} },
+                { name: 'residue', data: {} },
+                { name: 'wipeout', data: {} },
+                { name: 'trusting', data: {} },
+                { name: 'guardians', data: {} },
+                { name: 'pets', data: {} },
+                { name: 'additional', data: {} },
+                { name: 'poaProperty', data: {} },
+                { name: 'poaHealth', data: {} },
+                { name: 'finalDetails', data: {} },
+                { name: 'documentDOM', data: {} }
+            ];
+
+            // Asigna la estructura inicial al perfil actual
+            const updatedObjectStatus = handleProfileData(currentProfile, initialObjectStructure, objectStatus);
+            setObjectStatus(updatedObjectStatus);
+            localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus));
+        }
+    }, [objectStatus, currentProfile]);
+
+
     // Show or hide the Select Package Modal based on the current step
     useEffect(() => {
         if (pointer === 0) {
@@ -158,6 +190,8 @@ export default function Personal({ auth }) {
     const handleSelectPackage = (pkg) => {
         setSelectedPackage(pkg);
         setShowSelectModal(false);
+        setAvailableDocuments(packageDocuments[pkg.description] || []);
+        setCurrentDocument((packageDocuments[pkg.description] && packageDocuments[pkg.description][0]) || null);
     };
 
     // Helper function to update or create properties in objectStatus
@@ -275,7 +309,8 @@ export default function Personal({ auth }) {
 
                     const dataFirstStore = await storeDataObject(dataObj);
                     setCurrIdObjDB(dataFirstStore.id);
-                    setAvailableDocuments(packageDocuments[selectedPackage.description] || []);
+
+                    console.log(packageDocuments[selectedPackage.description][0])
                     localStorage.setItem('currIdObjDB', dataFirstStore.id);
                 } else {
                     return null;
@@ -760,9 +795,30 @@ export default function Personal({ auth }) {
         const hasKids = objectStatusToUse.some((obj) => obj.kidsq && obj.kidsq.selection === 'true');
 
         return stepper.filter((step, index) => {
+
+            if (index != 0 && currentDocument == null) return false
+            // Ocultar pasos basados en la información de spouse y kids
             if (index === 2 && !hasSpouse) return false; // Spouse Information
             if (index === 4 && !hasKids) return false; // Children Information
             if (index === 10 && !hasKids) return false; // Guardian For Minors
+
+            // Lógica basada en currentDocument
+            if (currentDocument === 'primaryWill') {
+                // Ocultar pasos 12 (POA Property) y 13 (POA Health) si es un primaryWill
+                if (index === 12 || index === 13) return false;
+            } else if (currentDocument === 'poaProperty') {
+                // Ocultar todos menos el paso 12 para POA Property
+                if (index === 5 || index === 6 || index === 7 || index === 8 || index === 9 ||
+                    index === 10 || index === 11 || index === 13 || index === 14 || index === 15) {
+                    return false;
+                }
+            } else if (currentDocument === 'poaHealth') {
+                if (index === 5 || index === 6 || index === 7 || index === 8 || index === 9 ||
+                    index === 10 || index === 11 || index === 12 || index === 14 || index === 15) {
+                    return false;
+                }
+            }
+
             return true;
         });
     };
