@@ -59,6 +59,8 @@ export default function Personal({ auth }) {
     const [selectedPackage, setSelectedPackage] = useState(null);
     const [showSelectModal, setShowSelectModal] = useState(false);
     const [availableDocuments, setAvailableDocuments] = useState([]);
+    const [currentDocument, setCurrentDocument] = useState(null);
+    const [currentProfile, setCurrentProfile] = useState()
 
     const stepper = [
         { step: 0, title: 'Personal Information' },
@@ -161,28 +163,109 @@ export default function Personal({ auth }) {
     };
 
     // Helper function to update or create properties in objectStatus
-    const updateOrCreateProperty = (prevStatus, propertiesAndData) => {
-        const newStatus = [...prevStatus];
-        const existingIndex = newStatus.findIndex((obj) =>
-            propertiesAndData.some((prop) => obj.hasOwnProperty(prop.name))
+    // Updated updateOrCreateProperty function
+    // Helper function to update or create properties in objectStatus
+    const updateOrCreateProperty = (objectStatus, propertiesAndData, currentProfile) => {
+        // Estructura predeterminada con el formato correcto
+        const defaultStructure = [
+            { name: 'personal', data: {} },            // Siempre existe
+            { name: 'owner', data: '' },               // Solo en el primer array
+            { name: 'packageInfo', data: {} },         // Solo en el primer array
+            { name: 'marriedq', data: {} },
+            { name: 'married', data: {} },
+            { name: 'kidsq', data: {} },
+            { name: 'kids', data: [] },
+            { name: 'executors', data: [] },
+            { name: 'relatives', data: [] },
+            { name: 'bequests', data: {} },
+            { name: 'residue', data: {} },
+            { name: 'wipeout', data: {} },
+            { name: 'trusting', data: {} },
+            { name: 'guardians', data: {} },
+            { name: 'pets', data: {} },
+            { name: 'additional', data: {} },
+            { name: 'poaProperty', data: {} },
+            { name: 'poaProperty', data: {} },
+            { name: 'finalDetails', data: {} },
+            { name: 'documentDOM', data: {} }
+        ];
+
+        // Buscar si ya existe un sub-array para el currentProfile
+        const existingProfileIndex = objectStatus.findIndex(profileArray =>
+            profileArray.some(doc => doc.personal && doc.personal.email === currentProfile)
         );
 
-        if (existingIndex !== -1) {
-            // Update existing object
-            propertiesAndData.forEach((prop) => {
-                newStatus[existingIndex][prop.name] = prop.data;
-            });
-        } else {
-            // Add new object
-            const newObject = {};
-            propertiesAndData.forEach((prop) => {
-                newObject[prop.name] = prop.data;
-            });
-            newStatus.push(newObject);
-        }
+        // Si el perfil existe, actualizamos los datos
+        if (existingProfileIndex !== -1) {
+            const newStatus = [...objectStatus];
+            const existingProfileArray = newStatus[existingProfileIndex];
 
-        return newStatus;
+            // Iteramos sobre la estructura predeterminada para mantener el orden correcto
+            defaultStructure.forEach((defaultField) => {
+                const existingFieldIndex = existingProfileArray.findIndex(field => field.hasOwnProperty(defaultField.name));
+
+                // Si existe el campo, lo actualizamos con los datos proporcionados
+                const providedData = propertiesAndData.find(prop => prop.name === defaultField.name);
+                if (providedData) {
+                    if (existingFieldIndex !== -1) {
+                        // Si el campo ya existe, lo actualizamos
+                        existingProfileArray[existingFieldIndex][defaultField.name] = providedData.data;
+                    } else {
+                        // Si no existe, lo agregamos
+                        const newField = {};
+                        newField[defaultField.name] = providedData.data;
+                        existingProfileArray.push(newField);
+                    }
+                }
+            });
+
+            // Actualizamos el array de perfil con los nuevos datos en el orden correcto
+            newStatus[existingProfileIndex] = existingProfileArray;
+            return newStatus;
+        } else {
+            // Si el perfil no existe, creamos un nuevo array de perfil con la estructura predeterminada
+
+            // Inicializamos un nuevo array para el perfil
+            const newProfileArray = defaultStructure.map(defaultField => {
+                const newObject = {};
+                newObject[defaultField.name] = defaultField.data;
+                return newObject;
+            });
+
+            // Agregamos los datos proporcionados respetando la estructura
+            propertiesAndData.forEach(prop => {
+                const fieldIndex = newProfileArray.findIndex(field => field.hasOwnProperty(prop.name));
+                if (fieldIndex !== -1) {
+                    // Actualizamos el valor dentro de la estructura predeterminada
+                    newProfileArray[fieldIndex][prop.name] = prop.data;
+                }
+            });
+
+            // Asegurarse de que el 'personal.email' sea igual a currentProfile
+            const personalObj = newProfileArray.find(obj => obj.hasOwnProperty('personal'));
+            if (personalObj) {
+                personalObj.personal.email = currentProfile;
+            }
+
+            // Si es el primer perfil, agregar owner y packageInfo
+            if (objectStatus.length === 0) {
+                const ownerObj = newProfileArray.find(obj => obj.hasOwnProperty('owner'));
+                if (ownerObj) {
+                    ownerObj.owner = currentProfile;
+                }
+                const packageInfoObj = newProfileArray.find(obj => obj.hasOwnProperty('packageInfo'));
+                if (packageInfoObj) {
+                    packageInfoObj.packageInfo = propertiesAndData.find(prop => prop.name === 'packageInfo')?.data || {};
+                }
+            }
+
+            // Agregamos el nuevo perfil a objectStatus
+            return [...objectStatus, newProfileArray];
+        }
     };
+
+
+
 
     // Function to handle advancing to the next step
     const pushInfo = async (step) => {
@@ -206,8 +289,10 @@ export default function Personal({ auth }) {
         switch (step) {
             case 0:
                 const personalData = getFormData();
+                setCurrentProfile(personalData.email);
 
                 if (checkValidation(validate.formData(personalData))) {
+                    // Definir los datos principales para personal
                     const dataObj = {
                         personal: {
                             ...stepper[step],
@@ -218,76 +303,60 @@ export default function Personal({ auth }) {
                         packageInfo: selectedPackage,
                     };
 
-                    propertiesAndData = [
-                        { name: 'personal', data: dataObj.personal },
-                        { name: 'owner', data: dataObj.owner },
-                        { name: 'packageInfo', data: selectedPackage },
-                    ];
+                    // Si es el primer perfil (es decir, objectStatus está vacío)
+                    if (objectStatus.length === 0) {
+                        propertiesAndData = [
+                            { name: 'personal', data: dataObj.personal },
+                            { name: 'owner', data: dataObj.owner },
+                            { name: 'packageInfo', data: selectedPackage },
+                        ];
+                    } else {
+                        // Si ya hay perfiles, solo agregar personal
+                        propertiesAndData = [
+                            { name: 'personal', data: dataObj.personal }
+                        ];
+                    }
 
-                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    // Actualizamos el objectStatus usando la función updateOrCreateProperty
+                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData, personalData.email);
+
+                    // Actualizamos el estado con el nuevo perfil o actualización
                     setObjectStatus(updatedObjectStatus);
 
+                    // Almacenar los datos en la base de datos
                     const dataFirstStore = await storeDataObject(dataObj);
                     setCurrIdObjDB(dataFirstStore.id);
                     setAvailableDocuments(packageDocuments[selectedPackage.description] || []);
 
+                    // Guardar en localStorage
                     localStorage.setItem('currIdObjDB', dataFirstStore.id);
                 } else {
                     return null;
                 }
 
-                // Set the default structure for objectStatus if not already set
-                if (!updatedObjectStatus.find(obj => obj.hasOwnProperty('marriedq'))) {
-                    const initialObjectStructure = [
-                        [{ name: 'marriedq', data: {} }],
-                        [{ name: 'married', data: {} }],
-                        [{ name: 'kidsq', data: {} }],
-                        [{ name: 'kids', data: [] }],
-                        [{ name: 'executors', data: [] },
-                        { name: 'relatives', data: [] }],
-                        [{ name: 'bequests', data: {} }],
-                        [{ name: 'residue', data: {} }],
-                        [{ name: 'wipeout', data: {} }],
-                        [{ name: 'trusting', data: {} }],
-                        [{ name: 'guardians', data: {} }],
-                        [{ name: 'pets', data: {} }],
-                        [{ name: 'additional', data: {} }],
-                        [{ name: 'poaProperty', data: {} }],
-                        [{ name: 'poaHealth', data: {} }],
-                        [{ name: 'finalDetails', data: {} }],
-                        [{ name: 'documentDOM', data: {} }],
-                    ];
-
-                    initialObjectStructure.forEach(
-                        obj => {
-                            const tempData = updateOrCreateProperty(updatedObjectStatus, obj);
-                            setObjectStatus(tempData);
-                            updatedObjectStatus = tempData;
-                        }
-                    );
-                }
-
                 break;
 
             case 1:
+                setCurrentProfile('test3@eail.com')
                 propertiesAndData = [
                     {
                         name: 'marriedq',
                         data: { selection: getMarriedData(), timestamp: Date.now() },
                     },
                 ];
-                updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData, currentProfile);
                 setObjectStatus(updatedObjectStatus);
                 break;
 
             case 2:
+                setCurrentProfile('testw3@eail.com')
                 const humanData = getHumanData();
 
                 if (checkValidation(validate.addHumanData(humanData))) {
                     propertiesAndData = [
                         { name: 'married', data: { ...humanData, timestamp: Date.now() } },
                     ];
-                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData, currentProfile);
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
@@ -295,13 +364,14 @@ export default function Personal({ auth }) {
                 break;
 
             case 3:
+                setCurrentProfile('testqw3@eail.com')
                 propertiesAndData = [
                     {
                         name: 'kidsq',
                         data: { selection: getMarriedData(), timestamp: Date.now() },
                     },
                 ];
-                updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData, currentProfile);
                 setObjectStatus(updatedObjectStatus);
                 break;
 
