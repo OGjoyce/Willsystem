@@ -4,13 +4,15 @@ import PDFEditor from './PDFEditor';
 import WillContent from './Content/WillContent';
 import POA1Content from './Content/POA1Content';
 import POA2Content from './Content/POA2Content';
+import PoaHealth from '../PoaHealth';
 // Import other content components as needed
 
+// Mapeo de documentos a componentes
 const contentComponents = {
-    Will: WillContent,
-    POA1: POA1Content,
-    POA2: POA2Content,
-    // Add other documents as needed
+    primaryWill: WillContent,
+    poaProperty: POA1Content,
+    poaHealth: POA2Content,
+    // Agregar más mapeos si es necesario
 };
 
 const DocumentSelector = ({ onSelect, errors, object_status, currIdObjDB, availableDocuments }) => {
@@ -34,9 +36,9 @@ const DocumentSelector = ({ onSelect, errors, object_status, currIdObjDB, availa
                         {availableDocuments.map((doc) => (
                             <Col key={doc}>
                                 <Button onClick={() => handleSelect(doc)} style={{ width: "100%" }} variant="outline-dark">
-                                    {doc === 'Will' && <><i className="bi bi-file-text"></i> Will</>}
-                                    {doc === 'POA1' && <><i className="bi bi-house"></i> POA1 Property</>}
-                                    {doc === 'POA2' && <><i className="bi bi-hospital"></i> POA2 Health</>}
+                                    {doc === 'primaryWill' && <><i className="bi bi-file-text"></i> Will</>}
+                                    {doc === 'poaProperty' && <><i className="bi bi-house"></i> POA1 Property</>}
+                                    {doc === 'poaHealth' && <><i className="bi bi-hospital"></i> POA2 Health</>}
                                     {/* Add cases for other documents */}
                                 </Button>
                             </Col>
@@ -46,9 +48,9 @@ const DocumentSelector = ({ onSelect, errors, object_status, currIdObjDB, availa
                 </>
             ) : (
                 <PDFEditor
-                    ContentComponent={contentComponents[selectedDoc]}
+                    ContentComponent={contentComponents[selectedDoc]} // Aquí seleccionamos el componente correcto
                     datas={object_status}
-                    documentType={selectedDoc}
+                    documentType='POA1'
                     errors={errors}
                     backendId={currIdObjDB}
                     onBack={handleBack}
