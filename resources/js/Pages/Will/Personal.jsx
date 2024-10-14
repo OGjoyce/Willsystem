@@ -206,6 +206,17 @@ export default function Personal({ auth }) {
         return newStatus;
     };
 
+    const getObjectStatus = (objectStatus, currentProfile) => {
+        // Buscar en objectStatus el perfil que coincida con el currentProfile
+        const profile = objectStatus.find(profileArray =>
+            profileArray.some(dataObj => dataObj.personal?.email === currentProfile)
+        );
+
+        // Retornar el perfil encontrado o un array vacío si no se encuentra
+        return profile || [];
+    };
+
+
 
 
 
@@ -241,7 +252,7 @@ export default function Personal({ auth }) {
         switch (step) {
             case 0:
                 const personalData = getFormData();
-
+                setCurrentProfile(personalData.email)
                 if (checkValidation(validate.formData(personalData))) {
                     const dataObj = {
                         personal: {
@@ -282,7 +293,7 @@ export default function Personal({ auth }) {
                         data: { selection: getMarriedData(), timestamp: Date.now() },
                     },
                 ];
-                updatedObjectStatus = handleProfileData('e@essaqsdsd.com', propertiesAndData, objectStatus);
+                updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);
                 setObjectStatus(updatedObjectStatus);
 
                 break;
@@ -294,7 +305,7 @@ export default function Personal({ auth }) {
                     propertiesAndData = [
                         { name: 'married', data: { ...humanData, timestamp: Date.now() } },
                     ];
-                    updatedObjectStatus = handleProfileData('testasasasdasadsasd2@email.com', propertiesAndData, objectStatus);
+                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
@@ -309,7 +320,7 @@ export default function Personal({ auth }) {
                         data: { selection: getMarriedData(), timestamp: Date.now() },
                     },
                 ];
-                updatedObjectStatus = handleProfileData('emaildsaasfcsq@de.com', propertiesAndData, objectStatus);
+                updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);
                 setObjectStatus(updatedObjectStatus);
                 break;
 
@@ -320,7 +331,7 @@ export default function Personal({ auth }) {
                     propertiesAndData = [
                         { name: 'kids', data: [...kidsData] },
                     ];
-                    updatedObjectStatus = handleProfileData('tes@asdsaddasdase.coma', propertiesAndData, objectStatus);
+                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
@@ -336,7 +347,7 @@ export default function Personal({ auth }) {
                         { name: 'relatives', data: relativesData },
                         { name: 'executors', data: executorsData },
                     ];
-                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);;
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
@@ -353,7 +364,7 @@ export default function Personal({ auth }) {
                             data: { ...bequestData, timestamp: Date.now() },
                         },
                     ];
-                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);;
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
@@ -367,7 +378,7 @@ export default function Personal({ auth }) {
                     propertiesAndData = [
                         { name: 'residue', data: { ...residueData, timestamp: Date.now() } },
                     ];
-                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);;
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
@@ -384,7 +395,7 @@ export default function Personal({ auth }) {
                             data: { ...wipeoutData, timestamp: Date.now() },
                         },
                     ];
-                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);;
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
@@ -401,7 +412,7 @@ export default function Personal({ auth }) {
                             data: { ...trustingData, timestamp: Date.now() },
                         },
                     ];
-                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);;
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
@@ -418,7 +429,7 @@ export default function Personal({ auth }) {
                             data: { ...guardiansData, timestamp: Date.now() },
                         },
                     ];
-                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);;
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
@@ -432,7 +443,7 @@ export default function Personal({ auth }) {
                     propertiesAndData = [
                         { name: 'pets', data: { ...petsData, timestamp: Date.now() } },
                     ];
-                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);;
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
@@ -447,7 +458,7 @@ export default function Personal({ auth }) {
                     propertiesAndData = [
                         { name: 'poaProperty', data: { ...poaPropertyData, timestamp: Date.now() } },
                     ];
-                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);;
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
@@ -461,7 +472,7 @@ export default function Personal({ auth }) {
                     propertiesAndData = [
                         { name: 'poaHealth', data: { ...poaHealthData, timestamp: Date.now() } },
                     ];
-                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);;
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
@@ -477,7 +488,7 @@ export default function Personal({ auth }) {
                             data: { ...additionalData, timestamp: Date.now() },
                         },
                     ];
-                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);;
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
@@ -492,7 +503,7 @@ export default function Personal({ auth }) {
                         data: { ...getFinalDetails(), timestamp: Date.now() },
                     },
                 ];
-                updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);
                 setObjectStatus(updatedObjectStatus);
                 break;
 
@@ -506,7 +517,7 @@ export default function Personal({ auth }) {
                             data: { ...documentDOMData, timestamp: Date.now() },
                         },
                     ];
-                    updatedObjectStatus = updateOrCreateProperty(objectStatus, propertiesAndData);
+                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);;
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
@@ -575,7 +586,7 @@ export default function Personal({ auth }) {
         }
 
         // Use the updated objectStatusResult
-        const newVisibleSteps = getVisibleSteps(objectStatusResult);
+        const newVisibleSteps = getVisibleSteps(getObjectStatus(objectStatusResult, currentProfile));
         const currentIndex = newVisibleSteps.findIndex((step) => step.step === pointer);
         let nextVisibleStep = newVisibleSteps[currentIndex + 1];
 
@@ -740,7 +751,7 @@ export default function Personal({ auth }) {
     };
 
     // Function to get the list of visible steps based on current data
-    const getVisibleSteps = (objectStatusToUse = objectStatus) => {
+    const getVisibleSteps = (objectStatusToUse = getObjectStatus(objectStatus, currentProfile)) => {
         const hasSpouse = objectStatusToUse.some(
             (obj) => obj.marriedq && (obj.marriedq.selection === 'true' || obj.marriedq.selection === 'soso')
         );
@@ -758,16 +769,16 @@ export default function Personal({ auth }) {
     const currentStepIndex = visibleSteps.findIndex((step) => step.step === pointer);
 
     // Data for StepRedirect
-    const hasSpouse = objectStatus.some(
+    const hasSpouse = getObjectStatus(objectStatus, currentProfile).some(
         (obj) => obj.marriedq && (obj.marriedq.selection === 'true' || obj.marriedq.selection === 'soso')
     );
-    const hasKids = objectStatus.some((obj) => obj.kidsq && obj.kidsq.selection === 'true');
-    const hasSpouseData = objectStatus.some((obj) => obj.married);
-    const hasKidsData = objectStatus.some((obj) => obj.kids && obj.kids.length > 0);
+    const hasKids = getObjectStatus(objectStatus, currentProfile).some((obj) => obj.kidsq && obj.kidsq.selection === 'true');
+    const hasSpouseData = getObjectStatus(objectStatus, currentProfile).some((obj) => obj.married);
+    const hasKidsData = getObjectStatus(objectStatus, currentProfile).some((obj) => obj.kids && obj.kids.length > 0);
     const stepBack = !hasSpouseData ? 1 : !hasKidsData ? 3 : null;
 
-    const spouseData = objectStatus.some((obj) => obj.married) ? objectStatus.find((obj) => obj.married) : null;
-    const kidsData = objectStatus.some((obj) => obj.kids) ? objectStatus.find((obj) => obj.kids) : null;
+    const spouseData = getObjectStatus(objectStatus, currentProfile).some((obj) => obj.married) ? getObjectStatus(objectStatus, currentProfile).find((obj) => obj.married) : null;
+    const kidsData = getObjectStatus(objectStatus, currentProfile).some((obj) => obj.kids) ? getObjectStatus(objectStatus, currentProfile).find((obj) => obj.kids) : null;
 
     return (
         <AuthenticatedLayout
