@@ -10,6 +10,8 @@ import PoaHealth from '../PoaHealth';
 // Mapeo de documentos a componentes
 const contentComponents = {
     primaryWill: WillContent,
+    spousalWill: WillContent,
+    secondaryWill: WillContent,
     poaProperty: POA1Content,
     poaHealth: POA2Content,
     // Agregar más mapeos si es necesario
@@ -37,6 +39,8 @@ const DocumentSelector = ({ onSelect, errors, object_status, currIdObjDB, availa
                             <Col key={doc}>
                                 <Button onClick={() => handleSelect(doc)} style={{ width: "100%" }} variant="outline-dark">
                                     {doc === 'primaryWill' && <><i className="bi bi-file-text"></i> Will</>}
+                                    {doc === 'spousalWill' && <><i className="bi bi-file-text"></i> Spousal Will</>}
+                                    {doc === 'secondaryWill' && <><i className="bi bi-file-text"></i> Secondary Will</>}
                                     {doc === 'poaProperty' && <><i className="bi bi-house"></i> POA1 Property</>}
                                     {doc === 'poaHealth' && <><i className="bi bi-hospital"></i> POA2 Health</>}
                                     {/* Add cases for other documents */}
