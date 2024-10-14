@@ -251,6 +251,10 @@ export default function Personal({ auth }) {
     };
 
 
+    const handleDocumentChange = (newDocument) => {
+        setSelectedDoc(newDocument);
+        onSelect(newDocument); // Esto también actualizará en el componente padre si es necesario
+    };
 
 
 
@@ -782,9 +786,21 @@ export default function Personal({ auth }) {
 
     // Function to determine if a step is clickable in the breadcrumb navigation
     const isStepClickable = (index) => {
+        // Si el índice es 0, siempre permitimos hacer clic
+        if (index === 0) return true;
 
+        // Verificamos si el paso 0 tiene datos completos
+        const step0Data = getObjectStatus(objectStatus, currentProfile).find(obj => obj.hasOwnProperty('personal'));
+
+        // Si no existe step0Data o falta el nombre completo o el correo electrónico, no se puede hacer clic en otros pasos
+        if (!step0Data || !step0Data.personal.fullName || !step0Data.personal.email) {
+            return false;
+        }
+
+        // Si el paso 0 está completo, permitimos hacer clic en otros pasos
         return true;
     };
+
 
 
     // Function to get the list of visible steps based on current data
