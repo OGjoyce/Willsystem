@@ -164,8 +164,13 @@ export default function Personal({ auth }) {
                 { name: 'documentDOM', data: {} }
             ];
 
-            // Asigna la estructura inicial al perfil actual
-            const updatedObjectStatus = handleProfileData(currentProfile, initialObjectStructure, objectStatus);
+            // Iterar sobre cada propiedad de la estructura inicial y enviarla una por una a handleProfileData
+            let updatedObjectStatus = objectStatus; // Mantener el objectStatus actualizado
+            initialObjectStructure.forEach(item => {
+                updatedObjectStatus = handleProfileData(currentProfile, [item], updatedObjectStatus);
+            });
+
+            // Establecer el nuevo objectStatus
             setObjectStatus(updatedObjectStatus);
             localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus));
         }
@@ -301,7 +306,9 @@ export default function Personal({ auth }) {
                         owner: personalData.email,
                         packageInfo: {
                             ...selectedPackage, documents: availableDocuments.reduce((acc, doc, index) => {
-                                acc[doc] = { id: index + 1, owner: "unknown", dataStatus: "incomplete" };
+                                acc[doc] = {
+                                    id: index + 1, owner: index === 0 ? personalData.email : "unknown", dataStatus: "incomplete"
+                                };
                                 return acc;
                             }, {})
                         },
@@ -950,6 +957,12 @@ export default function Personal({ auth }) {
                                 onSelect={(doc) => {
                                     setValidationErrors({});
                                 }}
+                                setPointer={setPointer}
+                                setCurrentProfile={setCurrentProfile}
+                                setCurrentDocument={setCurrentDocument}
+                                backStep={backStep}
+                                stepHasData={stepHasData}
+                                visibleSteps={visibleSteps}
                             />
                         )}
 
