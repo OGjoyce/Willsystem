@@ -927,6 +927,7 @@ export default function Personal({ auth }) {
                                 setPointer={setPointer}
                                 setCurrentProfile={setCurrentProfile}
                                 setCurrentDocument={setCurrentDocument}
+                                setObjectStatus={setObjectStatus}
                                 backStep={backStep}
                                 stepHasData={stepHasData}
                                 visibleSteps={visibleSteps}
