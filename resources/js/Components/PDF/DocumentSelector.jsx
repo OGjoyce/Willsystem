@@ -21,6 +21,7 @@ const DocumentSelector = ({
     setPointer,
     setCurrentProfile,
     setCurrentDocument,
+    setObjectStatus,
     backStep,
     stepHasData,
     visibleSteps,
@@ -51,7 +52,7 @@ const DocumentSelector = ({
         if (index === 0) return true;
         const previousDocKey = availableDocuments[index - 1];
         const previousDoc = firstElement.packageInfo.documents[previousDocKey];
-        return previousDoc?.dataStatus === "completed";
+        return previousDoc?.dataStatus === "incomplete";
     };
 
     const handleSelectDocument = (doc) => {
@@ -79,6 +80,31 @@ const DocumentSelector = ({
     };
 
     const handleSelectEmail = (email) => {
+        // Establecer el email seleccionado como owner del documento
+        const updatedObjectStatus = objectStatus.map((profileArray, idx) => {
+            return profileArray.map((dataObj) => {
+                if (dataObj.packageInfo && dataObj.packageInfo.documents && dataObj.personal?.email === currentProfile) {
+                    // Actualizar el owner del documento seleccionado
+                    const updatedDocuments = { ...dataObj.packageInfo.documents };
+                    updatedDocuments[selectedDoc].owner = email; // Asignar el email como owner
+
+                    return {
+                        ...dataObj,
+                        packageInfo: {
+                            ...dataObj.packageInfo,
+                            documents: updatedDocuments,
+                        },
+                    };
+                }
+                return dataObj;
+            });
+        });
+
+        // Guardar el nuevo estado en objectStatus
+        setObjectStatus(updatedObjectStatus);
+        localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus)); // Guardar en localStorage
+
+        // Establecer el email seleccionado como perfil actual
         setSelectedEmail(email);
         setCurrentProfile(email);
         setCurrentDocument(selectedDoc);
@@ -94,6 +120,7 @@ const DocumentSelector = ({
             setShowPDFEditor(true); // Mostrar el PDFEditor cuando todos los pasos tengan datos
         }
 
+        // Cerrar el modal de selección de email
         setShowEmailModal(false);
     };
 
