@@ -109,9 +109,16 @@ const DocumentSelector = ({
         setCurrentProfile(email);
         setCurrentDocument(selectedDoc);
 
+        // Verificar si todos los pasos tienen datos antes de avanzar
+        const firstIncompleteStep = visibleSteps.find(step => !stepHasData(step.step));
 
+        if (firstIncompleteStep) {
+            setPointer(firstIncompleteStep.step);
 
-        backStep();
+        } else {
+            setPointer(16); // Navegar al paso 16
+            setShowPDFEditor(true); // Mostrar el PDFEditor cuando todos los pasos tengan datos
+        }
 
         // Cerrar el modal de selección de email
         setShowEmailModal(false);
