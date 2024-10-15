@@ -29,7 +29,9 @@ const DocumentSelector = ({
     const [selectedDoc, setSelectedDoc] = useState(null);
     const [showEmailModal, setShowEmailModal] = useState(false);
     const [selectedEmail, setSelectedEmail] = useState(null);
+    const [showPDFEditor, setShowPDFEditor] = useState(false); // Para controlar si mostrar el PDFEditor
 
+    // Validar el object_status
     if (!Array.isArray(object_status) || object_status.length === 0 || !Array.isArray(object_status[0]) || object_status[0].length === 0) {
         return <p>No hay documentos disponibles.</p>;
     }
@@ -43,6 +45,7 @@ const DocumentSelector = ({
 
     const availableDocuments = Object.keys(firstElement.packageInfo.documents);
 
+    // Verificar si el documento está desbloqueado
     const isDocumentUnlocked = (doc, index) => {
         if (index === 0) return true;
         const previousDocKey = availableDocuments[index - 1];
@@ -53,25 +56,26 @@ const DocumentSelector = ({
     const handleSelectDocument = (doc) => {
         const documentOwner = firstElement.packageInfo.documents[doc].owner;
 
-        // Si el documento ya tiene un `owner` que coincide con el `currentProfile`, no mostrar modal
         if (documentOwner === currentProfile) {
             setSelectedDoc(doc);
             setCurrentDocument(doc);
 
-            // Verificar los pasos antes de continuar
+            // Verificar si hay pasos incompletos
             const firstIncompleteStep = visibleSteps.find(step => !stepHasData(step.step));
             if (firstIncompleteStep) {
+                console.log('Hay un paso incompleto:', firstIncompleteStep.step);
                 setPointer(firstIncompleteStep.step);
-                backStep(); // Hacemos backStep si hay un paso incompleto
+                backStep();
             } else {
-                setPointer(16); // Continuar con la edición del documento
+                console.log('Todos los pasos están completos. Mostrando PDFEditor');
+                setShowPDFEditor(true); // Mostrar el PDFEditor
             }
         } else {
-            // Si el `owner` no coincide o no está definido, mostrar el modal para seleccionar perfil
             setSelectedDoc(doc);
             setShowEmailModal(true);
         }
     };
+
 
     const handleSelectEmail = (email) => {
         setSelectedEmail(email);
@@ -86,14 +90,28 @@ const DocumentSelector = ({
             backStep();
         } else {
             setPointer(16); // Navegar al paso 16
+            setShowPDFEditor(true); // Mostrar el PDFEditor cuando todos los pasos tengan datos
         }
 
         setShowEmailModal(false);
     };
 
+    const getObjectStatus = (objectStatus, currentProfile) => {
+        // Buscar en objectStatus el perfil que coincida con el currentProfile
+        const profile = objectStatus.find(profileArray =>
+            profileArray.some(dataObj => dataObj.personal?.email === currentProfile)
+        );
+
+        // Retornar el perfil encontrado o un array vacío si no se encuentra
+        return profile || [];
+    };
+
+    console.log(getObjectStatus(object_status, currentProfile))
+
     return (
         <Container>
-            {!selectedDoc ? (
+            {/* Si no se ha seleccionado ningún documento, muestra la lista de documentos */}
+            {!selectedDoc && (
                 <>
                     <h3>Select a Document to View, Edit or Download</h3>
                     <Row className="mt-3">
@@ -116,10 +134,9 @@ const DocumentSelector = ({
                     </Row>
                     {errors.documentDOM && <p className="mt-2 text-sm text-center text-red-600">{errors.documentDOM}</p>}
                 </>
-            ) : (
-                null
             )}
 
+            {/* Mostrar el modal para seleccionar el perfil cuando el documento no tenga dueño */}
             <Modal show={showEmailModal} onHide={() => setShowEmailModal(false)}>
                 <Modal.Header closeButton>
                     <Modal.Title>Select a Profile</Modal.Title>
@@ -140,6 +157,15 @@ const DocumentSelector = ({
                     })}
                 </Modal.Body>
             </Modal>
+
+            {/* Mostrar el PDFEditor si todos los pasos están completos */}
+            {showPDFEditor && selectedDoc && (
+                <PDFEditor
+                    documentType={selectedDoc}
+                    datas={getObjectStatus(object_status, currentProfile)}
+                    currIdObjDB={currIdObjDB}
+                />
+            )}
         </Container>
     );
 };
