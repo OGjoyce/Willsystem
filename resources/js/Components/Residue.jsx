@@ -46,7 +46,7 @@ function Residue({ id, datas, errors }) {
 
   const marriedStatus = datas[1].marriedq?.selection === "true";
   const sosoStatus = datas[1].marriedq?.selection === "soso";
-  const hasKids = datas[3].kidsq?.selection === "true";
+  const hasKids = datas[3]?.kidsq?.selection === "true";
 
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [options, setOptions] = useState([]);
@@ -141,7 +141,7 @@ function Residue({ id, datas, errors }) {
       const married = datas[2]?.married;
       const kids = datas[4]?.kids;
       const relatives = datas[5]?.relatives;
-      const kidsq = datas[3].kidsq?.selection;
+      const kidsq = datas[3]?.kidsq?.selection;
 
       const married_names = married?.firstName && married?.lastName ? married?.firstName + " " + married?.lastName : null;
       if (married_names) names.push(married_names);

@@ -1,6 +1,6 @@
 export const object_status = [
   {
-        "owner": "janedoe@email.com",
+        
         "personal": {
           "city": "Toronto",
           "step": 0,
@@ -11,6 +11,7 @@ export const object_status = [
           "telephone": "+1 (111) 111-1111",
           "timestamp": 1725655298320
         },
+        "owner": "janedoe@email.com",
         "packageInfo": {
           "id": 2,
           "name": "Summer Sale",
@@ -18,7 +19,17 @@ export const object_status = [
           "campaign": "Facebook",
           "created_at": "2024-08-01T00:54:33.000000Z",
           "updated_at": "2024-08-01T00:55:35.000000Z",
-          "description": "2 POAS and Will"
+          "description": "2 POAS and Will",
+          "documents": {
+            "poaProperty": {
+              "owner": undefined,
+              "dataStatus": "incompleted"
+            },
+            "primaryWill": {
+              "owner": undefined,
+              "dataStatus": "completed"
+            }
+          }
         }
       },
       {

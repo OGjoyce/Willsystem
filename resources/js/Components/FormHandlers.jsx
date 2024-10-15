@@ -13,7 +13,8 @@ import { getOptObject } from '@/Components/Residue';
 import { getGuardiansForMinors } from '@/Components/GuardianForMinors';
 import { getPetInfo } from '@/Components/Pets';
 import { getAdditionalInformation } from '@/Components/Additional';
-import { getPoa } from '@/Components/Poa';
+import { getPoaProperty } from '@/Components/PoaProperty';
+import { getPoaHealth } from '@/Components/PoaHealth';
 import { getFinalDetails } from '@/Components/FinalDetails';
 import { getDocumentDOMInfo } from '@/Components/PDF/PDFEditor';
 
@@ -32,7 +33,8 @@ export {
     getGuardiansForMinors,
     getPetInfo,
     getAdditionalInformation,
-    getPoa,
+    getPoaProperty,
+    getPoaHealth,
     getFinalDetails,
     getDocumentDOMInfo,
 };
