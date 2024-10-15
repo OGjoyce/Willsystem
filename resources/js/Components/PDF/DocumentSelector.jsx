@@ -16,7 +16,7 @@ const contentComponents = {
 const DocumentSelector = ({
     onSelect,
     errors,
-    object_status,
+    objectStatus,
     currIdObjDB,
     setPointer,
     setCurrentProfile,
@@ -24,19 +24,20 @@ const DocumentSelector = ({
     backStep,
     stepHasData,
     visibleSteps,
-    currentProfile // Asegúrate de pasar `currentProfile` como prop
+    currentProfile
 }) => {
     const [selectedDoc, setSelectedDoc] = useState(null);
     const [showEmailModal, setShowEmailModal] = useState(false);
     const [selectedEmail, setSelectedEmail] = useState(null);
-    const [showPDFEditor, setShowPDFEditor] = useState(false); // Para controlar si mostrar el PDFEditor
+    const [showPDFEditor, setShowPDFEditor] = useState(false);
+    const [documentOwner, setDocumentOwner] = useState(null); // Estado para almacenar el owner del documento
 
-    // Validar el object_status
-    if (!Array.isArray(object_status) || object_status.length === 0 || !Array.isArray(object_status[0]) || object_status[0].length === 0) {
+    // Validar el objectStatus
+    if (!Array.isArray(objectStatus) || objectStatus.length === 0 || !Array.isArray(objectStatus[0]) || objectStatus[0].length === 0) {
         return <p>No hay documentos disponibles.</p>;
     }
 
-    const firstElementArray = object_status[0];
+    const firstElementArray = objectStatus[0];
     const firstElement = firstElementArray[0];
 
     if (!firstElement.packageInfo || !firstElement.packageInfo.documents) {
@@ -54,28 +55,28 @@ const DocumentSelector = ({
     };
 
     const handleSelectDocument = (doc) => {
-        const documentOwner = firstElement.packageInfo.documents[doc].owner;
+        const document = firstElement.packageInfo.documents[doc];
+        const owner = document.owner; // Obtener el owner del documento seleccionado
 
-        if (documentOwner === currentProfile) {
+        if (owner === currentProfile) {
             setSelectedDoc(doc);
             setCurrentDocument(doc);
+            setDocumentOwner(owner); // Guardar el owner en el estado
 
             // Verificar si hay pasos incompletos
             const firstIncompleteStep = visibleSteps.find(step => !stepHasData(step.step));
             if (firstIncompleteStep) {
-                console.log('Hay un paso incompleto:', firstIncompleteStep.step);
                 setPointer(firstIncompleteStep.step);
                 backStep();
             } else {
-                console.log('Todos los pasos están completos. Mostrando PDFEditor');
                 setShowPDFEditor(true); // Mostrar el PDFEditor
             }
         } else {
             setSelectedDoc(doc);
+            setDocumentOwner(owner); // Guardar el owner en el estado
             setShowEmailModal(true);
         }
     };
-
 
     const handleSelectEmail = (email) => {
         setSelectedEmail(email);
@@ -105,8 +106,6 @@ const DocumentSelector = ({
         // Retornar el perfil encontrado o un array vacío si no se encuentra
         return profile || [];
     };
-
-    console.log(getObjectStatus(object_status, currentProfile))
 
     return (
         <Container>
@@ -142,7 +141,7 @@ const DocumentSelector = ({
                     <Modal.Title>Select a Profile</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    {object_status.map((profileArray, idx) => {
+                    {objectStatus.map((profileArray, idx) => {
                         const profile = profileArray.find(obj => obj.personal?.email);
                         if (profile && profile.personal?.email) {
                             return (
@@ -161,9 +160,12 @@ const DocumentSelector = ({
             {/* Mostrar el PDFEditor si todos los pasos están completos */}
             {showPDFEditor && selectedDoc && (
                 <PDFEditor
-                    documentType={selectedDoc}
-                    datas={getObjectStatus(object_status, currentProfile)}
-                    currIdObjDB={currIdObjDB}
+                    documentType={selectedDoc} // Pasar el tipo de documento seleccionado
+                    objectStatus={objectStatus}
+                    documentOwner={documentOwner} // Pasar el owner del documento seleccionado
+                    backendId={currIdObjDB}
+                    ContentComponent={contentComponents[selectedDoc]} // Pasar el componente de contenido adecuado
+                    onBack={() => setSelectedDoc(null)}
                 />
             )}
         </Container>
