@@ -1,95 +1,95 @@
 import React, { useState, useEffect } from 'react';
-import {
-    Container,
-    Row,
-    Col,
-    Form,
-} from 'react-bootstrap';
+import { Container, Row, Col, Form } from 'react-bootstrap';
 
-/**
- * Function to retrieve additional information.
- * This can be expanded to gather all necessary data from the component.
- */
-export const getAdditionalInformation = () => {
+// Función para recuperar los datos de `additional` desde localStorage
+export function getAdditionalInformation() {
     const savedFormValues = JSON.parse(localStorage.getItem('formValues')) || {};
-    return savedFormValues.additional || {};
-};
+    return savedFormValues.additional || {
+        customClauseText: '',
+        otherWishes: '',
+        checkboxes: {
+            organdonation: false,
+            cremation: false,
+            buried: false,
+        },
+    };
+}
 
 function Additional({ datas, errors }) {
-    // State management for clause inputs
-    const [customClauseText, setCustomClauseText] = useState('');
-    const [otherWishes, setOtherWishes] = useState('');
-    const [checkboxes, setCheckboxes] = useState({
-        organdonation: false,
-        cremation: false,
-        buried: false,
+    // State management para los campos del formulario
+    const [additional, setAdditional] = useState({
+        customClauseText: '',
+        otherWishes: '',
+        checkboxes: {
+            organdonation: false,
+            cremation: false,
+            buried: false,
+        },
     });
+
     const [validationErrors, setValidationErrors] = useState({});
 
-    // Effect to synchronize validation errors
+    // Cargar datos de localStorage al montar el componente
+    useEffect(() => {
+        const savedFormValues = getAdditionalInformation();
+        setAdditional(savedFormValues);
+    }, []);
+
+    // Guardar datos en localStorage cada vez que `additional` cambie
+    const updateLocalStorage = (newData) => {
+        const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
+        formValues.additional = newData;
+        localStorage.setItem('formValues', JSON.stringify(formValues));
+    };
+
+    // Actualizar estado y localStorage para los checkboxes
+    const handleCheckboxChange = (e) => {
+        const { name, checked } = e.target;
+        const newCheckboxes = {
+            ...additional.checkboxes,
+            [name]: checked,
+        };
+        const newData = {
+            ...additional,
+            checkboxes: newCheckboxes,
+        };
+        setAdditional(newData);
+        updateLocalStorage(newData);
+    };
+
+    // Actualizar estado y localStorage para el Custom Clause
+    const handleCustomClauseChange = (e) => {
+        const newData = {
+            ...additional,
+            customClauseText: e.target.value,
+        };
+        setAdditional(newData);
+        updateLocalStorage(newData);
+    };
+
+    // Actualizar estado y localStorage para Other Wishes
+    const handleOtherWishesChange = (e) => {
+        const newData = {
+            ...additional,
+            otherWishes: e.target.value,
+        };
+        setAdditional(newData);
+        updateLocalStorage(newData);
+    };
+
+    // Sincronizar errores de validación con el componente
     useEffect(() => {
         setValidationErrors(errors);
     }, [errors]);
 
-    // Effect to load data from localStorage when the component mounts
-    useEffect(() => {
-        const savedFormValues = JSON.parse(localStorage.getItem('formValues')) || {};
-        if (savedFormValues.additional) {
-            const {
-                customClauseText,
-                otherWishes,
-                checkboxes,
-            } = savedFormValues.additional;
-            setCustomClauseText(customClauseText || '');
-            setOtherWishes(otherWishes || '');
-            setCheckboxes(checkboxes || {
-                organdonation: false,
-                cremation: false,
-                buried: false,
-            });
-        }
-    }, []);
-
-    // Effect to save data to localStorage whenever relevant states change
-    useEffect(() => {
-        const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
-        formValues.additional = {
-            customClauseText,
-            otherWishes,
-            checkboxes,
-            timestamp: Date.now(),
-        };
-        localStorage.setItem('formValues', JSON.stringify(formValues));
-    }, [customClauseText, otherWishes, checkboxes]);
-
-    // Handle changes in the checkboxes
-    const handleCheckboxChange = (e) => {
-        const { name, checked } = e.target;
-        setCheckboxes((prev) => ({
-            ...prev,
-            [name]: checked,
-        }));
-    };
-
-    // Handle changes in the Custom Clause text area
-    const handleCustomClauseChange = (e) => {
-        setCustomClauseText(e.target.value);
-    };
-
-    // Handle changes in the Other Wishes text area
-    const handleOtherWishesChange = (e) => {
-        setOtherWishes(e.target.value);
-    };
-
     return (
         <Container className="mt-4">
-            {/* Standard Clause Section */}
+            {/* Sección de cláusulas estándar */}
             <Row>
                 <Col sm={12}>
                     <h3>Standard Clause</h3>
                 </Col>
             </Row>
-            {/* Checkboxes for Standard Clause */}
             <Row className="mt-3">
                 <Col sm={12}>
                     <Form>
@@ -100,7 +100,7 @@ function Additional({ datas, errors }) {
                                 id="organdonation"
                                 name="organdonation"
                                 label="Organ Donation"
-                                checked={checkboxes.organdonation}
+                                checked={additional.checkboxes.organdonation}
                                 onChange={handleCheckboxChange}
                             />
                         </div>
@@ -111,7 +111,7 @@ function Additional({ datas, errors }) {
                                 id="cremation"
                                 name="cremation"
                                 label="Body Cremation"
-                                checked={checkboxes.cremation}
+                                checked={additional.checkboxes.cremation}
                                 onChange={handleCheckboxChange}
                             />
                         </div>
@@ -122,7 +122,7 @@ function Additional({ datas, errors }) {
                                 id="buried"
                                 name="buried"
                                 label="Buried"
-                                checked={checkboxes.buried}
+                                checked={additional.checkboxes.buried}
                                 onChange={handleCheckboxChange}
                             />
                         </div>
@@ -130,20 +130,19 @@ function Additional({ datas, errors }) {
                 </Col>
             </Row>
 
-            {/* Custom Clause Section */}
+            {/* Sección de cláusulas personalizadas */}
             <Row className="mt-4">
                 <Col sm={12}>
                     <h3>Custom Clause</h3>
                 </Col>
             </Row>
-            {/* Text Area for Custom Clause */}
             <Row>
                 <Col sm={12}>
                     <Form.Group controlId="customClause">
                         <Form.Control
                             as="textarea"
                             rows={3}
-                            value={customClauseText}
+                            value={additional.customClauseText}
                             onChange={handleCustomClauseChange}
                             placeholder="Enter your custom clause here..."
                         />
@@ -154,7 +153,7 @@ function Additional({ datas, errors }) {
                 </Col>
             </Row>
 
-            {/* Other Wishes Section */}
+            {/* Sección de otros deseos */}
             <Row className="mt-5">
                 <Col sm={12}>
                     <Form>
@@ -163,7 +162,7 @@ function Additional({ datas, errors }) {
                             <Form.Control
                                 as="textarea"
                                 rows={3}
-                                value={otherWishes}
+                                value={additional.otherWishes}
                                 onChange={handleOtherWishesChange}
                                 placeholder="Enter your other wishes here..."
                             />
