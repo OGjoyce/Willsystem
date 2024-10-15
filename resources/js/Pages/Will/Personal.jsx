@@ -122,23 +122,36 @@ export default function Personal({ auth }) {
         if (savedData && savedPointer) {
             const parsedData = JSON.parse(savedData);
             setObjectStatus(parsedData);
-            setPointer(parseInt(savedPointer, 10));
+            setPointer(16);
 
-            // Restore other necessary state
+            // Obtener el currentProfile desde el primer elemento de objectStatus (que tiene los datos de personal)
+            const profileData = parsedData[0]?.[0]?.personal?.email || null;
+            setCurrentProfile(profileData);
+
+            // Establecer availableDocuments basado en los documentos del paquete
+            const packageInfo = parsedData[0]?.[0]?.packageInfo;
+            const documents = packageInfo?.documents ? Object.keys(packageInfo.documents) : [];
+            setAvailableDocuments(documents);
+
+            // Establecer currentDocument con el primer documento disponible, si existe
+            setCurrentDocument(documents.length > 0 ? documents[0] : null);
+
+            // Restaurar otros estados necesarios
             setDupMarried(parsedData.some((obj) => obj.hasOwnProperty('married')));
             setDupKids(parsedData.some((obj) => obj.hasOwnProperty('kids')));
 
-            // If there's a stored ID, restore it
+            // Si hay un ID almacenado, restaurarlo
             if (savedCurrIdObjDB) {
                 setCurrIdObjDB(savedCurrIdObjDB);
             }
 
-            // If there's stored data, update it in the database
+            // Si hay datos almacenados, actualizarlos en la base de datos
             if (savedCurrIdObjDB) {
                 updateDataObject(parsedData, savedCurrIdObjDB);
             }
         }
     }, []);
+
 
 
     useEffect(() => {
@@ -766,15 +779,23 @@ export default function Personal({ auth }) {
             },
             14: {
                 key: 'additional',
-                check: (data) => data && data.standard && Object.keys(data.standard).length > 0,
+                check: (data) => {
+                    return data &&
+                        (
+                            (data.customClauseText && data.customClauseText.trim().length > 0) ||
+                            (data.otherWishes && data.otherWishes.trim().length > 0) ||
+                            Object.values(data.checkboxes || {}).some(value => value === true)
+                        );
+                },
             },
+
             15: {
                 key: 'finalDetails',
                 check: (data) => data && Object.keys(data).length > 0,
             },
             16: {
                 key: 'documentDOM',
-                check: (data) => data && Object.keys(data).length > 0,
+                check: (data) => true,
             },
         };
 
