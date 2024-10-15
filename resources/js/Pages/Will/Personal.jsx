@@ -299,13 +299,20 @@ export default function Personal({ auth }) {
                             timestamp: Date.now(),
                         },
                         owner: personalData.email,
-                        packageInfo: selectedPackage,
+                        packageInfo: {
+                            ...selectedPackage, documents: availableDocuments.reduce((acc, doc, index) => {
+                                acc[doc] = { id: index + 1, owner: "unknown", dataStatus: "incomplete" };
+                                return acc;
+                            }, {})
+                        },
                     };
 
                     propertiesAndData = [
                         { name: 'personal', data: dataObj.personal },
                         { name: 'owner', data: dataObj.owner },
-                        { name: 'packageInfo', data: selectedPackage },
+                        {
+                            name: 'packageInfo', data: dataObj.packageInfo
+                        },
                     ];
                     setCurrentProfile(personalData.email)
                     updatedObjectStatus = handleProfileData(personalData.email, propertiesAndData, objectStatus);
@@ -320,7 +327,6 @@ export default function Personal({ auth }) {
                     return null;
                 }
 
-                // Set the default structure for objectStatus if not already set
 
 
                 break;
@@ -938,9 +944,9 @@ export default function Personal({ auth }) {
                         {pointer === 16 && (
                             <DocumentSelector
                                 errors={validationErrors}
-                                object_status={getObjectStatus(objectStatus, currentProfile)}
+                                object_status={objectStatus}
+                                currentProfile={currentProfile}
                                 currIdObjDB={currIdObjDB}
-                                availableDocuments={availableDocuments}
                                 onSelect={(doc) => {
                                     setValidationErrors({});
                                 }}
