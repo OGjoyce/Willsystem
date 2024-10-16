@@ -118,7 +118,7 @@ class ObjStatusController extends Controller
     {
         $owner = $request->input('owner');
        
-        $files = ObjStatus::whereRaw("JSON_UNQUOTE(JSON_EXTRACT(information, '$[0].owner')) = ?", [$owner])->get();
+        $files = ObjStatus::whereRaw("JSON_UNQUOTE(JSON_EXTRACT(information, '$[0][0].owner')) = ?", [$owner])->get();
         \Log::info('Search results: ' . $files);
         return response()->json($files);
     }

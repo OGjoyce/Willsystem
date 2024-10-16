@@ -1,75 +1,233 @@
+
 import React, { useState } from 'react';
-import { Container, Row, Col, Button } from 'react-bootstrap';
+import { Container, Row, Col, Button, Modal, ListGroup } from 'react-bootstrap';
 import PDFEditor from './PDFEditor';
 import WillContent from './Content/WillContent';
 import POA1Content from './Content/POA1Content';
 import POA2Content from './Content/POA2Content';
 
-// Mapeo de documentos a componentes
 const contentComponents = {
     primaryWill: WillContent,
     spousalWill: WillContent,
     secondaryWill: WillContent,
     poaProperty: POA1Content,
     poaHealth: POA2Content,
-    // Agregar más mapeos si es necesario
 };
 
-const DocumentSelector = ({ onSelect, errors, object_status, currIdObjDB }) => {
-    const [selectedDoc, setSelectedDoc] = useState(null);
+const DocumentSelector = ({
+    onSelect,
+    errors,
+    objectStatus,
+    currIdObjDB,
+    setPointer,
+    setCurrentProfile,
+    setCurrentDocument,
+    setObjectStatus,
+    backStep,
+    stepHasData,
+    visibleSteps,
+    currentProfile,
+    currentDocument
+}) => {
+    const [selectedDoc, setSelectedDoc] = useState(currentDocument);
+    const [showEmailModal, setShowEmailModal] = useState(false);
+    const [selectedEmail, setSelectedEmail] = useState(null);
+    const [showPDFEditor, setShowPDFEditor] = useState(false);
+    const [documentOwner, setDocumentOwner] = useState(null);
+    const [showConfirmationModal, setShowConfirmationModal] = useState(false);
 
-    // Verificamos que object_status no esté vacío y sea un array de arrays
-    if (!Array.isArray(object_status) || object_status.length === 0 || !Array.isArray(object_status[0]) || object_status[0].length === 0) {
+    const [prevSelectedDoc, setPrevSelectedDoc] = useState(selectedDoc);
+    const [prevCurrentDocument, setPrevCurrentDocument] = useState(currentDocument);
+    const [prevDocumentOwner, setPrevDocumentOwner] = useState(documentOwner);
+    const [prevCurrentProfile, setPrevCurrentProfile] = useState(currentProfile);
+
+    // Validar el objectStatus
+    if (!Array.isArray(objectStatus) || objectStatus.length === 0 || !Array.isArray(objectStatus[0]) || objectStatus[0].length === 0) {
         return <p>No hay documentos disponibles.</p>;
     }
 
-    // Extraemos el primer elemento en object_status que es un arreglo
-    const firstElementArray = object_status[0];
-
-    // Extraemos el primer objeto dentro del primer arreglo
+    const firstElementArray = objectStatus[0];
     const firstElement = firstElementArray[0];
 
-    // Verificamos que packageInfo y documents existan
     if (!firstElement.packageInfo || !firstElement.packageInfo.documents) {
         return <p>No hay documentos disponibles.</p>;
     }
 
-    // Obtenemos los documentos disponibles
     const availableDocuments = Object.keys(firstElement.packageInfo.documents);
 
-    // Corregimos el console.log eliminando el [0] y usando la estructura correcta
-    console.log('documents', firstElement.packageInfo.documents);
-
-    // Función para verificar si un documento está desbloqueado
+    // Verificar si el documento está desbloqueado
     const isDocumentUnlocked = (doc, index) => {
         if (index === 0) return true; // El primer documento siempre está desbloqueado
+
         const previousDocKey = availableDocuments[index - 1];
         const previousDoc = firstElement.packageInfo.documents[previousDocKey];
-        return previousDoc?.dataStatus === "completed";
+
+        // Comprobar si el documento anterior tiene una versión 'v1' en su documentDOM
+        const ownerProfile = objectStatus.find(profileArray =>
+            profileArray.some(dataObj => dataObj.personal?.email === previousDoc.owner)
+        );
+
+        if (!ownerProfile) {
+            return false; // Si no se encuentra el perfil del dueño, bloqueamos el documento
+        }
+
+        const ownerDocumentDOM = ownerProfile[ownerProfile.length - 1]?.documentDOM || {};
+
+        // Desbloquear si el documento anterior tiene la versión 'v1'
+        return ownerDocumentDOM[previousDocKey]?.v1?.content ? true : false;
     };
 
-    const handleSelect = (doc) => {
+    const handleSelectDocument = (doc) => {
+        const document = firstElement.packageInfo.documents[doc];
+        const owner = document.owner; // Obtener el owner del documento seleccionado
+
+        // Si el documento y el owner ya coinciden con el currentProfile y currentDocument, no mostramos el modal
+        if (doc === currentDocument && owner === currentProfile) {
+            proceedToSelectDocument(doc, owner); // Procedemos directamente sin mostrar el modal
+            return;
+        }
+
+        // Guardar estados previos
+        setPrevSelectedDoc(selectedDoc);
+        setPrevCurrentDocument(currentDocument);
+        setPrevDocumentOwner(documentOwner);
+        setPrevCurrentProfile(currentProfile);
+
+        // Establecer los nuevos estados antes de mostrar el modal
         setSelectedDoc(doc);
-        onSelect(doc);
+        setCurrentDocument(doc);
+        setDocumentOwner(owner);
+        setCurrentProfile(owner);
+
+        // Mostrar el modal de advertencia
+        setShowConfirmationModal(true);
     };
 
-    const handleBack = () => {
-        setSelectedDoc(null);
+
+
+    const handleConfirmSelection = () => {
+        setShowConfirmationModal(false);
+        // Volver a establecer los estados para actualizar el componente
+        setSelectedDoc(selectedDoc);
+        setCurrentDocument(selectedDoc);
+        setDocumentOwner(documentOwner);
+        setCurrentProfile(documentOwner);
+
+        if (documentOwner !== "unknown") {
+            const firstIncompleteStep = visibleSteps.find(step => !stepHasData(step.step));
+            if (firstIncompleteStep) {
+                setPointer(firstIncompleteStep.step);
+                backStep();
+            } else {
+                setShowPDFEditor(true); // Mostrar el PDFEditor
+            }
+        } else {
+            // Mostrar el modal de selección de email
+            setShowEmailModal(true);
+        }
+    };
+
+    const handleCancelSelection = () => {
+        setShowConfirmationModal(false);
+        // Revertir a los estados previos
+        setSelectedDoc(prevSelectedDoc);
+        setCurrentDocument(prevCurrentDocument);
+        setDocumentOwner(prevDocumentOwner);
+        setCurrentProfile(prevCurrentProfile);
+    };
+
+    const handleSelectEmail = (email) => {
+        // Establecer el email seleccionado como owner del documento
+        const updatedObjectStatus = objectStatus.map((profileArray, idx) => {
+            return profileArray.map((dataObj) => {
+                if (dataObj.packageInfo && dataObj.packageInfo.documents && dataObj.personal?.email === currentProfile) {
+                    // Actualizar el owner del documento seleccionado
+                    const updatedDocuments = { ...dataObj.packageInfo.documents };
+                    updatedDocuments[selectedDoc].owner = email; // Asignar el email como owner
+
+                    return {
+                        ...dataObj,
+                        packageInfo: {
+                            ...dataObj.packageInfo,
+                            documents: updatedDocuments,
+                        },
+                    };
+                }
+                return dataObj;
+            });
+        });
+
+        // Guardar el nuevo estado en objectStatus
+        setObjectStatus(updatedObjectStatus);
+        localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus)); // Guardar en localStorage
+
+        // Establecer el email seleccionado como perfil actual
+        setSelectedEmail(email);
+        setCurrentProfile(email);
+        setCurrentDocument(selectedDoc);
+
+        // Verificar si todos los pasos tienen datos antes de avanzar
+        const firstIncompleteStep = visibleSteps.find(step => !stepHasData(step.step));
+
+        if (firstIncompleteStep) {
+            setPointer(firstIncompleteStep.step);
+
+        } else {
+            setPointer(16); // Navegar al paso 16
+            setShowPDFEditor(true); // Mostrar el PDFEditor cuando todos los pasos tengan datos
+        }
+
+        // Cerrar el modal de selección de email
+        setShowEmailModal(false);
+    };
+
+    const handleCreateNewProfile = () => {
+        // Establecer el pointer en 0 y el currentProfile como undefined
+        setPointer(0);
+        setCurrentProfile(null);
+        setCurrentDocument(selectedDoc); // Mantener el currentDocument seleccionado
+        setShowEmailModal(false); // Cerrar el modal
+    };
+
+    const getObjectStatus = (objectStatus, currentProfile) => {
+        // Buscar en objectStatus el perfil que coincida con el currentProfile
+        const profile = objectStatus.find(profileArray =>
+            profileArray.some(dataObj => dataObj.personal?.email === currentProfile)
+        );
+
+        // Retornar el perfil encontrado o un array vacío si no se encuentra
+        return profile || [];
     };
 
     return (
         <Container>
-            {!selectedDoc ? (
+            {/* Modal de confirmación */}
+            <Modal show={showConfirmationModal} onHide={handleCancelSelection}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Estamos a punto de cambiar de documento y de perfil, ¿estás seguro?</Modal.Title>
+                </Modal.Header>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={handleCancelSelection}>
+                        No
+                    </Button>
+                    <Button variant="primary" onClick={handleConfirmSelection}>
+                        Sí
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+            {/* Si no se ha seleccionado ningún documento, muestra la lista de documentos */}
+            {!selectedDoc && (
                 <>
                     <h3>Select a Document to View, Edit or Download</h3>
                     <Row className="mt-3">
                         {availableDocuments.map((doc, index) => (
                             <Col key={doc} xs={12} sm={6} md={4} className="mb-2">
                                 <Button
-                                    onClick={() => handleSelect(doc)}
+                                    onClick={() => handleSelectDocument(doc)}
                                     style={{ width: "100%" }}
                                     variant="outline-dark"
-                                    disabled={!isDocumentUnlocked(doc, index)} // Deshabilitamos si no está desbloqueado
+                                    disabled={!isDocumentUnlocked(doc, index)}
                                 >
                                     {doc === 'primaryWill' && <><i className="bi bi-file-text"></i> Will</>}
                                     {doc === 'spousalWill' && <><i className="bi bi-file-text"></i> Spousal Will</>}
@@ -82,14 +240,46 @@ const DocumentSelector = ({ onSelect, errors, object_status, currIdObjDB }) => {
                     </Row>
                     {errors.documentDOM && <p className="mt-2 text-sm text-center text-red-600">{errors.documentDOM}</p>}
                 </>
-            ) : (
+            )}
+
+            {/* Mostrar el modal para seleccionar el perfil cuando el documento no tenga dueño */}
+            <Modal show={showEmailModal} onHide={() => setShowEmailModal(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Select a Profile</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {objectStatus.map((profileArray, idx) => {
+                        const profile = profileArray.find(obj => obj.personal?.email);
+                        if (profile && profile.personal?.email) {
+                            return (
+                                <ListGroup key={idx}>
+                                    <ListGroup.Item action onClick={() => handleSelectEmail(profile.personal.email)}>
+                                        {profile.personal.email}
+                                    </ListGroup.Item>
+                                </ListGroup>
+                            );
+                        }
+                        return null;
+                    })}
+
+                    {/* Opción para crear un nuevo perfil */}
+                    <ListGroup className="mt-3">
+                        <ListGroup.Item action onClick={handleCreateNewProfile}>
+                            <strong>Create New Profile</strong>
+                        </ListGroup.Item>
+                    </ListGroup>
+                </Modal.Body>
+            </Modal>
+
+            {/* Mostrar el PDFEditor si todos los pasos están completos */}
+            {showPDFEditor && selectedDoc && (
                 <PDFEditor
-                    ContentComponent={contentComponents[selectedDoc]} // Seleccionamos el componente correcto
-                    datas={object_status}
-                    documentType={selectedDoc}
-                    errors={errors}
+                    documentType={selectedDoc} // Pasar el tipo de handledocumento seleccionado
+                    objectStatus={objectStatus}
+                    documentOwner={documentOwner} // Pasar el owner del documento seleccionado
                     backendId={currIdObjDB}
-                    onBack={handleBack}
+                    ContentComponent={contentComponents[selectedDoc]} // Pasar el componente de contenido adecuado
+                    onBack={() => setSelectedDoc(null)}
                 />
             )}
         </Container>
