@@ -82,6 +82,7 @@ const DocumentSelector = ({
         const owner = document.owner; // Obtener el owner del documento seleccionado
 
         // Si el documento y el owner ya coinciden con el currentProfile y currentDocument, no mostramos el modal
+
         if (doc === currentDocument && owner === currentProfile) {
             setShowConfirmationModal(true);
             proceedToSelectDocument(doc, owner); // Procedemos directamente sin mostrar el modal
@@ -100,8 +101,18 @@ const DocumentSelector = ({
         setDocumentOwner(owner);
         setCurrentProfile(owner);
 
+        const firstIncompleteStep = visibleSteps.find(step => !stepHasData(step.step));
+        if (doc !== currentDocument && owner !== currentProfile || doc !== currentDocument && owner == currentProfile) {
+            setShowConfirmationModal(true);
+        } else {
+            if (firstIncompleteStep) {
+                backStep()
+            } else {
+                setShowPDFEditor(doc)
+            }
+        }
         // Mostrar el modal de advertencia
-        setShowConfirmationModal(true);
+
     };
 
 
