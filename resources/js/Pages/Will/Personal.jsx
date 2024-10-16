@@ -157,6 +157,40 @@ export default function Personal({ auth }) {
 
 
     useEffect(() => {
+        if (!currentProfile || !currentDocument) return;
+
+        // Acceder al packageInfo del primer elemento de objectStatus
+        const packageInfo = objectStatus[0]?.[0]?.packageInfo;
+
+        if (packageInfo && packageInfo.documents) {
+            const documentToUpdate = Object.keys(packageInfo.documents).find(
+                (docKey) =>
+                    docKey === currentDocument && packageInfo.documents[docKey].owner === 'unknown'
+            );
+
+            // Si encontramos un documento que coincide y tiene "unknown" como owner
+            if (documentToUpdate) {
+                // Clonar el objectStatus para no mutar el estado original directamente
+                const updatedObjectStatus = [...objectStatus];
+
+                // Asignar el currentProfile como owner
+                updatedObjectStatus[0][0].packageInfo.documents[documentToUpdate].owner = currentProfile;
+
+                // Actualizar el estado global (objectStatus) solo si es necesario
+                setObjectStatus(updatedObjectStatus);
+
+                // Guardar en localStorage o actualizar la base de datos si es necesario
+                localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus));
+                if (currIdObjDB) {
+                    updateDataObject(updatedObjectStatus, currIdObjDB);
+                }
+            }
+        }
+    }, [currentProfile, currentDocument]); // Dependencias controladas solo para actualizaciones esenciales
+
+
+
+    useEffect(() => {
         // Inicializa la estructura por defecto si no está presente
         if (pointer == 1 && !getObjectStatus(objectStatus, currentProfile).some(obj => obj.hasOwnProperty('marriedq'))) {
             const initialObjectStructure = [
@@ -257,25 +291,6 @@ export default function Personal({ auth }) {
             case 0:
                 const personalData = getFormData();
                 if (checkValidation(validate.formData(personalData))) {
-                    // Create the documents object
-                    const documents = {};
-                    availableDocuments.forEach((doc, index) => {
-                        documents[doc] = {
-                            id: index + 1,
-                            owner: index === 0 ? personalData.email : "unknown",
-                            dataStatus: "incomplete"
-                        };
-                    });
-
-                    // If currentDocument is not the first in availableDocuments
-                    if (availableDocuments.indexOf(currentDocument) !== 0) {
-                        // Find the document where doc == currentDocument and owner == 'unknown'
-                        const docInfo = documents[currentDocument];
-                        if (docInfo && docInfo.owner === 'unknown') {
-                            docInfo.owner = personalData.email; // or use currentProfile if it's already set
-                        }
-                    }
-
                     const dataObj = {
                         personal: {
                             ...stepper[step],
@@ -284,30 +299,40 @@ export default function Personal({ auth }) {
                         },
                         owner: personalData.email,
                         packageInfo: {
-                            ...selectedPackage,
-                            documents: documents
+                            ...selectedPackage, documents: availableDocuments.reduce((acc, doc, index) => {
+                                acc[doc] = {
+                                    id: index + 1, owner: index === 0 ? personalData.email : "unknown", dataStatus: "incomplete"
+                                };
+                                return acc;
+                            }, {})
                         },
                     };
 
                     propertiesAndData = [
                         { name: 'personal', data: dataObj.personal },
                         { name: 'owner', data: dataObj.owner },
-                        { name: 'packageInfo', data: dataObj.packageInfo },
+                        {
+                            name: 'packageInfo', data: currIdObjDB === null ? dataObj.packageInfo : { 'undefined': "not a onwner of any package" }
+                        },
                     ];
-                    setCurrentProfile(personalData.email);
+                    setCurrentProfile(personalData.email)
                     updatedObjectStatus = handleProfileData(personalData.email, propertiesAndData, objectStatus);
                     setObjectStatus(updatedObjectStatus);
 
                     if (currIdObjDB === null) {
                         const dataFirstStore = await storeDataObject(dataObj);
                         setCurrIdObjDB(dataFirstStore.id);
+
+                        console.log(packageDocuments[selectedPackage?.description][0])
                         localStorage.setItem('currIdObjDB', dataFirstStore.id);
                     }
                 } else {
                     return null;
                 }
-                break;
 
+
+
+                break;
 
             case 1:
                 propertiesAndData = [
