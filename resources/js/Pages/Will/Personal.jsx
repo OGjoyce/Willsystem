@@ -154,11 +154,7 @@ export default function Personal({ auth }) {
         }
     }, [currIdObjDB]);
 
-    useEffect(() => {
-        if (pointer == 0 && objectStatus.length > 0) {
-            backStep()
-        }
-    }, [pointer, currentProfile])
+
 
     useEffect(() => {
         // Inicializa la estructura por defecto si no está presente
@@ -261,6 +257,25 @@ export default function Personal({ auth }) {
             case 0:
                 const personalData = getFormData();
                 if (checkValidation(validate.formData(personalData))) {
+                    // Create the documents object
+                    const documents = {};
+                    availableDocuments.forEach((doc, index) => {
+                        documents[doc] = {
+                            id: index + 1,
+                            owner: index === 0 ? personalData.email : "unknown",
+                            dataStatus: "incomplete"
+                        };
+                    });
+
+                    // If currentDocument is not the first in availableDocuments
+                    if (availableDocuments.indexOf(currentDocument) !== 0) {
+                        // Find the document where doc == currentDocument and owner == 'unknown'
+                        const docInfo = documents[currentDocument];
+                        if (docInfo && docInfo.owner === 'unknown') {
+                            docInfo.owner = personalData.email; // or use currentProfile if it's already set
+                        }
+                    }
+
                     const dataObj = {
                         personal: {
                             ...stepper[step],
@@ -270,17 +285,7 @@ export default function Personal({ auth }) {
                         owner: personalData.email,
                         packageInfo: {
                             ...selectedPackage,
-                            documents: availableDocuments.reduce((acc, doc, index) => {
-                                acc[doc] = {
-                                    id: index + 1,
-                                    // Solo actualiza el documento si tiene 'unknown' como owner y coincide con el currentDocument
-                                    owner: acc[doc]?.owner === 'unknown' && doc === currentDocument
-                                        ? personalData.email
-                                        : acc[doc]?.owner || 'unknown',  // Mantener el valor existente si no coincide
-                                    dataStatus: "incomplete"
-                                };
-                                return acc;
-                            }, { ...objectStatus[0]?.[0]?.packageInfo?.documents }) // Mantener los documentos existentes
+                            documents: documents
                         },
                     };
 
@@ -289,15 +294,8 @@ export default function Personal({ auth }) {
                         { name: 'owner', data: dataObj.owner },
                         { name: 'packageInfo', data: dataObj.packageInfo },
                     ];
-
-                    // Actualiza el perfil actual con el email
                     setCurrentProfile(personalData.email);
-
-                    // Actualiza el objectStatus con los nuevos datos del perfil
                     updatedObjectStatus = handleProfileData(personalData.email, propertiesAndData, objectStatus);
-                    handleProfileData(objectStatus[0]?.[0]?.personal?.email, [{ name: 'packageInfo', data: dataObj.packageInfo }], objectStatus);
-
-                    // Actualiza el estado
                     setObjectStatus(updatedObjectStatus);
 
                     if (currIdObjDB === null) {
@@ -309,6 +307,7 @@ export default function Personal({ auth }) {
                     return null;
                 }
                 break;
+
 
             case 1:
                 propertiesAndData = [
