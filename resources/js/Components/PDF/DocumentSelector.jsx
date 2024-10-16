@@ -94,7 +94,7 @@ const DocumentSelector = ({
         let documentFound = false;
 
         documentKeys.forEach((documentKey) => {
-            if (documentKey === doc && documents[documentKey].owner === 'unknown' && !documentFound && currentProfile !== null) {
+            if (documentKey === doc && documents[documentKey].owner === 'unknown' && !documentFound) {
                 // Asignar currentProfile como owner
                 const updatedObjectStatus = objectStatus.map((profileArray) => {
                     return profileArray.map((dataObj) => {
@@ -137,7 +137,7 @@ const DocumentSelector = ({
             }
         });
 
-        if (true) {
+        if (!documentFound) {
             // Si no se encuentra el documento con owner "unknown", mostrar el modal de confirmación
             const owner = documents[doc].owner;
 
