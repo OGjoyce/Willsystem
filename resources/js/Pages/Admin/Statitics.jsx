@@ -24,7 +24,7 @@ export default function Statitics() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/getData');
+                const response = await axios.get('http://34.130.110.17:5000/getData');
                 setData(response.data); // Assuming the response data is in the expected format
             } catch (err) {
                 setError(err);
