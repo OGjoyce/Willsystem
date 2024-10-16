@@ -30,7 +30,8 @@ const View = () => {
 
     const saveData = (idItem) => {
         const dataFetchedLarge = allDataFetched.length;
-        var obj = [];
+        let obj = [];
+
         for (let i = 0; i < dataFetchedLarge; i++) {
             if (allDataFetched[i].id == idItem) {
                 obj = allDataFetched[i].information;
@@ -38,13 +39,12 @@ const View = () => {
         }
 
         localStorage.setItem('fullData', JSON.stringify(obj));
-        localStorage.setItem('currentPointer', obj.length.toString());
+        localStorage.setItem('currentPointer', obj[0].length.toString()); // Ajustado para contar el subnivel
         localStorage.setItem('currIdObjDB', idItem);
 
         window.location.href = '/personal';
+    };
 
-
-    }
     const searchById = (file) => {
         let selectedInformation = {};
         allDataFetched.forEach(function (arrayItem) {
@@ -80,16 +80,22 @@ const View = () => {
             params: { owner: packageValue }
         });
         setAllDataFetched(response.data);
-        const newArrObj = response.data.map(element => ({
-            id: element.id,
-            created: element.created_at,
-            updated: element.updated_at,
-            email: element.information[0].owner,
-            name: element.information[0].personal.fullName,
-            leng: element.information.length
-        }));
+
+        const newArrObj = response.data.map(element => {
+            const firstElement = element.information[0][0]; // Accede al primer objeto dentro del array anidado
+            return {
+                id: element.id,
+                created: element.created_at,
+                updated: element.updated_at,
+                email: firstElement.owner,
+                name: firstElement.personal.fullName,
+                leng: element.information[0].length // Ajustar según los datos
+            };
+        });
+
         setArrObj(newArrObj);
     };
+
 
     useEffect(() => {
         axios.get('/api/obj-statuses')
@@ -188,7 +194,7 @@ const View = () => {
                                                     <td>{item.leng}/16</td>
                                                     <td>
                                                         {item.leng > 15 ? (
-                                                            <Button variant="outline-warning" size="sm" onClick={() => handleShow(item.id)}>
+                                                            <Button variant="outline-warning" size="sm" onClick={() => saveData(item.id)}>
                                                                 <i className="bi bi-eye"></i>View Documents
                                                             </Button>
                                                         ) : (

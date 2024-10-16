@@ -7,22 +7,18 @@ import { Container, Row, Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import CustomToast from './AdditionalComponents/CustomToast';
 import ConfirmationModal from './AdditionalComponents/ConfirmationModal';
+import AddPersonDropdown from './AddPersonDropdown';  // <-- Añadido el import
 
 var identifiers_names = [];
 var priorityInformation = [1, 2, 3, 4, 5];
 var bequestindex = 1;
-
-export function getFullData() {
-    const savedData = localStorage.getItem('fullData');
-    return savedData ? JSON.parse(savedData) : {};
-}
 
 export function getGuardiansForMinors() {
     const savedData = localStorage.getItem('formValues');
     return savedData ? JSON.parse(savedData).guardians || [] : [];
 }
 
-export default function GuardianForMinors({ errors }) {
+export default function GuardianForMinors({ errors, datas }) {
     const [firstRender, setFirstRender] = useState(true);
     const [selected, setSelected] = useState(null);
     const [priority, setPriority] = useState(0);
@@ -53,15 +49,17 @@ export default function GuardianForMinors({ errors }) {
         setValidationErrors(errors);
     }, [errors]);
 
+    // Lógica similar a Bequest para poblar los dropdowns
     useEffect(() => {
         if (firstRender) {
-            identifiers_names = []
-            const fullData = getFullData();
+            identifiers_names = [];
+            const fullData = datas
             const married = fullData[2]?.married || {};
             const kids = fullData[4]?.kids || [];
             const relatives = fullData[5]?.relatives || [];
             const kidsq = fullData[3]?.kidsq?.selection;
 
+            // Obtener nombres de esposa, hijos y parientes
             const married_names = married?.firstName && married?.lastName ? married.firstName + " " + married.lastName : null;
             if (kidsq === "true") {
                 for (const child of kids) {
@@ -70,7 +68,10 @@ export default function GuardianForMinors({ errors }) {
                 }
             }
 
-            identifiers_names.push(married_names);
+            if (married_names) {
+                identifiers_names.push(married_names);
+            }
+
             for (const key in relatives) {
                 const names = relatives[key]?.firstName + " " + relatives[key]?.lastName;
                 identifiers_names.push(names);
@@ -173,19 +174,14 @@ export default function GuardianForMinors({ errors }) {
                     <br />
                     <Row>
                         <Col sm={12}>
-                            <Dropdown onSelect={handleSelectBeneficiary} style={{ width: "100%" }}>
-                                <Dropdown.Toggle style={{ width: "100%" }} variant="outline-dark" id="dropdown-basic">
-                                    {selected !== null ? selected : 'Select Relative'}
-                                </Dropdown.Toggle>
-                                {validationErrors.selected && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.selected}</p>}
-                                <Dropdown.Menu className="w-[100%] text-center" >
-                                    {identifiers_names.map((option, index) => (
-                                        <Dropdown.Item key={index} eventKey={option} style={{ width: '100%' }}>
-                                            {option}
-                                        </Dropdown.Item>
-                                    ))}
-                                </Dropdown.Menu>
-                            </Dropdown>
+                            <AddPersonDropdown  // <-- Añadido el AddPersonDropdown aquí
+                                options={identifiers_names}
+                                label="Select Relative"
+                                selected={selected}
+                                onSelect={handleSelectBeneficiary}
+                                validationErrors={validationErrors}
+                                setValidationErrors={setValidationErrors}
+                            />
                         </Col>
                     </Row>
                     <br />

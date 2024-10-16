@@ -10,7 +10,7 @@ import CustomToast from '../AdditionalComponents/CustomToast';
 import Toolbar from './Toolbar';
 import { useReactToPrint } from "react-to-print";
 import { updateDataObject } from '../ObjStatusForm';
-
+import { getObjectStatus } from '../ProfileDataHandler';
 import './PDFEditor.css';
 import '@/Components/PDF/Content/content.css';
 
@@ -116,12 +116,14 @@ function getDocumentContent(object_status, documentType, version) {
     ?.documentDOM[documentType][version]?.content || null;
 }
 
-const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId, version, onBack }) => {
+const PDFEditor = ({ ContentComponent, documentType, errors, backendId, version, onBack, objectStatus, documentOwner }) => {
   const [editorContent, setEditorContent] = useState('');
   const [documentVersions, setDocumentVersions] = useState({});
   const [validationErrors, setValidationErrors] = useState(errors);
   const [showToast, setShowToast] = useState(false);
   const [selectedDOMVersion, setSelectedDOMVersion] = useState(null);
+
+  const datas = getObjectStatus(objectStatus, documentOwner)
   const updatedObjectStatusRef = useRef([]);
   const editor = useEditor({
     extensions: [
@@ -150,6 +152,8 @@ const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId, v
     setShowToast(true);
     setValidationErrors({});
     const timestamp = new Date().toISOString();
+
+    // Crear nueva versión del documento
     const currentVersions = documentVersions[documentType] || {};
     const versionNumber = Object.keys(currentVersions).length + 1;
     const newVersion = {
@@ -163,6 +167,7 @@ const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId, v
       }
     };
 
+    // Actualizar las versiones del documento
     const updatedDocumentVersions = {
       ...documentVersions,
       [documentType]: {
@@ -172,22 +177,37 @@ const PDFEditor = ({ ContentComponent, datas, documentType, errors, backendId, v
     };
 
     setDocumentVersions(updatedDocumentVersions);
-    const lastObjectIndex = datas.length - 1;
-    const updatedLastObject = {
-      ...datas[lastObjectIndex],
-      documentDOM: updatedDocumentVersions
-    };
 
-    const updatedObjectStatus = [
-      ...datas.slice(0, lastObjectIndex),
-      updatedLastObject
-    ];
+    // Encontrar el índice del perfil correspondiente a documentOwner
+    const ownerIndex = objectStatus.findIndex(profile =>
+      profile[0]?.personal?.email === documentOwner
+    );
 
-    updatedObjectStatusRef.current = updatedObjectStatus;
-    updateDataObject(updatedObjectStatus, backendId);
-    console.log(`Document ${documentType} saved. Version: v${versionNumber}`);
+    if (ownerIndex !== -1) {
+      // Verificar que el `documentDOM` está al final de la estructura del perfil
+      const lastElementIndex = objectStatus[ownerIndex].length - 1;
+      const currentDocumentDOM = objectStatus[ownerIndex][lastElementIndex]?.documentDOM || {};
 
-  }, [editorContent, documentVersions, documentType, datas, backendId]);
+      // Fusionar el `documentDOM` actualizado con el existente
+      const updatedDocumentDOM = {
+        ...currentDocumentDOM,
+        [documentType]: updatedDocumentVersions[documentType] // Actualizar solo el documento actual
+      };
+
+      // Actualizar el `documentDOM` en la posición correcta (al final del array)
+      objectStatus[ownerIndex][lastElementIndex].documentDOM = updatedDocumentDOM;
+
+      // Guardar el estado actualizado
+      const updatedObjectStatus = [...objectStatus];
+      updatedObjectStatusRef.current = updatedObjectStatus;
+      updateDataObject(updatedObjectStatus, backendId); // Enviar los datos actualizados al backend
+
+      console.log(`Document ${documentType} saved. Version: v${versionNumber}`);
+    } else {
+      console.error("Profile not found for documentOwner:", documentOwner);
+    }
+
+  }, [editorContent, documentVersions, documentType, objectStatus, backendId, documentOwner]);
 
   const componentRef = useRef();
 

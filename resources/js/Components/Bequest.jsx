@@ -327,7 +327,7 @@ function Bequest({ id, datas, errors }) {
             const married = datas[2]?.married;
             const kids = datas[4]?.kids;
             const relatives = datas[5]?.relatives;
-            const kidsq = datas[3].kidsq?.selection;
+            const kidsq = datas[3]?.kidsq?.selection;
 
             var dataobj = { married, kids, relatives };
 

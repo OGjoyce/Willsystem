@@ -1,155 +1,179 @@
 import React, { useState, useEffect } from 'react';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Link, Head } from '@inertiajs/react';
-import { Dialog } from '@headlessui/react'
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
-import { Fragment } from 'react'
-import { Listbox, Transition } from '@headlessui/react'
-import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
-import Image from 'react-bootstrap/Image';
-import donorIcon from '../../organdonation.png'
-import customIcon from '../../customicon.png'
-import blendedFamily from '../../blendedfamily.png'
-import dualHanded from '../../dualhands.png'
-import OrganDonation from '@/Components/AdditionalComponents/OrganDonation';
-import ClauseArea from '@/Components/AdditionalComponents/ClauseArea';
-import OtherWishes from '@/Components/AdditionalComponents/ClauseArea';
-import { Form, Button, Container, Row, Col, Table } from 'react-bootstrap';
+import { Container, Row, Col, Form } from 'react-bootstrap';
 
-let additionalInfo = {
-    additional: {}
-};
-
+// Función para recuperar los datos de `additional` desde localStorage
 export function getAdditionalInformation() {
-    additionalInfo.additional.timestamp = Date.now();
-    return additionalInfo.additional;
+    const savedFormValues = JSON.parse(localStorage.getItem('formValues')) || {};
+    return savedFormValues.additional || {
+        customClauseText: '',
+        otherWishes: '',
+        checkboxes: {
+            organdonation: false,
+            cremation: false,
+            buried: false,
+        },
+    };
 }
 
 function Additional({ datas, errors }) {
-    const [dataPointer2, setDataPointer2] = useState(null);
-    const [updatePointerSelector, setUpdatePointerSelector] = useState({});
-    const [checkedState, setCheckedState] = useState({
-        blendedFamily: false
+    // State management para los campos del formulario
+    const [additional, setAdditional] = useState({
+        customClauseText: '',
+        otherWishes: '',
+        checkboxes: {
+            organdonation: false,
+            cremation: false,
+            buried: false,
+        },
     });
-    const [validationErrors, setValidationErrors] = useState(errors)
 
-    useEffect(() => {
-        setValidationErrors(errors)
-    }, [errors])
+    const [validationErrors, setValidationErrors] = useState({});
 
+    // Cargar datos de localStorage al montar el componente
     useEffect(() => {
-        // Cargar datos del localStorage al iniciar
-        const storedFormValues = JSON.parse(localStorage.getItem('formValues')) || {};
-        if (storedFormValues.additional) {
-            additionalInfo.additional = storedFormValues.additional;
-            setCheckedState(prevState => ({
-                ...prevState,
-                blendedFamily: additionalInfo.additional.blendedFamily || false
-            }));
-        }
+        const savedFormValues = getAdditionalInformation();
+        setAdditional(savedFormValues);
     }, []);
 
-    const updateLocalStorage = () => {
+    // Guardar datos en localStorage cada vez que `additional` cambie
+    const updateLocalStorage = (newData) => {
         const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
-        formValues.additional = additionalInfo.additional;
+        formValues.additional = newData;
         localStorage.setItem('formValues', JSON.stringify(formValues));
     };
 
-
-    const handleCheckboxChange = (event) => {
-        const { name, checked } = event.target;
-        setCheckedState(prevState => {
-            const newState = { ...prevState, [name]: checked };
-            additionalInfo.additional[name] = checked;
-            updateLocalStorage();
-            return newState;
-        });
+    // Actualizar estado y localStorage para los checkboxes
+    const handleCheckboxChange = (e) => {
+        const { name, checked } = e.target;
+        const newCheckboxes = {
+            ...additional.checkboxes,
+            [name]: checked,
+        };
+        const newData = {
+            ...additional,
+            checkboxes: newCheckboxes,
+        };
+        setAdditional(newData);
+        updateLocalStorage(newData);
     };
 
-    const callFunction = (obj) => {
-        if (obj === false) {
-            setDataPointer2(null);
-        } else {
-            setDataPointer2(null);
-            setUpdatePointerSelector(obj);
-            const newObj = {
-                Master: dataPointer2 === 0 ? "standard" : dataPointer2 === 1 ? "custom" : dataPointer2 === 3 ? "otherWishes" : "",
-                ...obj
-            };
+    // Actualizar estado y localStorage para el Custom Clause
+    const handleCustomClauseChange = (e) => {
+        const newData = {
+            ...additional,
+            customClauseText: e.target.value,
+        };
+        setAdditional(newData);
+        updateLocalStorage(newData);
+    };
 
-            // Eliminar la cláusula opuesta si existe
-            if (newObj.Master === "standard" || newObj.Master === "custom") {
-                delete additionalInfo.additional.custom;
-                delete additionalInfo.additional.standard;
+    // Actualizar estado y localStorage para Other Wishes
+    const handleOtherWishesChange = (e) => {
+        const newData = {
+            ...additional,
+            otherWishes: e.target.value,
+        };
+        setAdditional(newData);
+        updateLocalStorage(newData);
+    };
 
-            }
-
-            // Actualizar o agregar la nueva información
-            delete additionalInfo.additional.temp_custom
-            additionalInfo.additional[newObj.Master] = newObj;
-            updateLocalStorage();
-        }
-    }
-
-    const handleSwitch = (pointer) => {
-        setValidationErrors({})
-        setDataPointer2(pointer);
-    }
+    // Sincronizar errores de validación con el componente
+    useEffect(() => {
+        setValidationErrors(errors);
+    }, [errors]);
 
     return (
-        <>
-            {dataPointer2 == null ? (
-                <Container>
-                    <Row>
-                        <Col sm={4}>
-                            <Image style={{ position: "relative", left: "30%", width: "100px", height: "110px" }} src={donorIcon} rounded />
-                        </Col>
-                        <Col sm={4}>
-                            <Button variant="outline-dark" type="submit" onClick={() => handleSwitch(0)} style={{ width: "100%", position: "relative", top: "40%" }}>Standard Clause</Button>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col sm={4}>
-                            <Image style={{ position: "relative", left: "30%", width: "100px", height: "110px" }} src={customIcon} rounded />
-                        </Col>
-                        <Col sm={4}>
-                            <Button variant="outline-dark" type="submit" onClick={() => handleSwitch(1)} style={{ width: "100%", position: "relative", top: "40%" }}>Custom Clause</Button>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col sm={4}>
-                            <Image style={{ position: "relative", left: "30%", width: "100px", height: "110px" }} src={blendedFamily} rounded />
-                        </Col>
-                        <Col sm={4}>
+        <Container className="mt-4">
+            {/* Sección de cláusulas estándar */}
+            <Row>
+                <Col sm={12}>
+                    <h3>Standard Clause</h3>
+                </Col>
+            </Row>
+            <Row className="mt-3">
+                <Col sm={12}>
+                    <Form>
+                        <div className="d-flex align-items-center mb-2">
+                            <i className="bi bi-clipboard-heart me-2" style={{ fontSize: '1.5rem' }}></i>
                             <Form.Check
-                                style={{ position: "relative", top: "40%" }}
                                 type="checkbox"
-                                id="blendedFamily"
-                                name="blendedFamily"
-                                label="Blended Family"
-                                checked={checkedState.blendedFamily}
+                                id="organdonation"
+                                name="organdonation"
+                                label="Organ Donation"
+                                checked={additional.checkboxes.organdonation}
                                 onChange={handleCheckboxChange}
                             />
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col sm={4}>
-                            <Image style={{ position: "relative", left: "30%", width: "100px", height: "110px" }} src={dualHanded} rounded />
-                        </Col>
-                        <Col sm={4}>
-                            <Button variant="outline-dark" type="submit" onClick={() => handleSwitch(3)} style={{ width: "100%", position: "relative", top: "40%" }}>Other Wishes</Button>
-                        </Col>
-                    </Row>
-                </Container>
-            ) : dataPointer2 == 0 ? (
-                <OrganDonation callFunction={callFunction} />
-            ) : dataPointer2 == 1 ? (
-                <ClauseArea callFunction={callFunction} clause="custom" />
-            ) : dataPointer2 == 3 ? (
-                <OtherWishes callFunction={callFunction} clause={"other"} />
-            ) : null}
-            {validationErrors.additional && <p className="mt-12 text-sm text-center text-red-600">{validationErrors.additional}</p>}
-        </>
+                        </div>
+                        <div className="d-flex align-items-center mb-2">
+                            <i className="bi bi-fire me-2" style={{ fontSize: '1.5rem' }}></i>
+                            <Form.Check
+                                type="checkbox"
+                                id="cremation"
+                                name="cremation"
+                                label="Body Cremation"
+                                checked={additional.checkboxes.cremation}
+                                onChange={handleCheckboxChange}
+                            />
+                        </div>
+                        <div className="d-flex align-items-center mb-2">
+                            <i className="bi bi-usb-mini me-2" style={{ fontSize: '1.5rem' }}></i>
+                            <Form.Check
+                                type="checkbox"
+                                id="buried"
+                                name="buried"
+                                label="Buried"
+                                checked={additional.checkboxes.buried}
+                                onChange={handleCheckboxChange}
+                            />
+                        </div>
+                    </Form>
+                </Col>
+            </Row>
+
+            {/* Sección de cláusulas personalizadas */}
+            <Row className="mt-4">
+                <Col sm={12}>
+                    <h3>Custom Clause</h3>
+                </Col>
+            </Row>
+            <Row>
+                <Col sm={12}>
+                    <Form.Group controlId="customClause">
+                        <Form.Control
+                            as="textarea"
+                            rows={3}
+                            value={additional.customClauseText}
+                            onChange={handleCustomClauseChange}
+                            placeholder="Enter your custom clause here..."
+                        />
+                        {validationErrors.customClauseText && (
+                            <p className="text-danger">{validationErrors.customClauseText}</p>
+                        )}
+                    </Form.Group>
+                </Col>
+            </Row>
+
+            {/* Sección de otros deseos */}
+            <Row className="mt-5">
+                <Col sm={12}>
+                    <Form>
+                        <Form.Group controlId="otherWishes">
+                            <Form.Label>Other Wishes</Form.Label>
+                            <Form.Control
+                                as="textarea"
+                                rows={3}
+                                value={additional.otherWishes}
+                                onChange={handleOtherWishesChange}
+                                placeholder="Enter your other wishes here..."
+                            />
+                            {validationErrors.otherWishes && (
+                                <p className="text-danger">{validationErrors.otherWishes}</p>
+                            )}
+                        </Form.Group>
+                    </Form>
+                </Col>
+            </Row>
+        </Container>
     );
 }
 
