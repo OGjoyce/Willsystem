@@ -10,7 +10,7 @@ CORS(app)  # Enable CORS for all routes
 def get_data():
 
     # Define your MySQL connection string without a password
-    db_connection_str = 'mysql+pymysql://root@localhost/example2'
+    db_connection_str = 'mysql+pymysql://root@localhost/landingtest'
 
     # Create the engine
     engine = create_engine(db_connection_str)
