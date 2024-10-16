@@ -282,31 +282,43 @@ const DocumentSelector = ({
             {/* Mostrar el modal para seleccionar el perfil cuando el documento no tenga dueño */}
             <Modal show={showEmailModal} onHide={() => setShowEmailModal(false)}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Select a Profile</Modal.Title>
+                    <Modal.Title>Select profile</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    {objectStatus.map((profileArray, idx) => {
-                        const profile = profileArray.find(obj => obj.personal?.email);
-                        if (profile && profile.personal?.email) {
-                            return (
-                                <ListGroup key={idx}>
-                                    <ListGroup.Item action onClick={() => handleSelectEmail(profile.personal.email)}>
-                                        {profile.personal.email}
+                    <ListGroup variant="flush" className="w-100">
+                        {objectStatus.map((profileArray, idx) => {
+                            const profile = profileArray.find(obj => obj.personal?.email);
+                            if (profile && profile.personal?.email) {
+                                return (
+                                    <ListGroup.Item
+                                        key={idx}
+                                        action
+                                        onClick={() => handleSelectEmail(profile.personal.email)}
+                                        className="text-center"
+                                    >
+                                        <i className="bi bi-person-circle me-2"></i>
+                                        <strong>{profile.personal.email}</strong>
                                     </ListGroup.Item>
-                                </ListGroup>
-                            );
-                        }
-                        return null;
-                    })}
-
-                    {/* Opción para crear un nuevo perfil */}
-                    <ListGroup className="mt-3">
-                        <ListGroup.Item action onClick={handleCreateNewProfile}>
-                            <strong>Create New Profile</strong>
-                        </ListGroup.Item>
+                                );
+                            }
+                            return null;
+                        })}
                     </ListGroup>
+
+                    <hr className="my-4" />
+
+                    <Button
+                        variant="outline-primary"
+                        size="md"
+                        className="w-100"
+                        onClick={handleCreateNewProfile}
+                    >
+                        <i className="bi bi-plus-circle me-2"></i>
+                        <strong>Create new profile</strong>
+                    </Button>
                 </Modal.Body>
             </Modal>
+
 
             {/* Mostrar el PDFEditor si todos los pasos están completos */}
             {showPDFEditor && selectedDoc && (
