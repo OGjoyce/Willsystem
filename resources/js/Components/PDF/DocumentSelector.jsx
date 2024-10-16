@@ -83,6 +83,7 @@ const DocumentSelector = ({
 
         // Si el documento y el owner ya coinciden con el currentProfile y currentDocument, no mostramos el modal
         if (doc === currentDocument && owner === currentProfile) {
+            setShowConfirmationModal(true);
             proceedToSelectDocument(doc, owner); // Procedemos directamente sin mostrar el modal
             return;
         }
