@@ -40,7 +40,7 @@ const DocumentSelector = ({
     const [prevCurrentDocument, setPrevCurrentDocument] = useState(currentDocument);
     const [prevDocumentOwner, setPrevDocumentOwner] = useState(documentOwner);
     const [prevCurrentProfile, setPrevCurrentProfile] = useState(currentProfile);
-
+    const [firstIncompleteStep, setFirstIncompleteStep] = useState()
     // Validar el objectStatus
     if (!Array.isArray(objectStatus) || objectStatus.length === 0 || !Array.isArray(objectStatus[0]) || objectStatus[0].length === 0) {
         return <p>No hay documentos disponibles.</p>;
@@ -101,7 +101,7 @@ const DocumentSelector = ({
         setDocumentOwner(owner);
         setCurrentProfile(owner);
 
-        const firstIncompleteStep = visibleSteps.find(step => !stepHasData(step.step));
+        setFirstIncompleteStep(visibleSteps.find(step => !stepHasData(step.step)))
         if (doc !== currentDocument && owner !== currentProfile || doc !== currentDocument && owner == currentProfile) {
             setShowConfirmationModal(true);
         } else {
@@ -181,7 +181,7 @@ const DocumentSelector = ({
         setCurrentDocument(selectedDoc);
 
         // Verificar si todos los pasos tienen datos antes de avanzar
-        const firstIncompleteStep = visibleSteps.find(step => !stepHasData(step.step));
+        let firstIncompleteStep = visibleSteps.find(step => !stepHasData(step.step));
 
         if (firstIncompleteStep) {
             setPointer(firstIncompleteStep.step);
@@ -225,16 +225,31 @@ const DocumentSelector = ({
                     {documentOwner === "unknown" ? (
                         <p>This document doesn’t have an owner yet. Please select a profile or create a new one to continue.</p>
                     ) : (
-                        <p>This document belongs to {documentOwner}. If you switch to this document, any unsaved changes in the current document will be lost.</p>
+                        <>
+                            <p>This document belongs to {documentOwner}.</p>
+                            {firstIncompleteStep ? (
+                                <p>
+                                    You still need to fill in some required information. Please complete all steps before you can review the document.
+                                </p>
+                            ) : (
+                                <p>
+                                    The document is ready to be opened. Please review it carefully and ensure to save your changes in order to unlock other documents.
+                                </p>
+                            )}
+                        </>
                     )}
                 </Modal.Body>
                 <Modal.Footer>
-
+                    <Button variant="secondary" onClick={handleCancelSelection}>
+                        Cancel
+                    </Button>
                     <Button variant="primary" onClick={handleConfirmSelection}>
                         Confirm
                     </Button>
                 </Modal.Footer>
             </Modal>
+
+
 
 
 
