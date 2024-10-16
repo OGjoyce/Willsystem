@@ -254,7 +254,6 @@ export default function Personal({ auth }) {
         switch (step) {
             case 0:
                 const personalData = getFormData();
-                setCurrentProfile(personalData.email)
                 if (checkValidation(validate.formData(personalData))) {
                     const dataObj = {
                         personal: {
