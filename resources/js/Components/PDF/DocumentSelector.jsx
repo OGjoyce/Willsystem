@@ -219,17 +219,24 @@ const DocumentSelector = ({
             {/* Modal de confirmación */}
             <Modal show={showConfirmationModal} onHide={handleCancelSelection}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Estamos a punto de cambiar de documento y de perfil, ¿estás seguro?</Modal.Title>
+                    <Modal.Title>{`You are about to switch to the document "${selectedDoc}".`}</Modal.Title>
                 </Modal.Header>
+                <Modal.Body>
+                    {documentOwner === "unknown" ? (
+                        <p>This document doesn’t have an owner yet. Please select a profile or create a new one to continue.</p>
+                    ) : (
+                        <p>This document belongs to {documentOwner}. If you switch to this document, any unsaved changes in the current document will be lost.</p>
+                    )}
+                </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={handleCancelSelection}>
-                        No
-                    </Button>
+
                     <Button variant="primary" onClick={handleConfirmSelection}>
-                        Sí
+                        Confirm
                     </Button>
                 </Modal.Footer>
             </Modal>
+
+
 
             {/* Si no se ha seleccionado ningún documento, muestra la lista de documentos */}
             {!selectedDoc && (
