@@ -155,6 +155,11 @@ export default function Personal({ auth }) {
     }, [currIdObjDB]);
 
 
+    useEffect(() => {
+        if (pointer == 0 && objectStatus.length > 0) {
+            backStep()
+        }
+    }, [pointer, currentProfile])
 
     useEffect(() => {
         if (!currentProfile || !currentDocument) return;
