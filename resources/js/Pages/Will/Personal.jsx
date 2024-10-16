@@ -115,48 +115,50 @@ export default function Personal({ auth }) {
 
     // Load saved data from localStorage on component mount
     useEffect(() => {
-        const savedData = localStorage.getItem('fullData');
-        const savedPointer = localStorage.getItem('currentPointer');
-        const savedCurrIdObjDB = localStorage.getItem('currIdObjDB');
+        if (currIdObjDB === null) {
+            const savedData = localStorage.getItem('fullData');
+            const savedPointer = localStorage.getItem('currentPointer');
+            const savedCurrIdObjDB = localStorage.getItem('currIdObjDB');
 
-        if (savedData && savedPointer) {
-            const parsedData = JSON.parse(savedData);
-            setObjectStatus(parsedData);
-            setPointer(16);
+            if (savedData && savedPointer) {
+                const parsedData = JSON.parse(savedData);
+                setObjectStatus(parsedData);
+                setPointer(16);
 
-            // Obtener el currentProfile desde el primer elemento de objectStatus (que tiene los datos de personal)
-            const profileData = parsedData[0]?.[0]?.personal?.email || null;
-            setCurrentProfile(profileData);
+                // Obtener el currentProfile desde el primer elemento de objectStatus (que tiene los datos de personal)
+                const profileData = parsedData[0]?.[0]?.personal?.email || null;
+                setCurrentProfile(profileData);
 
-            // Establecer availableDocuments basado en los documentos del paquete
-            const packageInfo = parsedData[0]?.[0]?.packageInfo;
-            const documents = packageInfo?.documents ? Object.keys(packageInfo.documents) : [];
-            setAvailableDocuments(documents);
+                // Establecer availableDocuments basado en los documentos del paquete
+                const packageInfo = parsedData[0]?.[0]?.packageInfo;
+                const documents = packageInfo?.documents ? Object.keys(packageInfo.documents) : [];
+                setAvailableDocuments(documents);
 
-            // Establecer currentDocument con el primer documento disponible, si existe
-            setCurrentDocument(documents.length > 0 ? documents[0] : null);
+                // Establecer currentDocument con el primer documento disponible, si existe
+                setCurrentDocument(documents.length > 0 ? documents[0] : null);
 
-            // Restaurar otros estados necesarios
-            setDupMarried(parsedData.some((obj) => obj.hasOwnProperty('married')));
-            setDupKids(parsedData.some((obj) => obj.hasOwnProperty('kids')));
+                // Restaurar otros estados necesarios
+                setDupMarried(parsedData.some((obj) => obj.hasOwnProperty('married')));
+                setDupKids(parsedData.some((obj) => obj.hasOwnProperty('kids')));
 
-            // Si hay un ID almacenado, restaurarlo
-            if (savedCurrIdObjDB) {
-                setCurrIdObjDB(savedCurrIdObjDB);
-            }
+                // Si hay un ID almacenado, restaurarlo
+                if (savedCurrIdObjDB) {
+                    setCurrIdObjDB(savedCurrIdObjDB);
+                }
 
-            // Si hay datos almacenados, actualizarlos en la base de datos
-            if (savedCurrIdObjDB) {
-                updateDataObject(parsedData, savedCurrIdObjDB);
+                // Si hay datos almacenados, actualizarlos en la base de datos
+                if (savedCurrIdObjDB) {
+                    updateDataObject(parsedData, savedCurrIdObjDB);
+                }
             }
         }
-    }, []);
+    }, [currIdObjDB]);
 
 
 
     useEffect(() => {
         // Inicializa la estructura por defecto si no está presente
-        if (!getObjectStatus(objectStatus, currentProfile).some(obj => obj.hasOwnProperty('marriedq')) && currentProfile !== null) {
+        if (pointer == 1 && !getObjectStatus(objectStatus, currentProfile).some(obj => obj.hasOwnProperty('marriedq'))) {
             const initialObjectStructure = [
                 { name: 'marriedq', data: {} },
                 { name: 'married', data: {} },
@@ -187,7 +189,7 @@ export default function Personal({ auth }) {
             setObjectStatus(updatedObjectStatus);
             localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus));
         }
-    }, [objectStatus, currentProfile]);
+    }, [objectStatus, currentDocument, pointer, currentProfile]);
 
 
     // Show or hide the Select Package Modal based on the current step
@@ -772,9 +774,10 @@ export default function Personal({ auth }) {
 
         // Verificamos si el paso 0 tiene datos completos
         const step0Data = getObjectStatus(objectStatus, currentProfile).find(obj => obj.hasOwnProperty('personal'));
+        const step1Data = getObjectStatus(objectStatus, currentProfile).find(obj => obj.hasOwnProperty('marriedq'));
 
         // Si no existe step0Data o falta el nombre completo o el correo electrónico, no se puede hacer clic en otros pasos
-        if (!step0Data || !step0Data.personal.fullName || !step0Data.personal.email) {
+        if (!step0Data || !step0Data.personal.fullName || !step0Data.personal.email || !step1Data?.marriedq?.selection) {
             return false;
         }
 
