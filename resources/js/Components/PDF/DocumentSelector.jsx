@@ -48,12 +48,28 @@ const DocumentSelector = ({
     const availableDocuments = Object.keys(firstElement.packageInfo.documents);
 
     // Verificar si el documento está desbloqueado
+    // Verificar si el documento está desbloqueado
     const isDocumentUnlocked = (doc, index) => {
-        if (index === 0) return true;
+        if (index === 0) return true; // El primer documento siempre está desbloqueado
+
         const previousDocKey = availableDocuments[index - 1];
         const previousDoc = firstElement.packageInfo.documents[previousDocKey];
-        return previousDoc?.dataStatus === "incomplete";
+
+        // Comprobar si el documento anterior tiene una versión 'v1' en su documentDOM
+        const ownerProfile = objectStatus.find(profileArray =>
+            profileArray.some(dataObj => dataObj.personal?.email === previousDoc.owner)
+        );
+
+        if (!ownerProfile) {
+            return false; // Si no se encuentra el perfil del dueño, bloqueamos el documento
+        }
+
+        const ownerDocumentDOM = ownerProfile[ownerProfile.length - 1]?.documentDOM || {};
+
+        // Desbloquear si el documento anterior tiene la versión 'v1'
+        return ownerDocumentDOM[previousDocKey]?.v1?.content ? true : false;
     };
+
 
     const handleSelectDocument = (doc) => {
         const document = firstElement.packageInfo.documents[doc];
