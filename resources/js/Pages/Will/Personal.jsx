@@ -284,11 +284,13 @@ export default function Personal({ auth }) {
                     updatedObjectStatus = handleProfileData(personalData.email, propertiesAndData, objectStatus);
                     setObjectStatus(updatedObjectStatus);
 
-                    const dataFirstStore = await storeDataObject(dataObj);
-                    setCurrIdObjDB(dataFirstStore.id);
+                    if (currIdObjDB === null) {
+                        const dataFirstStore = await storeDataObject(dataObj);
+                        setCurrIdObjDB(dataFirstStore.id);
 
-                    console.log(packageDocuments[selectedPackage.description][0])
-                    localStorage.setItem('currIdObjDB', dataFirstStore.id);
+                        console.log(packageDocuments[selectedPackage?.description][0])
+                        localStorage.setItem('currIdObjDB', dataFirstStore.id);
+                    }
                 } else {
                     return null;
                 }
@@ -984,7 +986,7 @@ export default function Personal({ auth }) {
                                     </Col>
                                 </Row>
                             </Container>
-                            {pointer === 0 && (
+                            {pointer === 0 && objectStatus.length == 0 && (
                                 <SelectPackageModal
                                     show={showSelectModal}
                                     onHide={handleHideSelectModal}
