@@ -77,30 +77,87 @@ const DocumentSelector = ({
     };
 
     const handleSelectDocument = (doc) => {
-        const document = firstElement.packageInfo.documents[doc];
-        const owner = document.owner; // Obtener el owner del documento seleccionado
+        // Iterar sobre los documentos en packageInfo.documents
+        const firstElementArray = objectStatus[0]; // Primer array del objectStatus
+        const firstElement = firstElementArray[0]; // Primer objeto en el array
 
-        // Si el documento y el owner ya coinciden con el currentProfile y currentDocument, no mostramos el modal
-        if (doc === currentDocument && owner === currentProfile) {
-            proceedToSelectDocument(doc, owner); // Procedemos directamente sin mostrar el modal
+        // Asegurarse de que packageInfo y documents existen
+        if (!firstElement?.packageInfo?.documents) {
+            console.log("No documents available in packageInfo");
             return;
         }
 
-        // Guardar estados previos
-        setPrevSelectedDoc(selectedDoc);
-        setPrevCurrentDocument(currentDocument);
-        setPrevDocumentOwner(documentOwner);
-        setPrevCurrentProfile(currentProfile);
+        const documents = firstElement.packageInfo.documents;
 
-        // Establecer los nuevos estados antes de mostrar el modal
-        setSelectedDoc(doc);
-        setCurrentDocument(doc);
-        setDocumentOwner(owner);
-        setCurrentProfile(owner);
+        // Buscar el documento que coincide con currentDocument y tiene owner "unknown"
+        const documentKeys = Object.keys(documents);
+        let documentFound = false;
 
-        // Mostrar el modal de advertencia
-        setShowConfirmationModal(true);
+        documentKeys.forEach((documentKey) => {
+            if (documentKey === doc && documents[documentKey].owner === 'unknown' && !documentFound) {
+                // Asignar currentProfile como owner
+                const updatedObjectStatus = objectStatus.map((profileArray) => {
+                    return profileArray.map((dataObj) => {
+                        if (dataObj.packageInfo && dataObj.packageInfo.documents) {
+                            const updatedDocuments = { ...dataObj.packageInfo.documents };
+                            updatedDocuments[documentKey].owner = currentProfile; // Asignar currentProfile como owner
+
+                            return {
+                                ...dataObj,
+                                packageInfo: {
+                                    ...dataObj.packageInfo,
+                                    documents: updatedDocuments,
+                                },
+                            };
+                        }
+                        return dataObj;
+                    });
+                });
+
+                // Actualizar objectStatus y localStorage
+                setObjectStatus(updatedObjectStatus);
+                localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus));
+
+                // No mostrar el modal, continuar directamente
+                setSelectedDoc(documentKey);
+                setCurrentDocument(documentKey);
+                setDocumentOwner(currentProfile);
+                setCurrentProfile(currentProfile);
+
+                // Continuar al siguiente paso automáticamente
+                const firstIncompleteStep = visibleSteps.find(step => !stepHasData(step.step));
+                if (firstIncompleteStep) {
+                    setPointer(firstIncompleteStep.step);
+                } else {
+                    setShowPDFEditor(true); // Mostrar el PDFEditor si todos los pasos están completos
+                }
+
+                // Marcar que el documento ha sido encontrado y detener la iteración
+                documentFound = true;
+            }
+        });
+
+        if (!documentFound) {
+            // Si no se encuentra el documento con owner "unknown", mostrar el modal de confirmación
+            const owner = documents[doc].owner;
+
+            // Guardar estados previos
+            setPrevSelectedDoc(selectedDoc);
+            setPrevCurrentDocument(currentDocument);
+            setPrevDocumentOwner(documentOwner);
+            setPrevCurrentProfile(currentProfile);
+
+            // Establecer los nuevos estados antes de mostrar el modal
+            setSelectedDoc(doc);
+            setCurrentDocument(doc);
+            setDocumentOwner(owner);
+            setCurrentProfile(owner);
+
+            // Mostrar el modal de advertencia
+            setShowConfirmationModal(true);
+        }
     };
+
 
 
 
