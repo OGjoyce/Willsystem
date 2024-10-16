@@ -138,6 +138,7 @@ const DocumentSelector = ({
     };
 
     const handleSelectEmail = (email) => {
+
         // Establecer el email seleccionado como owner del documento
         const updatedObjectStatus = objectStatus.map((profileArray, idx) => {
             return profileArray.map((dataObj) => {
@@ -156,6 +157,7 @@ const DocumentSelector = ({
                 }
                 return dataObj;
             });
+
         });
 
         // Guardar el nuevo estado en objectStatus
@@ -177,6 +179,7 @@ const DocumentSelector = ({
             setPointer(16); // Navegar al paso 16
             setShowPDFEditor(true); // Mostrar el PDFEditor cuando todos los pasos tengan datos
         }
+
 
         // Cerrar el modal de selección de email
         setShowEmailModal(false);
