@@ -74,9 +74,35 @@ const DocumentSelector = ({
     };
 
     const handleSelectDocument = (docObj, index) => {
-        const owner = docObj.owner || 'unknown';
+        let owner = docObj.owner || 'unknown';
         const doc = docObj.docType;
 
+        // Verificar si el documento tiene un associatedWill
+        if (docObj.associatedWill) {
+            const associatedWillId = docObj.associatedWill;
+
+            // Buscar el Will asociado en los documentos
+            const associatedWill = objectStatus[0]?.[0]?.packageInfo?.documents?.find(will => will.willIdentifier === associatedWillId);
+
+            // Si el Will asociado tiene un owner, asignarlo automáticamente
+            if (associatedWill && associatedWill.owner) {
+                owner = associatedWill.owner;
+                setDocumentOwner(owner);
+                setCurrentProfile(owner);
+                setCurrentDocument(doc);
+                setShowPDFEditor(true);
+
+            }
+        }
+
+        // Si no hay associatedWill o el owner es 'unknown', mostrar el modal para seleccionar un email
+        if (owner === 'unknown') {
+            setShowEmailModal(true);
+            setSelectedDoc(doc);
+            return;
+        }
+
+        // Si el documento ya tiene un owner, continuar con la lógica habitual
         if (doc === currentDocument && owner === currentProfile) {
             setShowConfirmationModal(true);
             proceedToSelectDocument(doc, owner);
@@ -107,6 +133,7 @@ const DocumentSelector = ({
             }
         }
     };
+
 
     const handleConfirmSelection = () => {
         setShowConfirmationModal(false);
