@@ -5,6 +5,7 @@ import WillContent from './Content/WillContent';
 import POA1Content from './Content/POA1Content';
 import POA2Content from './Content/POA2Content';
 import CustomToast from '../AdditionalComponents/CustomToast';
+import { handleProfileData } from '../ProfileDataHandler';
 
 const contentComponents = {
     primaryWill: WillContent,
@@ -84,9 +85,23 @@ const DocumentSelector = ({
             return;
         } else if (doc === 'secondaryWill' && owner !== 'unknown') {
             setCurrentDocument(doc);
-            setCurrentProfile(owner);
+            setCurrentProfile(null);
+            setPointer(0); // Navegar al pointer 0
 
         }
+        if (doc === 'spousalWill' && owner == 'unknown') {
+            setCurrentDocument(doc);
+            setCurrentProfile(null);
+            setPointer(0); // Navegar al pointer 0
+            return;
+        } else if (doc === 'spousalWill' && owner !== 'unknown') {
+            setCurrentDocument(doc);
+            setCurrentProfile(null);
+            setPointer(0); // Navegar al pointer 0
+
+        }
+
+
 
         // Verificar si el documento tiene un associatedWill
         if (docObj.associatedWill) {
