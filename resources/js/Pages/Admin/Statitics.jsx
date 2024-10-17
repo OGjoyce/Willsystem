@@ -24,7 +24,7 @@ export default function Statitics() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get('https://localhost:5000/getData');
+                const response = await axios.get('https://willsystemapp.com:5000/getData');
                 setData(response.data); // Assuming the response data is in the expected format
                 something = JSON.parse(response.data);
                 // Extract dates into a separate array
