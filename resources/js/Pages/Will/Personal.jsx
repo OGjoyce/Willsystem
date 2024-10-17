@@ -155,6 +155,45 @@ export default function Personal({ auth }) {
     }, [currIdObjDB]);
 
 
+    useEffect(() => {
+        if (pointer == 0 && objectStatus.length > 0) {
+            backStep()
+        }
+    }, [pointer, currentProfile])
+
+    useEffect(() => {
+        if (!currentProfile || !currentDocument) return;
+
+        // Acceder al packageInfo del primer elemento de objectStatus
+        const packageInfo = objectStatus[0]?.[0]?.packageInfo;
+
+        if (packageInfo && packageInfo.documents) {
+            const documentToUpdate = Object.keys(packageInfo.documents).find(
+                (docKey) =>
+                    docKey === currentDocument && packageInfo.documents[docKey].owner === 'unknown'
+            );
+
+            // Si encontramos un documento que coincide y tiene "unknown" como owner
+            if (documentToUpdate) {
+                // Clonar el objectStatus para no mutar el estado original directamente
+                const updatedObjectStatus = [...objectStatus];
+
+                // Asignar el currentProfile como owner
+                updatedObjectStatus[0][0].packageInfo.documents[documentToUpdate].owner = currentProfile;
+
+                // Actualizar el estado global (objectStatus) solo si es necesario
+                setObjectStatus(updatedObjectStatus);
+
+                // Guardar en localStorage o actualizar la base de datos si es necesario
+                localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus));
+                if (currIdObjDB) {
+                    updateDataObject(updatedObjectStatus, currIdObjDB);
+                }
+            }
+        }
+    }, [currentProfile, currentDocument]); // Dependencias controladas solo para actualizaciones esenciales
+
+
 
     useEffect(() => {
         // Inicializa la estructura por defecto si no está presente
@@ -265,45 +304,39 @@ export default function Personal({ auth }) {
                         },
                         owner: personalData.email,
                         packageInfo: {
-                            ...selectedPackage,
-                            documents: availableDocuments.reduce((acc, doc, index) => {
+                            ...selectedPackage, documents: availableDocuments.reduce((acc, doc, index) => {
                                 acc[doc] = {
-                                    id: index + 1,
-                                    // Solo actualiza el documento si tiene 'unknown' como owner y coincide con el currentDocument
-                                    owner: acc[doc]?.owner === 'unknown' && doc === currentDocument
-                                        ? personalData.email
-                                        : acc[doc]?.owner || 'unknown',  // Mantener el valor existente si no coincide
-                                    dataStatus: "incomplete"
+                                    id: index + 1, owner: index === 0 ? personalData.email : "unknown", dataStatus: "incomplete"
                                 };
                                 return acc;
-                            }, { ...objectStatus[0]?.[0]?.packageInfo?.documents }) // Mantener los documentos existentes
+                            }, {})
                         },
                     };
 
                     propertiesAndData = [
                         { name: 'personal', data: dataObj.personal },
                         { name: 'owner', data: dataObj.owner },
-                        { name: 'packageInfo', data: dataObj.packageInfo },
+                        {
+                            name: 'packageInfo', data: currIdObjDB === null ? dataObj.packageInfo : { 'undefined': "not a onwner of any package" }
+                        },
                     ];
-
-                    // Actualiza el perfil actual con el email
-                    setCurrentProfile(personalData.email);
-
-                    // Actualiza el objectStatus con los nuevos datos del perfil
+                    setCurrentProfile(personalData.email)
                     updatedObjectStatus = handleProfileData(personalData.email, propertiesAndData, objectStatus);
-                    handleProfileData(objectStatus[0]?.[0]?.personal?.email, [{ name: 'packageInfo', data: dataObj.packageInfo }], objectStatus);
-
-                    // Actualiza el estado
                     setObjectStatus(updatedObjectStatus);
 
                     if (currIdObjDB === null) {
                         const dataFirstStore = await storeDataObject(dataObj);
                         setCurrIdObjDB(dataFirstStore.id);
+
+                        console.log(packageDocuments[selectedPackage?.description][0])
                         localStorage.setItem('currIdObjDB', dataFirstStore.id);
                     }
                 } else {
                     return null;
                 }
+
+
+
                 break;
 
             case 1:
