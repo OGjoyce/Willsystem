@@ -168,20 +168,36 @@ export default function Personal({ auth }) {
         const packageInfo = objectStatus[0]?.[0]?.packageInfo;
 
         if (packageInfo && packageInfo.documents) {
-            const documentToUpdate = Object.keys(packageInfo.documents).find(
-                (docKey) =>
-                    docKey === currentDocument && packageInfo.documents[docKey].owner === 'unknown'
+            // Buscar el índice del documento que coincide con currentDocument y tiene owner 'unknown'
+            const documentIndex = packageInfo.documents.findIndex(
+                (docObj) =>
+                    docObj.docType === currentDocument && docObj.owner === 'unknown'
             );
 
             // Si encontramos un documento que coincide y tiene "unknown" como owner
-            if (documentToUpdate) {
-                // Clonar el objectStatus para no mutar el estado original directamente
+            if (documentIndex !== -1) {
+                // Clonar objectStatus para no mutar el estado original directamente
                 const updatedObjectStatus = [...objectStatus];
 
-                // Asignar el currentProfile como owner
-                updatedObjectStatus[0][0].packageInfo.documents[documentToUpdate].owner = currentProfile;
+                // Clonar el packageInfo y los documentos
+                const updatedPackageInfo = {
+                    ...packageInfo,
+                    documents: [...packageInfo.documents],
+                };
 
-                // Actualizar el estado global (objectStatus) solo si es necesario
+                // Asignar el currentProfile como owner del documento específico
+                updatedPackageInfo.documents[documentIndex] = {
+                    ...updatedPackageInfo.documents[documentIndex],
+                    owner: currentProfile,
+                };
+
+                // Actualizar el packageInfo en updatedObjectStatus
+                updatedObjectStatus[0][0] = {
+                    ...updatedObjectStatus[0][0],
+                    packageInfo: updatedPackageInfo,
+                };
+
+                // Actualizar el estado global (objectStatus)
                 setObjectStatus(updatedObjectStatus);
 
                 // Guardar en localStorage o actualizar la base de datos si es necesario
@@ -191,7 +207,7 @@ export default function Personal({ auth }) {
                 }
             }
         }
-    }, [currentProfile, currentDocument]); // Dependencias controladas solo para actualizaciones esenciales
+    }, [currentProfile, currentDocument]);
 
 
 
@@ -304,12 +320,13 @@ export default function Personal({ auth }) {
                         },
                         owner: personalData.email,
                         packageInfo: {
-                            ...selectedPackage, documents: availableDocuments.reduce((acc, doc, index) => {
-                                acc[doc] = {
-                                    id: index + 1, owner: index === 0 ? personalData.email : "unknown", dataStatus: "incomplete"
-                                };
-                                return acc;
-                            }, {})
+                            ...selectedPackage,
+                            documents: availableDocuments.map((docType, index) => ({
+                                id: index + 1,
+                                docType,
+                                owner: index === 0 ? personalData.email : "unknown",
+                                dataStatus: "incomplete"
+                            })),
                         },
                     };
 
