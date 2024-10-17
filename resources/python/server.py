@@ -62,5 +62,5 @@ def get_data():
     return jsonify(json_index)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, ssl_context=('/home/carlos/cert.pem', '/home/carlos/key.pem'), debug=True)
+    app.run(host='0.0.0.0', port=5000, ssl_context=('/home/carlos/cert.pem', '/home/carlos/key_no_passphrase.pem'), debug=True)
 
