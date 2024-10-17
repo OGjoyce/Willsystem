@@ -20,12 +20,19 @@ export default function Statitics() {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
+    let something, dates, packagePRices;
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get('http://34.130.110.17:5000/getData');
+                const response = await axios.get('http://localhost:5000/getData');
                 setData(response.data); // Assuming the response data is in the expected format
+                something = JSON.parse(response.data);
+                // Extract dates into a separate array
+                dates = something.map(item => item.date);
+
+                // Extract package prices into a separate array
+                packagePRices = something.map(item => item["packageInfo.price"]);
+
             } catch (err) {
                 setError(err);
             } finally {
@@ -38,14 +45,16 @@ export default function Statitics() {
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p>Error: {error.message}</p>;
-    const option = {
+
+
+    let option2 = {
         title: {
-            text: 'Sample Bar Chart',
+            text: 'Package Sales by Date',
         },
         tooltip: {},
         xAxis: {
             type: 'category',
-            data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            data: data!== null? dates: ['mon', 'tue', 'th', 'wed', 'fr', 'sat', 'sund'],
         },
         yAxis: {
             type: 'value',
@@ -54,7 +63,30 @@ export default function Statitics() {
             {
                 name: 'Sales',
                 type: 'bar',
-                data: [120, 200, 150, 80, 70, 110, 130],
+                data: data!== null? packagePRices: [100, 120, 130, 150, 40, 600, 100],
+            },
+        ],
+    };
+
+
+
+    const option = {
+        title: {
+            text: 'Sample Bar Chart',
+        },
+        tooltip: {},
+        xAxis: {
+            type: 'category',
+            data: ['mon', 'tue', 'th', 'wed', 'fr', 'sat', 'sund'],
+        },
+        yAxis: {
+            type: 'value',
+        },
+        series: [
+            {
+                name: 'Sales',
+                type: 'bar',
+                data: [100, 120, 130, 150, 40, 600, 100]
             },
         ],
     };
@@ -67,6 +99,14 @@ export default function Statitics() {
                 <div className="py-12 bg-gray-100 min-h-screen">
                     <Container className="bg-white p-6 rounded-lg shadow-md">
                         <ReactECharts option={option} />;
+                        {
+                            data != null ?
+                                <ReactECharts option={option2} />
+                                :
+                                null
+
+                        }
+
                         <div>
                             <h1>Data from Server:</h1>
                             <pre>{JSON.stringify(data, null, 2)}</pre>
