@@ -13,7 +13,7 @@ def hello_world():
 def get_data():
 
     # Define your MySQL connection string without a password
-    db_connection_str = 'mysql+pymysql://root@localhost/example2'
+    db_connection_str = 'mysql+pymysql://willuser:Pipiriberta1!%40@localhost/landingtest'
 
     # Create the engine
     engine = create_engine(db_connection_str)
@@ -44,23 +44,23 @@ def get_data():
     df['created_at'] = pd.to_datetime(df['created_at'])
 
 
-    df_normalized['personal.timestamp'] = pd.to_datetime(df_normalized['personal.timestamp'])
+    df_normalized['personal.timestamp'] = pd.to_datetime(df_normalized['personal.timestamp'], unit='ms')
 
     # Extract the date only for the histogram
     df_normalized['date'] = df_normalized['personal.timestamp'].dt.date
 
-    new_df =  df_normalized[['date', 'packageInfo.price']]
-    new_df.dropna()
 
+
+    new_df =  df_normalized[['date', 'packageInfo.price']]
+    new_df = new_df.dropna(how='all')
     new_df['date'] = new_df['date'].astype(str)
     json_index = new_df.to_json(orient='records')
  
 
 
 
-
     return jsonify(json_index)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, ssl_context=('/home/carlos/cert.pem', '/home/carlos/key_no_passphrase.pem'), debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
 

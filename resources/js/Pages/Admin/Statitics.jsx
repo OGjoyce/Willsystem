@@ -20,7 +20,11 @@ export default function Statitics() {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    let something, dates, packagePRices;
+    const [chartFlag, setChartFlag] = useState(false);
+    let dates = null;
+    let packagePRices = null;
+    let something;
+    const [option2, setOption2] = useState(null);
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -33,10 +37,34 @@ export default function Statitics() {
                 // Extract package prices into a separate array
                 packagePRices = something.map(item => item["packageInfo.price"]);
 
+                setOption2({
+                    title: {
+                        text: 'Package Sales by Date',
+                    },
+                    tooltip: {},
+                    xAxis: {
+                        type: 'category',
+                        data: dates,
+                    },
+                    yAxis: {
+                        type: 'value',
+                    },
+                    series: [
+                        {
+                            name: 'Sales',
+                            type: 'bar',
+                            data: packagePRices,
+                        },
+                    ],
+                });
+
             } catch (err) {
                 setError(err);
             } finally {
                 setLoading(false);
+                setChartFlag(true);
+
+                console.log(Date.now())
             }
         };
 
@@ -46,27 +74,13 @@ export default function Statitics() {
     if (loading) return <p>Loading...</p>;
     if (error) return <p>Error: {error.message}</p>;
 
+    console.log(Date.now())
 
-    let option2 = {
-        title: {
-            text: 'Package Sales by Date',
-        },
-        tooltip: {},
-        xAxis: {
-            type: 'category',
-            data: data!== null? dates: ['mon', 'tue', 'th', 'wed', 'fr', 'sat', 'sund'],
-        },
-        yAxis: {
-            type: 'value',
-        },
-        series: [
-            {
-                name: 'Sales',
-                type: 'bar',
-                data: data!== null? packagePRices: [100, 120, 130, 150, 40, 600, 100],
-            },
-        ],
-    };
+
+
+
+
+
 
 
 
@@ -99,18 +113,16 @@ export default function Statitics() {
                 <div className="py-12 bg-gray-100 min-h-screen">
                     <Container className="bg-white p-6 rounded-lg shadow-md">
                         <ReactECharts option={option} />;
-                        {
-                            data != null ?
-                                <ReactECharts option={option2} />
-                                :
-                                null
-
+                        {option2 !== null?
+                         <ReactECharts option={option2} />
+                        :
+                        <p>chart loading...</p>
                         }
 
-                        <div>
+                        {/* <div>
                             <h1>Data from Server:</h1>
                             <pre>{JSON.stringify(data, null, 2)}</pre>
-                        </div>
+                        </div> */}
 
 
                     </Container>
