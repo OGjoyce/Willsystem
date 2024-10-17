@@ -206,9 +206,10 @@ const DocumentSelector = ({
         setCurrentDocument(selectedDoc);
 
         const firstIncompleteStep = visibleSteps.find(step => !stepHasData(step.step));
+        console.log(visibleSteps.find(step => !stepHasData(step.step)))
 
-        if (firstIncompleteStep) {
-            setPointer(firstIncompleteStep.step);
+        if (firstIncompleteStep === undefined) {
+            setPointer(0);
         } else {
             setPointer(16); // Navegar al paso 16
             setShowPDFEditor(true);
