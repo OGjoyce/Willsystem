@@ -49,8 +49,6 @@ def get_data():
     # Extract the date only for the histogram
     df_normalized['date'] = df_normalized['personal.timestamp'].dt.date
 
-
-
     new_df =  df_normalized[['date', 'packageInfo.price']]
     new_df = new_df.dropna(how='all')
     new_df['date'] = new_df['date'].astype(str)
@@ -59,8 +57,9 @@ def get_data():
 
 
 
+
     return jsonify(json_index)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, ssl_context=('/etc/letsencrypt/live/willsystemapp.com/fullchain.pem', '/etc/letsencrypt/live/willsystemapp.com/privkey.pem'), debug=True)
 
