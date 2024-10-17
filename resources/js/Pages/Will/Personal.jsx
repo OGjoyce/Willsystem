@@ -395,7 +395,7 @@ export default function Personal({ auth }) {
             case 0:
                 const personalData = getFormData();
                 if (checkValidation(validate.formData(personalData))) {
-                    const initializedDocuments = initializePackageDocuments(availableDocuments, selectedPackage.description);
+                    const initializedDocuments = initializePackageDocuments(availableDocuments, selectedPackage?.description);
                     const dataObj = {
                         personal: {
                             ...stepper[step],
@@ -935,7 +935,7 @@ export default function Personal({ auth }) {
             if (index === 10 && !hasKids) return false; // Guardian For Minors
 
             // Logic based on currentDocument
-            if (currentDocument === 'primaryWill') {
+            if (currentDocument === 'primaryWill' | currentDocument === 'secondaryWill') {
                 // Hide steps 12 (POA Property) and 13 (POA Health) if it's a primaryWill
                 if (index === 12 || index === 13) return false;
             } else if (currentDocument === 'poaProperty') {
