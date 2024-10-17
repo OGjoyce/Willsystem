@@ -13,7 +13,7 @@ def hello_world():
 def get_data():
 
     # Define your MySQL connection string without a password
-    db_connection_str = 'mysql+pymysql://root@localhost/landingtest'
+    db_connection_str = 'mysql+pymysql://root@localhost/example2'
 
     # Create the engine
     engine = create_engine(db_connection_str)
@@ -62,4 +62,5 @@ def get_data():
     return jsonify(json_index)
 
 if __name__ == '__main__':
-    app.run(ssl_context=('/home/carlos/cert.pem', '/home/carlos/key.pem'), debug=True)
+    app.run(host='0.0.0.0', port=5000, ssl_context=('/home/carlos/cert.pem', '/home/carlos/key.pem'), debug=True)
+
