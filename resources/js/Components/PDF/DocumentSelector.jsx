@@ -77,6 +77,17 @@ const DocumentSelector = ({
         let owner = docObj.owner || 'unknown';
         const doc = docObj.docType;
 
+        if (doc === 'secondaryWill' && owner == 'unknown') {
+            setCurrentDocument(doc);
+            setCurrentProfile(null);
+            setPointer(0); // Navegar al pointer 0
+            return;
+        } else if (doc === 'secondaryWill' && owner !== 'unknown') {
+            setCurrentDocument(doc);
+            setCurrentProfile(owner);
+
+        }
+
         // Verificar si el documento tiene un associatedWill
         if (docObj.associatedWill) {
             const associatedWillId = docObj.associatedWill;
