@@ -219,6 +219,18 @@ export default function Dashboard({ auth }) {
                                     </CardBody>
                                 </CustomCard>
                             </Col>
+                            <Col >
+                                <CustomCard>
+                                    <CardBody>
+                                        <IconWrapper>
+                                            <i className="bi bi-file-earmark-text"></i>
+                                        </IconWrapper>
+                                        <CardTitle>Statitics</CardTitle>
+                                        <CardText>Dashboard</CardText>
+                                        <Button onClick={(e) => handleLinkClick(e, route('statitics'), 'statitics')} variant="outline-dark">See</Button>
+                                    </CardBody>
+                                </CustomCard>
+                            </Col>
 
                         </Row>
                     </Container>

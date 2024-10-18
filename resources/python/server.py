@@ -6,9 +6,36 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 # Define a route that will trigger your Python logic
-@app.route('/', methods=['GET'])
-def hello_world():
-    return 'Hello, World!'
+@app.route('/getTotalEarnt', methods=['GET'])
+def getMoneySum():
+    db_connection_str = 'mysql+pymysql://willuser:Pipiriberta1!%40@localhost/landingtest'
+
+    # Create the engine
+    engine = create_engine(db_connection_str)
+
+    # Define your query
+    query = "SELECT * FROM obj_statuses"
+
+    # Fetch the data into a DataFrame
+    df = pd.read_sql(query, con=engine)
+
+
+    # Convert the JSON string into dictionaries
+    df['information'] = df['information'].apply(json.loads)
+
+    # Normalize the JSON column into a new DataFrame
+    normalized_df = pd.json_normalize(df['information'])
+
+    df_normalized = pd.concat(normalized_df[0].apply(pd.json_normalize).tolist(), ignore_index=True)
+
+
+    # Remove the '$' symbol and convert the string to float
+    df_normalized['packageInfo.price'] = df_normalized['packageInfo.price'].replace(r'[\$,]', '', regex=True).astype(float)
+
+    # Sum the column
+    total_price = df_normalized['packageInfo.price'].sum()
+    return total_price
+
 @app.route('/getData', methods=['GET'])
 def get_data():
 
