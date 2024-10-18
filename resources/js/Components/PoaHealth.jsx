@@ -76,6 +76,31 @@ const PoaHealth = ({ datas, errors }) => {
         }
     ];
 
+    useEffect(() => {
+        // Limpiar los datos del formulario y los datos globales de poaHealthData
+        setFormData({
+            attorney: '',
+            backups: [],
+            restrictions: '',
+            statements: {}
+        });
+        setOrganDonation(false);
+        setDnr(false);
+
+        // Limpiar la variable global poaHealthData
+        poaHealthData = {
+            poaHealth: null,
+            organDonation: false,
+            dnr: false,
+            statements: {}, // Limpia las declaraciones seleccionadas
+            timestamp: Date.now()
+        };
+
+
+
+    }, []);
+
+
     // Populate identifiersNames based on provided datas
     useEffect(() => {
         if (datas) {
