@@ -180,6 +180,21 @@ export default function Personal({ auth }) {
     }, [objectStatus, currentProfile, currentDocument])
 
 
+    useEffect(() => {
+        const currentData = getObjectStatus(objectStatus, currentProfile)
+        if (currentDocument === 'poaHealth') {
+            if (currentData.some((obj) => Array.isArray(obj.poaHealth))) {
+                setPointer(13)
+            }
+        }
+        if (currentDocument === 'poaProperty') {
+            if (currentData.some((obj) => Array.isArray(obj.poaProperty))) {
+                setPointer(12)
+            }
+        }
+
+    }, [currentDocument, currentProfile])
+
     const username = auth.user.name;
 
     // Load saved data from localStorage on component mount
