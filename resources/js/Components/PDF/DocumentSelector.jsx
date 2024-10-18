@@ -133,7 +133,8 @@ const DocumentSelector = ({
         // Si el documento ya tiene un owner, continuar con la lógica habitual
         if (doc === currentDocument && owner === currentProfile) {
             setShowConfirmationModal(true);
-            proceedToSelectDocument(doc, owner);
+            setCurrentDocument(currentDocument)
+            setCurrentProfile(currentProfile)
             return;
         }
 
