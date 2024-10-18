@@ -369,7 +369,10 @@ export default function Personal({ auth }) {
         const wills = [];
         const poas = [];
 
-        // First pass to collect Wills and POAs
+        // Verificar si el paquete seleccionado permite la distribución de POAs
+        const distributePOAsAllowed = packageAssociations[packageDescription] === true;
+
+        // Primer paso para recolectar Wills y POAs
         availableDocuments.forEach((docType, index) => {
             if (docType.toLowerCase().includes('will')) {
                 willCounters[docType] = (willCounters[docType] || 0) + 1;
@@ -379,7 +382,7 @@ export default function Personal({ auth }) {
                 wills.push({
                     id: index + 1,
                     docType,
-                    owner: 'unknown', // Owner is unknown until selected
+                    owner: 'unknown', // El propietario es desconocido hasta que se seleccione
                     dataStatus: 'incomplete',
                     willIdentifier,
                 });
@@ -387,47 +390,17 @@ export default function Personal({ auth }) {
                 poas.push({
                     id: index + 1,
                     docType,
-                    owner: 'unknown', // Owner is unknown until selected
+                    owner: distributePOAsAllowed ? 'unknown' : 'unknown', // Si no se permite distribuir POAs, permanece como 'unknown'
                     dataStatus: 'incomplete',
-                    associatedWill: null, // Default to null
+                    associatedWill: distributePOAsAllowed ? null : 'unknown', // Solo distribuir si está permitido
                 });
             }
         });
 
-        // Helper function to distribute POAs correctly
-        const distributePOAs = (wills, poas) => {
-            const willAssignments = {};
-
-            // Initialize willAssignments object
-            wills.forEach((will) => {
-                willAssignments[will.willIdentifier] = {
-                    poaProperty: null,
-                    poaHealth: null,
-                };
-            });
-
-            // Assign each POA to the first will that doesn't have that type of POA yet
-            poas.forEach((poa) => {
-                for (let willIdentifier in willAssignments) {
-                    const assignment = willAssignments[willIdentifier];
-
-                    if (poa.docType === 'poaProperty' && assignment.poaProperty === null) {
-                        assignment.poaProperty = poa;
-                        poa.associatedWill = willIdentifier;
-                        break;
-                    }
-
-                    if (poa.docType === 'poaHealth' && assignment.poaHealth === null) {
-                        assignment.poaHealth = poa;
-                        poa.associatedWill = willIdentifier;
-                        break;
-                    }
-                }
-            });
-        };
-
-        // Call the distribution function
-        distributePOAs(wills, poas);
+        // Si la distribución de POAs está permitida, procedemos a asignar POAs a Wills
+        if (distributePOAsAllowed) {
+            distributePOAs(wills, poas);
+        }
 
         // Reconstruct the documents in original order
         let documents = [];
@@ -452,6 +425,39 @@ export default function Personal({ auth }) {
 
         return documents;
     };
+
+    // Función que distribuye los POAs cuando el paquete lo permite
+    const distributePOAs = (wills, poas) => {
+        const willAssignments = {};
+
+        // Inicializar el objeto de asignación de POAs
+        wills.forEach((will) => {
+            willAssignments[will.willIdentifier] = {
+                poaProperty: null,
+                poaHealth: null,
+            };
+        });
+
+        // Asignar cada POA al primer will que no tenga ese tipo de POA asignado aún
+        poas.forEach((poa) => {
+            for (let willIdentifier in willAssignments) {
+                const assignment = willAssignments[willIdentifier];
+
+                if (poa.docType === 'poaProperty' && assignment.poaProperty === null) {
+                    assignment.poaProperty = poa;
+                    poa.associatedWill = willIdentifier;
+                    break;
+                }
+
+                if (poa.docType === 'poaHealth' && assignment.poaHealth === null) {
+                    assignment.poaHealth = poa;
+                    poa.associatedWill = willIdentifier;
+                    break;
+                }
+            }
+        });
+    };
+
 
 
     // Function to handle advancing to the next step
