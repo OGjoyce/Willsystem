@@ -86,7 +86,7 @@ const DocumentSelector = ({
         } else if (doc === 'secondaryWill' && owner !== 'unknown') {
             setCurrentDocument(doc);
             setCurrentProfile(owner);
-            setPointer(0); // Navegar al pointer 0
+
 
         }
         if (doc === 'spousalWill' && owner == 'unknown') {
@@ -97,7 +97,6 @@ const DocumentSelector = ({
         } else if (doc === 'spousalWill' && owner !== 'unknown') {
             setCurrentDocument(doc);
             setCurrentProfile(owner);
-            setPointer(0); // Navegar al pointer 0
 
         }
 
