@@ -1180,7 +1180,7 @@ export default function Personal({ auth }) {
                                     </Col>
                                 </Row>
                             </Container>
-                            {pointer === 0 && currentDocument === null && (
+                            {pointer === 0 && !currIdObjDB && (
                                 <SelectPackageModal
                                     show={showSelectModal}
                                     onHide={handleHideSelectModal}
