@@ -1,4 +1,3 @@
-// Necessary imports
 import React, { useState, useEffect, useRef } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { Container, Row, Col, Button } from 'react-bootstrap';
@@ -59,7 +58,7 @@ export default function Personal({ auth }) {
     const [showSelectModal, setShowSelectModal] = useState(false);
     const [availableDocuments, setAvailableDocuments] = useState([]);
     const [currentDocument, setCurrentDocument] = useState();
-    const [currentProfile, setCurrentProfile] = useState(null);
+    const [currentProfile, setCurrentProfile] = useState(null)
 
     const stepper = [
         { step: 0, title: 'Personal Information' },
@@ -89,19 +88,19 @@ export default function Personal({ auth }) {
         'One will and one secondary will': ['primaryWill', 'secondaryWill'],
         'One will and one secondary will and one POA (property)': ['primaryWill', 'secondaryWill', 'poaProperty'],
         'One will and one secondary will and one POA (health)': ['primaryWill', 'secondaryWill', 'poaHealth'],
-        'One will and one secondary will and two POAs': ['primaryWill', 'secondaryWill', 'poaProperty', 'poaHealth'],
+        'One will and one secondary will and two POAs': ['primaryWill', 'secondaryWill', 'poaProperty', 'poaHealth'],  // POAS?
         'Two spousal wills only': ['primaryWill', 'spousalWill'],
-        'Two spousal wills and two POAs (property)': ['primaryWill', 'spousalWill', 'poaProperty', 'poaProperty'],
+        'Two spousal wills and two POAs (property)': ['primaryWill', 'spousalWill', 'poaProperty', 'poaPropery'],
         'Two spousal wills and two POAs (health)': ['primaryWill', 'spousalWill', 'poaHealth', 'poaHealth'],
         'Two spousal wills and four POAs': ['primaryWill', 'spousalWill', 'poaProperty', 'poaProperty', 'poaHealth', 'poaHealth'],
         'Two spousal wills and one secondary will': ['primaryWill', 'spousalWill', 'secondaryWill'],
-        'Two spousal wills and one secondary will and two POAs (property)': ['primaryWill', 'spousalWill', 'secondaryWill', 'poaProperty', 'poaProperty'],
-        'Two spousal wills and one secondary will and two POAs (health)': ['primaryWill', 'spousalWill', 'secondaryWill', 'poaHealth', 'poaHealth'],
-        'Two spousal wills and one secondary will and four POAs': ['primaryWill', 'spousalWill', 'secondaryWill', 'poaProperty', 'poaProperty', 'poaHealth', 'poaHealth'],
+        'Two spousal wills and one secondary will and two POAs (property)': ['primaryWill', 'spousalWill', 'secondaryWill', 'poaProperty', 'poaProperty'], //POAS?
+        'Two spousal wills and one secondary will and two POAs (health)': ['primaryWill', 'spousalWill', 'secondaryWill', 'poaHealth', 'poaHealth'], //POAS?
+        'Two spousal wills and one secondary will and four POAs': ['primaryWill', 'spousalWill', 'secondaryWills', 'poaProperty', 'poaProperty', 'poaHealth', 'poaHealth'], // POAS?
         'Two spousal wills and two secondary wills': ['primaryWill', 'spousalWill', 'secondaryWill', 'secondaryWill'],
-        'Two spousal wills and two secondary wills and two POAs (property)': ['primaryWill', 'spousalWill', 'secondaryWill', 'secondaryWill', 'poaProperty', 'poaProperty'],
-        'Two spousal wills and two secondary wills and two POAs (health)': ['primaryWill', 'spousalWill', 'secondaryWill', 'secondaryWill', 'poaHealth', 'poaHealth'],
-        'Two spousal wills and two secondary wills and four POAs': ['primaryWill', 'spousalWill', 'secondaryWill', 'secondaryWill', 'poaProperty', 'poaProperty', 'poaHealth', 'poaHealth'],
+        'Two spousal wills and two secondary wills and two POAs (property)': ['primaryWill', 'spousalWill', 'secondaryWill', 'secondaryWill', 'poaProperty', 'poaProperty'], //POAS?
+        'Two spousal wills and two secondary wills and two POAs (health)': ['primaryWill', 'spousalWill', 'secondaryWill', 'secondaryWill', 'poaHealth', 'poaHealth'], //POAS?
+        'Two spousal wills and two secondary wills and four POAs': ['primaryWill', 'spousalWill', 'secondaryWill', 'secondaryWill', 'poaProperty', 'poaProperty', 'poaHealth', 'poaHealth'], //POAS?
         '1 X POA health only (no will)': ['poaHealth'],
         '1 X POA property only (no will)': ['poaProperty'],
         '1 X POA health and POA property (no will)': ['poaProperty', 'poaHealth'],
@@ -109,8 +108,6 @@ export default function Personal({ auth }) {
         '2 X POA property only (no will)': ['poaProperty', 'poaProperty'],
         '2 X POA health and POA property (no will)': ['poaProperty', 'poaProperty', 'poaHealth', 'poaHealth'],
     };
-
-    // Define packageAssociations to determine whether POAs should be associated with Wills
     const packageAssociations = {
         'One will only': false,
         'One will and one POA (property)': true,
@@ -140,6 +137,7 @@ export default function Personal({ auth }) {
         '2 X POA health and POA property (no will)': false,
     };
 
+
     const username = auth.user.name;
 
     // Load saved data from localStorage on component mount
@@ -154,28 +152,28 @@ export default function Personal({ auth }) {
                 setObjectStatus(parsedData);
                 setPointer(16);
 
-                // Get the currentProfile from the first element of objectStatus
+                // Obtener el currentProfile desde el primer elemento de objectStatus (que tiene los datos de personal)
                 const profileData = parsedData[0]?.[0]?.personal?.email || null;
                 setCurrentProfile(profileData);
 
-                // Set availableDocuments based on the package documents
+                // Establecer availableDocuments basado en los documentos del paquete
                 const packageInfo = parsedData[0]?.[0]?.packageInfo;
                 const documents = packageInfo?.documents ? packageInfo.documents.map(doc => doc.docType) : [];
                 setAvailableDocuments(documents);
 
-                // Set currentDocument to the first available document, if any
+                // Establecer currentDocument con el primer documento disponible, si existe
                 setCurrentDocument(documents.length > 0 ? documents[0] : null);
 
-                // Restore other necessary states
+                // Restaurar otros estados necesarios
                 setDupMarried(parsedData.some((obj) => obj.hasOwnProperty('married')));
                 setDupKids(parsedData.some((obj) => obj.hasOwnProperty('kids')));
 
-                // Restore currIdObjDB if saved
+                // Si hay un ID almacenado, restaurarlo
                 if (savedCurrIdObjDB) {
                     setCurrIdObjDB(savedCurrIdObjDB);
                 }
 
-                // Update the database if necessary
+                // Si hay datos almacenados, actualizarlos en la base de datos
                 if (savedCurrIdObjDB) {
                     updateDataObject(parsedData, savedCurrIdObjDB);
                 }
@@ -183,52 +181,53 @@ export default function Personal({ auth }) {
         }
     }, [currIdObjDB]);
 
+
     useEffect(() => {
-        if (pointer === 0 && objectStatus.length > 0) {
-            backStep();
+        if (pointer == 0 && objectStatus.length > 0) {
+            backStep()
         }
-    }, [pointer, currentProfile]);
+    }, [pointer, currentProfile])
 
     useEffect(() => {
         if (!currentProfile || !currentDocument) return;
 
-        // Access packageInfo from the first element of objectStatus
+        // Acceder al packageInfo del primer elemento de objectStatus
         const packageInfo = objectStatus[0]?.[0]?.packageInfo;
 
         if (packageInfo && packageInfo.documents) {
-            // Find the index of the document that matches currentDocument and has owner 'unknown'
+            // Buscar el índice del documento que coincide con currentDocument y tiene owner 'unknown'
             const documentIndex = packageInfo.documents.findIndex(
                 (docObj) =>
                     docObj.docType === currentDocument && docObj.owner === 'unknown'
             );
 
-            // If we find a matching document with 'unknown' owner
+            // Si encontramos un documento que coincide y tiene "unknown" como owner
             if (documentIndex !== -1) {
-                // Clone objectStatus to avoid mutating the original state
+                // Clonar objectStatus para no mutar el estado original directamente
                 const updatedObjectStatus = [...objectStatus];
 
-                // Clone packageInfo and documents
+                // Clonar el packageInfo y los documentos
                 const updatedPackageInfo = {
                     ...packageInfo,
                     documents: [...packageInfo.documents],
                 };
 
-                // Assign currentProfile as owner of the specific document
+                // Asignar el currentProfile como owner del documento específico
                 updatedPackageInfo.documents[documentIndex] = {
                     ...updatedPackageInfo.documents[documentIndex],
                     owner: currentProfile,
                 };
 
-                // Update packageInfo in updatedObjectStatus
+                // Actualizar el packageInfo en updatedObjectStatus
                 updatedObjectStatus[0][0] = {
                     ...updatedObjectStatus[0][0],
                     packageInfo: updatedPackageInfo,
                 };
 
-                // Update the global state
+                // Actualizar el estado global (objectStatus)
                 setObjectStatus(updatedObjectStatus);
 
-                // Save to localStorage or update the database if necessary
+                // Guardar en localStorage o actualizar la base de datos si es necesario
                 localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus));
                 if (currIdObjDB) {
                     updateDataObject(updatedObjectStatus, currIdObjDB);
@@ -237,9 +236,11 @@ export default function Personal({ auth }) {
         }
     }, [currentProfile, currentDocument]);
 
+
+
     useEffect(() => {
-        // Initialize default structure if not present
-        if (pointer === 1 && !getObjectStatus(objectStatus, currentProfile).some(obj => obj.hasOwnProperty('marriedq'))) {
+        // Inicializa la estructura por defecto si no está presente
+        if (pointer == 1 && !getObjectStatus(objectStatus, currentProfile).some(obj => obj.hasOwnProperty('marriedq'))) {
             const initialObjectStructure = [
                 { name: 'marriedq', data: {} },
                 { name: 'married', data: {} },
@@ -260,17 +261,18 @@ export default function Personal({ auth }) {
                 { name: 'documentDOM', data: {} }
             ];
 
-            // Iterate over each property and send it to handleProfileData
-            let updatedObjectStatus = objectStatus; // Keep the updated objectStatus
+            // Iterar sobre cada propiedad de la estructura inicial y enviarla una por una a handleProfileData
+            let updatedObjectStatus = objectStatus; // Mantener el objectStatus actualizado
             initialObjectStructure.forEach(item => {
                 updatedObjectStatus = handleProfileData(currentProfile, [item], updatedObjectStatus);
             });
 
-            // Set the new objectStatus
+            // Establecer el nuevo objectStatus
             setObjectStatus(updatedObjectStatus);
             localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus));
         }
     }, [objectStatus, currentDocument, pointer, currentProfile]);
+
 
     // Show or hide the Select Package Modal based on the current step
     useEffect(() => {
@@ -326,6 +328,25 @@ export default function Personal({ auth }) {
                 });
             }
         });
+
+
+
+        const handleDocumentChange = (newDocument) => {
+            setSelectedDoc(newDocument);
+            onSelect(newDocument); // Esto también actualizará en el componente padre si es necesario
+        };
+
+
+
+        // Helper function to find the first incomplete step within visibleSteps
+        const findFirstIncompleteStep = () => {
+            for (let i = 0; i < visibleSteps.length; i++) {
+                if (!stepHasData(visibleSteps[i].step)) {
+                    return visibleSteps[i].step;
+                }
+            }
+            return null; // All steps are complete
+        };
 
         // Decide whether to associate POAs with Wills based on package description
         const associatePOAsWithWills = packageAssociations[packageDescription] || false;
@@ -395,7 +416,7 @@ export default function Personal({ auth }) {
             case 0:
                 const personalData = getFormData();
                 if (checkValidation(validate.formData(personalData))) {
-                    const initializedDocuments = initializePackageDocuments(availableDocuments, selectedPackage?.description);
+                    const initializedDocuments = initializePackageDocuments(availableDocuments, selectedPackage.description);
                     const dataObj = {
                         personal: {
                             ...stepper[step],
@@ -413,22 +434,26 @@ export default function Personal({ auth }) {
                         { name: 'personal', data: dataObj.personal },
                         { name: 'owner', data: dataObj.owner },
                         {
-                            name: 'packageInfo',
-                            data: currIdObjDB === null ? dataObj.packageInfo : { 'undefined': "not an owner of any package" }
+                            name: 'packageInfo', data: currIdObjDB === null ? dataObj.packageInfo : { 'undefined': "not an owner of any package" }
                         },
                     ];
-                    setCurrentProfile(personalData.email);
+                    setCurrentProfile(personalData.email)
                     updatedObjectStatus = handleProfileData(personalData.email, propertiesAndData, objectStatus);
                     setObjectStatus(updatedObjectStatus);
 
                     if (currIdObjDB === null) {
                         const dataFirstStore = await storeDataObject(dataObj);
                         setCurrIdObjDB(dataFirstStore.id);
+
+                        console.log(packageDocuments[selectedPackage?.description][0])
                         localStorage.setItem('currIdObjDB', dataFirstStore.id);
                     }
                 } else {
                     return null;
                 }
+
+
+
                 break;
 
             case 1:
@@ -440,6 +465,7 @@ export default function Personal({ auth }) {
                 ];
                 updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);
                 setObjectStatus(updatedObjectStatus);
+
                 break;
 
             case 2:
@@ -454,6 +480,7 @@ export default function Personal({ auth }) {
                 } else {
                     return null;
                 }
+
                 break;
 
             case 3:
@@ -490,7 +517,7 @@ export default function Personal({ auth }) {
                         { name: 'relatives', data: relativesData },
                         { name: 'executors', data: executorsData },
                     ];
-                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);
+                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);;
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
@@ -507,7 +534,7 @@ export default function Personal({ auth }) {
                             data: { ...bequestData, timestamp: Date.now() },
                         },
                     ];
-                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);
+                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);;
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
@@ -521,7 +548,7 @@ export default function Personal({ auth }) {
                     propertiesAndData = [
                         { name: 'residue', data: { ...residueData, timestamp: Date.now() } },
                     ];
-                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);
+                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);;
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
@@ -538,7 +565,7 @@ export default function Personal({ auth }) {
                             data: { ...wipeoutData, timestamp: Date.now() },
                         },
                     ];
-                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);
+                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);;
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
@@ -555,7 +582,7 @@ export default function Personal({ auth }) {
                             data: { ...trustingData, timestamp: Date.now() },
                         },
                     ];
-                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);
+                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);;
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
@@ -572,7 +599,7 @@ export default function Personal({ auth }) {
                             data: { ...guardiansData, timestamp: Date.now() },
                         },
                     ];
-                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);
+                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);;
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
@@ -586,21 +613,23 @@ export default function Personal({ auth }) {
                     propertiesAndData = [
                         { name: 'pets', data: { ...petsData, timestamp: Date.now() } },
                     ];
-                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);
+                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);;
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
                 }
                 break;
 
+
             case 12:
                 const poaPropertyData = getPoaProperty();
+
 
                 if (checkValidation(validate.poa(poaPropertyData))) {
                     propertiesAndData = [
                         { name: 'poaProperty', data: { ...poaPropertyData, timestamp: Date.now() } },
                     ];
-                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);
+                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);;
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
@@ -614,13 +643,12 @@ export default function Personal({ auth }) {
                     propertiesAndData = [
                         { name: 'poaHealth', data: { ...poaHealthData, timestamp: Date.now() } },
                     ];
-                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);
+                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);;
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
                 }
                 break;
-
             case 14:
                 const additionalData = getAdditionalInformation();
 
@@ -631,12 +659,13 @@ export default function Personal({ auth }) {
                             data: { ...additionalData, timestamp: Date.now() },
                         },
                     ];
-                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);
+                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);;
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
                 }
                 break;
+
 
             case 15:
                 propertiesAndData = [
@@ -659,7 +688,7 @@ export default function Personal({ auth }) {
                             data: { ...documentDOMData, timestamp: Date.now() },
                         },
                     ];
-                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);
+                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);;
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
@@ -671,7 +700,9 @@ export default function Personal({ auth }) {
         }
 
         // Update local storage and database
-
+        if (step !== 0 && currIdObjDB) {
+            updateDataObject(updatedObjectStatus, currIdObjDB);
+        }
         localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus));
         localStorage.setItem('currentPointer', step.toString());
 
@@ -862,6 +893,7 @@ export default function Personal({ auth }) {
                         );
                 },
             },
+
             15: {
                 key: 'finalDetails',
                 check: (data) => data && Object.keys(data).length > 0,
@@ -872,13 +904,13 @@ export default function Personal({ auth }) {
             },
         };
 
-        // Use getObjectStatus to get data of the correct profile
+        // Usar getObjectStatus para obtener los datos del perfil correcto
         const profileData = getObjectStatus(objectStatus, currentProfile);
 
         const { key, check } = stepDataMap[step] || {};
         if (!key || !check) return false;
 
-        // Search for data in the corresponding profile
+        // Buscar los datos en el perfil correspondiente
         for (const obj of profileData) {
             if (obj.hasOwnProperty(key)) {
                 const data = obj[key];
@@ -902,21 +934,23 @@ export default function Personal({ auth }) {
 
     // Function to determine if a step is clickable in the breadcrumb navigation
     const isStepClickable = (index) => {
-        // If index is 0, always allow clicking
+        // Si el índice es 0, siempre permitimos hacer clic
         if (index === 0) return true;
 
-        // Check if step 0 has complete data
+        // Verificamos si el paso 0 tiene datos completos
         const step0Data = getObjectStatus(objectStatus, currentProfile).find(obj => obj.hasOwnProperty('personal'));
         const step1Data = getObjectStatus(objectStatus, currentProfile).find(obj => obj.hasOwnProperty('marriedq'));
 
-        // If step 0 data is missing, prevent clicking other steps
+        // Si no existe step0Data o falta el nombre completo o el correo electrónico, no se puede hacer clic en otros pasos
         if (!step0Data || !step0Data.personal.fullName || !step0Data.personal.email || !step1Data?.marriedq?.selection) {
             return false;
         }
 
-        // If step 0 is complete, allow clicking other steps
+        // Si el paso 0 está completo, permitimos hacer clic en otros pasos
         return true;
     };
+
+
 
     // Function to get the list of visible steps based on current data
     const getVisibleSteps = (objectStatusToUse = getObjectStatus(objectStatus, currentProfile)) => {
@@ -927,22 +961,27 @@ export default function Personal({ auth }) {
 
         return stepper.filter((step, index) => {
 
-            if (index !== 0 && currentDocument == null) return false;
-
-            // Hide steps based on spouse and kids information
+            if (index != 0 && currentDocument == null) return false
+            // Ocultar pasos basados en la información de spouse y kids
             if (index === 2 && !hasSpouse) return false; // Spouse Information
             if (index === 4 && !hasKids) return false; // Children Information
             if (index === 10 && !hasKids) return false; // Guardian For Minors
 
-            // Logic based on currentDocument
-            if (currentDocument === 'primaryWill' | currentDocument === 'secondaryWill') {
-                // Hide steps 12 (POA Property) and 13 (POA Health) if it's a primaryWill
+            // Lógica basada en currentDocument
+            if (currentDocument === 'primaryWill') {
+                // Ocultar pasos 12 (POA Property) y 13 (POA Health) si es un primaryWill
                 if (index === 12 || index === 13) return false;
             } else if (currentDocument === 'poaProperty') {
-                // Hide all except step 12 for POA Property
-                if (index !== 0 && index !== 1 && index !== 12 && index !== 16) return false;
+                // Ocultar todos menos el paso 12 para POA Property
+                if (index === 5 || index === 6 || index === 7 || index === 8 || index === 9 ||
+                    index === 10 || index === 11 || index === 13 || index === 14 || index === 15) {
+                    return false;
+                }
             } else if (currentDocument === 'poaHealth') {
-                if (index !== 0 && index !== 1 && index !== 13 && index !== 16) return false;
+                if (index === 5 || index === 6 || index === 7 || index === 8 || index === 9 ||
+                    index === 10 || index === 11 || index === 12 || index === 14 || index === 15) {
+                    return false;
+                }
             }
 
             return true;
@@ -1114,7 +1153,7 @@ export default function Personal({ auth }) {
                                     </Col>
                                 </Row>
                             </Container>
-                            {pointer === 0 && objectStatus.length === 0 && (
+                            {pointer === 0 && objectStatus.length == 0 && (
                                 <SelectPackageModal
                                     show={showSelectModal}
                                     onHide={handleHideSelectModal}
@@ -1128,3 +1167,4 @@ export default function Personal({ auth }) {
         </AuthenticatedLayout>
     );
 }
+
