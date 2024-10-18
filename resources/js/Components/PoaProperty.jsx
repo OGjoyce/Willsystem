@@ -59,18 +59,12 @@ const PoaProperty = ({ datas, errors }) => {
         }
 
         // Retrieve stored form values from localStorage
-        const storedFormValues = JSON.parse(localStorage.getItem('poaPropertyValues')) || {};
-        if (storedFormValues.poaProperty) {
-            poaPropertyData = storedFormValues;
-            setFormData({
-                ...poaPropertyData.poaProperty
-            });
-        }
+
     }, [datas]);
 
     // Function to update localStorage with current POA data
     const updateLocalStorage = () => {
-        localStorage.setItem('poaPropertyValues', JSON.stringify(poaPropertyData));
+
     };
 
     // Handle input changes for text fields
