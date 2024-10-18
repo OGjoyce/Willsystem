@@ -104,21 +104,11 @@ const PoaHealth = ({ datas, errors }) => {
         }
 
         // Retrieve stored form values from localStorage
-        const storedFormValues = JSON.parse(localStorage.getItem('poaHealthValues')) || {};
-        if (storedFormValues.poaHealth) {
-            poaHealthData = storedFormValues;
-            setFormData({
-                ...poaHealthData.poaHealth,
-                statements: poaHealthData.statements || {}
-            });
-            setOrganDonation(poaHealthData.organDonation || false);
-            setDnr(poaHealthData.dnr || false);
-        }
+
     }, [datas]);
 
     // Function to update localStorage with current POA data
     const updateLocalStorage = () => {
-        localStorage.setItem('poaHealthValues', JSON.stringify(poaHealthData));
     };
 
     // Handle input changes for text fields and checkboxes
