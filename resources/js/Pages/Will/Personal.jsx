@@ -1165,7 +1165,7 @@ export default function Personal({ auth }) {
                                     </Col>
                                 </Row>
                             </Container>
-                            {pointer === 0 && objectStatus.length == 0 && (
+                            {pointer === 0 && currentDocument === null && (
                                 <SelectPackageModal
                                     show={showSelectModal}
                                     onHide={handleHideSelectModal}
