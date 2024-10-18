@@ -59,6 +59,7 @@ export default function Personal({ auth }) {
     const [availableDocuments, setAvailableDocuments] = useState([]);
     const [currentDocument, setCurrentDocument] = useState();
     const [currentProfile, setCurrentProfile] = useState(null)
+    const [visibleSteps, setVisibleSteps] = useState([]);
 
     const stepper = [
         { step: 0, title: 'Personal Information' },
@@ -138,6 +139,47 @@ export default function Personal({ auth }) {
     };
 
 
+
+    const getVisibleSteps = (objectStatusToUse) => {
+        const hasSpouse = objectStatusToUse.some(
+            (obj) => obj.marriedq && (obj.marriedq.selection === 'true' || obj.marriedq.selection === 'soso')
+        );
+        const hasKids = objectStatusToUse.some((obj) => obj.kidsq && obj.kidsq.selection === 'true');
+
+        return stepper.filter((step, index) => {
+
+            if (index != 0 && currentDocument == null) return false
+            // Ocultar pasos basados en la información de spouse y kids
+            if (index === 2 && !hasSpouse) return false; // Spouse Information
+            if (index === 4 && !hasKids) return false; // Children Information
+            if (index === 10 && !hasKids) return false; // Guardian For Minors
+
+            // Lógica basada en currentDocument
+            if (currentDocument === 'primaryWill' || currentDocument === 'spousalWill' || currentDocument === 'secondaryWill') {
+                // Ocultar pasos 12 (POA Property) y 13 (POA Health) si es un primaryWill
+                if (index === 12 || index === 13) return false;
+            } else if (currentDocument === 'poaProperty') {
+                // Ocultar todos menos el paso 12 para POA Property
+                if (index === 5 || index === 6 || index === 7 || index === 8 || index === 9 ||
+                    index === 10 || index === 11 || index === 13 || index === 14 || index === 15) {
+                    return false;
+                }
+            } else if (currentDocument === 'poaHealth') {
+                if (index === 5 || index === 6 || index === 7 || index === 8 || index === 9 ||
+                    index === 10 || index === 11 || index === 12 || index === 14 || index === 15) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+    };
+
+    useEffect(() => {
+        setVisibleSteps(getVisibleSteps(getObjectStatus(objectStatus, currentProfile)))
+    }, [objectStatus, currentProfile, currentDocument])
+
+
     const username = auth.user.name;
 
     // Load saved data from localStorage on component mount
@@ -187,6 +229,13 @@ export default function Personal({ auth }) {
             backStep()
         }
     }, [pointer, currentProfile])
+
+    useEffect(() => {
+        localStorage.removeItem('formValues')
+        localStorage.removeItem('poaPropertyValues')
+        localStorage.removeItem('poaHealthValues')
+        localStorage.removeItem('currentPointer')
+    }, [currentProfile, currentDocument])
 
     useEffect(() => {
         if (!currentProfile || !currentDocument) return;
@@ -297,6 +346,7 @@ export default function Personal({ auth }) {
     };
 
     // Initialize package documents
+    // Initialize package documents
     const initializePackageDocuments = (availableDocuments, packageDescription) => {
         let willCounters = {};
         const willIdentifiers = [];
@@ -314,7 +364,7 @@ export default function Personal({ auth }) {
                 wills.push({
                     id: index + 1,
                     docType,
-                    owner: 'unknown',
+                    owner: 'unknown', // Owner is unknown until selected
                     dataStatus: 'incomplete',
                     willIdentifier,
                 });
@@ -322,52 +372,47 @@ export default function Personal({ auth }) {
                 poas.push({
                     id: index + 1,
                     docType,
-                    owner: 'unknown',
+                    owner: 'unknown', // Owner is unknown until selected
                     dataStatus: 'incomplete',
                     associatedWill: null, // Default to null
                 });
             }
         });
 
+        // Helper function to distribute POAs correctly
+        const distributePOAs = (wills, poas) => {
+            const willAssignments = {};
 
+            // Initialize willAssignments object
+            wills.forEach((will) => {
+                willAssignments[will.willIdentifier] = {
+                    poaProperty: null,
+                    poaHealth: null,
+                };
+            });
 
-        const handleDocumentChange = (newDocument) => {
-            setSelectedDoc(newDocument);
-            onSelect(newDocument); // Esto también actualizará en el componente padre si es necesario
-        };
+            // Assign each POA to the first will that doesn't have that type of POA yet
+            poas.forEach((poa) => {
+                for (let willIdentifier in willAssignments) {
+                    const assignment = willAssignments[willIdentifier];
 
+                    if (poa.docType === 'poaProperty' && assignment.poaProperty === null) {
+                        assignment.poaProperty = poa;
+                        poa.associatedWill = willIdentifier;
+                        break;
+                    }
 
-
-        // Helper function to find the first incomplete step within visibleSteps
-        const findFirstIncompleteStep = () => {
-            for (let i = 0; i < visibleSteps.length; i++) {
-                if (!stepHasData(visibleSteps[i].step)) {
-                    return visibleSteps[i].step;
-                }
-            }
-            return null; // All steps are complete
-        };
-
-        // Decide whether to associate POAs with Wills based on package description
-        const associatePOAsWithWills = packageAssociations[packageDescription] || false;
-
-        if (associatePOAsWithWills) {
-            // Check if POAs can be evenly distributed among Wills
-            const numberOfPOATypesPerWill = poas.length / wills.length;
-
-            if (Number.isInteger(numberOfPOATypesPerWill)) {
-                let poaIndex = 0;
-                for (let i = 0; i < wills.length; i++) {
-                    for (let j = 0; j < numberOfPOATypesPerWill; j++) {
-                        if (poaIndex < poas.length) {
-                            poas[poaIndex].associatedWill = wills[i].willIdentifier;
-                            poaIndex++;
-                        }
+                    if (poa.docType === 'poaHealth' && assignment.poaHealth === null) {
+                        assignment.poaHealth = poa;
+                        poa.associatedWill = willIdentifier;
+                        break;
                     }
                 }
-            }
-            // If not evenly distributable, leave associatedWill as null
-        }
+            });
+        };
+
+        // Call the distribution function
+        distributePOAs(wills, poas);
 
         // Reconstruct the documents in original order
         let documents = [];
@@ -393,6 +438,7 @@ export default function Personal({ auth }) {
         return documents;
     };
 
+
     // Function to handle advancing to the next step
     const pushInfo = async (step) => {
         let propertiesAndData = [];
@@ -416,7 +462,7 @@ export default function Personal({ auth }) {
             case 0:
                 const personalData = getFormData();
                 if (checkValidation(validate.formData(personalData))) {
-                    const initializedDocuments = initializePackageDocuments(availableDocuments, selectedPackage.description);
+                    const initializedDocuments = initializePackageDocuments(availableDocuments, selectedPackage?.description);
                     const dataObj = {
                         personal: {
                             ...stepper[step],
@@ -720,7 +766,7 @@ export default function Personal({ auth }) {
             localStorage.setItem('currentPointer', firstIncompleteStep.toString());
         } else {
             // If all steps are complete, navigate to the previous step
-            const currentIndex = visibleSteps.findIndex(step => step.step === pointer);
+            const currentIndex = visibleSteps !== null ? visibleSteps.findIndex(step => step.step === pointer) : 0
             if (currentIndex > 0) {
                 const previousStep = visibleSteps[currentIndex - 1].step;
                 setPointer(previousStep);
@@ -952,44 +998,10 @@ export default function Personal({ auth }) {
 
 
 
-    // Function to get the list of visible steps based on current data
-    const getVisibleSteps = (objectStatusToUse = getObjectStatus(objectStatus, currentProfile)) => {
-        const hasSpouse = objectStatusToUse.some(
-            (obj) => obj.marriedq && (obj.marriedq.selection === 'true' || obj.marriedq.selection === 'soso')
-        );
-        const hasKids = objectStatusToUse.some((obj) => obj.kidsq && obj.kidsq.selection === 'true');
 
-        return stepper.filter((step, index) => {
 
-            if (index != 0 && currentDocument == null) return false
-            // Ocultar pasos basados en la información de spouse y kids
-            if (index === 2 && !hasSpouse) return false; // Spouse Information
-            if (index === 4 && !hasKids) return false; // Children Information
-            if (index === 10 && !hasKids) return false; // Guardian For Minors
 
-            // Lógica basada en currentDocument
-            if (currentDocument === 'primaryWill') {
-                // Ocultar pasos 12 (POA Property) y 13 (POA Health) si es un primaryWill
-                if (index === 12 || index === 13) return false;
-            } else if (currentDocument === 'poaProperty') {
-                // Ocultar todos menos el paso 12 para POA Property
-                if (index === 5 || index === 6 || index === 7 || index === 8 || index === 9 ||
-                    index === 10 || index === 11 || index === 13 || index === 14 || index === 15) {
-                    return false;
-                }
-            } else if (currentDocument === 'poaHealth') {
-                if (index === 5 || index === 6 || index === 7 || index === 8 || index === 9 ||
-                    index === 10 || index === 11 || index === 12 || index === 14 || index === 15) {
-                    return false;
-                }
-            }
-
-            return true;
-        });
-    };
-
-    const visibleSteps = getVisibleSteps();
-    const currentStepIndex = visibleSteps.findIndex((step) => step.step === pointer);
+    const currentStepIndex = visibleSteps !== null ? visibleSteps.findIndex((step) => step.step === pointer) : 16
 
     // Data for StepRedirect
     const hasSpouse = getObjectStatus(objectStatus, currentProfile).some(
