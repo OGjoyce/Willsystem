@@ -1,10 +1,11 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Button, Modal, ListGroup } from 'react-bootstrap';
 import PDFEditor from './PDFEditor';
 import WillContent from './Content/WillContent';
 import POA1Content from './Content/POA1Content';
 import POA2Content from './Content/POA2Content';
+import CustomToast from '../AdditionalComponents/CustomToast';
+import { handleProfileData } from '../ProfileDataHandler';
 
 const contentComponents = {
     primaryWill: WillContent,
@@ -12,6 +13,9 @@ const contentComponents = {
     secondaryWill: WillContent,
     poaProperty: POA1Content,
     poaHealth: POA2Content,
+    secondaryWill2: WillContent,
+    poaProperty2: POA1Content,
+    poaHealth2: POA2Content,
 };
 
 const DocumentSelector = ({
@@ -35,36 +39,31 @@ const DocumentSelector = ({
     const [showPDFEditor, setShowPDFEditor] = useState(false);
     const [documentOwner, setDocumentOwner] = useState(null);
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState("");
 
     const [prevSelectedDoc, setPrevSelectedDoc] = useState(selectedDoc);
     const [prevCurrentDocument, setPrevCurrentDocument] = useState(currentDocument);
     const [prevDocumentOwner, setPrevDocumentOwner] = useState(documentOwner);
     const [prevCurrentProfile, setPrevCurrentProfile] = useState(currentProfile);
+    const [firstIncompleteStep, setFirstIncompleteStep] = useState();
 
-    // Validar el objectStatus
-    if (!Array.isArray(objectStatus) || objectStatus.length === 0 || !Array.isArray(objectStatus[0]) || objectStatus[0].length === 0) {
-        return <p>No hay documentos disponibles.</p>;
-    }
+    // Effect to keep the component updated
 
-    const firstElementArray = objectStatus[0];
-    const firstElement = firstElementArray[0];
+    // Helper function to get the owner of the document
+    const getDocumentOwner = (index) => {
+        const document = objectStatus[0]?.[0]?.packageInfo?.documents?.[index];
+        return document?.owner || 'unknown';
+    };
 
-    if (!firstElement.packageInfo || !firstElement.packageInfo.documents) {
-        return <p>No hay documentos disponibles.</p>;
-    }
-
-    const availableDocuments = Object.keys(firstElement.packageInfo.documents);
-
-    // Verificar si el documento está desbloqueado
-    const isDocumentUnlocked = (doc, index) => {
+    // Check if the document is unlocked
+    const isDocumentUnlocked = (index) => {
         if (index === 0) return true; // El primer documento siempre está desbloqueado
 
-        const previousDocKey = availableDocuments[index - 1];
-        const previousDoc = firstElement.packageInfo.documents[previousDocKey];
+        const previousDoc = objectStatus[0]?.[0]?.packageInfo?.documents?.[index - 1];
 
-        // Comprobar si el documento anterior tiene una versión 'v1' en su documentDOM
         const ownerProfile = objectStatus.find(profileArray =>
-            profileArray.some(dataObj => dataObj.personal?.email === previousDoc.owner)
+            profileArray.some(dataObj => dataObj.personal?.email === previousDoc?.owner)
         );
 
         if (!ownerProfile) {
@@ -72,19 +71,69 @@ const DocumentSelector = ({
         }
 
         const ownerDocumentDOM = ownerProfile[ownerProfile.length - 1]?.documentDOM || {};
-
-        // Desbloquear si el documento anterior tiene la versión 'v1'
-        return ownerDocumentDOM[previousDocKey]?.v1?.content ? true : false;
+        return ownerDocumentDOM[previousDoc.docType]?.v1?.content ? true : false;
     };
 
-    const handleSelectDocument = (doc) => {
-        const document = firstElement.packageInfo.documents[doc];
-        const owner = document.owner; // Obtener el owner del documento seleccionado
+    const handleSelectDocument = (docObj, index) => {
+        let owner = docObj.owner || 'unknown';
+        const doc = docObj.docType;
 
-        // Si el documento y el owner ya coinciden con el currentProfile y currentDocument, no mostramos el modal
+        if (doc === 'secondaryWill' && owner == 'unknown') {
+            setCurrentDocument(doc);
+            setCurrentProfile(null);
+            setPointer(0); // Navegar al pointer 0
+            return;
+        } else if (doc === 'secondaryWill' && owner !== 'unknown') {
+            setCurrentDocument(doc);
+            setCurrentProfile(owner);
+
+
+        }
+        if (doc === 'spousalWill' && owner == 'unknown') {
+            setCurrentDocument(doc);
+            setCurrentProfile(null);
+            setPointer(0); // Navegar al pointer 0
+            return;
+        } else if (doc === 'spousalWill' && owner !== 'unknown') {
+            setCurrentDocument(doc);
+            setCurrentProfile(owner);
+
+        }
+
+
+
+
+
+
+        // Verificar si el documento tiene un associatedWill
+        if (docObj.associatedWill) {
+            const associatedWillId = docObj.associatedWill;
+
+            // Buscar el Will asociado en los documentos
+            const associatedWill = objectStatus[0]?.[0]?.packageInfo?.documents?.find(will => will.willIdentifier === associatedWillId);
+
+            // Si el Will asociado tiene un owner, asignarlo automáticamente
+            if (associatedWill && associatedWill.owner) {
+                owner = associatedWill.owner;
+                setDocumentOwner(owner);
+                setCurrentProfile(owner);
+                setCurrentDocument(doc);
+                setShowPDFEditor(true);
+
+            }
+        }
+
+        // Si no hay associatedWill o el owner es 'unknown', mostrar el modal para seleccionar un email
+        if (owner === 'unknown') {
+            setShowEmailModal(true);
+            setSelectedDoc(doc);
+            return;
+        }
+
+        // Si el documento ya tiene un owner, continuar con la lógica habitual
         if (doc === currentDocument && owner === currentProfile) {
             setShowConfirmationModal(true);
-            proceedToSelectDocument(doc, owner); // Procedemos directamente sin mostrar el modal
+            proceedToSelectDocument(doc, owner);
             return;
         }
 
@@ -94,21 +143,28 @@ const DocumentSelector = ({
         setPrevDocumentOwner(documentOwner);
         setPrevCurrentProfile(currentProfile);
 
-        // Establecer los nuevos estados antes de mostrar el modal
+        // Establecer los nuevos estados
         setSelectedDoc(doc);
         setCurrentDocument(doc);
         setDocumentOwner(owner);
         setCurrentProfile(owner);
 
-        // Mostrar el modal de advertencia
-        setShowConfirmationModal(true);
-    };
+        setFirstIncompleteStep(visibleSteps.find(step => !stepHasData(step.step)));
 
+        if (doc !== currentDocument && owner !== currentProfile || doc !== currentDocument && owner === currentProfile) {
+            setShowConfirmationModal(true);
+        } else {
+            if (firstIncompleteStep) {
+                backStep();
+            } else {
+                setShowPDFEditor(true);
+            }
+        }
+    };
 
 
     const handleConfirmSelection = () => {
         setShowConfirmationModal(false);
-        // Volver a establecer los estados para actualizar el componente
         setSelectedDoc(selectedDoc);
         setCurrentDocument(selectedDoc);
         setDocumentOwner(documentOwner);
@@ -120,10 +176,10 @@ const DocumentSelector = ({
                 setPointer(firstIncompleteStep.step);
                 backStep();
             } else {
-                setShowPDFEditor(true); // Mostrar el PDFEditor
+                setShowPDFEditor(true);
             }
         } else {
-            // Mostrar el modal de selección de email
+            setShowPDFEditor(false)
             setShowEmailModal(true);
         }
     };
@@ -138,15 +194,15 @@ const DocumentSelector = ({
     };
 
     const handleSelectEmail = (email) => {
-
-        // Establecer el email seleccionado como owner del documento
-        const updatedObjectStatus = objectStatus.map((profileArray, idx) => {
+        const updatedObjectStatus = objectStatus.map((profileArray) => {
             return profileArray.map((dataObj) => {
                 if (dataObj.packageInfo && dataObj.packageInfo.documents && dataObj.personal?.email === currentProfile) {
-                    // Actualizar el owner del documento seleccionado
-                    const updatedDocuments = { ...dataObj.packageInfo.documents };
-                    updatedDocuments[selectedDoc].owner = email; // Asignar el email como owner
-
+                    const updatedDocuments = dataObj.packageInfo.documents.map((docObj) => {
+                        if (docObj.docType === selectedDoc && docObj.owner === 'unknown') {
+                            return { ...docObj, owner: email };
+                        }
+                        return docObj;
+                    });
                     return {
                         ...dataObj,
                         packageInfo: {
@@ -157,135 +213,165 @@ const DocumentSelector = ({
                 }
                 return dataObj;
             });
-
         });
 
-        // Guardar el nuevo estado en objectStatus
         setObjectStatus(updatedObjectStatus);
-        localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus)); // Guardar en localStorage
+        localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus));
 
-        // Establecer el email seleccionado como perfil actual
         setSelectedEmail(email);
         setCurrentProfile(email);
         setCurrentDocument(selectedDoc);
 
-        // Verificar si todos los pasos tienen datos antes de avanzar
         const firstIncompleteStep = visibleSteps.find(step => !stepHasData(step.step));
+        console.log(visibleSteps.find(step => !stepHasData(step.step)))
 
-        if (firstIncompleteStep) {
-            setPointer(firstIncompleteStep.step);
-
+        if (firstIncompleteStep === undefined) {
+            setPointer(0);
         } else {
             setPointer(16); // Navegar al paso 16
-            setShowPDFEditor(true); // Mostrar el PDFEditor cuando todos los pasos tengan datos
+            setShowPDFEditor(true);
         }
 
-
-        // Cerrar el modal de selección de email
         setShowEmailModal(false);
+        setToastMessage(`Profile "${email}" selected.`);
+        setShowToast(true);
     };
+
+    if (showConfirmationModal) {
+        handleConfirmSelection()
+    }
 
     const handleCreateNewProfile = () => {
-        // Establecer el pointer en 0 y el currentProfile como undefined
         setPointer(0);
         setCurrentProfile(null);
-        setCurrentDocument(selectedDoc); // Mantener el currentDocument seleccionado
-        setShowEmailModal(false); // Cerrar el modal
-    };
-
-    const getObjectStatus = (objectStatus, currentProfile) => {
-        // Buscar en objectStatus el perfil que coincida con el currentProfile
-        const profile = objectStatus.find(profileArray =>
-            profileArray.some(dataObj => dataObj.personal?.email === currentProfile)
-        );
-
-        // Retornar el perfil encontrado o un array vacío si no se encuentra
-        return profile || [];
+        setCurrentDocument(selectedDoc);
+        setShowEmailModal(false);
     };
 
     return (
         <Container>
             {/* Modal de confirmación */}
-            <Modal show={showConfirmationModal} onHide={handleCancelSelection}>
+            <Modal show={false} onHide={handleCancelSelection}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Estamos a punto de cambiar de documento y de perfil, ¿estás seguro?</Modal.Title>
+                    <Modal.Title>{`You are about to switch to the document "${selectedDoc}".`}</Modal.Title>
                 </Modal.Header>
+                <Modal.Body>
+                    {documentOwner === "unknown" ? (
+                        <p>This document doesn’t have an owner yet. Please select a profile or create a new one to continue.</p>
+                    ) : (
+                        <>
+                            <p>This document belongs to {documentOwner}.</p>
+                            {firstIncompleteStep ? (
+                                <p>
+                                    You still need to fill in some required information. Please complete all steps before you can review the document.
+                                </p>
+                            ) : (
+                                <p>
+                                    The document is ready to be opened. Please review it carefully and ensure to save your changes in order to unlock other documents.
+                                </p>
+                            )}
+                        </>
+                    )}
+                </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={handleCancelSelection}>
-                        No
+                        Cancel
                     </Button>
                     <Button variant="primary" onClick={handleConfirmSelection}>
-                        Sí
+                        Confirm
                     </Button>
                 </Modal.Footer>
             </Modal>
 
-            {/* Si no se ha seleccionado ningún documento, muestra la lista de documentos */}
-            {!selectedDoc && (
+            {/* Document list */}
+            {!selectedDoc || showEmailModal ? (
                 <>
                     <h3>Select a Document to View, Edit or Download</h3>
                     <Row className="mt-3">
-                        {availableDocuments.map((doc, index) => (
-                            <Col key={doc} xs={12} sm={6} md={4} className="mb-2">
+                        {objectStatus[0]?.[0]?.packageInfo?.documents?.map((docObj, index) => (
+                            <Col key={index} xs={12} sm={6} md={4} className="mb-2">
                                 <Button
-                                    onClick={() => handleSelectDocument(doc)}
+                                    onClick={() => handleSelectDocument(docObj, index)}
                                     style={{ width: "100%" }}
                                     variant="outline-dark"
-                                    disabled={!isDocumentUnlocked(doc, index)}
+                                    disabled={!isDocumentUnlocked(index)}
                                 >
-                                    {doc === 'primaryWill' && <><i className="bi bi-file-text"></i> Will</>}
-                                    {doc === 'spousalWill' && <><i className="bi bi-file-text"></i> Spousal Will</>}
-                                    {doc === 'secondaryWill' && <><i className="bi bi-file-text"></i> Secondary Will</>}
-                                    {doc === 'poaProperty' && <><i className="bi bi-house"></i> POA1 Property</>}
-                                    {doc === 'poaHealth' && <><i className="bi bi-hospital"></i> POA2 Health</>}
+                                    {docObj.docType === 'primaryWill' && <><i className="bi bi-file-text"></i> Will</>}
+                                    {docObj.docType === 'spousalWill' && <><i className="bi bi-file-text"></i> Spousal Will</>}
+                                    {docObj.docType === 'secondaryWill' && <><i className="bi bi-file-text"></i> Secondary Will</>}
+                                    {docObj.docType === 'poaProperty' && <><i className="bi bi-house"></i> POA1 Property</>}
+                                    {docObj.docType === 'poaHealth' && <><i className="bi bi-hospital"></i> POA2 Health</>}
                                 </Button>
                             </Col>
                         ))}
                     </Row>
                     {errors.documentDOM && <p className="mt-2 text-sm text-center text-red-600">{errors.documentDOM}</p>}
                 </>
-            )}
+            ) : null}
 
             {/* Mostrar el modal para seleccionar el perfil cuando el documento no tenga dueño */}
-            <Modal show={showEmailModal} onHide={() => setShowEmailModal(false)}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Select a Profile</Modal.Title>
+            <Modal
+                show={showEmailModal}
+                onHide={() => setShowEmailModal(false)}
+                backdrop="static"
+                keyboard={false}
+            >
+                <Modal.Header>
+                    <Modal.Title>Select profile</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    {objectStatus.map((profileArray, idx) => {
-                        const profile = profileArray.find(obj => obj.personal?.email);
-                        if (profile && profile.personal?.email) {
-                            return (
-                                <ListGroup key={idx}>
-                                    <ListGroup.Item action onClick={() => handleSelectEmail(profile.personal.email)}>
-                                        {profile.personal.email}
+                    <ListGroup variant="flush" className="w-100">
+                        {objectStatus.map((profileArray, idx) => {
+                            const profile = profileArray.find(obj => obj.personal?.email);
+                            if (profile && profile.personal?.email) {
+                                return (
+                                    <ListGroup.Item
+                                        key={idx}
+                                        action
+                                        onClick={() => handleSelectEmail(profile.personal.email)}
+                                        className="text-center"
+                                    >
+                                        <i className="bi bi-person-circle me-2"></i>
+                                        <strong>{profile.personal.email}</strong>
                                     </ListGroup.Item>
-                                </ListGroup>
-                            );
-                        }
-                        return null;
-                    })}
-
-                    {/* Opción para crear un nuevo perfil */}
-                    <ListGroup className="mt-3">
-                        <ListGroup.Item action onClick={handleCreateNewProfile}>
-                            <strong>Create New Profile</strong>
-                        </ListGroup.Item>
+                                );
+                            }
+                            return null;
+                        })}
                     </ListGroup>
+
+                    <hr className="my-4" />
+
+                    <Button
+                        variant="outline-primary"
+                        size="md"
+                        className="w-100"
+                        onClick={handleCreateNewProfile}
+                    >
+                        <i className="bi bi-plus-circle me-2"></i>
+                        <strong>Create new profile</strong>
+                    </Button>
                 </Modal.Body>
             </Modal>
 
             {/* Mostrar el PDFEditor si todos los pasos están completos */}
             {showPDFEditor && selectedDoc && (
                 <PDFEditor
-                    documentType={selectedDoc} // Pasar el tipo de handledocumento seleccionado
+                    documentType={selectedDoc}
                     objectStatus={objectStatus}
-                    documentOwner={documentOwner} // Pasar el owner del documento seleccionado
+                    documentOwner={documentOwner}
                     backendId={currIdObjDB}
-                    ContentComponent={contentComponents[selectedDoc]} // Pasar el componente de contenido adecuado
+                    ContentComponent={contentComponents[selectedDoc]}
                     onBack={() => setSelectedDoc(null)}
                 />
             )}
+
+            {/* CustomToast for notifications */}
+            <CustomToast
+                show={showToast}
+                onClose={() => setShowToast(false)}
+                message={toastMessage}
+            />
         </Container>
     );
 };

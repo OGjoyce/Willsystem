@@ -76,6 +76,31 @@ const PoaHealth = ({ datas, errors }) => {
         }
     ];
 
+    useEffect(() => {
+        // Limpiar los datos del formulario y los datos globales de poaHealthData
+        setFormData({
+            attorney: '',
+            backups: [],
+            restrictions: '',
+            statements: {}
+        });
+        setOrganDonation(false);
+        setDnr(false);
+
+        // Limpiar la variable global poaHealthData
+        poaHealthData = {
+            poaHealth: null,
+            organDonation: false,
+            dnr: false,
+            statements: {}, // Limpia las declaraciones seleccionadas
+            timestamp: Date.now()
+        };
+
+
+
+    }, []);
+
+
     // Populate identifiersNames based on provided datas
     useEffect(() => {
         if (datas) {
@@ -104,21 +129,11 @@ const PoaHealth = ({ datas, errors }) => {
         }
 
         // Retrieve stored form values from localStorage
-        const storedFormValues = JSON.parse(localStorage.getItem('poaHealthValues')) || {};
-        if (storedFormValues.poaHealth) {
-            poaHealthData = storedFormValues;
-            setFormData({
-                ...poaHealthData.poaHealth,
-                statements: poaHealthData.statements || {}
-            });
-            setOrganDonation(poaHealthData.organDonation || false);
-            setDnr(poaHealthData.dnr || false);
-        }
+
     }, [datas]);
 
     // Function to update localStorage with current POA data
     const updateLocalStorage = () => {
-        localStorage.setItem('poaHealthValues', JSON.stringify(poaHealthData));
     };
 
     // Handle input changes for text fields and checkboxes

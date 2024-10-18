@@ -17,6 +17,7 @@ export function getPoaProperty() {
     return poaPropertyData;
 }
 
+
 const PoaProperty = ({ datas, errors }) => {
     const [identifiersNames, setIdentifiersNames] = useState([]);
     const [validationErrors, setValidationErrors] = useState(errors || {});
@@ -30,6 +31,23 @@ const PoaProperty = ({ datas, errors }) => {
         backups: [],
         restrictions: ''
     });
+
+
+    useEffect(() => {
+        // Limpiar los datos del formulario y los datos globales de poaPropertyData
+        setFormData({
+            attorney: '',
+            backups: [],
+            restrictions: ''
+        });
+
+        // Limpiar la variable global poaPropertyData
+        poaPropertyData = {
+            poaProperty: null,
+            timestamp: Date.now()
+        };
+
+    }, []);  // El array vacío asegura que se ejecute solo una vez al montar el componente
 
     // Populate identifiersNames based on provided datas
     useEffect(() => {
@@ -59,18 +77,12 @@ const PoaProperty = ({ datas, errors }) => {
         }
 
         // Retrieve stored form values from localStorage
-        const storedFormValues = JSON.parse(localStorage.getItem('poaPropertyValues')) || {};
-        if (storedFormValues.poaProperty) {
-            poaPropertyData = storedFormValues;
-            setFormData({
-                ...poaPropertyData.poaProperty
-            });
-        }
+
     }, [datas]);
 
     // Function to update localStorage with current POA data
     const updateLocalStorage = () => {
-        localStorage.setItem('poaPropertyValues', JSON.stringify(poaPropertyData));
+
     };
 
     // Handle input changes for text fields
