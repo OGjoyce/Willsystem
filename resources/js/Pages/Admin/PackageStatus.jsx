@@ -32,9 +32,11 @@ const PackageStatus = ({ id }) => {
         }
     };
 
-    async function handleSaveChanges(docId) {
+    console.log(openDropdown)
+
+    async function handleSaveChanges(owner, docId) {
         try {
-            await handleStatusChange(docId, 'Changes Requested', changeRequest);
+            await handleStatusChange(owner, docId, 'Changes Requested', changeRequest);
             setEditableDocId(null);
             setChangeRequest('');
             setToastMessage('Changes saved successfully');
@@ -149,18 +151,18 @@ const PackageStatus = ({ id }) => {
                                                             <td>
                                                                 {editableDocId === doc.id ? (
                                                                     <div className='d-flex justify-content-around gap-3'>
-                                                                        <Button className='w-[50%]' variant="outline-success" size="sm" onClick={() => handleSaveChanges(doc.id)}>Save</Button>
+                                                                        <Button className='w-[50%]' variant="outline-success" size="sm" onClick={() => handleSaveChanges(owner, doc.id)}>Save</Button>
                                                                         <Button className='w-[50%]' variant="outline-secondary" size="sm" onClick={() => setEditableDocId(null)}>Cancel</Button>
                                                                     </div>
                                                                 ) : (
                                                                     <div className='d-flex justify-content-around gap-3'>
-                                                                        <Dropdown className='w-[50%]' show={openDropdown === doc.id} onToggle={() => setOpenDropdown(openDropdown === doc.id ? null : doc.id)}>
+                                                                        <Dropdown className='w-[50%]' show={openDropdown === `owner: ${doc.owner}, docId: ${doc.id}`} onToggle={() => setOpenDropdown(openDropdown === `owner: ${doc.owner}, docId: ${doc.id}` ? null : `owner: ${doc.owner}, docId: ${doc.id}`)}>
                                                                             <Dropdown.Toggle variant="outline-danger" size="sm" className="w-[100%]">
                                                                                 Change Status
                                                                             </Dropdown.Toggle>
                                                                             <Dropdown.Menu className='w-[100%] text-center'>
-                                                                                <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Pending')}>Pending</Dropdown.Item>
-                                                                                <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Approved')}>Approved</Dropdown.Item>
+                                                                                <Dropdown.Item onClick={() => handleStatusChange(owner, doc.id, 'Pending')}>Pending</Dropdown.Item>
+                                                                                <Dropdown.Item onClick={() => handleStatusChange(owner, doc.id, 'Approved')}>Approved</Dropdown.Item>
                                                                                 <Dropdown.Item onClick={() => handleDropdownClick(doc)}>
                                                                                     Request Changes
                                                                                 </Dropdown.Item>
@@ -170,6 +172,7 @@ const PackageStatus = ({ id }) => {
                                                                     </div>
                                                                 )}
                                                             </td>
+
                                                         </tr>
                                                     ))}
                                                 </tbody>
