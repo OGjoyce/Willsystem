@@ -19,8 +19,11 @@ const PackageStatus = ({ id }) => {
 
     const { documents, error, loading, handleStatusChange } = useDocumentApproval(id);
 
-    const handleViewDocument = (docId) => {
-        const document = documents.find(doc => doc.id === docId);
+
+    const handleViewDocument = (owner, docId) => {
+
+        const document = documents.find(doc => doc.owner === owner && doc.id === docId);
+        console.log(document)
         if (document && document.content) {
             setCurrentDocumentDOM(document.content);
             setShowPDFViewer(true);
@@ -44,6 +47,7 @@ const PackageStatus = ({ id }) => {
         setShowModal(false);
         await fetchDocuments();
     }
+
 
     const handleDropdownClick = (doc) => {
         if (doc.status === "Changes requested") {
@@ -101,7 +105,7 @@ const PackageStatus = ({ id }) => {
                                                         <tr key={doc.id}>
                                                             <td>{doc.type}</td>
                                                             <td className='text-center'>
-                                                                <i className="bi bi-eye cursor-pointer" onClick={() => handleViewDocument(doc.id)}> {doc.latestVersion}</i>
+                                                                <i className="bi bi-eye cursor-pointer" onClick={() => handleViewDocument(owner, doc.id)}> {doc.latestVersion}</i>
                                                             </td>
                                                             <td className={
                                                                 doc.status === "Approved"
