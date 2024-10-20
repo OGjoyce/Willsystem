@@ -18,11 +18,17 @@ const useDocumentApproval = (initialDocId) => {
             const response = await axios.get('/api/obj-status/search', { params: { id: initialDocId } });
 
             if (response.data && response.data.length > 0) {
-                const parsedObjectStatus = parseObjectStatus(response.data[0].information);
-                if (parsedObjectStatus) {
-                    setObjectStatus(parsedObjectStatus);
-                    const formattedDocuments = formatDocuments(parsedObjectStatus);
-                    setDocuments(formattedDocuments);
+                // Iteramos sobre todos los elementos en response.data[0].information
+                const allParsedDocuments = response.data[0].information.flatMap(information => {
+                    const parsedObjectStatus = parseObjectStatus(information);
+                    if (parsedObjectStatus) {
+                        return formatDocuments(parsedObjectStatus);
+                    }
+                    return [];
+                });
+
+                if (allParsedDocuments.length > 0) {
+                    setDocuments(allParsedDocuments);
                 } else {
                     setError('No document data found in response');
                 }
@@ -94,7 +100,7 @@ const useDocumentApproval = (initialDocId) => {
                     owner,
                     package: packageName
                 };
-            }).filter(doc => doc !== null);  // Filter out any null values
+            }).filter(doc => doc !== null); // Filtrar valores nulos
     };
 
     const handleStatusChange = async (docId, newStatus, changeRequest = '') => {
