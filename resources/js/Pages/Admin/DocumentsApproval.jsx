@@ -162,7 +162,7 @@ const DocumentsApproval = ({ id, auth }) => {
                                                                     <Dropdown.Item onClick={() => handleDropdownClick(doc)}>
                                                                         Request Changes
                                                                     </Dropdown.Item>
-                                                                    <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Approved')}>Approve</Dropdown.Item>
+                                                                    <Dropdown.Item onClick={() => handleStatusChange(doc.owner, doc.id, 'Approved')}>Approve</Dropdown.Item>
                                                                 </Dropdown.Menu>
                                                             </Dropdown>
                                                         )}
