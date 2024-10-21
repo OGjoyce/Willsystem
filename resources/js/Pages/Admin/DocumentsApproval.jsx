@@ -13,7 +13,7 @@ const DocumentsApproval = ({ id, auth }) => {
     const [showModal, setShowModal] = useState(false);
     const [currentDocId, setCurrentDocId] = useState(null);
     const [changeRequest, setChangeRequest] = useState('');
-    const [editableDocId, setEditableDocId] = useState(null);
+    const [editableDoc, setEditableDoc] = useState(null);
     const [showPDFViewer, setShowPDFViewer] = useState(false);
     const [currentDocumentDOM, setCurrentDocumentDOM] = useState('');
     const [showToast, setShowToast] = useState(false);
@@ -45,7 +45,7 @@ const DocumentsApproval = ({ id, auth }) => {
     async function handleSaveChanges(owner, docId) {
         try {
             await handleStatusChange(owner, docId, 'Changes Requested', changeRequest);
-            setEditableDocId(null);
+            setEditableDoc(null);
             setChangeRequest('');
             setToastMessage('Changes saved successfully');
             setShowToast(true);
@@ -60,12 +60,12 @@ const DocumentsApproval = ({ id, auth }) => {
     const handleDropdownClick = (doc) => {
         setOwner(doc.owner)
         if (doc.status === "Changes requested") {
-            setEditableDocId(doc.id);
+            setEditableDoc(doc);
             setChangeRequest(doc.changeRequest || '');
             setOpenDropdown(null); // Close the dropdown
         } else {
             setShowModal(true);
-            setCurrentDocId(doc.id);
+            setCurrentDoc(doc.id);
             setChangeRequest('');
             setOpenDropdown(null); // Close the dropdown
         }
@@ -89,7 +89,7 @@ const DocumentsApproval = ({ id, auth }) => {
                     <div className="bg-white shadow-sm sm:rounded-lg p-6">
                         <Container className="flex flex-col h-full">
                             <h3 className='text-xl font-bold mb-4'>Approve or request changes on your documents</h3>
-                            <h4 className='text-lg text-gray-600 mb-6'>Current Package: Facebook Campaign</h4>
+                            <h4 className='text-lg text-gray-600 mb-6'>Current Package: {documents[0]?.package}</h4>
 
                             {loading ? (
                                 <Alert variant="info">Loading documents...</Alert>
@@ -129,7 +129,7 @@ const DocumentsApproval = ({ id, auth }) => {
                                                                         ? 'text-red-600'
                                                                         : 'text-yellow-600'
                                                             }>
-                                                                {editableDocId === doc.id ? (
+                                                                {editableDoc?.id === doc.id && editableDoc?.owner === doc.owner ? (
                                                                     <Form.Control
                                                                         as="textarea"
                                                                         rows={6}
@@ -146,7 +146,7 @@ const DocumentsApproval = ({ id, auth }) => {
                                                                                     <i
                                                                                         className="bi bi-pencil-square"
                                                                                         onClick={() => {
-                                                                                            setEditableDocId(doc.id);
+                                                                                            setEditableDoc(doc);
                                                                                             setChangeRequest(doc.changeRequest);
                                                                                         }}
                                                                                     ></i>
@@ -160,10 +160,10 @@ const DocumentsApproval = ({ id, auth }) => {
                                                                 )}
                                                             </td>
                                                             <td>
-                                                                {editableDocId === doc.id ? (
+                                                                {editableDoc?.id === doc.id && editableDoc?.owner === doc.owner ? (
                                                                     <div className='d-flex justify-content-around gap-3'>
                                                                         <Button className='w-[50%]' variant="outline-success" size="sm" onClick={() => handleSaveChanges(owner, doc.id)}>Save</Button>
-                                                                        <Button className='w-[50%]' variant="outline-secondary" size="sm" onClick={() => setEditableDocId(null)}>Cancel</Button>
+                                                                        <Button className='w-[50%]' variant="outline-secondary" size="sm" onClick={() => setEditableDoc(null)}>Cancel</Button>
                                                                     </div>
                                                                 ) : (
                                                                     <Dropdown className='w-[100%]' show={openDropdown === `owner: ${doc.owner}, docId: ${doc.id}`} onToggle={() => setOpenDropdown(openDropdown === `owner: ${doc.owner}, docId: ${doc.id}` ? null : `owner: ${doc.owner}, docId: ${doc.id}`)}>
