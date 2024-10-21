@@ -20,14 +20,6 @@ const DocumentsApproval = ({ id, auth }) => {
     const [toastMessage, setToastMessage] = useState('');
     const [owner, setOwner] = useState()
 
-    useEffect(() => {
-        fetch();
-    }, []);
-
-    const fetch = async () => {
-        const response = await axios.get('/generate-token');
-        console.log(response.data);
-    };
 
     // Use the custom hook here
     const { documents, error, loading, handleStatusChange } = useDocumentApproval(id);
