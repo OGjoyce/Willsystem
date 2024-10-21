@@ -42,9 +42,9 @@ const DocumentsApproval = ({ id, auth }) => {
         }
     };
 
-    async function handleSaveChanges(docId) {
+    async function handleSaveChanges(owner, docId) {
         try {
-            await handleStatusChange(docId, 'Changes Requested', changeRequest);
+            await handleStatusChange(owner, docId, 'Changes Requested', changeRequest);
             setEditableDocId(null);
             setChangeRequest('');
             setToastMessage('Changes saved successfully');
@@ -162,7 +162,7 @@ const DocumentsApproval = ({ id, auth }) => {
                                                                     <Dropdown.Item onClick={() => handleDropdownClick(doc)}>
                                                                         Request Changes
                                                                     </Dropdown.Item>
-                                                                    <Dropdown.Item onClick={() => handleStatusChange(doc.owner, doc.id, 'Approved')}>Approve</Dropdown.Item>
+                                                                    <Dropdown.Item onClick={() => handleStatusChange(doc.owner, doc.id)}>Approve</Dropdown.Item>
                                                                 </Dropdown.Menu>
                                                             </Dropdown>
                                                         )}
@@ -204,7 +204,7 @@ const DocumentsApproval = ({ id, auth }) => {
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
-                    <Button variant="primary" onClick={() => { handleSaveChanges(currentDocId) }}>Save Changes</Button>
+                    <Button variant="primary" onClick={() => { handleStatusChange(doc.owner, doc.id, 'changesRequested') }}>Save Changes</Button>
                 </Modal.Footer>
             </Modal>
             <PDFViewer
