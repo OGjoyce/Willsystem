@@ -201,11 +201,11 @@ const AllFiles = () => {
         if (!Array.isArray(data)) return [];
 
         return data.map(item => {
-            const packageInfo = item.information?.find(info => info.packageInfo)?.packageInfo;
-            const owner = item.information?.find(info => info.personal)?.personal?.email || 'unknown';
+            const packageInfo = item.information[0]?.find(info => info.packageInfo)?.packageInfo;
+            const owner = item.information[0]?.find(info => info.personal)?.personal?.email || 'unknown';
             const creationTimestamp = item.created_at || "NA"
             const lastModificationTimestamp = item.updated_at || "NA";
-            const objectStatus = item.information || [];
+            const objectStatus = item.information[0] || [];
             const documentDOM = objectStatus.find(info => info.documentDOM)?.documentDOM || {};
 
             const allDocumentsHaveV1 = !Object.values(documentDOM).every(doc => doc?.v1 !== undefined && doc.v1 !== null);
