@@ -11,7 +11,7 @@ const PackageStatus = ({ id }) => {
     const [showModal, setShowModal] = useState(false);
     const [currentDocId, setCurrentDocId] = useState(null);
     const [changeRequest, setChangeRequest] = useState('');
-    const [editableDocId, setEditableDocId] = useState(null);
+    const [editableDoc, setEditableDoc] = useState(null);
     const [showPDFViewer, setShowPDFViewer] = useState(false);
     const [currentDocumentDOM, setCurrentDocumentDOM] = useState("");
     const [showToast, setShowToast] = useState(false);
@@ -38,7 +38,7 @@ const PackageStatus = ({ id }) => {
     async function handleSaveChanges(owner, docId) {
         try {
             await handleStatusChange(owner, docId, 'Changes Requested', changeRequest);
-            setEditableDocId(null);
+            setEditableDoc(null);
             setChangeRequest('');
             setToastMessage('Changes saved successfully');
             setShowToast(true);
@@ -55,13 +55,13 @@ const PackageStatus = ({ id }) => {
     const handleDropdownClick = (doc) => {
         setOwner(doc.owner)
         if (doc.status === "Changes requested") {
-            setEditableDocId(doc.id);
+            setEditableDoc(doc);
 
             setChangeRequest(doc.changeRequest || '');
             setOpenDropdown(null);
         } else {
             setShowModal(true);
-            setCurrentDocId(doc.id);
+            setCurrentDoc(doc);
             setChangeRequest('');
             setOpenDropdown(null);
         }
@@ -119,7 +119,7 @@ const PackageStatus = ({ id }) => {
                                                                         ? 'text-red-600'
                                                                         : 'text-yellow-600')
                                                             }>
-                                                                {editableDocId === doc.id ? (
+                                                                {editableDoc?.id === doc.id && editableDoc.owner === doc.owner ? (
                                                                     <Form.Control
                                                                         as="textarea"
                                                                         rows={6}
@@ -136,7 +136,7 @@ const PackageStatus = ({ id }) => {
                                                                                     <i
                                                                                         className="bi bi-pencil-square"
                                                                                         onClick={() => {
-                                                                                            setEditableDocId(doc.id);
+                                                                                            setEditableDoc(doc);
                                                                                             setChangeRequest(doc.changeRequest);
                                                                                         }}
                                                                                     ></i>
@@ -152,10 +152,10 @@ const PackageStatus = ({ id }) => {
                                                             <td>{doc.createdAt}</td>
                                                             <td>{doc.updatedAt}</td>
                                                             <td>
-                                                                {editableDocId === doc.id ? (
+                                                                {editableDoc?.id === doc.id && editableDoc?.owner === doc.owner ? (
                                                                     <div className='d-flex justify-content-around gap-3'>
                                                                         <Button className='w-[50%]' variant="outline-success" size="sm" onClick={() => handleSaveChanges(owner, doc.id)}>Save</Button>
-                                                                        <Button className='w-[50%]' variant="outline-secondary" size="sm" onClick={() => setEditableDocId(null)}>Cancel</Button>
+                                                                        <Button className='w-[50%]' variant="outline-secondary" size="sm" onClick={() => setEditableDoc(null)}>Cancel</Button>
                                                                     </div>
                                                                 ) : (
                                                                     <div className='d-flex justify-content-around gap-3'>
