@@ -18,6 +18,7 @@ const DocumentsApproval = ({ id, auth }) => {
     const [currentDocumentDOM, setCurrentDocumentDOM] = useState('');
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
+    const [owner, setOwner] = useState()
 
     useEffect(() => {
         fetch();
@@ -57,6 +58,7 @@ const DocumentsApproval = ({ id, auth }) => {
     }
 
     const handleDropdownClick = (doc) => {
+        setOwner(doc.owner)
         if (doc.status === "Changes requested") {
             setEditableDocId(doc.id);
             setChangeRequest(doc.changeRequest || '');
@@ -164,7 +166,7 @@ const DocumentsApproval = ({ id, auth }) => {
                                                                         <Button className='w-[50%]' variant="outline-secondary" size="sm" onClick={() => setEditableDocId(null)}>Cancel</Button>
                                                                     </div>
                                                                 ) : (
-                                                                    <Dropdown className='w-[100%]' show={openDropdown === doc.id} onToggle={() => setOpenDropdown(openDropdown === doc.id ? null : doc.id)}>
+                                                                    <Dropdown className='w-[100%]' show={openDropdown === `owner: ${doc.owner}, docId: ${doc.id}`} onToggle={() => setOpenDropdown(openDropdown === `owner: ${doc.owner}, docId: ${doc.id}` ? null : `owner: ${doc.owner}, docId: ${doc.id}`)}>
                                                                         <Dropdown.Toggle variant="outline-dark" size="sm" className="w-[100%] h-[100%]">
                                                                             Select Option
                                                                         </Dropdown.Toggle>
@@ -172,7 +174,7 @@ const DocumentsApproval = ({ id, auth }) => {
                                                                             <Dropdown.Item onClick={() => handleDropdownClick(doc)}>
                                                                                 Request Changes
                                                                             </Dropdown.Item>
-                                                                            <Dropdown.Item onClick={() => handleStatusChange(doc.owner, doc.id)}>Approve</Dropdown.Item>
+                                                                            <Dropdown.Item onClick={() => handleStatusChange(doc.owner, doc.id, 'Approved')}>Approve</Dropdown.Item>
                                                                         </Dropdown.Menu>
                                                                     </Dropdown>
                                                                 )}
@@ -216,7 +218,7 @@ const DocumentsApproval = ({ id, auth }) => {
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
-                    <Button variant="primary" onClick={() => handleSaveChanges(auth.user, currentDocId)}>Save Changes</Button>
+                    <Button variant="primary" onClick={() => handleSaveChanges(owner, currentDocId)}>Save Changes</Button>
                 </Modal.Footer>
             </Modal>
 
