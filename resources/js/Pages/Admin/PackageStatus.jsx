@@ -16,6 +16,7 @@ const PackageStatus = ({ id }) => {
     const [currentDocumentDOM, setCurrentDocumentDOM] = useState("");
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
+    const [owner, setOwner] = useState()
 
     const { documents, error, loading, handleStatusChange } = useDocumentApproval(id);
 
@@ -52,8 +53,10 @@ const PackageStatus = ({ id }) => {
 
 
     const handleDropdownClick = (doc) => {
+        setOwner(doc.owner)
         if (doc.status === "Changes requested") {
             setEditableDocId(doc.id);
+
             setChangeRequest(doc.changeRequest || '');
             setOpenDropdown(null);
         } else {
@@ -212,7 +215,7 @@ const PackageStatus = ({ id }) => {
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
-                    <Button variant="primary" onClick={() => handleSaveChanges(currentDocId)}>Save Changes</Button>
+                    <Button variant="primary" onClick={() => handleSaveChanges(owner, currentDocId)}>Save Changes</Button>
                 </Modal.Footer>
             </Modal>
 
