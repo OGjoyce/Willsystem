@@ -185,7 +185,6 @@ const DocumentSelector = ({
     const lastUnlockedDocument = getLastUnlockedDocument();
     const allStepsCompleted = visibleSteps.every(step => stepHasData(step.step));
     const allDocumentsCompleted = areAllDocumentsUnlocked();
-    console.log('LAST', lastUnlockedDocument)
 
     const handleConfirmSelection = () => {
         setShowConfirmationModal(false);
