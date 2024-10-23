@@ -343,10 +343,8 @@ export default function Personal({ auth }) {
         if (objectStatus.length === 1 && currentDocument === 'spousalWill') {
 
             const spouse = objectStatus[0].find(obj => obj.personal)?.personal // Tomar datos de personal del primer objeto
-            console.log('spouse', spouse)
 
             const personal = objectStatus[0].find(obj => obj.married)?.married;
-            console.log('personal', personal)
 
             const spousalWillData = [{
                 personal: {
@@ -446,7 +444,7 @@ export default function Personal({ auth }) {
             const updatedObjectStatus = handleProfileData(personal.email, propertiesAndData, fixedObjectStatus);
 
             setObjectStatus(updatedObjectStatus)
-
+            localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus));
             console.log(updatedObjectStatus)
             setPointer(3)
         }
