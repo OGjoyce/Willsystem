@@ -82,7 +82,7 @@ function Wipeout({ id, datas, errors }) {
         const kidsq = datas[3]?.kidsq?.selection;
 
         let names = [];
-        const married_names = married?.firstName && married?.lastName ? `${married?.firstName} ${married?.lastName}` : null;
+        const married_names = married?.firstName || married?.lastName ? `${married?.firstName} ${married?.lastName}` : null;
         if (married_names) names.push(married_names);
 
         if (kidsq === "true" && kids) {
