@@ -6,6 +6,7 @@ from flask_cors import CORS
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import os
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
