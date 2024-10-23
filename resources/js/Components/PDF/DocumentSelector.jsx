@@ -6,6 +6,7 @@ import POA1Content from './Content/POA1Content';
 import POA2Content from './Content/POA2Content';
 import CustomToast from '../AdditionalComponents/CustomToast';
 import { handleProfileData } from '../ProfileDataHandler';
+import { last } from 'lodash';
 
 const contentComponents = {
     primaryWill: WillContent,
@@ -71,12 +72,14 @@ const DocumentSelector = ({
         }
 
         const ownerDocumentDOM = ownerProfile[ownerProfile.length - 1]?.documentDOM || {};
-        return ownerDocumentDOM[previousDoc.docType]?.v1?.content ? true : false;
+        return ownerDocumentDOM[previousDoc?.docType]?.v1?.content ? true : false
     };
 
     const handleSelectDocument = (docObj, index) => {
         let owner = docObj.owner || 'unknown';
         const doc = docObj.docType;
+        // Establecer los nuevos estados
+        setSelectedDoc(doc);
 
         if (doc === 'secondaryWill' && owner == 'unknown') {
             setCurrentDocument(doc);
@@ -144,8 +147,7 @@ const DocumentSelector = ({
         setPrevDocumentOwner(documentOwner);
         setPrevCurrentProfile(currentProfile);
 
-        // Establecer los nuevos estados
-        setSelectedDoc(doc);
+
         setCurrentDocument(doc);
         setDocumentOwner(owner);
         setCurrentProfile(owner);
@@ -163,6 +165,26 @@ const DocumentSelector = ({
         }
     };
 
+
+    const getLastUnlockedDocument = () => {
+        const documents = objectStatus[0]?.[0]?.packageInfo?.documents || [];
+        for (let i = documents.length - 1; i >= 0; i--) {
+            if (isDocumentUnlocked(i)) {
+                return documents[i];
+            }
+        }
+        return null;
+    };
+
+    const areAllDocumentsUnlocked = () => {
+        const documents = objectStatus[0]?.[0]?.packageInfo?.documents || [];
+        return documents.every((_, index) => isDocumentUnlocked(index + 1));
+    };
+
+
+    const lastUnlockedDocument = getLastUnlockedDocument();
+    const allStepsCompleted = visibleSteps.every(step => stepHasData(step.step));
+    const allDocumentsCompleted = areAllDocumentsUnlocked();
 
     const handleConfirmSelection = () => {
         setShowConfirmationModal(false);
@@ -249,66 +271,63 @@ const DocumentSelector = ({
         setShowEmailModal(false);
     };
 
+    const intercalateDocs = (docs) => {
+        const propertyDocs = docs.filter(doc => doc.docType === 'poaProperty');
+        const healthDocs = docs.filter(doc => doc.docType === 'poaHealth');
+        const otherDocs = docs.filter(doc => doc.docType !== 'poaProperty' && doc.docType !== 'poaHealth');
+
+        const intercalatedDocs = [];
+        const maxLength = Math.max(propertyDocs.length, healthDocs.length);
+
+        for (let i = 0; i < maxLength; i++) {
+            if (propertyDocs[i]) {
+                intercalatedDocs.push(propertyDocs[i]);
+            }
+            if (healthDocs[i]) {
+                intercalatedDocs.push(healthDocs[i]);
+            }
+        }
+
+        // Concatenate intercalated POA docs with the other document types
+        return [...otherDocs, ...intercalatedDocs];
+    };
+
     return (
         <Container>
-            {/* Modal de confirmación */}
-            <Modal show={false} onHide={handleCancelSelection}>
-                <Modal.Header closeButton>
-                    <Modal.Title>{`You are about to switch to the document "${selectedDoc}".`}</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    {documentOwner === "unknown" ? (
-                        <p>This document doesn’t have an owner yet. Please select a profile or create a new one to continue.</p>
-                    ) : (
-                        <>
-                            <p>This document belongs to {documentOwner}.</p>
-                            {firstIncompleteStep ? (
-                                <p>
-                                    You still need to fill in some required information. Please complete all steps before you can review the document.
-                                </p>
-                            ) : (
-                                <p>
-                                    The document is ready to be opened. Please review it carefully and ensure to save your changes in order to unlock other documents.
-                                </p>
-                            )}
-                        </>
-                    )}
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={handleCancelSelection}>
-                        Cancel
-                    </Button>
-                    <Button variant="primary" onClick={handleConfirmSelection}>
-                        Confirm
-                    </Button>
-                </Modal.Footer>
-            </Modal>
-
             {/* Document list */}
             {!selectedDoc || showEmailModal ? (
                 <>
-                    <h3>Select a Document to View, Edit or Download</h3>
+                    <h1>
+                        {allDocumentsCompleted
+                            ? 'All documents completed'
+                            : `Select your document, fulfill the needed data and save it`
+                        }
+                    </h1>
+
+
                     <Row className="mt-3">
-                        {objectStatus[0]?.[0]?.packageInfo?.documents?.map((docObj, index) => (
+                        {intercalateDocs(objectStatus[0]?.[0]?.packageInfo?.documents || []).map((docObj, index) => (
                             <Col key={index} xs={12} sm={6} md={4} className="mb-2">
                                 <Button
                                     onClick={() => handleSelectDocument(docObj, index)}
                                     style={{ width: "100%" }}
-                                    variant="outline-dark"
+                                    className={lastUnlockedDocument === docObj && !isDocumentUnlocked(index + 1) ? ' border-2 border-white shadow-[0_0_2px_#fff,inset_0_0_2px_#fff,0_0_5px_#198754,0_0_15px_#198754,0_0_30px_#198754]' : ''}
+                                    variant={isDocumentUnlocked(index) ? 'success' : 'outline-dark'}
                                     disabled={!isDocumentUnlocked(index)}
                                 >
-                                    {docObj.docType === 'primaryWill' && <><i className="bi bi-file-text"></i> Will</>}
-                                    {docObj.docType === 'spousalWill' && <><i className="bi bi-file-text"></i> Spousal Will</>}
-                                    {docObj.docType === 'secondaryWill' && <><i className="bi bi-file-text"></i> Secondary Will</>}
-                                    {docObj.docType === 'poaProperty' && <><i className="bi bi-house"></i> POA1 Property</>}
-                                    {docObj.docType === 'poaHealth' && <><i className="bi bi-hospital"></i> POA2 Health</>}
+                                    {docObj.docType === 'primaryWill' && <><strong>{index + 1}  . </strong><i className="bi bi-file-text"></i> Will</>}
+                                    {docObj.docType === 'spousalWill' && <><strong>{index + 1}  . </strong><i className="bi bi-file-text"></i> Spousal Will</>}
+                                    {docObj.docType === 'secondaryWill' && <><strong>{index + 1}  . </strong><i className="bi bi-file-text"></i> Secondary Will</>}
+                                    {docObj.docType === 'poaProperty' && <><strong>{index + 1}  . </strong><i className="bi bi-house"></i> POA1 Property</>}
+                                    {docObj.docType === 'poaHealth' && <><strong>{index + 1}  . </strong><i className="bi bi-hospital"></i> POA2 Health</>}
                                 </Button>
                             </Col>
                         ))}
                     </Row>
                     {errors.documentDOM && <p className="mt-2 text-sm text-center text-red-600">{errors.documentDOM}</p>}
                 </>
-            ) : null}
+            ) : null
+            }
 
             {/* Mostrar el modal para seleccionar el perfil cuando el documento no tenga dueño */}
             <Modal
@@ -356,16 +375,18 @@ const DocumentSelector = ({
             </Modal>
 
             {/* Mostrar el PDFEditor si todos los pasos están completos */}
-            {showPDFEditor && selectedDoc && (
-                <PDFEditor
-                    documentType={selectedDoc}
-                    objectStatus={objectStatus}
-                    documentOwner={documentOwner}
-                    backendId={currIdObjDB}
-                    ContentComponent={contentComponents[selectedDoc]}
-                    onBack={() => setSelectedDoc(null)}
-                />
-            )}
+            {
+                showPDFEditor && selectedDoc && (
+                    <PDFEditor
+                        documentType={selectedDoc}
+                        objectStatus={objectStatus}
+                        documentOwner={documentOwner}
+                        backendId={currIdObjDB}
+                        ContentComponent={contentComponents[selectedDoc]}
+                        onBack={() => setSelectedDoc(null)}
+                    />
+                )
+            }
 
             {/* CustomToast for notifications */}
             <CustomToast
@@ -373,7 +394,7 @@ const DocumentSelector = ({
                 onClose={() => setShowToast(false)}
                 message={toastMessage}
             />
-        </Container>
+        </Container >
     );
 };
 

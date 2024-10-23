@@ -77,25 +77,36 @@ class ObjStatusController extends Controller
         return $objStatus;
     }
 
-    public function update(Request $request, ObjStatus $objStatus)
-    {
-        $validatedData = $request->validate([
-            'information' => 'required|string',
-            'related_id' => 'required|integer',
-        ]);
+  public function update(Request $request, ObjStatus $objStatus)
+{
+    $validatedData = $request->validate([
+        'information' => 'required|string',
+        'related_id' => 'required|integer',
+    ]);
 
-        $information = json_decode($validatedData['information'], true);
-        if (is_array($information) && isset($information['data'])) {
-            $information = $information['data'];
+    // Decodificar la información que viene del JSON
+    $information = json_decode($validatedData['information'], true);
+
+    // Verificar si es un array anidado y extraer los datos
+    if (is_array($information) && isset($information['data'])) {
+        $information = $information['data'];
+
+        // Procesar cada conjunto de datos anidados
+        foreach ($information as $dataSet) {
+            // Aquí puedes manejar cada conjunto de datos individualmente según tu lógica
+            // Por ejemplo, puedes actualizar varios registros en la base de datos si es necesario
         }
-
-        $objStatus->update([
-            'information' => $information,
-            'related_id' => $validatedData['related_id'],
-        ]);
-
-        return response()->json($objStatus);
     }
+
+    // Actualizar el registro de `ObjStatus` con el primer conjunto de datos, si aplica
+    $objStatus->update([
+        'information' => $information,
+        'related_id' => $validatedData['related_id'],
+    ]);
+
+    return response()->json($objStatus);
+}
+
 
     // Método corregido para obtener toda la información
     public function getAllInformation(): JsonResponse

@@ -19,7 +19,9 @@ function Pets({ datas, errors }) {
     const [validationErrors, setValidationErrors] = useState(errors);
     const [tableData, setTableData] = useState([]);
     const [identifiersNames, setIdentifiersNames] = useState([]);
-    const [idTable, setIdTable] = useState(1);
+    const [idTable, setIdTable] = useState(1
+
+    );
     const [editingRow, setEditingRow] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showToast, setShowToast] = useState(false);
@@ -34,6 +36,7 @@ function Pets({ datas, errors }) {
 
     useEffect(() => {
         if (datas != null) {
+            guardianDataStack = []
             let newTableData = [];
             let newId = 1;
             let namesList = [];
@@ -78,24 +81,10 @@ function Pets({ datas, errors }) {
 
             setTableData(newTableData);
             setIdentifiersNames(namesList);
-            setIdTable(newId);
+
         }
     }, [datas]);
 
-    useEffect(() => {
-        const savedData = JSON.parse(localStorage.getItem('formValues'));
-        if (savedData && savedData.pets) {
-            guardianDataStack = savedData.pets;
-            setPetGuardianData(savedData.pets);
-            setIdTable(savedData.pets.length > 0 ? savedData.pets[savedData.pets.length - 1].id + 1 : 1);
-        }
-    }, []);
-
-    const saveToLocalStorage = (data) => {
-        const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
-        formValues.pets = data;
-        localStorage.setItem('formValues', JSON.stringify(formValues));
-    };
 
     const handleAddPerson = (newPerson) => {
         const fullName = `${newPerson.firstName} ${newPerson.lastName}`;
@@ -162,7 +151,6 @@ function Pets({ datas, errors }) {
         if (obj) {
             guardianDataStack.push(obj);
             setPetGuardianData([...guardianDataStack]);
-            saveToLocalStorage(guardianDataStack);
             setIdTable(prevId => prevId + 1);
         }
         setSelectedOptionBackup('');

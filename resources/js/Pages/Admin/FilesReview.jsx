@@ -149,6 +149,21 @@ const FilesReview = () => {
         return d.toISOString().replace('T', ' ').substring(0, 19);
     };
 
+    // Helper Function to Find and Combine all documentDOM from the nested structure
+    const findAndCombineDocumentDOMs = (infoArrays) => {
+        const documentDOMs = [];
+
+        infoArrays.forEach(infoArray => {
+            for (const obj of infoArray) {
+                if (obj.documentDOM) {
+                    documentDOMs.push(obj.documentDOM);
+                }
+            }
+        });
+
+        return documentDOMs.length > 0 ? documentDOMs : null;
+    };
+
     // Transform API Data to Table Format
     const transformData = (data) => {
         if (!Array.isArray(data)) {
@@ -157,13 +172,13 @@ const FilesReview = () => {
         }
 
         return data.flatMap(item => {
-            const documentDOM = findDocumentDOM(item.information);
-            const packageInfo = item.information?.find(info => info.packageInfo)?.packageInfo;
-            const owner = item.information?.find(info => info.personal)?.personal?.email || 'unknown';
-            const creationTimestamp = item.created_at
+            const documentDOMs = findAndCombineDocumentDOMs(item.information);
+            const packageInfo = item.information[0]?.find(info => info.packageInfo)?.packageInfo;
+            const owner = item.information[0]?.find(info => info.personal)?.personal?.email || 'unknown';
+            const creationTimestamp = item.created_at;
             let latestTimestamp = item.updated_at;
 
-            if (!packageInfo || !documentDOM) {
+            if (!packageInfo || !documentDOMs) {
                 return {
                     id: item.id || null,
                     user: owner,
@@ -175,43 +190,44 @@ const FilesReview = () => {
                 };
             }
 
-            // Process documentDOM to determine status
-            const documents = Object.entries(documentDOM);
+            // Process each documentDOM
             let hasChangesRequested = false;
             let allApproved = true;
             let totalCount = 0;
             let approvedCount = 0;
 
-            documents.forEach(([key, versions]) => {
-                // Skip documents with keys starting with 'timestamp'
-                if (key.startsWith('timestamp')) {
-                    return;
-                }
+            documentDOMs.forEach(documentDOM => {
+                const documents = Object.entries(documentDOM);
 
-                const versionKeys = Object.keys(versions).filter(vKey => vKey.startsWith('v'));
-                if (versionKeys.length === 0) {
-                    return;
-                }
-
-                // Get the latest version
-                const lastVersionKey = versionKeys.sort((a, b) => parseInt(b.replace('v', '')) - parseInt(a.replace('v', '')))[0];
-                const lastVersion = versions[lastVersionKey];
-
-                if (lastVersion) {
-                    const status = lastVersion.status;
-
-                    if (status === 'changes requested') {
-                        hasChangesRequested = true;
-                    } else if (status === 'approved') {
-                        approvedCount += 1;
-                    } else if (status === 'pending') {
-                        allApproved = false;
+                documents.forEach(([key, versions]) => {
+                    // Skip documents with keys starting with 'timestamp'
+                    if (key.startsWith('timestamp')) {
+                        return;
                     }
 
+                    const versionKeys = Object.keys(versions).filter(vKey => vKey.startsWith('v'));
+                    if (versionKeys.length === 0) {
+                        return;
+                    }
 
-                }
+                    // Get the latest version
+                    const lastVersionKey = versionKeys.sort((a, b) => parseInt(b.replace('v', '')) - parseInt(a.replace('v', '')))[0];
+                    const lastVersion = versions[lastVersionKey];
 
-                totalCount += 1;
+                    if (lastVersion) {
+                        const status = lastVersion.status;
+
+                        if (status === 'changes requested') {
+                            hasChangesRequested = true;
+                        } else if (status === 'approved') {
+                            approvedCount += 1;
+                        } else if (status === 'pending') {
+                            allApproved = false;
+                        }
+                    }
+
+                    totalCount += 1;
+                });
             });
 
             let status = 'pending';
@@ -238,15 +254,6 @@ const FilesReview = () => {
         }).filter(Boolean);
     };
 
-    // Helper Function to Find documentDOM
-    const findDocumentDOM = (infoArray) => {
-        for (const obj of infoArray) {
-            if (obj.documentDOM) {
-                return obj.documentDOM;
-            }
-        }
-        return null;
-    };
 
     // Filter Packages based on Search, Status, and Dates
     const filteredPackages = useMemo(() => {
@@ -283,7 +290,7 @@ const FilesReview = () => {
             width: '100px',
         },
         {
-            name: 'User',
+            name: 'Owner',
             selector: row => row.user,
             sortable: true,
             wrap: true,
