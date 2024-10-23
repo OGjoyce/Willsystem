@@ -32,49 +32,80 @@ const PoaHealth = ({ datas, errors }) => {
         attorney: '',
         backups: [],
         restrictions: '',
-        statements: {} // Stores selected declarations and options
+        statements: {
+            terminalCondition: {
+                noLifeSupport: false,
+                noTubeFeeding: false,
+                noActiveTreatment: false
+            },
+            unconsciousCondition: {
+                noLifeSupport: false,
+                noTubeFeeding: false,
+                noActiveTreatment: false
+            },
+            mentalImpairment: {
+                noLifeSupport: false,
+                noTubeFeeding: false,
+                noActiveTreatment: false
+            },
+            violentBehavior: {
+                useDrugs: false
+            },
+            painManagement: {
+                useDrugs: false
+            }
+        }
     });
     const [organDonation, setOrganDonation] = useState(false);
     const [dnr, setDnr] = useState(false);
 
     // Define available declarations and their options
+    // Definir las declaraciones disponibles en PoaHealth
     const declarations = [
         {
             id: 'terminalCondition',
-            label: 'If I have an incurable and irreversible terminal condition that will result in my death, I direct that:',
+            label: 'Incurable and irreversible terminal condition',
             options: [
-                'I not be given life support or other life-prolonging treatment;',
-                'I not receive tube feeding, even if withholding such feeding would hasten my death;',
-                'Should I develop another separate condition that threatens my life, I not be given active treatment for said illnesses.'
+                { value: 'noLifeSupport', label: 'I do not wish to be given life support or other life-prolonging treatment' },
+                { value: 'lifeSupport', label: 'I wish to be given life support' }
             ]
         },
         {
             id: 'persistentlyUnconscious',
-            label: 'If I am diagnosed as persistently unconscious and, to a reasonable degree of medical certainty, I will not regain consciousness, I direct that:',
+            label: 'Persistently unconscious with no likelihood of regaining consciousness',
             options: [
-                'I not be kept on any artificial life support;',
-                'I not receive tube feeding, even if withholding such feeding would hasten my death;',
-                'Should I develop another separate condition that threatens my life, I not be given active treatment for said illnesses.'
+                { value: 'noArtificialSupport', label: 'I do not wish to be kept on artificial life support' },
+                { value: 'artificialSupport', label: 'I wish to be kept on artificial life support' }
             ]
         },
         {
-            id: 'severelyImpaired',
-            label: 'If I am diagnosed as being severely and permanently mentally impaired, I direct that:',
+            id: 'mentallyImpaired',
+            label: 'Severely and permanently mentally impaired',
             options: [
-                'I not be kept on any artificial life support;',
-                'I not receive tube feeding, even if withholding such feeding would hasten my death;',
-                'Should I develop another separate condition that threatens my life, I not be given active treatment for said illnesses.'
+                { value: 'noArtificialSupport', label: 'I do not wish to be kept on artificial life support' },
+                { value: 'artificialSupport', label: 'I wish to be kept on artificial life support' }
             ]
         },
         {
             id: 'violentBehavior',
-            label: 'If I am suffering from one of the above-mentioned conditions and if my behaviour becomes violent or is otherwise degrading, I want my symptoms to be controlled with appropriate drugs, even if that would worsen my physical condition or shorten my life.'
+            label: 'Suffering from a condition with violent or degrading behavior',
+            options: [
+                { value: 'drugControl', label: 'I want my symptoms controlled with appropriate drugs' },
+                { value: 'noDrugControl', label: 'I do not wish my symptoms to be controlled with drugs' }
+            ]
         },
         {
             id: 'painManagement',
-            label: 'If I am suffering from one of the above-mentioned conditions and I appear to be in pain, I want my symptoms to be controlled with appropriate drugs, even if that would worsen my physical condition or shorten my life.'
+            label: 'Suffering from pain due to the condition',
+            options: [
+                { value: 'drugControl', label: 'I want my symptoms controlled with appropriate drugs' },
+                { value: 'noDrugControl', label: 'I do not wish my symptoms to be controlled with drugs' }
+            ]
         }
     ];
+
+    // Esta parte ya estaba en tu código pero ahora debe reflejar estas nuevas opciones en los checkboxes
+
 
     useEffect(() => {
         // Limpiar los datos del formulario y los datos globales de poaHealthData
@@ -181,54 +212,17 @@ const PoaHealth = ({ datas, errors }) => {
     };
 
     // Handle declaration checkbox changes
-    const handleDeclarationChange = (declarationId, optionIndex = null) => {
-        setFormData(prev => {
-            const updatedStatements = { ...prev.statements };
-
-            if (optionIndex === null) {
-                // Toggle the main declaration checkbox
-                if (updatedStatements[declarationId]) {
-                    // If unchecking, also uncheck all sub-options
-                    delete updatedStatements[declarationId];
-                    const decl = declarations.find(d => d.id === declarationId);
-                    if (decl && decl.options) {
-                        decl.options.forEach((_, idx) => {
-                            delete updatedStatements[`${declarationId}_option_${idx}`];
-                        });
-                    }
-                } else {
-                    updatedStatements[declarationId] = true;
-                    const decl = declarations.find(d => d.id === declarationId);
-                    if (decl && decl.options) {
-                        decl.options.forEach((_, idx) => {
-                            updatedStatements[`${declarationId}_option_${idx}`] = true;
-                        });
-                    }
-                }
-            } else {
-                // Toggle sub-option checkbox
-                const key = `${declarationId}_option_${optionIndex}`;
-                if (updatedStatements[key]) {
-                    delete updatedStatements[key];
-                } else {
-                    updatedStatements[key] = true;
-                }
-
-                // If any sub-option is unchecked, also uncheck the main declaration
-                const decl = declarations.find(d => d.id === declarationId);
-                if (decl && decl.options) {
-                    const allOptionsChecked = decl.options.every((_, idx) => updatedStatements[`${declarationId}_option_${idx}`]);
-                    if (!allOptionsChecked) {
-                        delete updatedStatements[declarationId];
-                    }
+    const handleDeclarationChange = (declarationId, option, isChecked) => {
+        setFormData((prev) => ({
+            ...prev,
+            statements: {
+                ...prev.statements,
+                [declarationId]: {
+                    ...prev.statements[declarationId],
+                    [option]: isChecked
                 }
             }
-
-            return {
-                ...prev,
-                statements: updatedStatements
-            };
-        });
+        }));
     };
 
     // Handle form submission
@@ -429,33 +423,90 @@ const PoaHealth = ({ datas, errors }) => {
                             </Form.Group>
 
                             {/* Section for declarations with checkboxes */}
-                            <Form.Group className="mb-3">
-                                <Form.Label>Treatment Directions and End-Of-Life Decisions</Form.Label>
-                                {declarations.map(declaration => (
-                                    <div key={declaration.id} className="mb-3">
-                                        <Form.Check
-                                            type="checkbox"
-                                            id={declaration.id}
-                                            label={declaration.label}
-                                            checked={formData.statements[declaration.id] || false}
-                                            onChange={() => handleDeclarationChange(declaration.id)}
-                                        />
-                                        {declaration.options && formData.statements[declaration.id] && (
-                                            <div className="ms-4 mt-2">
-                                                {declaration.options.map((option, idx) => (
-                                                    <Form.Check
-                                                        key={`${declaration.id}_option_${idx}`}
-                                                        type="checkbox"
-                                                        id={`${declaration.id}_option_${idx}`}
-                                                        label={option}
-                                                        checked={formData.statements[`${declaration.id}_option_${idx}`] || false}
-                                                        onChange={() => handleDeclarationChange(declaration.id, idx)}
-                                                    />
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
+                            <Form.Group>
+                                <Form.Label><strong>If I have an incurable and irreversible terminal condition that will result in my death, I direct that:</strong></Form.Label>
+                                <Form.Check
+                                    type="checkbox"
+                                    label="I do not wish to be given life support or other life-prolonging treatment."
+                                    checked={formData.statements.terminalCondition?.noLifeSupport}
+                                    onChange={(e) => handleDeclarationChange('terminalCondition', 'noLifeSupport', e.target.checked)}
+                                />
+                                <Form.Check
+                                    type="checkbox"
+                                    label="I do not wish to receive tube feeding, even if withholding such feeding would hasten my death."
+                                    checked={formData.statements.terminalCondition?.noTubeFeeding}
+                                    onChange={(e) => handleDeclarationChange('terminalCondition', 'noTubeFeeding', e.target.checked)}
+                                />
+                                <Form.Check
+                                    type="checkbox"
+                                    label="I do not wish to receive active treatment for any other separate condition that threatens my life."
+                                    checked={formData.statements.terminalCondition?.noActiveTreatment}
+                                    onChange={(e) => handleDeclarationChange('terminalCondition', 'noActiveTreatment', e.target.checked)}
+                                />
+                            </Form.Group>
+
+                            <Form.Group>
+                                <Form.Label><strong>If I am diagnosed as persistently unconscious and will not regain consciousness, I direct that:</strong></Form.Label>
+                                <Form.Check
+                                    type="checkbox"
+                                    label="I do not wish to be kept on any artificial life support."
+                                    checked={formData.statements.unconsciousCondition?.noLifeSupport}
+                                    onChange={(e) => handleDeclarationChange('unconsciousCondition', 'noLifeSupport', e.target.checked)}
+                                />
+                                <Form.Check
+                                    type="checkbox"
+                                    label="I do not wish to receive tube feeding, even if withholding such feeding would hasten my death."
+                                    checked={formData.statements.unconsciousCondition?.noTubeFeeding}
+                                    onChange={(e) => handleDeclarationChange('unconsciousCondition', 'noTubeFeeding', e.target.checked)}
+                                />
+                                <Form.Check
+                                    type="checkbox"
+                                    label="I do not wish to receive active treatment for any other separate condition that threatens my life."
+                                    checked={formData.statements.unconsciousCondition?.noActiveTreatment}
+                                    onChange={(e) => handleDeclarationChange('unconsciousCondition', 'noActiveTreatment', e.target.checked)}
+                                />
+                            </Form.Group>
+
+                            <Form.Group>
+                                <Form.Label><strong>If I am diagnosed as being severely and permanently mentally impaired, I direct that:</strong></Form.Label>
+                                <Form.Check
+                                    type="checkbox"
+                                    label="I do not wish to be kept on any artificial life support."
+                                    checked={formData.statements.mentalImpairment?.noLifeSupport}
+                                    onChange={(e) => handleDeclarationChange('mentalImpairment', 'noLifeSupport', e.target.checked)}
+                                />
+                                <Form.Check
+                                    type="checkbox"
+                                    label="I do not wish to receive tube feeding, even if withholding such feeding would hasten my death."
+                                    checked={formData.statements.mentalImpairment?.noTubeFeeding}
+                                    onChange={(e) => handleDeclarationChange('mentalImpairment', 'noTubeFeeding', e.target.checked)}
+                                />
+                                <Form.Check
+                                    type="checkbox"
+                                    label="I do not wish to receive active treatment for any other separate condition that threatens my life."
+                                    checked={formData.statements.mentalImpairment?.noActiveTreatment}
+                                    onChange={(e) => handleDeclarationChange('mentalImpairment', 'noActiveTreatment', e.target.checked)}
+                                />
+                            </Form.Group>
+
+                            <Form.Group>
+                                <Form.Label><strong>If my behavior becomes violent or degrading, I direct that:</strong></Form.Label>
+                                <Form.Check
+                                    type="checkbox"
+                                    label="I want my symptoms controlled with appropriate drugs, even if that worsens my physical condition or shortens my life."
+                                    checked={formData.statements.violentBehavior?.useDrugs}
+                                    onChange={(e) => handleDeclarationChange('violentBehavior', 'useDrugs', e.target.checked)}
+                                />
+                            </Form.Group>
+
+                            <Form.Group>
+                                <Form.Label><strong>If I appear to be in pain, I direct that:</strong></Form.Label>
+                                <Form.Check
+                                    type="checkbox"
+                                    label="I want my symptoms controlled with appropriate drugs, even if that worsens my physical condition or shortens my life."
+                                    checked={formData.statements.painManagement?.useDrugs}
+                                    onChange={(e) => handleDeclarationChange('painManagement', 'useDrugs', e.target.checked)}
+                                />
                             </Form.Group>
 
                             <Button className='w-100' variant="outline-success" onClick={handleSubmit}>

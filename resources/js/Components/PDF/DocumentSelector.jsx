@@ -95,7 +95,7 @@ const DocumentSelector = ({
         if (doc === 'spousalWill' && owner == 'unknown') {
             setCurrentDocument(doc);
             setCurrentProfile(null);
-            setPointer(0); // Navegar al pointer 0
+            setPointer(3);
             return;
         } else if (doc === 'spousalWill' && owner !== 'unknown') {
             setCurrentDocument(doc);
@@ -271,26 +271,7 @@ const DocumentSelector = ({
         setShowEmailModal(false);
     };
 
-    const intercalateDocs = (docs) => {
-        const propertyDocs = docs.filter(doc => doc.docType === 'poaProperty');
-        const healthDocs = docs.filter(doc => doc.docType === 'poaHealth');
-        const otherDocs = docs.filter(doc => doc.docType !== 'poaProperty' && doc.docType !== 'poaHealth');
 
-        const intercalatedDocs = [];
-        const maxLength = Math.max(propertyDocs.length, healthDocs.length);
-
-        for (let i = 0; i < maxLength; i++) {
-            if (propertyDocs[i]) {
-                intercalatedDocs.push(propertyDocs[i]);
-            }
-            if (healthDocs[i]) {
-                intercalatedDocs.push(healthDocs[i]);
-            }
-        }
-
-        // Concatenate intercalated POA docs with the other document types
-        return [...otherDocs, ...intercalatedDocs];
-    };
 
     return (
         <Container>
@@ -306,7 +287,7 @@ const DocumentSelector = ({
 
 
                     <Row className="mt-3">
-                        {intercalateDocs(objectStatus[0]?.[0]?.packageInfo?.documents || []).map((docObj, index) => (
+                        {objectStatus[0]?.[0]?.packageInfo?.documents.map((docObj, index) => (
                             <Col key={index} xs={12} sm={6} md={4} className="mb-2">
                                 <Button
                                     onClick={() => handleSelectDocument(docObj, index)}

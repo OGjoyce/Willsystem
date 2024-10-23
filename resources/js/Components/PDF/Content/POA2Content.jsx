@@ -1,4 +1,3 @@
-// POA2Content.js
 import React, { forwardRef } from 'react';
 import './content.css';
 
@@ -63,45 +62,10 @@ const POA2Content = forwardRef((props, ref) => {
         ? findPersonInfo(POAInfo.poaHealth.backups[0], relatives, kids, spouseInfo)
         : {};
     const restrictions = POAInfo.poaHealth ? (POAInfo.poaHealth.restrictions || '') : '';
+    console.log(POAInfo)
+    const statements = POAInfo.poaHealth ? (POAInfo.statements || '') : {};
 
-    // Define the same declarations as in Poa.jsx
-    const declarations = [
-        {
-            id: 'terminalCondition',
-            label: 'If I have an incurable and irreversible terminal condition that will result in my death, I direct that:',
-            options: [
-                'I not be given life support or other life-prolonging treatment;',
-                'I not receive tube feeding, even if withholding such feeding would hasten my death;',
-                'Should I develop another separate condition that threatens my life, I not be given active treatment for said illnesses.'
-            ]
-        },
-        {
-            id: 'persistentlyUnconscious',
-            label: 'If I am diagnosed as persistently unconscious and, to a reasonable degree of medical certainty, I will not regain consciousness, I direct that:',
-            options: [
-                'I not be kept on any artificial life support;',
-                'I not receive tube feeding, even if withholding such feeding would hasten my death;',
-                'Should I develop another separate condition that threatens my life, I not be given active treatment for said illnesses.'
-            ]
-        },
-        {
-            id: 'severelyImpaired',
-            label: 'If I am diagnosed as being severely and permanently mentally impaired, I direct that:',
-            options: [
-                'I not be kept on any artificial life support;',
-                'I not receive tube feeding, even if withholding such feeding would hasten my death;',
-                'Should I develop another separate condition that threatens my life, I not be given active treatment for said illnesses.'
-            ]
-        },
-        {
-            id: 'violentBehavior',
-            label: 'If I am suffering from one of the above-mentioned conditions and if my behaviour becomes violent or is otherwise degrading, I want my symptoms to be controlled with appropriate drugs, even if that would worsen my physical condition or shorten my life.'
-        },
-        {
-            id: 'painManagement',
-            label: 'If I am suffering from one of the above-mentioned conditions and I appear to be in pain, I want my symptoms to be controlled with appropriate drugs, even if that would worsen my physical condition or shorten my life.'
-        }
-    ];
+
 
     return (
 
@@ -187,33 +151,44 @@ const POA2Content = forwardRef((props, ref) => {
                                 and others involved in my care provide, withhold or withdraw treatment in accordance with my
                                 directions below:
                                 <ol type="a">
-                                    {declarations.map(declaration => (
-                                        POAInfo.statements && POAInfo.statements[declaration.id] ? (
-                                            <li key={declaration.id}>
-                                                {declaration.label}
-                                                {declaration.options && (
-                                                    <ul>
-                                                        {declaration.options.map((option, idx) => (
-                                                            POAInfo.statements[`${declaration.id}_option_${idx}`] && (
-                                                                <li key={`${declaration.id}_option_${idx}`}>{option}</li>
-                                                            )
-                                                        ))}
-                                                    </ul>
-                                                )}
-                                            </li>
-                                        ) : null
-                                    ))}
-                                    {POAInfo.organDonation && (
-                                        <li>
-                                            I wish for my organs and tissue to be used for transplantation upon my death.
-                                        </li>
-                                    )}
-                                    {!POAInfo.organDonation && (
-                                        <li>
-                                            I do not wish for my organs and tissue to be used for transplantation upon my death.
-                                        </li>
-                                    )}
+                                    <li>
+                                        If I have an incurable and irreversible terminal condition that will result in my death, I direct that:
+                                        <ul>
+                                            <li>{statements?.terminalCondition?.noLifeSupport ? "I do not wish to be given life support." : "I wish to be given life support."}</li>
+                                            <li>{statements?.terminalCondition?.noTubeFeeding ? "I do not wish to receive tube feeding." : "I wish to receive tube feeding."}</li>
+                                            <li>{statements?.terminalCondition?.noActiveTreatment ? "I do not wish to receive active treatment for any other condition." : "I wish to receive active treatment for any other condition."}</li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        If I am diagnosed as persistently unconscious and will not regain consciousness, I direct that:
+                                        <ul>
+                                            <li>{statements?.unconsciousCondition?.noLifeSupport ? "I do not wish to be kept on artificial life support." : "I wish to be kept on artificial life support."}</li>
+                                            <li>{statements?.unconsciousCondition?.noTubeFeeding ? "I do not wish to receive tube feeding." : "I wish to receive tube feeding."}</li>
+                                            <li>{statements?.unconsciousCondition?.noActiveTreatment ? "I do not wish to receive active treatment for any other condition." : "I wish to receive active treatment for any other condition."}</li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        If I am diagnosed as being severely and permanently mentally impaired, I direct that:
+                                        <ul>
+                                            <li>{statements?.mentalImpairment?.noLifeSupport ? "I do not wish to be kept on artificial life support." : "I wish to be kept on artificial life support."}</li>
+                                            <li>{statements?.mentalImpairment?.noTubeFeeding ? "I do not wish to receive tube feeding." : "I wish to receive tube feeding."}</li>
+                                            <li>{statements?.mentalImpairment?.noActiveTreatment ? "I do not wish to receive active treatment for any other condition." : "I wish to receive active treatment for any other condition."}</li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        If my behavior becomes violent or degrading, I direct that:
+                                        <ul>
+                                            <li>{statements?.violentBehavior?.useDrugs ? "I want my symptoms controlled with drugs, even if it worsens my condition." : "I do not want drugs to control my symptoms."}</li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        If I appear to be in pain, I direct that:
+                                        <ul>
+                                            <li>{statements?.painManagement?.useDrugs ? "I want my pain controlled with drugs, even if it worsens my condition." : "I do not want drugs to control my pain."}</li>
+                                        </ul>
+                                    </li>
                                 </ol>
+
                             </li>
                         </ol>
                         <p><strong>Revocation</strong></p>

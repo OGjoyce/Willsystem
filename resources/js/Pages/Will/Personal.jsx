@@ -45,6 +45,7 @@ import {
 
 import { storeDataObject, updateDataObject } from '@/Components/ObjStatusForm';
 import { validate } from '@/Components/Validations';
+import { update } from 'lodash';
 
 export default function Personal({ auth }) {
     // Component state
@@ -338,6 +339,118 @@ export default function Personal({ auth }) {
     }, [objectStatus, currentDocument, pointer, currentProfile]);
 
 
+    useEffect(() => {
+        if (objectStatus.length === 1 && currentDocument === 'spousalWill') {
+
+            const spouse = objectStatus[0].find(obj => obj.personal)?.personal // Tomar datos de personal del primer objeto
+
+            const personal = objectStatus[0].find(obj => obj.married)?.married;
+
+            const spousalWillData = [{
+                personal: {
+                    step: 0,
+                    title: "Personal Information",
+                    city: personal.city,
+                    province: personal.province,
+                    country: personal.country,
+                    telephone: personal.phone,
+                    fullName: personal.firstName + ' ' + personal.lastName,
+                    email: personal.email,
+                    timestamp: Date.now(),
+                },
+                owner: personal.email,
+                packageInfo: {
+                    undefined: "not an owner of any package"
+                },
+
+            },
+            {
+                "marriedq": {
+                    "selection": "true",
+                    "timestamp": Date.now()
+                }
+            },
+            {
+                "married": {
+                    "firstName": spouse.fullName.split(' ')[0],
+                    "middleName": "",
+                    "lastName": spouse.fullName.split(' ').slice(1).join(' '),
+                    "relative": "Spouse",
+                    "email": spouse.email,
+                    "phone": spouse.telephone,
+                    "city": spouse.city,
+                    "province": spouse.province,
+                    "country": spouse.country,
+                    "timestamp": Date.now()
+                }
+            },
+            {
+                "kidsq": []
+            },
+            {
+                "kids": []
+            },
+            {
+                "executors": []
+            },
+            {
+                "relatives": []
+            },
+            {
+                "bequests": []
+            },
+            {
+                "residue": []
+            },
+            {
+                "wipeout": []
+            },
+            {
+                "trusting": []
+            },
+            {
+                "guardians": []
+            },
+            {
+                "pets": []
+            },
+            {
+                "additional": []
+            },
+            {
+                "poaProperty": []
+            },
+            {
+                "poaHealth": []
+            },
+            {
+                "finalDetails": []
+            },
+            {
+                "documentDOM": []
+            }
+            ]
+
+            setCurrentProfile(personal.email)
+
+            const fixedObjectStatus = [objectStatus[0], spousalWillData]
+
+            const propertiesAndData = [
+                {
+                    name: 'kidsq',
+                    data: [],
+                },
+            ];
+            const updatedObjectStatus = handleProfileData(personal.email, propertiesAndData, fixedObjectStatus);
+
+            setObjectStatus(updatedObjectStatus)
+            localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus));
+            console.log(updatedObjectStatus)
+            setPointer(3)
+        }
+    }, [currentDocument]);
+
+
     // Show or hide the Select Package Modal based on the current step
     useEffect(() => {
         if (pointer === 0) {
@@ -362,6 +475,29 @@ export default function Personal({ auth }) {
 
     // Initialize package documents
     // Initialize package documents
+
+    const intercalateDocs = (docs) => {
+        const propertyDocs = docs.filter(doc => doc.docType === 'poaProperty');
+        const healthDocs = docs.filter(doc => doc.docType === 'poaHealth');
+        const otherDocs = docs.filter(doc => doc.docType !== 'poaProperty' && doc.docType !== 'poaHealth');
+
+        const intercalatedDocs = [];
+        const maxLength = Math.max(propertyDocs.length, healthDocs.length);
+
+        for (let i = 0; i < maxLength; i++) {
+            if (propertyDocs[i]) {
+                intercalatedDocs.push(propertyDocs[i]);
+            }
+            if (healthDocs[i]) {
+                intercalatedDocs.push(healthDocs[i]);
+            }
+        }
+
+        // Concatenate intercalated POA docs with the other document types
+        return [...otherDocs, ...intercalatedDocs];
+    };
+
+
     const initializePackageDocuments = (availableDocuments, packageDescription) => {
         let willCounters = {};
         const willIdentifiers = [];
@@ -402,6 +538,9 @@ export default function Personal({ auth }) {
             distributePOAs(wills, poas);
         }
 
+        // Aquí intercalamos los POAs
+        const intercalatedPoas = intercalateDocs(poas);
+
         // Reconstruct the documents in original order
         let documents = [];
         let willIdx = 0;
@@ -412,7 +551,7 @@ export default function Personal({ auth }) {
                 documents.push(wills[willIdx]);
                 willIdx++;
             } else if (docType.toLowerCase().includes('poa')) {
-                documents.push(poas[poaIdx]);
+                documents.push(intercalatedPoas[poaIdx]); // Ahora usamos los POAs intercalados
                 poaIdx++;
             } else {
                 documents.push({
@@ -425,6 +564,7 @@ export default function Personal({ auth }) {
 
         return documents;
     };
+
 
     // Función que distribuye los POAs cuando el paquete lo permite
     const distributePOAs = (wills, poas) => {

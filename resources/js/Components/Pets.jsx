@@ -42,7 +42,7 @@ function Pets({ datas, errors }) {
             let namesList = [];
 
             datas.forEach(element => {
-                if (element?.married?.firstName && element.married?.lastName && element.married?.relative !== "NA") {
+                if (element?.married?.firstName || element.married?.lastName && element.married?.relative !== "NA") {
                     const fullName = `${element.married.firstName} ${element.married.lastName}`;
                     newTableData.push({
                         id: newId++,
