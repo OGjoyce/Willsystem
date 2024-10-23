@@ -60,7 +60,7 @@ export default function GuardianForMinors({ errors, datas }) {
             const kidsq = fullData[3]?.kidsq?.selection;
 
             // Obtener nombres de esposa, hijos y parientes
-            const married_names = married?.firstName && married?.lastName ? married.firstName + " " + married.lastName : null;
+            const married_names = married?.firstName || married?.lastName ? married.firstName + " " + married.lastName : null;
             if (kidsq === "true") {
                 for (const child of kids) {
                     const names = child?.firstName + " " + child?.lastName;
