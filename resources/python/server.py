@@ -10,8 +10,8 @@ from email.mime.text import MIMEText
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 # Define a route that will trigger your Python logic
-GMAIL_USER = 'carlos@barretttaxlaw.com'
-GMAIL_PASSWORD = 'Pipiriberta1!@'
+GMAIL_USER = os.getenv('GMAIL_USER')
+GMAIL_PASSWORD = os.getenv('GMAIL_PASSWORD')
 
 def send_email(to_email, subject, message):
     try:

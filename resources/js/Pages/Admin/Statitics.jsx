@@ -15,7 +15,7 @@ import { Link, Head } from '@inertiajs/react';
 import axios from 'axios';
 import ReactECharts from 'echarts-for-react';
 import MapChart from '@/Components/MapChart';
-
+import EmailForm from '@/Components/EmailForm';
 export default function Statitics() {
 
     const [data, setData] = useState(null);
@@ -166,6 +166,7 @@ export default function Statitics() {
                             <pre>{JSON.stringify(data, null, 2)}</pre>
                         </div> */}
                          <MapChart />
+                         <EmailForm/>
 
 
                     </Container>
