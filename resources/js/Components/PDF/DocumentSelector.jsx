@@ -291,22 +291,23 @@ const DocumentSelector = ({
                                 <Button
                                     onClick={() => handleSelectDocument(docObj, index)}
                                     style={{ width: "100%" }}
-                                    className={lastUnlockedDocument === docObj && !isDocumentUnlocked(index + 1) ? ' border-2 border-green-700 shadow-[0_0_2px_#fff,inset_0_0_2px_#fff,0_0_5px_#08f,0_0_15px_#08f,0_0_30px_#08f]' : ''}
+                                    className={lastUnlockedDocument === docObj && !isDocumentUnlocked(index + 1) ? ' border-2 border-white shadow-[0_0_2px_#fff,inset_0_0_2px_#fff,0_0_5px_#198754,0_0_15px_#198754,0_0_30px_#198754]' : ''}
                                     variant={isDocumentUnlocked(index) ? 'success' : 'outline-dark'}
                                     disabled={!isDocumentUnlocked(index)}
                                 >
-                                    {docObj.docType === 'primaryWill' && <><i className="bi bi-file-text"></i> Will</>}
-                                    {docObj.docType === 'spousalWill' && <><i className="bi bi-file-text"></i> Spousal Will</>}
-                                    {docObj.docType === 'secondaryWill' && <><i className="bi bi-file-text"></i> Secondary Will</>}
-                                    {docObj.docType === 'poaProperty' && <><i className="bi bi-house"></i> POA1 Property</>}
-                                    {docObj.docType === 'poaHealth' && <><i className="bi bi-hospital"></i> POA2 Health</>}
+                                    {docObj.docType === 'primaryWill' && <><strong>{index + 1}  . </strong><i className="bi bi-file-text"></i> Will</>}
+                                    {docObj.docType === 'spousalWill' && <><strong>{index + 1}  . </strong><i className="bi bi-file-text"></i> Spousal Will</>}
+                                    {docObj.docType === 'secondaryWill' && <><strong>{index + 1}  . </strong><i className="bi bi-file-text"></i> Secondary Will</>}
+                                    {docObj.docType === 'poaProperty' && <><strong>{index + 1}  . </strong><i className="bi bi-house"></i> POA1 Property</>}
+                                    {docObj.docType === 'poaHealth' && <><strong>{index + 1}  . </strong><i className="bi bi-hospital"></i> POA2 Health</>}
                                 </Button>
                             </Col>
                         ))}
                     </Row>
                     {errors.documentDOM && <p className="mt-2 text-sm text-center text-red-600">{errors.documentDOM}</p>}
                 </>
-            ) : null}
+            ) : null
+            }
 
             {/* Mostrar el modal para seleccionar el perfil cuando el documento no tenga dueño */}
             <Modal
@@ -354,16 +355,18 @@ const DocumentSelector = ({
             </Modal>
 
             {/* Mostrar el PDFEditor si todos los pasos están completos */}
-            {showPDFEditor && selectedDoc && (
-                <PDFEditor
-                    documentType={selectedDoc}
-                    objectStatus={objectStatus}
-                    documentOwner={documentOwner}
-                    backendId={currIdObjDB}
-                    ContentComponent={contentComponents[selectedDoc]}
-                    onBack={() => setSelectedDoc(null)}
-                />
-            )}
+            {
+                showPDFEditor && selectedDoc && (
+                    <PDFEditor
+                        documentType={selectedDoc}
+                        objectStatus={objectStatus}
+                        documentOwner={documentOwner}
+                        backendId={currIdObjDB}
+                        ContentComponent={contentComponents[selectedDoc]}
+                        onBack={() => setSelectedDoc(null)}
+                    />
+                )
+            }
 
             {/* CustomToast for notifications */}
             <CustomToast
@@ -371,7 +374,7 @@ const DocumentSelector = ({
                 onClose={() => setShowToast(false)}
                 message={toastMessage}
             />
-        </Container>
+        </Container >
     );
 };
 
