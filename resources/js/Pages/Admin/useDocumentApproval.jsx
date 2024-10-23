@@ -18,11 +18,20 @@ const useDocumentApproval = (initialDocId) => {
             const response = await axios.get('/api/obj-status/search', { params: { id: initialDocId } });
 
             if (response.data && response.data.length > 0) {
-                const parsedObjectStatus = parseObjectStatus(response.data[0].information);
-                if (parsedObjectStatus) {
-                    setObjectStatus(parsedObjectStatus);
-                    const formattedDocuments = formatDocuments(parsedObjectStatus);
-                    setDocuments(formattedDocuments);
+                // Iteramos sobre todos los elementos en response.data[0].information
+                setObjectStatus(response.data[0].information)
+
+                const allParsedDocuments = response.data[0].information.flatMap(information => {
+
+                    const parsedObjectStatus = parseObjectStatus(information);
+                    if (parsedObjectStatus) {
+                        return formatDocuments(parsedObjectStatus);
+                    }
+                    return [];
+                });
+
+                if (allParsedDocuments.length > 0) {
+                    setDocuments(allParsedDocuments);
                 } else {
                     setError('No document data found in response');
                 }
@@ -94,43 +103,62 @@ const useDocumentApproval = (initialDocId) => {
                     owner,
                     package: packageName
                 };
-            }).filter(doc => doc !== null);  // Filter out any null values
+            }).filter(doc => doc !== null); // Filtrar valores nulos
     };
 
-    const handleStatusChange = async (docId, newStatus, changeRequest = '') => {
+    const handleStatusChange = async (owner, docId, newStatus, changeRequest = '') => {
         try {
-            const currentDoc = documents.find(doc => doc.id === docId);
+            // Buscar el documento actual basado en el docId y el owner
+            const currentDoc = documents.find(doc => doc.id === docId && doc.owner === owner);
 
             if (!currentDoc) {
                 throw new Error('Document not found');
             }
 
+            // Actualizamos solo el documentDOM manteniendo la estructura del resto de item
             const updatedObjectStatus = objectStatus.map(item => {
-                if (item.documentDOM) {
-                    const currentDocumentDOM = item.documentDOM[currentDoc.type][currentDoc.latestVersion];
-                    const updatedDocumentDOM = {
-                        ...item.documentDOM,
-                        [currentDoc.type]: {
-                            ...item.documentDOM[currentDoc.type],
-                            [currentDoc.latestVersion]: {
-                                ...currentDocumentDOM,
-                                status: newStatus.toLowerCase(),
-                                changes: {
-                                    requestedChanges: newStatus === 'Changes Requested'
-                                        ? [changeRequest]
-                                        : []
-                                },
-                                content: currentDoc.content
+                if (item[0].owner === owner && item[item.length - 1].documentDOM) {
+                    const documentDOM = item[item.length - 1].documentDOM;
+                    const documentType = documentDOM[currentDoc.type];
+
+                    if (documentType && documentType[currentDoc.latestVersion]) {
+                        const currentDocumentDOM = documentType[currentDoc.latestVersion];
+
+                        // Actualizamos únicamente el documento correspondiente sin alterar el resto del item
+                        const updatedDocumentDOM = {
+                            ...documentDOM,
+                            [currentDoc.type]: {
+                                ...documentType,
+                                [currentDoc.latestVersion]: {
+                                    ...currentDocumentDOM,
+                                    status: newStatus.toLowerCase(),
+                                    changes: {
+                                        requestedChanges: newStatus === 'Changes Requested' ? [changeRequest] : []
+                                    },
+                                    content: currentDoc.content
+                                }
                             }
-                        }
-                    };
-                    return { ...item, documentDOM: updatedDocumentDOM };
+                        };
+
+                        // Retornamos el item con documentDOM actualizado y dejamos todo lo demás intacto
+                        return {
+                            ...item,
+                            [item.length - 1]: {
+                                ...item[item.length - 1],
+                                documentDOM: updatedDocumentDOM
+                            }
+                        };
+                    }
                 }
-                return item;
+                return item; // Retornamos el item sin cambios si no es el documento que queremos actualizar
             });
 
+            console.log('Updated Object Status:', updatedObjectStatus);
+
+            // Realiza las actualizaciones necesarias
             await updateDataObject(updatedObjectStatus, initialDocId);
 
+            // Recarga los documentos
             await fetchDocuments();
 
         } catch (error) {
@@ -138,6 +166,8 @@ const useDocumentApproval = (initialDocId) => {
             throw new Error('Failed to update document status');
         }
     };
+
+
 
     return {
         documents,

@@ -11,16 +11,20 @@ const PackageStatus = ({ id }) => {
     const [showModal, setShowModal] = useState(false);
     const [currentDocId, setCurrentDocId] = useState(null);
     const [changeRequest, setChangeRequest] = useState('');
-    const [editableDocId, setEditableDocId] = useState(null);
+    const [editableDoc, setEditableDoc] = useState(null);
     const [showPDFViewer, setShowPDFViewer] = useState(false);
     const [currentDocumentDOM, setCurrentDocumentDOM] = useState("");
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
+    const [owner, setOwner] = useState()
 
     const { documents, error, loading, handleStatusChange } = useDocumentApproval(id);
-    console.log(documents)
-    const handleViewDocument = (docId) => {
-        const document = documents.find(doc => doc.id === docId);
+
+
+    const handleViewDocument = (owner, docId) => {
+
+        const document = documents.find(doc => doc.owner === owner && doc.id === docId);
+        console.log(document)
         if (document && document.content) {
             setCurrentDocumentDOM(document.content);
             setShowPDFViewer(true);
@@ -28,11 +32,13 @@ const PackageStatus = ({ id }) => {
             console.error('Document content not found');
         }
     };
-    async function handleSaveChanges(docId) {
+
+    console.log(openDropdown)
+
+    async function handleSaveChanges(owner, docId) {
         try {
-            await handleStatusChange(docId, 'Changes Requested', changeRequest);
-            console.log(docId);
-            setEditableDocId(null);
+            await handleStatusChange(owner, docId, 'Changes Requested', changeRequest);
+            setEditableDoc(null);
             setChangeRequest('');
             setToastMessage('Changes saved successfully');
             setShowToast(true);
@@ -42,26 +48,30 @@ const PackageStatus = ({ id }) => {
             setShowToast(true);
         }
         setShowModal(false);
-        await fetchDocuments();  // Vuelve a obtener los datos actualizados
+        await fetchDocuments();
     }
 
 
-
     const handleDropdownClick = (doc) => {
+        setOwner(doc.owner)
         if (doc.status === "Changes requested") {
-            setEditableDocId(doc.id);
+            setEditableDoc(doc);
+
             setChangeRequest(doc.changeRequest || '');
             setOpenDropdown(null);
         } else {
             setShowModal(true);
-            setCurrentDocId(doc.id);  // Actualiza el docId en el modal
+            setCurrentDoc(doc);
             setChangeRequest('');
             setOpenDropdown(null);
         }
     };
 
-    const owner = documents.length > 0 ? documents[0].owner : 'N/A'
-    const packageName = documents.length > 0 ? documents[0].package : "N/A"
+    const groupedByOwner = documents.reduce((acc, doc) => {
+        if (!acc[doc.owner]) acc[doc.owner] = [];
+        acc[doc.owner].push(doc);
+        return acc;
+    }, {});
 
     return (
         <AuthenticatedLayout
@@ -73,9 +83,6 @@ const PackageStatus = ({ id }) => {
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white shadow-sm sm:rounded-lg p-6">
                         <Container className="flex flex-col h-full">
-                            <h3 className='text-xl font-bold mb-4'>Documents for User: {owner}</h3>
-                            <h4 className='text-lg text-gray-600 mb-6'>Current Package: {packageName}</h4>
-
                             {loading ? (
                                 <Alert variant="info">Loading documents...</Alert>
                             ) : error ? (
@@ -83,93 +90,99 @@ const PackageStatus = ({ id }) => {
                             ) : documents.length === 0 ? (
                                 <Alert variant="warning">No documents found</Alert>
                             ) : (
-                                <div className="overflow-x-auto flex-grow">
-                                    <Table striped bordered hover responsive>
-                                        <thead>
-                                            <tr>
-                                                <th>Document Type</th>
-                                                <th>Version</th>
-                                                <th>Status</th>
-                                                <th>Created At</th>
-                                                <th>Updated At</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {documents.map((doc) => (
-                                                <tr key={doc.id}>
-                                                    <td>{doc.type}</td>
-                                                    <td className='text-center'>
-                                                        <i className="bi bi-eye cursor-pointer" onClick={() => handleViewDocument(doc.id)}> {doc.latestVersion}</i>
-                                                    </td>
-                                                    <td className={
-                                                        doc.status === "Approved"
-                                                            ? 'text-green-600'
-                                                            : (doc.status === "Changes requested"
-                                                                ? 'text-red-600'
-                                                                : 'text-yellow-600')
-                                                    }>
-                                                        {editableDocId === doc.id ? (
-                                                            <Form.Control
-                                                                as="textarea"
-                                                                rows={6}
-                                                                value={changeRequest}
-                                                                onChange={(e) => setChangeRequest(e.target.value)}
-                                                                className="w-full"
-                                                            />
-                                                        ) : (
-                                                            <>
-                                                                {doc.status}
-                                                                {doc.status === "Changes requested" && (
+                                Object.keys(groupedByOwner).map(owner => (
+                                    <div key={owner} className="mb-10">
+                                        <h1 class="font-bold text-black pl-2 my-2 border-l-4  border-teal-600 ">Documents for: <small class="ms-2 font-semibold text-gray-500">{owner}</small></h1>
+                                        <div className="overflow-x-auto flex-grow">
+                                            <Table striped bordered hover responsive>
+                                                <thead>
+                                                    <tr>
+                                                        <th>Document Type</th>
+                                                        <th>Version</th>
+                                                        <th>Status</th>
+                                                        <th>Created At</th>
+                                                        <th>Updated At</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {groupedByOwner[owner].map((doc) => (
+                                                        <tr key={doc.id}>
+                                                            <td>{doc.type}</td>
+                                                            <td className='text-center'>
+                                                                <i className="bi bi-eye cursor-pointer" onClick={() => handleViewDocument(owner, doc.id)}> {doc.latestVersion}</i>
+                                                            </td>
+                                                            <td className={
+                                                                doc.status === "Approved"
+                                                                    ? 'text-green-600'
+                                                                    : (doc.status === "Changes requested"
+                                                                        ? 'text-red-600'
+                                                                        : 'text-yellow-600')
+                                                            }>
+                                                                {editableDoc?.id === doc.id && editableDoc.owner === doc.owner ? (
+                                                                    <Form.Control
+                                                                        as="textarea"
+                                                                        rows={6}
+                                                                        value={changeRequest}
+                                                                        onChange={(e) => setChangeRequest(e.target.value)}
+                                                                        className="w-full"
+                                                                    />
+                                                                ) : (
                                                                     <>
-                                                                        <span className='text-black ml-2 cursor-pointer'>
-                                                                            <i
-                                                                                className="bi bi-pencil-square"
-                                                                                onClick={() => {
-                                                                                    setEditableDocId(doc.id);
-                                                                                    setChangeRequest(doc.changeRequest);
-                                                                                }}
-                                                                            ></i>
-                                                                        </span>
-                                                                        <p className="text-sm text-gray-600 mt-1">
-                                                                            {doc.changeRequest}
-                                                                        </p>
+                                                                        {doc.status}
+                                                                        {doc.status === "Changes requested" && (
+                                                                            <>
+                                                                                <span className='text-black ml-2 cursor-pointer'>
+                                                                                    <i
+                                                                                        className="bi bi-pencil-square"
+                                                                                        onClick={() => {
+                                                                                            setEditableDoc(doc);
+                                                                                            setChangeRequest(doc.changeRequest);
+                                                                                        }}
+                                                                                    ></i>
+                                                                                </span>
+                                                                                <p className="text-sm text-gray-600 mt-1">
+                                                                                    {doc.changeRequest}
+                                                                                </p>
+                                                                            </>
+                                                                        )}
                                                                     </>
                                                                 )}
-                                                            </>
-                                                        )}
-                                                    </td>
-                                                    <td>{doc.createdAt}</td>
-                                                    <td>{doc.updatedAt}</td>
-                                                    <td>
-                                                        {editableDocId === doc.id ? (
-                                                            <div className='d-flex justify-content-around gap-3'>
-                                                                <Button className='w-[50%]' variant="outline-success" size="sm" onClick={() => handleSaveChanges(doc.id)}>Save</Button>
-                                                                <Button className='w-[50%]' variant="outline-secondary" size="sm" onClick={() => setEditableDocId(null)}>Cancel</Button>
-                                                            </div>
-                                                        ) : (
-                                                            <div className='d-flex justify-content-around gap-3'>
-                                                                <Dropdown className='w-[50%]' show={openDropdown === doc.id} onToggle={() => setOpenDropdown(openDropdown === doc.id ? null : doc.id)}>
-                                                                    <Dropdown.Toggle variant="outline-danger" size="sm" className="w-[100%]">
-                                                                        Change Status
-                                                                    </Dropdown.Toggle>
-                                                                    <Dropdown.Menu className='w-[100%] text-center'>
-                                                                        <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Pending')}>Pending</Dropdown.Item>
-                                                                        <Dropdown.Item onClick={() => handleStatusChange(doc.id, 'Approved')}>Approved</Dropdown.Item>
-                                                                        <Dropdown.Item onClick={() => handleDropdownClick(doc)}>
-                                                                            Request Changes
-                                                                        </Dropdown.Item>
-                                                                    </Dropdown.Menu>
-                                                                </Dropdown>
-                                                                <Button variant="outline-warning" size="sm" className="w-[50%]" onClick={() => handleEditDocument(doc.id)}>Edit Document</Button>
-                                                            </div>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </Table>
-                                </div>
+                                                            </td>
+                                                            <td>{doc.createdAt}</td>
+                                                            <td>{doc.updatedAt}</td>
+                                                            <td>
+                                                                {editableDoc?.id === doc.id && editableDoc?.owner === doc.owner ? (
+                                                                    <div className='d-flex justify-content-around gap-3'>
+                                                                        <Button className='w-[50%]' variant="outline-success" size="sm" onClick={() => handleSaveChanges(owner, doc.id)}>Save</Button>
+                                                                        <Button className='w-[50%]' variant="outline-secondary" size="sm" onClick={() => setEditableDoc(null)}>Cancel</Button>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className='d-flex justify-content-around gap-3'>
+                                                                        <Dropdown className='w-[50%]' show={openDropdown === `owner: ${doc.owner}, docId: ${doc.id}`} onToggle={() => setOpenDropdown(openDropdown === `owner: ${doc.owner}, docId: ${doc.id}` ? null : `owner: ${doc.owner}, docId: ${doc.id}`)}>
+                                                                            <Dropdown.Toggle variant="outline-danger" size="sm" className="w-[100%]">
+                                                                                Change Status
+                                                                            </Dropdown.Toggle>
+                                                                            <Dropdown.Menu className='w-[100%] text-center'>
+                                                                                <Dropdown.Item onClick={() => handleStatusChange(owner, doc.id, 'Pending')}>Pending</Dropdown.Item>
+                                                                                <Dropdown.Item onClick={() => handleStatusChange(owner, doc.id, 'Approved')}>Approved</Dropdown.Item>
+                                                                                <Dropdown.Item onClick={() => handleDropdownClick(doc)}>
+                                                                                    Request Changes
+                                                                                </Dropdown.Item>
+                                                                            </Dropdown.Menu>
+                                                                        </Dropdown>
+                                                                        <Button variant="outline-warning" size="sm" className="w-[50%]" onClick={() => handleEditDocument(doc.id)}>Edit Document</Button>
+                                                                    </div>
+                                                                )}
+                                                            </td>
+
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </Table>
+                                        </div>
+                                    </div>
+                                ))
                             )}
                             <Row className="mt-3">
                                 <Col xs={6}>
@@ -202,9 +215,10 @@ const PackageStatus = ({ id }) => {
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
-                    <Button variant="primary" onClick={() => handleSaveChanges(currentDocId)}>Save Changes</Button>
+                    <Button variant="primary" onClick={() => handleSaveChanges(owner, currentDocId)}>Save Changes</Button>
                 </Modal.Footer>
             </Modal>
+
             <PDFViewer
                 content={currentDocumentDOM}
                 show={showPDFViewer}
