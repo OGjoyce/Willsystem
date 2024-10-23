@@ -45,6 +45,7 @@ import {
 
 import { storeDataObject, updateDataObject } from '@/Components/ObjStatusForm';
 import { validate } from '@/Components/Validations';
+import { update } from 'lodash';
 
 export default function Personal({ auth }) {
     // Component state
@@ -336,6 +337,120 @@ export default function Personal({ auth }) {
             localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus));
         }
     }, [objectStatus, currentDocument, pointer, currentProfile]);
+
+
+    useEffect(() => {
+        if (objectStatus.length === 1 && currentDocument === 'spousalWill') {
+
+            const spouse = objectStatus[0].find(obj => obj.personal)?.personal // Tomar datos de personal del primer objeto
+            console.log('spouse', spouse)
+
+            const personal = objectStatus[0].find(obj => obj.married)?.married;
+            console.log('personal', personal)
+
+            const spousalWillData = [{
+                personal: {
+                    step: 0,
+                    title: "Personal Information",
+                    city: personal.city,
+                    province: personal.province,
+                    country: personal.country,
+                    telephone: personal.phone,
+                    fullName: personal.firstName + ' ' + personal.lastName,
+                    email: personal.email,
+                    timestamp: Date.now(),
+                },
+                owner: personal.email,
+                packageInfo: {
+                    undefined: "not an owner of any package"
+                },
+
+            },
+            {
+                "marriedq": {
+                    "selection": "true",
+                    "timestamp": Date.now()
+                }
+            },
+            {
+                "married": {
+                    "firstName": spouse.fullName.split(' ')[0],
+                    "middleName": "",
+                    "lastName": spouse.fullName.split(' ').slice(1).join(' '),
+                    "relative": "Spouse",
+                    "email": spouse.email,
+                    "phone": spouse.telephone,
+                    "city": spouse.city,
+                    "province": spouse.province,
+                    "country": spouse.country,
+                    "timestamp": Date.now()
+                }
+            },
+            {
+                "kidsq": []
+            },
+            {
+                "kids": []
+            },
+            {
+                "executors": []
+            },
+            {
+                "relatives": []
+            },
+            {
+                "bequests": []
+            },
+            {
+                "residue": []
+            },
+            {
+                "wipeout": []
+            },
+            {
+                "trusting": []
+            },
+            {
+                "guardians": []
+            },
+            {
+                "pets": []
+            },
+            {
+                "additional": []
+            },
+            {
+                "poaProperty": []
+            },
+            {
+                "poaHealth": []
+            },
+            {
+                "finalDetails": []
+            },
+            {
+                "documentDOM": []
+            }
+            ]
+
+            setCurrentProfile(personal.email)
+
+            const fixedObjectStatus = [objectStatus[0], spousalWillData]
+
+            const propertiesAndData = [
+                {
+                    name: 'kidsq',
+                    data: [],
+                },
+            ];
+            const updatedObjectStatus = handleProfileData(personal.email, propertiesAndData, fixedObjectStatus);
+
+            setObjectStatus(updatedObjectStatus)
+
+            console.log(updatedObjectStatus)
+            setPointer(3)
+        }
+    }, [currentDocument]);
 
 
     // Show or hide the Select Package Modal based on the current step
