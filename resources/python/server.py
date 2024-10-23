@@ -3,9 +3,54 @@ import pandas as pd
 from sqlalchemy import create_engine
 import json
 from flask_cors import CORS
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 # Define a route that will trigger your Python logic
+GMAIL_USER = 'carlos@barretttaxlaw.com'
+GMAIL_PASSWORD = 'Pipiriberta1!@'
+
+def send_email(to_email, subject, message):
+    try:
+        # Set up the server
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()  # Secure the connection
+        server.login(GMAIL_USER, GMAIL_PASSWORD)
+
+        # Compose the email
+        email_msg = MIMEMultipart()
+        email_msg['From'] = GMAIL_USER
+        email_msg['To'] = to_email
+        email_msg['Subject'] = subject
+
+        # Attach the email content
+        email_msg.attach(MIMEText(message, 'plain'))
+
+        # Send the email
+        server.sendmail(GMAIL_USER, to_email, email_msg.as_string())
+        server.quit()
+
+        return "Email sent successfully!"
+
+    except Exception as e:
+        return f"Failed to send email: {str(e)}"
+
+@app.route('/send-email', methods=['POST'])
+def send_email_endpoint():
+    # Get the parameters from the request
+    data = request.get_json()
+    to_email = data.get('to_email')
+    subject = data.get('subject')
+    message = data.get('message')
+
+    # Call the email sending function
+    result = send_email(to_email, subject, message)
+
+    return jsonify({"result": result})
+
 
 @app.route('/getData', methods=['GET'])
 def get_data():

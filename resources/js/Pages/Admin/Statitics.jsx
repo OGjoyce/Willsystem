@@ -14,6 +14,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
 import axios from 'axios';
 import ReactECharts from 'echarts-for-react';
+import MapChart from '@/Components/MapChart';
 
 export default function Statitics() {
 
@@ -164,6 +165,7 @@ export default function Statitics() {
                             <h1>Data from Server:</h1>
                             <pre>{JSON.stringify(data, null, 2)}</pre>
                         </div> */}
+                         <MapChart />
 
 
                     </Container>
