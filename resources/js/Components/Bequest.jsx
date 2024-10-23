@@ -331,7 +331,7 @@ function Bequest({ id, datas, errors }) {
 
             var dataobj = { married, kids, relatives };
 
-            var married_names = married?.firstName && married?.lastName ? married?.firstName + " " + married?.lastName : null;
+            var married_names = married?.firstName || married?.lastName ? married?.firstName + " " + married?.lastName : null;
 
             if (married_names !== null) { setIsMarried(true); }
             if (kidsq === "true") {
