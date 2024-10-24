@@ -58,6 +58,9 @@ Route::get('/package-status/{id}', function ($id) {
         'id' => $id
     ]);
 })->name("package-status");
+Route::get('/statitics', function () {
+    return Inertia::render('Admin/Statitics');
+})->name("statitics");
 
 Route::get('/documents-approval', [DocumentsApprovalController::class, 'show'])->name('documents-approval');
 
