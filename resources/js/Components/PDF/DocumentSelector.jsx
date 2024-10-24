@@ -336,17 +336,29 @@ const DocumentSelector = ({
                     fullName: userInfo.fullName
                 };
 
-                // 3. Construir el mensaje para el correo electrónico
-                let message = `Hello, ${userInfo.fullName}, Please review and approve your documents: http://127.0.0.1:8000/documents-approval?token=${token}`;
-                if (password) {
-                    message += `\nYour temporary password is: ${password}`;
-                }
+                // 3. Construir el mensaje en formato HTML
+                let message = `
+                <html>
+                    <body>
+                        <h2 style="color: #333;">Hello, ${userInfo.fullName}</h2>
+                        <p>Please review and approve your documents by clicking the link below:</p>
+                        <a href="http://127.0.0.1:8000/documents-approval?token=${token}" style="padding: 10px 20px; background-color: #198754; color: white; text-decoration: none; border-radius: 5px;">Review Documents</a>
+                        <p>If the button doesn't work, you can use this link:</p>
+                        <a href="http://127.0.0.1:8000/documents-approval?token=${token}">http://127.0.0.1:8000/documents-approval?token=${token}</a>
+                        <br><br>
+                        ${password ? `<p>Your temporary password is: <strong>${password}</strong></p>` : ''}
+                        <br>
+                        <p style="color: #555;">Thank you!</p>
+                    </body>
+                </html>
+            `;
 
-                // 4. Enviar el correo electrónico
+                // 4. Enviar el correo electrónico en formato HTML
                 await axios.post('https://willsystemapp.com:5000/send-email', {
-                    to_email: 'velizabrahaam@gmail.com',
+                    to_email: "velizabrahaam@gmail.com",
                     subject: 'Please review and approve your documents',
-                    message: message
+                    message: message, // Este será el cuerpo en HTML
+                    is_html: true     // Agrega un flag para indicar que el contenido es HTML (dependiendo de tu backend)
                 });
 
             } catch (error) {
@@ -357,6 +369,7 @@ const DocumentSelector = ({
 
         console.log(tokensByEmail);
     }
+
 
 
     return (
