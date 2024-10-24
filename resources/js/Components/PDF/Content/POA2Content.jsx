@@ -64,7 +64,7 @@ const POA2Content = forwardRef((props, ref) => {
     const restrictions = POAInfo.poaHealth ? (POAInfo.poaHealth.restrictions || '') : '';
     console.log(POAInfo)
     const statements = POAInfo.poaHealth ? (POAInfo.statements || '') : {};
-
+    console.log('statements', statements)
 
 
     return (
