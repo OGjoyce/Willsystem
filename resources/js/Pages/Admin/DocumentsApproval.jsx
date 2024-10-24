@@ -70,6 +70,7 @@ const DocumentsApproval = ({ id, auth }) => {
         return acc;
     }, {});
 
+
     return (
         <AuthenticatedLayout
             user={auth.user}
@@ -91,7 +92,7 @@ const DocumentsApproval = ({ id, auth }) => {
                                 <Alert variant="warning">No documents found</Alert>
                             ) : (
                                 Object.keys(groupedByOwner).map(owner => (
-                                    <div key={owner} className="mb-10">
+                                    owner === auth.user.email && <div key={owner} className="mb-10">
                                         <h1 className="font-bold text-black pl-2 my-2 border-l-4 border-teal-600">
                                             Documents for: <small className="ms-2 font-semibold text-gray-500">{owner}</small>
                                         </h1>
