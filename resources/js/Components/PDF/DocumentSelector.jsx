@@ -219,13 +219,18 @@ const DocumentSelector = ({
     const handleSelectEmail = (email) => {
         const updatedObjectStatus = objectStatus.map((profileArray) => {
             return profileArray.map((dataObj) => {
+                // Verifica si este es el perfil actual
                 if (dataObj.packageInfo && dataObj.packageInfo.documents && dataObj.personal?.email === currentProfile) {
+                    let documentUpdated = false; // Indicador de si ya se actualizó un documento
+
                     const updatedDocuments = dataObj.packageInfo.documents.map((docObj) => {
-                        if (docObj.docType === selectedDoc && docObj.owner === 'unknown') {
+                        if (!documentUpdated && docObj.docType === selectedDoc && docObj.owner === 'unknown') {
+                            documentUpdated = true; // Marcamos que ya se actualizó un documento
                             return { ...docObj, owner: email };
                         }
                         return docObj;
                     });
+
                     return {
                         ...dataObj,
                         packageInfo: {
@@ -245,13 +250,18 @@ const DocumentSelector = ({
         setCurrentProfile(email);
         setCurrentDocument(selectedDoc);
 
-        setCurrentProfile(null)
-        setCurrentProfile(email)
-        backStep()
+        // Aquí defines la lógica para cambiar el valor del pointer
+        if (selectedDoc === 'poaProperty') {
+            setPointer(12);
+        } else if (selectedDoc === 'poaHealth') {
+            setPointer(13);
+        }
+
         setShowEmailModal(false);
         setToastMessage(`Profile "${email}" selected.`);
         setShowToast(true);
     };
+
 
     if (showConfirmationModal) {
         handleConfirmSelection()
