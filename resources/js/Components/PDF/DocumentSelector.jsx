@@ -6,7 +6,7 @@ import POA1Content from './Content/POA1Content';
 import POA2Content from './Content/POA2Content';
 import CustomToast from '../AdditionalComponents/CustomToast';
 import { handleProfileData } from '@/utils/profileUtils';
-import { last } from 'lodash';
+import axios from 'axios';
 
 const contentComponents = {
     primaryWill: WillContent,
@@ -275,7 +275,35 @@ const DocumentSelector = ({
     };
 
 
-    const sendDocumentsForApproval = (objectStatus) => {
+    async function sendDocumentsForApproval(objectStatus, currIdObjDB) {
+        const idForToken = currIdObjDB
+        let emailsForToken = []
+        objectStatus.forEach(innerList => {
+            innerList.forEach(item => {
+                if (item.owner) {
+                    emailsForToken.push(item.owner);
+                }
+            });
+        });
+
+        let tokensByEmail = {};
+
+        // Hacer la petición POST por cada email
+        for (let email of emailsForToken) {
+            try {
+                const response = await axios.post('http://127.0.0.1:8000/api/generate-token', {
+                    email: email,
+                    id: idForToken
+                });
+
+                // Asume que el token viene en `response.data.token`
+                tokensByEmail[email] = response.data.token;
+
+            } catch (error) {
+                console.error(`Error generating token for ${email}:`, error);
+            }
+        }
+        console.log(tokensByEmail)
 
     }
 
@@ -315,7 +343,7 @@ const DocumentSelector = ({
                         <Button
                             variant={allDocumentsCompleted ? 'outline-dark' : 'outline-warning'}
                             className=''
-                            onClick={() => { sendDocumentsForApproval(objectStatus) }}
+                            onClick={() => { sendDocumentsForApproval(objectStatus, currIdObjDB) }}
                         >
                             Send documents for Aproval
                         </Button>
