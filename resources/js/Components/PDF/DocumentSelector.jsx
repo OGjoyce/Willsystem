@@ -341,7 +341,8 @@ const DocumentSelector = ({
                             </Col>
                         ))}
                         <Button
-                            variant={allDocumentsCompleted ? 'outline-dark' : 'outline-warning'}
+                            variant={!allDocumentsCompleted ? 'outline-dark' : 'outline-success'}
+                            disabled={!allDocumentsCompleted}
                             className=''
                             onClick={() => { sendDocumentsForApproval(objectStatus, currIdObjDB) }}
                         >
