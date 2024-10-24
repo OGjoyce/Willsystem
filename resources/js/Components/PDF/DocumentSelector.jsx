@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Button, Modal, ListGroup } from 'react-bootstrap';
+import { Container, Row, Col, Button, Modal, ListGroup, Spinner } from 'react-bootstrap';
 import PDFEditor from './PDFEditor';
 import WillContent from './Content/WillContent';
 import POA1Content from './Content/POA1Content';
@@ -42,7 +42,7 @@ const DocumentSelector = ({
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
-
+    const [sendingEmails, setSendingEmails] = useState(false); // Nuevo estado para spinner
     const [prevSelectedDoc, setPrevSelectedDoc] = useState(selectedDoc);
     const [prevCurrentDocument, setPrevCurrentDocument] = useState(currentDocument);
     const [prevDocumentOwner, setPrevDocumentOwner] = useState(documentOwner);
@@ -274,6 +274,25 @@ const DocumentSelector = ({
         setShowEmailModal(false);
     };
 
+    async function handleSendDocuments() {
+        setSendingEmails(true); // Mostrar spinner mientras se envían los correos
+        setShowToast(true);
+        setToastMessage("Sending emails...");
+
+        try {
+            await sendDocumentsForApproval(objectStatus, currIdObjDB);
+
+            // Cuando haya terminado de enviar los correos
+
+        } catch (error) {
+            console.error("Error sending emails:", error);
+            setToastMessage("Error sending emails. Please try again.");
+        } finally {
+            setSendingEmails(false); // Detener el spinner
+            setShowToast(true);
+            setToastMessage("Emails sent successfully!");
+        }
+    };
 
     async function sendDocumentsForApproval(objectStatus, currIdObjDB) {
         const idForToken = currIdObjDB;
@@ -318,13 +337,13 @@ const DocumentSelector = ({
                 };
 
                 // 3. Construir el mensaje para el correo electrónico
-                let message = `Please review and approve your documents: http://127.0.0.1:8000/documents-approval?token=${token}`;
+                let message = `Hello, ${userInfo.fullName}, Please review and approve your documents: http://127.0.0.1:8000/documents-approval?token=${token}`;
                 if (password) {
                     message += `\nYour temporary password is: ${password}`;
                 }
 
                 // 4. Enviar el correo electrónico
-                await axios.post('http://127.0.0.1:8000/api/send-email', {
+                await axios.post('https://willsystemapp.com:5000/send-email', {
                     to_email: 'velizabrahaam@gmail.com',
                     subject: 'Please review and approve your documents',
                     message: message
@@ -332,12 +351,12 @@ const DocumentSelector = ({
 
             } catch (error) {
                 console.error(`Error processing ${userInfo.email}:`, error);
+                throw error; // Lanza el error para que sea manejado en el try-catch de `handleSendDocuments`
             }
         }
 
         console.log(tokensByEmail);
     }
-
 
 
     return (
@@ -391,7 +410,7 @@ const DocumentSelector = ({
                             variant={!allDocumentsCompleted ? 'outline-dark' : 'outline-success'}
                             disabled={!allDocumentsCompleted}
                             className=''
-                            onClick={() => { sendDocumentsForApproval(objectStatus, currIdObjDB) }}
+                            onClick={handleSendDocuments}
                         >
                             Send documents for Aproval
                         </Button>
@@ -461,10 +480,15 @@ const DocumentSelector = ({
             }
 
             {/* CustomToast for notifications */}
+
             <CustomToast
                 show={showToast}
                 onClose={() => setShowToast(false)}
-                message={toastMessage}
+                message={
+                    sendingEmails
+                        ? (<><Spinner animation="border" size="sm" /> Sending emails...</>) // Spinner mientras envía
+                        : toastMessage // Mensaje cuando termina de enviar
+                }
             />
         </Container >
     );
