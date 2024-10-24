@@ -43,13 +43,12 @@ Route::post('/generate-token', function (Request $request) {
     }
 
     // Establecer el tiempo de expiración
-    $expiresAt = Carbon::now()->addHours(1); // Token expira en 1 hora
+
 
     // Crear el payload con fecha de expiración
     $payload = json_encode([
         'email' => $email,
         'id' => $id,
-        'expires_at' => $expiresAt->timestamp,
     ]);
 
     // Encriptar el token
