@@ -5,7 +5,7 @@ import WillContent from './Content/WillContent';
 import POA1Content from './Content/POA1Content';
 import POA2Content from './Content/POA2Content';
 import CustomToast from '../AdditionalComponents/CustomToast';
-import { handleProfileData } from '../ProfileDataHandler';
+import { handleProfileData } from '@/utils/profileUtils';
 import { last } from 'lodash';
 
 const contentComponents = {
@@ -245,16 +245,9 @@ const DocumentSelector = ({
         setCurrentProfile(email);
         setCurrentDocument(selectedDoc);
 
-        const firstIncompleteStep = visibleSteps.find(step => !stepHasData(step.step));
-        console.log(visibleSteps.find(step => !stepHasData(step.step)))
-
-        if (firstIncompleteStep === undefined) {
-            setPointer(0);
-        } else {
-            setPointer(16); // Navegar al paso 16
-            setShowPDFEditor(true);
-        }
-
+        setCurrentProfile(null)
+        setCurrentProfile(email)
+        backStep()
         setShowEmailModal(false);
         setToastMessage(`Profile "${email}" selected.`);
         setShowToast(true);
