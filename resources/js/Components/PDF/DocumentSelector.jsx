@@ -275,6 +275,10 @@ const DocumentSelector = ({
     };
 
 
+    const sendDocumentsForApproval = (objectStatus) => {
+
+    }
+
 
     return (
         <Container>
@@ -305,8 +309,16 @@ const DocumentSelector = ({
                                     {docObj.docType === 'poaProperty' && <><strong>{index + 1}  . </strong><i className="bi bi-house"></i> POA1 Property</>}
                                     {docObj.docType === 'poaHealth' && <><strong>{index + 1}  . </strong><i className="bi bi-hospital"></i> POA2 Health</>}
                                 </Button>
+
                             </Col>
                         ))}
+                        <Button
+                            variant={allDocumentsCompleted ? 'outline-dark' : 'outline-warning'}
+                            className=''
+                            onClick={() => { sendDocumentsForApproval(objectStatus) }}
+                        >
+                            Send documents for Aproval
+                        </Button>
                     </Row>
                     {errors.documentDOM && <p className="mt-2 text-sm text-center text-red-600">{errors.documentDOM}</p>}
                 </>
