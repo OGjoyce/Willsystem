@@ -21,8 +21,12 @@ import DocumentSelector from '@/Components/PDF/DocumentSelector';
 import SelectPackageModal from '../Admin/SelectPackageModal';
 import BreadcrumbNavigation from '@/Components/AdditionalComponents/BreadcrumbNavigation';
 import StepRedirect from '@/Components/AdditionalComponents/StepRedirect';
-import { handleProfileData, getObjectStatus } from '@/Components/ProfileDataHandler';
-// Import functions and data from FormHandlers
+import { handleProfileData } from '@/utils/profileUtils';
+import { getObjectStatus, initializeObjectStructure, initializeSpousalWill } from '@/utils/objectStatusUtils';
+import { packageDocuments, packageAssociations, initializePackageDocuments } from '@/utils/packageUtils'
+import { getVisibleSteps } from '@/utils/stepUtils';
+
+
 import {
     getFormData,
     getMarriedData,
@@ -45,7 +49,6 @@ import {
 
 import { storeDataObject, updateDataObject } from '@/Components/ObjStatusForm';
 import { validate } from '@/Components/Validations';
-import { update } from 'lodash';
 
 export default function Personal({ auth }) {
     // Component state
@@ -62,122 +65,14 @@ export default function Personal({ auth }) {
     const [currentProfile, setCurrentProfile] = useState(null)
     const [visibleSteps, setVisibleSteps] = useState([]);
 
-    const stepper = [
-        { step: 0, title: 'Personal Information' },
-        { step: 1, title: 'Married Status' },
-        { step: 2, title: "Spouse's Information" },
-        { step: 3, title: 'Children' },
-        { step: 4, title: 'Children Information' },
-        { step: 5, title: 'Will Executors' },
-        { step: 6, title: 'Bequest Information' },
-        { step: 7, title: 'Select Residue' },
-        { step: 8, title: 'Wipeout Information' },
-        { step: 9, title: 'Testamentary Trust' },
-        { step: 10, title: 'Guardian For Minors' },
-        { step: 11, title: 'Guardian For Pets' },
-        { step: 12, title: 'Power Of Attorney Property' },
-        { step: 13, title: 'Power Of Attorney Health' },
-        { step: 14, title: 'Additional Information' },
-        { step: 15, title: 'Final Details' },
-        { step: 16, title: 'Review, Edit and Download your Documents' },
-    ];
-
-    const packageDocuments = {
-        'One will only': ['primaryWill'],
-        'One will and one POA (property)': ['primaryWill', 'poaProperty'],
-        'One will and one POA (health)': ['primaryWill', 'poaHealth'],
-        'One will and two POAs': ['primaryWill', 'poaProperty', 'poaHealth'],
-        'One will and one secondary will': ['primaryWill', 'secondaryWill'],
-        'One will and one secondary will and one POA (property)': ['primaryWill', 'secondaryWill', 'poaProperty'],
-        'One will and one secondary will and one POA (health)': ['primaryWill', 'secondaryWill', 'poaHealth'],
-        'One will and one secondary will and two POAs': ['primaryWill', 'secondaryWill', 'poaProperty', 'poaHealth'],  // POAS?
-        'Two spousal wills only': ['primaryWill', 'spousalWill'],
-        'Two spousal wills and two POAs (property)': ['primaryWill', 'spousalWill', 'poaProperty', 'poaPropery'],
-        'Two spousal wills and two POAs (health)': ['primaryWill', 'spousalWill', 'poaHealth', 'poaHealth'],
-        'Two spousal wills and four POAs': ['primaryWill', 'spousalWill', 'poaProperty', 'poaProperty', 'poaHealth', 'poaHealth'],
-        'Two spousal wills and one secondary will': ['primaryWill', 'spousalWill', 'secondaryWill'],
-        'Two spousal wills and one secondary will and two POAs (property)': ['primaryWill', 'spousalWill', 'secondaryWill', 'poaProperty', 'poaProperty'], //POAS?
-        'Two spousal wills and one secondary will and two POAs (health)': ['primaryWill', 'spousalWill', 'secondaryWill', 'poaHealth', 'poaHealth'], //POAS?
-        'Two spousal wills and one secondary will and four POAs': ['primaryWill', 'spousalWill', 'secondaryWills', 'poaProperty', 'poaProperty', 'poaHealth', 'poaHealth'], // POAS?
-        'Two spousal wills and two secondary wills': ['primaryWill', 'spousalWill', 'secondaryWill', 'secondaryWill'],
-        'Two spousal wills and two secondary wills and two POAs (property)': ['primaryWill', 'spousalWill', 'secondaryWill', 'secondaryWill', 'poaProperty', 'poaProperty'], //POAS?
-        'Two spousal wills and two secondary wills and two POAs (health)': ['primaryWill', 'spousalWill', 'secondaryWill', 'secondaryWill', 'poaHealth', 'poaHealth'], //POAS?
-        'Two spousal wills and two secondary wills and four POAs': ['primaryWill', 'spousalWill', 'secondaryWill', 'secondaryWill', 'poaProperty', 'poaProperty', 'poaHealth', 'poaHealth'], //POAS?
-        '1 X POA health only (no will)': ['poaHealth'],
-        '1 X POA property only (no will)': ['poaProperty'],
-        '1 X POA health and POA property (no will)': ['poaProperty', 'poaHealth'],
-        '2 X POA health only (no will)': ['poaHealth', 'poaHealth'],
-        '2 X POA property only (no will)': ['poaProperty', 'poaProperty'],
-        '2 X POA health and POA property (no will)': ['poaProperty', 'poaProperty', 'poaHealth', 'poaHealth'],
-    };
-    const packageAssociations = {
-        'One will only': false,
-        'One will and one POA (property)': true,
-        'One will and one POA (health)': true,
-        'One will and two POAs': true,
-        'One will and one secondary will': false,
-        'One will and one secondary will and one POA (property)': false,
-        'One will and one secondary will and one POA (health)': false,
-        'One will and one secondary will and two POAs': false,
-        'Two spousal wills only': false,
-        'Two spousal wills and two POAs (property)': true,
-        'Two spousal wills and two POAs (health)': true,
-        'Two spousal wills and four POAs': true,
-        'Two spousal wills and one secondary will': false,
-        'Two spousal wills and one secondary will and two POAs (property)': false,
-        'Two spousal wills and one secondary will and two POAs (health)': false,
-        'Two spousal wills and one secondary will and four POAs': false,
-        'Two spousal wills and two secondary wills': false,
-        'Two spousal wills and two secondary wills and two POAs (property)': false,
-        'Two spousal wills and two secondary wills and two POAs (health)': false,
-        'Two spousal wills and two secondary wills and four POAs': false,
-        '1 X POA health only (no will)': false,
-        '1 X POA property only (no will)': false,
-        '1 X POA health and POA property (no will)': false,
-        '2 X POA health only (no will)': false,
-        '2 X POA property only (no will)': false,
-        '2 X POA health and POA property (no will)': false,
-    };
 
 
 
-    const getVisibleSteps = (objectStatusToUse) => {
-        const hasSpouse = objectStatusToUse.some(
-            (obj) => obj.marriedq && (obj.marriedq.selection === 'true' || obj.marriedq.selection === 'soso')
-        );
-        const hasKids = objectStatusToUse.some((obj) => obj.kidsq && obj.kidsq.selection === 'true');
 
-        return stepper.filter((step, index) => {
 
-            if (index != 0 && currentDocument == null) return false
-            // Ocultar pasos basados en la información de spouse y kids
-            if (index === 2 && !hasSpouse) return false; // Spouse Information
-            if (index === 4 && !hasKids) return false; // Children Information
-            if (index === 10 && !hasKids) return false; // Guardian For Minors
-
-            // Lógica basada en currentDocument
-            if (currentDocument === 'primaryWill' || currentDocument === 'spousalWill' || currentDocument === 'secondaryWill') {
-                // Ocultar pasos 12 (POA Property) y 13 (POA Health) si es un primaryWill
-                if (index === 12 || index === 13) return false;
-            } else if (currentDocument === 'poaProperty') {
-                // Ocultar todos menos el paso 12 para POA Property
-                if (index === 5 || index === 6 || index === 7 || index === 8 || index === 9 ||
-                    index === 10 || index === 11 || index === 13 || index === 14 || index === 15) {
-                    return false;
-                }
-            } else if (currentDocument === 'poaHealth') {
-                if (index === 5 || index === 6 || index === 7 || index === 8 || index === 9 ||
-                    index === 10 || index === 11 || index === 12 || index === 14 || index === 15) {
-                    return false;
-                }
-            }
-
-            return true;
-        });
-    };
 
     useEffect(() => {
-        setVisibleSteps(getVisibleSteps(getObjectStatus(objectStatus, currentProfile)))
+        setVisibleSteps(getVisibleSteps(getObjectStatus(objectStatus, currentProfile), currentDocument))
     }, [objectStatus, currentProfile, currentDocument])
 
 
@@ -260,6 +155,14 @@ export default function Personal({ auth }) {
         const packageInfo = objectStatus[0]?.[0]?.packageInfo;
 
         if (packageInfo && packageInfo.documents) {
+            const alreadyOwned = packageInfo.documents.some(
+                (docObj) => docObj.docType === currentDocument && docObj.owner === currentProfile
+            );
+
+            // Si ya existe un documento de este tipo con el owner === currentProfile, no hacer nada
+            if (alreadyOwned) return;
+
+
             // Buscar el índice del documento que coincide con currentDocument y tiene owner 'unknown'
             const documentIndex = packageInfo.documents.findIndex(
                 (docObj) =>
@@ -304,35 +207,8 @@ export default function Personal({ auth }) {
 
 
     useEffect(() => {
-        // Inicializa la estructura por defecto si no está presente
         if (pointer == 1 && !getObjectStatus(objectStatus, currentProfile).some(obj => obj.hasOwnProperty('marriedq'))) {
-            const initialObjectStructure = [
-                { name: 'marriedq', data: {} },
-                { name: 'married', data: {} },
-                { name: 'kidsq', data: {} },
-                { name: 'kids', data: [] },
-                { name: 'executors', data: [] },
-                { name: 'relatives', data: [] },
-                { name: 'bequests', data: {} },
-                { name: 'residue', data: {} },
-                { name: 'wipeout', data: {} },
-                { name: 'trusting', data: {} },
-                { name: 'guardians', data: {} },
-                { name: 'pets', data: {} },
-                { name: 'additional', data: {} },
-                { name: 'poaProperty', data: {} },
-                { name: 'poaHealth', data: {} },
-                { name: 'finalDetails', data: {} },
-                { name: 'documentDOM', data: {} }
-            ];
-
-            // Iterar sobre cada propiedad de la estructura inicial y enviarla una por una a handleProfileData
-            let updatedObjectStatus = objectStatus; // Mantener el objectStatus actualizado
-            initialObjectStructure.forEach(item => {
-                updatedObjectStatus = handleProfileData(currentProfile, [item], updatedObjectStatus);
-            });
-
-            // Establecer el nuevo objectStatus
+            const updatedObjectStatus = initializeObjectStructure(objectStatus, currentProfile)
             setObjectStatus(updatedObjectStatus);
             localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus));
         }
@@ -342,98 +218,10 @@ export default function Personal({ auth }) {
     useEffect(() => {
         if (objectStatus.length === 1 && currentDocument === 'spousalWill') {
 
-            const spouse = objectStatus[0].find(obj => obj.personal)?.personal // Tomar datos de personal del primer objeto
+            const spousalWillData = initializeSpousalWill(objectStatus)
+            setCurrentProfile(spousalWillData[0].personal.email)
 
-            const personal = objectStatus[0].find(obj => obj.married)?.married;
-
-            const spousalWillData = [{
-                personal: {
-                    step: 0,
-                    title: "Personal Information",
-                    city: personal.city,
-                    province: personal.province,
-                    country: personal.country,
-                    telephone: personal.phone,
-                    fullName: personal.firstName + ' ' + personal.lastName,
-                    email: personal.email,
-                    timestamp: Date.now(),
-                },
-                owner: personal.email,
-                packageInfo: {
-                    undefined: "not an owner of any package"
-                },
-
-            },
-            {
-                "marriedq": {
-                    "selection": "true",
-                    "timestamp": Date.now()
-                }
-            },
-            {
-                "married": {
-                    "firstName": spouse.fullName.split(' ')[0],
-                    "middleName": "",
-                    "lastName": spouse.fullName.split(' ').slice(1).join(' '),
-                    "relative": "Spouse",
-                    "email": spouse.email,
-                    "phone": spouse.telephone,
-                    "city": spouse.city,
-                    "province": spouse.province,
-                    "country": spouse.country,
-                    "timestamp": Date.now()
-                }
-            },
-            {
-                "kidsq": []
-            },
-            {
-                "kids": []
-            },
-            {
-                "executors": []
-            },
-            {
-                "relatives": []
-            },
-            {
-                "bequests": []
-            },
-            {
-                "residue": []
-            },
-            {
-                "wipeout": []
-            },
-            {
-                "trusting": []
-            },
-            {
-                "guardians": []
-            },
-            {
-                "pets": []
-            },
-            {
-                "additional": []
-            },
-            {
-                "poaProperty": []
-            },
-            {
-                "poaHealth": []
-            },
-            {
-                "finalDetails": []
-            },
-            {
-                "documentDOM": []
-            }
-            ]
-
-            setCurrentProfile(personal.email)
-
-            const fixedObjectStatus = [objectStatus[0], spousalWillData]
+            const newObjectStatus = [objectStatus[0], spousalWillData]
 
             const propertiesAndData = [
                 {
@@ -441,11 +229,11 @@ export default function Personal({ auth }) {
                     data: [],
                 },
             ];
-            const updatedObjectStatus = handleProfileData(personal.email, propertiesAndData, fixedObjectStatus);
+
+            const updatedObjectStatus = handleProfileData(spousalWillData[0].personal.email, propertiesAndData, newObjectStatus);
 
             setObjectStatus(updatedObjectStatus)
             localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus));
-            console.log(updatedObjectStatus)
             setPointer(3)
         }
     }, [currentDocument]);
@@ -471,131 +259,6 @@ export default function Personal({ auth }) {
         setShowSelectModal(false);
         setAvailableDocuments(packageDocuments[pkg.description] || []);
         setCurrentDocument((packageDocuments[pkg.description] && packageDocuments[pkg.description][0]) || null);
-    };
-
-    // Initialize package documents
-    // Initialize package documents
-
-    const intercalateDocs = (docs) => {
-        const propertyDocs = docs.filter(doc => doc.docType === 'poaProperty');
-        const healthDocs = docs.filter(doc => doc.docType === 'poaHealth');
-        const otherDocs = docs.filter(doc => doc.docType !== 'poaProperty' && doc.docType !== 'poaHealth');
-
-        const intercalatedDocs = [];
-        const maxLength = Math.max(propertyDocs.length, healthDocs.length);
-
-        for (let i = 0; i < maxLength; i++) {
-            if (propertyDocs[i]) {
-                intercalatedDocs.push(propertyDocs[i]);
-            }
-            if (healthDocs[i]) {
-                intercalatedDocs.push(healthDocs[i]);
-            }
-        }
-
-        // Concatenate intercalated POA docs with the other document types
-        return [...otherDocs, ...intercalatedDocs];
-    };
-
-
-    const initializePackageDocuments = (availableDocuments, packageDescription) => {
-        let willCounters = {};
-        const willIdentifiers = [];
-
-        const wills = [];
-        const poas = [];
-
-        // Verificar si el paquete seleccionado permite la distribución de POAs
-        const distributePOAsAllowed = packageAssociations[packageDescription] === true;
-
-        // Primer paso para recolectar Wills y POAs
-        availableDocuments.forEach((docType, index) => {
-            if (docType.toLowerCase().includes('will')) {
-                willCounters[docType] = (willCounters[docType] || 0) + 1;
-                const willIdentifier = `${docType}_${willCounters[docType]}`;
-                willIdentifiers.push(willIdentifier);
-
-                wills.push({
-                    id: index + 1,
-                    docType,
-                    owner: 'unknown', // El propietario es desconocido hasta que se seleccione
-                    dataStatus: 'incomplete',
-                    willIdentifier,
-                });
-            } else if (docType.toLowerCase().includes('poa')) {
-                poas.push({
-                    id: index + 1,
-                    docType,
-                    owner: distributePOAsAllowed ? 'unknown' : 'unknown', // Si no se permite distribuir POAs, permanece como 'unknown'
-                    dataStatus: 'incomplete',
-                    associatedWill: distributePOAsAllowed ? null : 'unknown', // Solo distribuir si está permitido
-                });
-            }
-        });
-
-        // Si la distribución de POAs está permitida, procedemos a asignar POAs a Wills
-        if (distributePOAsAllowed) {
-            distributePOAs(wills, poas);
-        }
-
-        // Aquí intercalamos los POAs
-        const intercalatedPoas = intercalateDocs(poas);
-
-        // Reconstruct the documents in original order
-        let documents = [];
-        let willIdx = 0;
-        let poaIdx = 0;
-
-        availableDocuments.forEach((docType) => {
-            if (docType.toLowerCase().includes('will')) {
-                documents.push(wills[willIdx]);
-                willIdx++;
-            } else if (docType.toLowerCase().includes('poa')) {
-                documents.push(intercalatedPoas[poaIdx]); // Ahora usamos los POAs intercalados
-                poaIdx++;
-            } else {
-                documents.push({
-                    docType,
-                    owner: 'unknown',
-                    dataStatus: 'incomplete',
-                });
-            }
-        });
-
-        return documents;
-    };
-
-
-    // Función que distribuye los POAs cuando el paquete lo permite
-    const distributePOAs = (wills, poas) => {
-        const willAssignments = {};
-
-        // Inicializar el objeto de asignación de POAs
-        wills.forEach((will) => {
-            willAssignments[will.willIdentifier] = {
-                poaProperty: null,
-                poaHealth: null,
-            };
-        });
-
-        // Asignar cada POA al primer will que no tenga ese tipo de POA asignado aún
-        poas.forEach((poa) => {
-            for (let willIdentifier in willAssignments) {
-                const assignment = willAssignments[willIdentifier];
-
-                if (poa.docType === 'poaProperty' && assignment.poaProperty === null) {
-                    assignment.poaProperty = poa;
-                    poa.associatedWill = willIdentifier;
-                    break;
-                }
-
-                if (poa.docType === 'poaHealth' && assignment.poaHealth === null) {
-                    assignment.poaHealth = poa;
-                    poa.associatedWill = willIdentifier;
-                    break;
-                }
-            }
-        });
     };
 
 
@@ -626,7 +289,6 @@ export default function Personal({ auth }) {
                     const initializedDocuments = initializePackageDocuments(availableDocuments, selectedPackage?.description);
                     const dataObj = {
                         personal: {
-                            ...stepper[step],
                             ...personalData,
                             timestamp: Date.now(),
                         },
@@ -964,7 +626,7 @@ export default function Personal({ auth }) {
         }
 
         // Use the updated objectStatusResult
-        const newVisibleSteps = getVisibleSteps(getObjectStatus(objectStatusResult, currentProfile));
+        const newVisibleSteps = getVisibleSteps(getObjectStatus(objectStatusResult, currentProfile), currentDocument);
         const currentIndex = newVisibleSteps.findIndex((step) => step.step === pointer);
         let nextVisibleStep = newVisibleSteps[currentIndex + 1];
 
@@ -983,7 +645,7 @@ export default function Personal({ auth }) {
             const updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatusResult);
             setObjectStatus(updatedObjectStatus);
             // Recalculate visible steps
-            const updatedVisibleSteps = getVisibleSteps(updatedObjectStatus);
+            const updatedVisibleSteps = getVisibleSteps(updatedObjectStatus, currentDocument);
             nextVisibleStep = updatedVisibleSteps.find((step) => step.step > pointer);
         }
 
@@ -992,7 +654,7 @@ export default function Personal({ auth }) {
             const updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatusResult);
             setObjectStatus(updatedObjectStatus);
             // Recalculate visible steps
-            const updatedVisibleSteps = getVisibleSteps(updatedObjectStatus);
+            const updatedVisibleSteps = getVisibleSteps(updatedObjectStatus, currentDocument);
             nextVisibleStep = updatedVisibleSteps.find((step) => step.step > pointer);
         }
 
@@ -1273,6 +935,7 @@ export default function Personal({ auth }) {
                                 backStep={backStep}
                                 stepHasData={stepHasData}
                                 visibleSteps={visibleSteps}
+                                setVisibleSteps={setVisibleSteps}
                             />
                         )}
 
