@@ -276,36 +276,68 @@ const DocumentSelector = ({
 
 
     async function sendDocumentsForApproval(objectStatus, currIdObjDB) {
-        const idForToken = currIdObjDB
-        let emailsForToken = []
+        const idForToken = currIdObjDB;
+        let userInfoForToken = [];
+
+        // Recolectar emails y nombres
         objectStatus.forEach(innerList => {
             innerList.forEach(item => {
-                if (item.owner) {
-                    emailsForToken.push(item.owner);
+                if (item.owner && item.personal?.fullName) {
+                    userInfoForToken.push({
+                        email: item.owner,
+                        fullName: item.personal.fullName
+                    });
                 }
             });
         });
 
         let tokensByEmail = {};
 
-        // Hacer la petición POST por cada email
-        for (let email of emailsForToken) {
+        // Hacer la petición POST por cada email y nombre
+        for (let userInfo of userInfoForToken) {
             try {
-                const response = await axios.post('http://127.0.0.1:8000/api/generate-token', {
-                    email: email,
+                // 1. Validar el email y obtener la contraseña si es un nuevo usuario
+                const validateEmailResponse = await axios.post('http://127.0.0.1:8000/api/validate-email', {
+                    email: userInfo.email,
+                    name: userInfo.fullName
+                });
+
+                const password = validateEmailResponse.data.password;
+
+                // 2. Generar el token para el usuario
+                const generateTokenResponse = await axios.post('http://127.0.0.1:8000/api/generate-token', {
+                    email: userInfo.email,
                     id: idForToken
                 });
 
                 // Asume que el token viene en `response.data.token`
-                tokensByEmail[email] = response.data.token;
+                const token = generateTokenResponse.data.token;
+                tokensByEmail[userInfo.email] = {
+                    token: token,
+                    fullName: userInfo.fullName
+                };
+
+                // 3. Construir el mensaje para el correo electrónico
+                let message = `Please review and approve your documents: http://127.0.0.1:8000/documents-approval?token=${token}`;
+                if (password) {
+                    message += `\nYour temporary password is: ${password}`;
+                }
+
+                // 4. Enviar el correo electrónico
+                await axios.post('http://127.0.0.1:8000/api/send-email', {
+                    to_email: 'velizabrahaam@gmail.com',
+                    subject: 'Please review and approve your documents',
+                    message: message
+                });
 
             } catch (error) {
-                console.error(`Error generating token for ${email}:`, error);
+                console.error(`Error processing ${userInfo.email}:`, error);
             }
         }
-        console.log(tokensByEmail)
 
+        console.log(tokensByEmail);
     }
+
 
 
     return (
@@ -322,24 +354,39 @@ const DocumentSelector = ({
 
 
                     <Row className="mt-3">
-                        {objectStatus[0]?.[0]?.packageInfo?.documents.map((docObj, index) => (
-                            <Col key={index} xs={12} sm={6} md={4} className="mb-2">
-                                <Button
-                                    onClick={() => handleSelectDocument(docObj, index)}
-                                    style={{ width: "100%" }}
-                                    className={lastUnlockedDocument === docObj && !isDocumentUnlocked(index + 1) ? ' border-2 border-white shadow-[0_0_2px_#fff,inset_0_0_2px_#fff,0_0_5px_#198754,0_0_15px_#198754,0_0_30px_#198754]' : ''}
-                                    variant={isDocumentUnlocked(index) ? 'success' : 'outline-dark'}
-                                    disabled={!isDocumentUnlocked(index)}
-                                >
-                                    {docObj.docType === 'primaryWill' && <><strong>{index + 1}  . </strong><i className="bi bi-file-text"></i> Will</>}
-                                    {docObj.docType === 'spousalWill' && <><strong>{index + 1}  . </strong><i className="bi bi-file-text"></i> Spousal Will</>}
-                                    {docObj.docType === 'secondaryWill' && <><strong>{index + 1}  . </strong><i className="bi bi-file-text"></i> Secondary Will</>}
-                                    {docObj.docType === 'poaProperty' && <><strong>{index + 1}  . </strong><i className="bi bi-house"></i> POA1 Property</>}
-                                    {docObj.docType === 'poaHealth' && <><strong>{index + 1}  . </strong><i className="bi bi-hospital"></i> POA2 Health</>}
-                                </Button>
+                        {(() => {
+                            let poaCount = 0;
 
-                            </Col>
-                        ))}
+                            return objectStatus[0]?.[0]?.packageInfo?.documents.map((docObj, index) => {
+                                let documentLabel = '';
+
+                                if (docObj.docType === 'poaProperty') {
+                                    poaCount++;
+                                    documentLabel = `POA${poaCount} Property`;
+                                } else if (docObj.docType === 'poaHealth') {
+                                    poaCount++;
+                                    documentLabel = `POA${poaCount} Health`;
+                                }
+
+                                return (
+                                    <Col key={index} xs={12} sm={6} md={4} className="mb-2">
+                                        <Button
+                                            onClick={() => handleSelectDocument(docObj, index)}
+                                            style={{ width: "100%" }}
+                                            className={lastUnlockedDocument === docObj && !isDocumentUnlocked(index + 1) ? ' border-2 border-white shadow-[0_0_2px_#fff,inset_0_0_2px_#fff,0_0_5px_#198754,0_0_15px_#198754,0_0_30px_#198754]' : ''}
+                                            variant={isDocumentUnlocked(index) ? 'success' : 'outline-dark'}
+                                            disabled={!isDocumentUnlocked(index)}
+                                        >
+                                            {docObj.docType === 'primaryWill' && <><strong>{index + 1} . </strong><i className="bi bi-file-text"></i> Will</>}
+                                            {docObj.docType === 'spousalWill' && <><strong>{index + 1} . </strong><i className="bi bi-file-text"></i> Spousal Will</>}
+                                            {docObj.docType === 'secondaryWill' && <><strong>{index + 1} . </strong><i className="bi bi-file-text"></i> Secondary Will</>}
+                                            {docObj.docType === 'poaProperty' && <><strong>{index + 1} . </strong><i className="bi bi-house"></i> {documentLabel}</>}
+                                            {docObj.docType === 'poaHealth' && <><strong>{index + 1} . </strong><i className="bi bi-hospital"></i> {documentLabel}</>}
+                                        </Button>
+                                    </Col>
+                                );
+                            });
+                        })()}
                         <Button
                             variant={!allDocumentsCompleted ? 'outline-dark' : 'outline-success'}
                             disabled={!allDocumentsCompleted}
