@@ -316,7 +316,7 @@ const DocumentSelector = ({
         for (let userInfo of userInfoForToken) {
             try {
                 // 1. Validar el email y obtener la contraseña si es un nuevo usuario
-                const validateEmailResponse = await axios.post('http://127.0.0.1:8000/api/validate-email', {
+                const validateEmailResponse = await axios.post('https://willsystem.com/api/validate-email', {
                     email: userInfo.email,
                     name: userInfo.fullName
                 });
@@ -324,7 +324,7 @@ const DocumentSelector = ({
                 const password = validateEmailResponse.data.password;
 
                 // 2. Generar el token para el usuario
-                const generateTokenResponse = await axios.post('http://127.0.0.1:8000/api/generate-token', {
+                const generateTokenResponse = await axios.post('https://willsystem.com/api/generate-token', {
                     email: userInfo.email,
                     id: idForToken
                 });
@@ -342,9 +342,9 @@ const DocumentSelector = ({
                     <body>
                         <h2 style="color: #333;">Hello, ${userInfo.fullName}</h2>
                         <p>Please review and approve your documents by clicking the link below:</p>
-                        <a href="http://127.0.0.1:8000/documents-approval?token=${token}" style="padding: 10px 20px; background-color: #198754; color: white; text-decoration: none; border-radius: 5px;">Review Documents</a>
+                        <a href="https://willsystem.com/documents-approval?token=${token}" style="padding: 10px 20px; background-color: #198754; color: white; text-decoration: none; border-radius: 5px;">Review Documents</a>
                         <p>If the button doesn't work, you can use this link:</p>
-                        <a href="http://127.0.0.1:8000/documents-approval?token=${token}">http://127.0.0.1:8000/documents-approval?token=${token}</a>
+                        <a href="https://willsystem.com/documents-approval?token=${token}">http://127.0.0.1:8000/documents-approval?token=${token}</a>
                         <br><br>
                         ${password ? `<p>Your temporary password is: <strong>${password}</strong></p>` : ''}
                         <br>
