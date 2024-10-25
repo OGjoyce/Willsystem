@@ -1,8 +1,11 @@
 import React, { useRef, useEffect } from 'react';
+import { getVisibleSteps, isStepClickable, stepHasData } from '@/utils/stepUtils';
 
-const BreadcrumbNavigation = ({ steps, currentStep, onStepClick, stepHasData, isStepClickable }) => {
+const BreadcrumbNavigation = ({ objectStatus, currentProfile, currentDocument, steps, currentStep, onStepClick }) => {
     const scrollContainerRef = useRef(null);
     const activeStepRef = useRef(null);
+
+
 
     useEffect(() => {
         if (scrollContainerRef.current && activeStepRef.current) {
@@ -27,9 +30,9 @@ const BreadcrumbNavigation = ({ steps, currentStep, onStepClick, stepHasData, is
             <ol className="flex items-center space-x-2 min-w-max m-0">
                 {steps.map((step, index) => {
                     const isActive = index === currentStep;
-                    const isPast = stepHasData(step.step);
-                    const isFuture = index > currentStep && !stepHasData(step.step);
-                    const clickable = isStepClickable ? isStepClickable(index) : true;
+                    const isPast = stepHasData(objectStatus, currentProfile, step.step);
+                    const isFuture = index > currentStep && !stepHasData(objectStatus, currentProfile, step.step);
+                    const clickable = isStepClickable(objectStatus, currentProfile, index);
                     const disabled = !clickable;
 
                     let buttonClasses = 'flex items-center px-2.5 py-1.5 rounded-full text-sm transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500';
