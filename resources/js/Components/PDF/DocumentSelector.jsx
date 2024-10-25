@@ -6,6 +6,7 @@ import POA1Content from './Content/POA1Content';
 import POA2Content from './Content/POA2Content';
 import CustomToast from '../AdditionalComponents/CustomToast';
 import { handleProfileData } from '@/utils/profileUtils';
+import { stepHasData } from '@/utils/stepUtils';
 import axios from 'axios';
 
 const contentComponents = {
@@ -29,7 +30,7 @@ const DocumentSelector = ({
     setCurrentDocument,
     setObjectStatus,
     backStep,
-    stepHasData,
+
     visibleSteps,
     currentProfile,
     currentDocument
@@ -152,7 +153,7 @@ const DocumentSelector = ({
         setDocumentOwner(owner);
         setCurrentProfile(owner);
 
-        setFirstIncompleteStep(visibleSteps.find(step => !stepHasData(step.step)));
+        setFirstIncompleteStep(visibleSteps.find(step => !stepHasData(objectStatus, currentProfile, step.step)));
 
         if (doc !== currentDocument && owner !== currentProfile || doc !== currentDocument && owner === currentProfile) {
             setShowConfirmationModal(true);
@@ -183,7 +184,7 @@ const DocumentSelector = ({
 
 
     const lastUnlockedDocument = getLastUnlockedDocument();
-    const allStepsCompleted = visibleSteps.every(step => stepHasData(step.step));
+    const allStepsCompleted = visibleSteps.every(step => stepHasData(objectStatus, currentProfile, step.step));
     const allDocumentsCompleted = areAllDocumentsUnlocked();
 
     const handleConfirmSelection = () => {
@@ -194,7 +195,7 @@ const DocumentSelector = ({
         setCurrentProfile(documentOwner);
 
         if (documentOwner !== "unknown") {
-            const firstIncompleteStep = visibleSteps.find(step => !stepHasData(step.step));
+            const firstIncompleteStep = visibleSteps.find(step => !stepHasData(objectStatus, currentProfile, step.step));
             if (firstIncompleteStep) {
                 setPointer(firstIncompleteStep.step);
                 backStep();
