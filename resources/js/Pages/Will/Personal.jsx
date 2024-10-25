@@ -24,6 +24,7 @@ import { handleProfileData } from '@/utils/profileUtils';
 import { getObjectStatus, initializeObjectStructure, initializeSpousalWill } from '@/utils/objectStatusUtils';
 import { packageDocuments, initializePackageDocuments } from '@/utils/packageUtils'
 import { getVisibleSteps } from '@/utils/stepUtils';
+import { assignDocuments } from '@/utils/documentsUtils';
 
 
 import {
@@ -44,7 +45,7 @@ import {
     getPoaHealth,
     getFinalDetails,
     getDocumentDOMInfo,
-} from '@/Components/FormHandlers';
+} from '@/utils/formHandlers';
 
 import { storeDataObject, updateDataObject } from '@/Components/ObjStatusForm';
 import { validate } from '@/Components/Validations';
@@ -52,22 +53,23 @@ import { validate } from '@/Components/Validations';
 export default function Personal({ auth }) {
     // Component state
     const [objectStatus, setObjectStatus] = useState([]);
-    const [dupMarried, setDupMarried] = useState(false);
-    const [dupKids, setDupKids] = useState(false);
     const [currIdObjDB, setCurrIdObjDB] = useState(null);
+    const [currentProfile, setCurrentProfile] = useState(null)
+    const [currentDocument, setCurrentDocument] = useState();
+    const [showSelectPackageModal, setShowSelectPackageModal] = useState(false);
+    const [selectedPackage, setSelectedPackage] = useState(null);
+    const [availableDocuments, setAvailableDocuments] = useState([]);
+    const [visibleSteps, setVisibleSteps] = useState([]);
     const [pointer, setPointer] = useState(0);
     const [validationErrors, setValidationErrors] = useState({});
-    const [selectedPackage, setSelectedPackage] = useState(null);
-    const [showSelectModal, setShowSelectModal] = useState(false);
-    const [availableDocuments, setAvailableDocuments] = useState([]);
-    const [currentDocument, setCurrentDocument] = useState();
-    const [currentProfile, setCurrentProfile] = useState(null)
-    const [visibleSteps, setVisibleSteps] = useState([]);
 
 
-
-
-
+    //Show the select Package modal when starting a new file
+    useEffect(() => {
+        if (pointer === 0 && !currIdObjDB) {
+            setShowSelectPackageModal(true)
+        }
+    }, [pointer, currIdObjDB])
 
 
     useEffect(() => {
@@ -116,10 +118,6 @@ export default function Personal({ auth }) {
                 // Establecer currentDocument con el primer documento disponible, si existe
                 setCurrentDocument(documents.length > 0 ? documents[0] : null);
 
-                // Restaurar otros estados necesarios
-                setDupMarried(parsedData.some((obj) => obj.hasOwnProperty('married')));
-                setDupKids(parsedData.some((obj) => obj.hasOwnProperty('kids')));
-
                 // Si hay un ID almacenado, restaurarlo
                 if (savedCurrIdObjDB) {
                     setCurrIdObjDB(savedCurrIdObjDB);
@@ -133,13 +131,15 @@ export default function Personal({ auth }) {
         }
     }, [currIdObjDB]);
 
-
+    //Returns user to the first pointer that is missing data when going to step 0
     useEffect(() => {
         if (pointer == 0 && objectStatus.length > 0) {
             backStep()
         }
     }, [pointer, currentProfile])
 
+
+    // Clear localstorage when changing profile or document
     useEffect(() => {
         localStorage.removeItem('formValues')
         localStorage.removeItem('poaPropertyValues')
@@ -147,83 +147,55 @@ export default function Personal({ auth }) {
         localStorage.removeItem('currentPointer')
     }, [currentProfile, currentDocument])
 
+
+    //Manage document ownership assignment whenever `currentProfile` or `currentDocument` changes
     useEffect(() => {
+        // Ensure both currentProfile and currentDocument are defined before attempting assignment
         if (!currentProfile || !currentDocument) return;
 
-        // Acceder al packageInfo del primer elemento de objectStatus
-        const packageInfo = objectStatus[0]?.[0]?.packageInfo;
+        // Attempt to assign the document and retrieve the updated state
+        const updatedObjectStatus = assignDocuments(objectStatus, currentProfile, currentDocument);
 
-        if (packageInfo && packageInfo.documents) {
-            const alreadyOwned = packageInfo.documents.some(
-                (docObj) => docObj.docType === currentDocument && docObj.owner === currentProfile
-            );
+        // If the assignment was successful, update the state and storage
+        if (updatedObjectStatus) {
+            // Update the global objectStatus state
+            setObjectStatus(updatedObjectStatus);
 
-            // Si ya existe un documento de este tipo con el owner === currentProfile, no hacer nada
-            if (alreadyOwned) return;
-
-
-            // Buscar el índice del documento que coincide con currentDocument y tiene owner 'unknown'
-            const documentIndex = packageInfo.documents.findIndex(
-                (docObj) =>
-                    docObj.docType === currentDocument && docObj.owner === 'unknown'
-            );
-
-            // Si encontramos un documento que coincide y tiene "unknown" como owner
-            if (documentIndex !== -1) {
-                // Clonar objectStatus para no mutar el estado original directamente
-                const updatedObjectStatus = [...objectStatus];
-
-                // Clonar el packageInfo y los documentos
-                const updatedPackageInfo = {
-                    ...packageInfo,
-                    documents: [...packageInfo.documents],
-                };
-
-                // Asignar el currentProfile como owner del documento específico
-                updatedPackageInfo.documents[documentIndex] = {
-                    ...updatedPackageInfo.documents[documentIndex],
-                    owner: currentProfile,
-                };
-
-                // Actualizar el packageInfo en updatedObjectStatus
-                updatedObjectStatus[0][0] = {
-                    ...updatedObjectStatus[0][0],
-                    packageInfo: updatedPackageInfo,
-                };
-
-                // Actualizar el estado global (objectStatus)
-                setObjectStatus(updatedObjectStatus);
-
-                // Guardar en localStorage o actualizar la base de datos si es necesario
-                localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus));
-                if (currIdObjDB) {
-                    updateDataObject(updatedObjectStatus, currIdObjDB);
-                }
+            // Save to localStorage and update the database if a record ID is available
+            localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus));
+            if (currIdObjDB) {
+                updateDataObject(updatedObjectStatus, currIdObjDB);
             }
         }
     }, [currentProfile, currentDocument]);
 
 
-
+    //Initialize the needed object structure every time a new profile is created
     useEffect(() => {
         if (pointer == 1 && !getObjectStatus(objectStatus, currentProfile).some(obj => obj.hasOwnProperty('marriedq'))) {
             const updatedObjectStatus = initializeObjectStructure(objectStatus, currentProfile)
             setObjectStatus(updatedObjectStatus);
             localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus));
         }
-    }, [objectStatus, currentDocument, pointer, currentProfile]);
+    }, [objectStatus, currentProfile, currentDocument, pointer]);
 
 
+    //Initialize the needed structure for spousalWill, taking data from primaryWill
     useEffect(() => {
         if (objectStatus.length === 1 && currentDocument === 'spousalWill') {
-
-
+            //Gets the kids data in primaryWill
             const kids = objectStatus[0][4].kids
+
+            //Initialized structured and data for spousalWill
             const spousalWillData = initializeSpousalWill(objectStatus)
+
+            //sets the spouse as current profile to continue submiting data in next steps
             setCurrentProfile(spousalWillData[0].personal.email)
 
+            //Add the spousalWill data next to the primaryWill Data
             const newObjectStatus = [objectStatus[0], spousalWillData]
 
+            // submit dummy data to ensure database update
             const propertiesAndData = [
                 {
                     name: 'kidsq',
@@ -231,39 +203,27 @@ export default function Personal({ auth }) {
                 },
             ];
 
+            //Update the objectStatus after updating the database
             const updatedObjectStatus = handleProfileData(spousalWillData[0].personal.email, propertiesAndData, newObjectStatus);
 
             setObjectStatus(updatedObjectStatus)
             localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus));
+
+            //set the pointer to continue the next steps
             setPointer(3)
 
-
+            //Add the kids from primaryWill in the spousalWill "kids" step, data will be shown in the view, user can add or eliminate kids before submit to database
+            //setTimeout is needed as all data from localstorage is deleted when changing profiles
             setTimeout(() => {
-
                 localStorage.setItem('formValues', JSON.stringify({ kids: kids }));
             }, 1000);
         }
     }, [currentDocument]);
 
 
-    // Show or hide the Select Package Modal based on the current step
-    useEffect(() => {
-        if (pointer === 0) {
-            setShowSelectModal(true);
-        } else {
-            setShowSelectModal(false);
-        }
-    }, [pointer]);
-
-    const handleHideSelectModal = () => {
-        if (selectedPackage !== null) {
-            setShowSelectModal(false);
-        }
-    };
-
     const handleSelectPackage = (pkg) => {
         setSelectedPackage(pkg);
-        setShowSelectModal(false);
+        setShowSelectPackageModal(false);
         setAvailableDocuments(packageDocuments[pkg.description] || []);
         setCurrentDocument((packageDocuments[pkg.description] && packageDocuments[pkg.description][0]) || null);
     };
@@ -619,8 +579,6 @@ export default function Personal({ auth }) {
         localStorage.removeItem('formValues');
         // Reset state
         setObjectStatus([]);
-        setDupMarried(false);
-        setDupKids(false);
         setPointer(0);
         router.get(route('dashboard'));
     };
@@ -861,7 +819,7 @@ export default function Personal({ auth }) {
             }
         >
             <Head title={`Welcome, ${username}`} />
-            <div className="py-12" style={{ height: '100%', overflow: 'hidden' }}>
+            <div className="py-12 h-[100%]" style={{ height: '100%', overflow: 'hidden' }}>
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8" style={{ height: 'inherit' }}>
                     <div className="bg-white overflow-visible shadow-sm sm:rounded-lg container" style={{ height: 'inherit' }}>
                         {/* Render components based on the value of pointer */}
@@ -901,20 +859,13 @@ export default function Personal({ auth }) {
                             />
                         )}
 
-                        <div
-                            style={{
-                                padding: '20px',
-                                display: 'flex',
-                                justifyContent: 'center',
-                                marginTop: '100px',
-                            }}
-                        >
+                        <div className='p-5 flex justify-center mt-28'>
                             <Container fluid="md">
                                 <Row>
                                     <Col xs={6} className="d-flex justify-content-start">
                                         {pointer > 0 && pointer < 15 && (
                                             <Button
-                                                onClick={backStep} // Updated to use the modified backStep function
+                                                onClick={backStep}
                                                 variant="outline-dark"
                                                 size="lg"
                                                 style={{ width: '100%' }}
@@ -951,13 +902,10 @@ export default function Personal({ auth }) {
                                     </Col>
                                 </Row>
                             </Container>
-                            {pointer === 0 && !currIdObjDB && (
-                                <SelectPackageModal
-                                    show={showSelectModal}
-                                    onHide={handleHideSelectModal}
-                                    onSelect={(pkg) => handleSelectPackage(pkg)}
-                                />
-                            )}
+                            <SelectPackageModal
+                                show={showSelectPackageModal}
+                                onSelect={(pkg) => handleSelectPackage(pkg)}
+                            />
                         </div>
                     </div>
                 </div>
