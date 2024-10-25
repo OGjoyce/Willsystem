@@ -1,6 +1,6 @@
 import { handleProfileData } from "./profileUtils";
 
-export const getObjectStatus = (objectStatus, currentProfile) => {
+const getObjectStatus = (objectStatus, currentProfile) => {
     // Buscar en objectStatus el perfil que coincida con el currentProfile
     const profile = objectStatus.find(profileArray =>
         profileArray.some(dataObj => dataObj.personal?.email === currentProfile)
@@ -10,7 +10,7 @@ export const getObjectStatus = (objectStatus, currentProfile) => {
     return profile || [];
 };
 
-export const initializeObjectStructure = (objectStatus, currentProfile) => {
+const initializeObjectStructure = (objectStatus, currentProfile) => {
         const initialObjectStructure = [
                 { name: 'marriedq', data: {} },
                 { name: 'married', data: {} },
@@ -41,7 +41,7 @@ export const initializeObjectStructure = (objectStatus, currentProfile) => {
 
 }
 
-export const initializeSpousalWill = (objectStatus) => {
+const initializeSpousalWill = (objectStatus) => {
 
             const spouse = objectStatus[0].find(obj => obj.personal)?.personal // Tomar datos de personal del primer objeto
 
@@ -132,4 +132,10 @@ export const initializeSpousalWill = (objectStatus) => {
             }
             ]
             return spousalWillData
+}
+
+export {
+    getObjectStatus,
+    initializeObjectStructure,
+    initializeSpousalWill
 }
