@@ -355,7 +355,7 @@ const DocumentSelector = ({
 
                 // 4. Enviar el correo electrónico en formato HTML
                 await axios.post('https://willsystemapp.com:5000/send-email', {
-                    to_email: "velizabrahaam@gmail.com",
+                    to_email: userInfo.email,
                     subject: 'Please review and approve your documents',
                     message: message, // Este será el cuerpo en HTML
                     is_html: true     // Agrega un flag para indicar que el contenido es HTML
