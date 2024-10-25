@@ -29,7 +29,7 @@ class InsertObjStatuses extends Command
      */
     public function handle()
     {
-        $path = database_path('data/insert_queries.sql');
+        $path = database_path('data/obj_statuses.sql');
 
         // Check if the SQL file exists
         if (!File::exists($path)) {
