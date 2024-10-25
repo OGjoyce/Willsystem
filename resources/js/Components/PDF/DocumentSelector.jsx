@@ -483,7 +483,7 @@ const DocumentSelector = ({
             {
                 showPDFEditor && selectedDoc && (
                     <div className="fixed inset-0 flex justify-center items-center bg-gray-100 z-50 overflow-auto">
-                        <div className="relative w-full max-w-5xl bg-white shadow-lg rounded-lg p-6">
+                        <div className="relative w-full max-w-5xl bg-white shadow-lg rounded-lg p-6 mt-12">
                             <PDFEditor
                                 documentType={selectedDoc}
                                 objectStatus={objectStatus}
