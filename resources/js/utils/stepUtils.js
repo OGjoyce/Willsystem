@@ -87,13 +87,6 @@ const stepper = [
 
     // utils/stepHelper.js
 
-
-
-// Función para empujar la información del paso actual
-export const pushInfo = async (step, objectStatus, setObjectStatus, currentProfile, availableDocuments, selectedPackage, currIdObjDB, setCurrIdObjDB, setValidationErrors) => {
-    
-};
-
 // Función para retroceder paso
 export const backStep = (pointer, objectStatus, currentProfile, visibleSteps, setPointer) => {
     const firstIncompleteStep = findFirstIncompleteStep(objectStatus, currentProfile, visibleSteps);
