@@ -91,70 +91,7 @@ const stepper = [
 
 // Función para empujar la información del paso actual
 export const pushInfo = async (step, objectStatus, setObjectStatus, currentProfile, availableDocuments, selectedPackage, currIdObjDB, setCurrIdObjDB, setValidationErrors) => {
-    let propertiesAndData = [];
-    const checkValidation = (validation) => {
-        setValidationErrors({});
-
-        const errors = validation;
-        if (Object.keys(errors).length > 0) {
-            setValidationErrors(errors);
-            console.log(errors);
-            return false;
-        }
-        return true;
-    };
-
-    let updatedObjectStatus = objectStatus;
-
-    switch (step) {
-        case 0:
-            const personalData = getFormData();
-            if (checkValidation(validate.formData(personalData))) {
-                const initializedDocuments = initializePackageDocuments(availableDocuments, selectedPackage?.description);
-                const dataObj = {
-                    personal: {
-                        ...personalData,
-                        timestamp: Date.now(),
-                    },
-                    owner: personalData.email,
-                    packageInfo: {
-                        ...selectedPackage,
-                        documents: initializedDocuments,
-                    },
-                };
-
-                propertiesAndData = [
-                    { name: 'personal', data: dataObj.personal },
-                    { name: 'owner', data: dataObj.owner },
-                    {
-                        name: 'packageInfo', data: currIdObjDB === null ? dataObj.packageInfo : { 'undefined': "not an owner of any package" }
-                    },
-                ];
-
-                updatedObjectStatus = handleProfileData(personalData.email, propertiesAndData, objectStatus);
-                setObjectStatus(updatedObjectStatus);
-
-                if (currIdObjDB === null) {
-                    const dataFirstStore = await storeDataObject(dataObj);
-                    setCurrIdObjDB(dataFirstStore.id);
-                    localStorage.setItem('currIdObjDB', dataFirstStore.id);
-                }
-            } else {
-                return null;
-            }
-            break;
-        // Similar estructura para otros pasos (case 1, 2, 3, etc.)
-        // ...
-    }
-
-    // Actualizar base de datos y almacenamiento local
-    if (step !== 0 && currIdObjDB) {
-        updateDataObject(updatedObjectStatus, currIdObjDB);
-    }
-    localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus));
-    localStorage.setItem('currentPointer', step.toString());
-
-    return updatedObjectStatus;
+    
 };
 
 // Función para retroceder paso
