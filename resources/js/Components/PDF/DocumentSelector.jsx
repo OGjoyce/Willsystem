@@ -358,7 +358,7 @@ const DocumentSelector = ({
                     to_email: "velizabrahaam@gmail.com",
                     subject: 'Please review and approve your documents',
                     message: message, // Este será el cuerpo en HTML
-                    is_html: true     // Agrega un flag para indicar que el contenido es HTML (dependiendo de tu backend)
+                    is_html: true     // Agrega un flag para indicar que el contenido es HTML
                 });
 
             } catch (error) {
