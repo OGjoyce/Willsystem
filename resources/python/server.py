@@ -27,10 +27,10 @@ def send_email(to_email, subject, message):
         email_msg['To'] = to_email
         email_msg['Subject'] = subject
 
-       if is_html:
-            email_msg.attach(MIMEText(message, 'html'))
-        else:
-            email_msg.attach(MIMEText(message, 'plain'))
+       #if is_html:
+        email_msg.attach(MIMEText(message, 'html'))
+       # else:
+        #    email_msg.attach(MIMEText(message, 'plain'))
 
         # Send the email
         server.sendmail(GMAIL_USER, to_email, email_msg.as_string())
