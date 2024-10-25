@@ -481,14 +481,18 @@ const DocumentSelector = ({
             {/* Mostrar el PDFEditor si todos los pasos están completos */}
             {
                 showPDFEditor && selectedDoc && (
-                    <PDFEditor
-                        documentType={selectedDoc}
-                        objectStatus={objectStatus}
-                        documentOwner={documentOwner}
-                        backendId={currIdObjDB}
-                        ContentComponent={contentComponents[selectedDoc]}
-                        onBack={() => setSelectedDoc(null)}
-                    />
+                    <div className="fixed inset-0 flex justify-center items-center bg-gray-100 z-50 overflow-auto">
+                        <div className="relative w-full max-w-5xl bg-white shadow-lg rounded-lg p-6">
+                            <PDFEditor
+                                documentType={selectedDoc}
+                                objectStatus={objectStatus}
+                                documentOwner={documentOwner}
+                                backendId={currIdObjDB}
+                                ContentComponent={contentComponents[selectedDoc]}
+                                onBack={() => setSelectedDoc(null)}
+                            />
+                        </div>
+                    </div>
                 )
             }
 
