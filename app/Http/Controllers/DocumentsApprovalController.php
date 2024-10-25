@@ -29,12 +29,7 @@ class DocumentsApprovalController extends Controller
 
             $email = $data['email'];
             $id = $data['id'];
-            $expiresAt = Carbon::createFromTimestamp($data['expires_at']);
-
-            // Check if token has expired
-            if (Carbon::now()->greaterThan($expiresAt)) {
-                abort(403, 'Token has expired');
-            }
+         
 
             // Check if email in token is the same as the authenticated email
             if (Auth::user()->email !== $email) {

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Button, Modal, ListGroup } from 'react-bootstrap';
+import { Container, Row, Col, Button, Modal, ListGroup, Spinner } from 'react-bootstrap';
 import PDFEditor from './PDFEditor';
 import WillContent from './Content/WillContent';
 import POA1Content from './Content/POA1Content';
 import POA2Content from './Content/POA2Content';
 import CustomToast from '../AdditionalComponents/CustomToast';
-import { handleProfileData } from '../ProfileDataHandler';
-import { last } from 'lodash';
+import { handleProfileData } from '@/utils/profileUtils';
+import axios from 'axios';
 
 const contentComponents = {
     primaryWill: WillContent,
@@ -42,7 +42,7 @@ const DocumentSelector = ({
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
-
+    const [sendingEmails, setSendingEmails] = useState(false); // Nuevo estado para spinner
     const [prevSelectedDoc, setPrevSelectedDoc] = useState(selectedDoc);
     const [prevCurrentDocument, setPrevCurrentDocument] = useState(currentDocument);
     const [prevDocumentOwner, setPrevDocumentOwner] = useState(documentOwner);
@@ -219,13 +219,18 @@ const DocumentSelector = ({
     const handleSelectEmail = (email) => {
         const updatedObjectStatus = objectStatus.map((profileArray) => {
             return profileArray.map((dataObj) => {
+                // Verifica si este es el perfil actual
                 if (dataObj.packageInfo && dataObj.packageInfo.documents && dataObj.personal?.email === currentProfile) {
+                    let documentUpdated = false; // Indicador de si ya se actualizó un documento
+
                     const updatedDocuments = dataObj.packageInfo.documents.map((docObj) => {
-                        if (docObj.docType === selectedDoc && docObj.owner === 'unknown') {
+                        if (!documentUpdated && docObj.docType === selectedDoc && docObj.owner === 'unknown') {
+                            documentUpdated = true; // Marcamos que ya se actualizó un documento
                             return { ...docObj, owner: email };
                         }
                         return docObj;
                     });
+
                     return {
                         ...dataObj,
                         packageInfo: {
@@ -245,20 +250,18 @@ const DocumentSelector = ({
         setCurrentProfile(email);
         setCurrentDocument(selectedDoc);
 
-        const firstIncompleteStep = visibleSteps.find(step => !stepHasData(step.step));
-        console.log(visibleSteps.find(step => !stepHasData(step.step)))
-
-        if (firstIncompleteStep === undefined) {
-            setPointer(0);
-        } else {
-            setPointer(16); // Navegar al paso 16
-            setShowPDFEditor(true);
+        // Aquí defines la lógica para cambiar el valor del pointer
+        if (selectedDoc === 'poaProperty') {
+            setPointer(12);
+        } else if (selectedDoc === 'poaHealth') {
+            setPointer(13);
         }
 
         setShowEmailModal(false);
         setToastMessage(`Profile "${email}" selected.`);
         setShowToast(true);
     };
+
 
     if (showConfirmationModal) {
         handleConfirmSelection()
@@ -270,6 +273,102 @@ const DocumentSelector = ({
         setCurrentDocument(selectedDoc);
         setShowEmailModal(false);
     };
+
+    async function handleSendDocuments() {
+        setSendingEmails(true); // Mostrar spinner mientras se envían los correos
+        setShowToast(true);
+        setToastMessage("Sending emails...");
+
+        try {
+            await sendDocumentsForApproval(objectStatus, currIdObjDB);
+
+            // Cuando haya terminado de enviar los correos
+
+        } catch (error) {
+            console.error("Error sending emails:", error);
+            setToastMessage("Error sending emails. Please try again.");
+        } finally {
+            setSendingEmails(false); // Detener el spinner
+            setShowToast(true);
+            setToastMessage("Emails sent successfully!");
+        }
+    };
+
+    async function sendDocumentsForApproval(objectStatus, currIdObjDB) {
+        const idForToken = currIdObjDB;
+        let userInfoForToken = [];
+
+        // Recolectar emails y nombres
+        objectStatus.forEach(innerList => {
+            innerList.forEach(item => {
+                if (item.owner && item.personal?.fullName) {
+                    userInfoForToken.push({
+                        email: item.owner,
+                        fullName: item.personal.fullName
+                    });
+                }
+            });
+        });
+
+        let tokensByEmail = {};
+
+        // Hacer la petición POST por cada email y nombre
+        for (let userInfo of userInfoForToken) {
+            try {
+                // 1. Validar el email y obtener la contraseña si es un nuevo usuario
+                const validateEmailResponse = await axios.post('http://127.0.0.1:8000/api/validate-email', {
+                    email: userInfo.email,
+                    name: userInfo.fullName
+                });
+
+                const password = validateEmailResponse.data.password;
+
+                // 2. Generar el token para el usuario
+                const generateTokenResponse = await axios.post('http://127.0.0.1:8000/api/generate-token', {
+                    email: userInfo.email,
+                    id: idForToken
+                });
+
+                // Asume que el token viene en `response.data.token`
+                const token = generateTokenResponse.data.token;
+                tokensByEmail[userInfo.email] = {
+                    token: token,
+                    fullName: userInfo.fullName
+                };
+
+                // 3. Construir el mensaje en formato HTML
+                let message = `
+                <html>
+                    <body>
+                        <h2 style="color: #333;">Hello, ${userInfo.fullName}</h2>
+                        <p>Please review and approve your documents by clicking the link below:</p>
+                        <a href="http://127.0.0.1:8000/documents-approval?token=${token}" style="padding: 10px 20px; background-color: #198754; color: white; text-decoration: none; border-radius: 5px;">Review Documents</a>
+                        <p>If the button doesn't work, you can use this link:</p>
+                        <a href="http://127.0.0.1:8000/documents-approval?token=${token}">http://127.0.0.1:8000/documents-approval?token=${token}</a>
+                        <br><br>
+                        ${password ? `<p>Your temporary password is: <strong>${password}</strong></p>` : ''}
+                        <br>
+                        <p style="color: #555;">Thank you!</p>
+                    </body>
+                </html>
+            `;
+
+                // 4. Enviar el correo electrónico en formato HTML
+                await axios.post('https://willsystemapp.com:5000/send-email', {
+                    to_email: userInfo.email,
+                    subject: 'Please review and approve your documents',
+                    message: message, // Este será el cuerpo en HTML
+                    is_html: true     // Agrega un flag para indicar que el contenido es HTML
+                });
+
+            } catch (error) {
+                console.error(`Error processing ${userInfo.email}:`, error);
+                throw error; // Lanza el error para que sea manejado en el try-catch de `handleSendDocuments`
+            }
+        }
+
+        console.log(tokensByEmail);
+    }
 
 
 
@@ -287,23 +386,47 @@ const DocumentSelector = ({
 
 
                     <Row className="mt-3">
-                        {objectStatus[0]?.[0]?.packageInfo?.documents.map((docObj, index) => (
-                            <Col key={index} xs={12} sm={6} md={4} className="mb-2">
-                                <Button
-                                    onClick={() => handleSelectDocument(docObj, index)}
-                                    style={{ width: "100%" }}
-                                    className={lastUnlockedDocument === docObj && !isDocumentUnlocked(index + 1) ? ' border-2 border-white shadow-[0_0_2px_#fff,inset_0_0_2px_#fff,0_0_5px_#198754,0_0_15px_#198754,0_0_30px_#198754]' : ''}
-                                    variant={isDocumentUnlocked(index) ? 'success' : 'outline-dark'}
-                                    disabled={!isDocumentUnlocked(index)}
-                                >
-                                    {docObj.docType === 'primaryWill' && <><strong>{index + 1}  . </strong><i className="bi bi-file-text"></i> Will</>}
-                                    {docObj.docType === 'spousalWill' && <><strong>{index + 1}  . </strong><i className="bi bi-file-text"></i> Spousal Will</>}
-                                    {docObj.docType === 'secondaryWill' && <><strong>{index + 1}  . </strong><i className="bi bi-file-text"></i> Secondary Will</>}
-                                    {docObj.docType === 'poaProperty' && <><strong>{index + 1}  . </strong><i className="bi bi-house"></i> POA1 Property</>}
-                                    {docObj.docType === 'poaHealth' && <><strong>{index + 1}  . </strong><i className="bi bi-hospital"></i> POA2 Health</>}
-                                </Button>
-                            </Col>
-                        ))}
+                        {(() => {
+                            let poaCount = 0;
+
+                            return objectStatus[0]?.[0]?.packageInfo?.documents.map((docObj, index) => {
+                                let documentLabel = '';
+
+                                if (docObj.docType === 'poaProperty') {
+                                    poaCount++;
+                                    documentLabel = `POA${poaCount} Property`;
+                                } else if (docObj.docType === 'poaHealth') {
+                                    poaCount++;
+                                    documentLabel = `POA${poaCount} Health`;
+                                }
+
+                                return (
+                                    <Col key={index} xs={12} sm={6} md={4} className="mb-2">
+                                        <Button
+                                            onClick={() => handleSelectDocument(docObj, index)}
+                                            style={{ width: "100%" }}
+                                            className={lastUnlockedDocument === docObj && !isDocumentUnlocked(index + 1) ? ' border-2 border-white shadow-[0_0_2px_#fff,inset_0_0_2px_#fff,0_0_5px_#198754,0_0_15px_#198754,0_0_30px_#198754]' : ''}
+                                            variant={isDocumentUnlocked(index) ? 'success' : 'outline-dark'}
+                                            disabled={!isDocumentUnlocked(index)}
+                                        >
+                                            {docObj.docType === 'primaryWill' && <><strong>{index + 1} . </strong><i className="bi bi-file-text"></i> Will</>}
+                                            {docObj.docType === 'spousalWill' && <><strong>{index + 1} . </strong><i className="bi bi-file-text"></i> Spousal Will</>}
+                                            {docObj.docType === 'secondaryWill' && <><strong>{index + 1} . </strong><i className="bi bi-file-text"></i> Secondary Will</>}
+                                            {docObj.docType === 'poaProperty' && <><strong>{index + 1} . </strong><i className="bi bi-house"></i> {documentLabel}</>}
+                                            {docObj.docType === 'poaHealth' && <><strong>{index + 1} . </strong><i className="bi bi-hospital"></i> {documentLabel}</>}
+                                        </Button>
+                                    </Col>
+                                );
+                            });
+                        })()}
+                        <Button
+                            variant={!allDocumentsCompleted ? 'outline-dark' : 'outline-success'}
+                            disabled={!allDocumentsCompleted}
+                            className=''
+                            onClick={handleSendDocuments}
+                        >
+                            Send documents for Aproval
+                        </Button>
                     </Row>
                     {errors.documentDOM && <p className="mt-2 text-sm text-center text-red-600">{errors.documentDOM}</p>}
                 </>
@@ -370,10 +493,15 @@ const DocumentSelector = ({
             }
 
             {/* CustomToast for notifications */}
+
             <CustomToast
                 show={showToast}
                 onClose={() => setShowToast(false)}
-                message={toastMessage}
+                message={
+                    sendingEmails
+                        ? (<><Spinner animation="border" size="sm" /> Sending emails...</>) // Spinner mientras envía
+                        : toastMessage // Mensaje cuando termina de enviar
+                }
             />
         </Container >
     );

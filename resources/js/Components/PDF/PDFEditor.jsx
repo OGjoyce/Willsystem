@@ -10,7 +10,7 @@ import CustomToast from '../AdditionalComponents/CustomToast';
 import Toolbar from './Toolbar';
 import { useReactToPrint } from "react-to-print";
 import { updateDataObject } from '../ObjStatusForm';
-import { getObjectStatus } from '../ProfileDataHandler';
+import { getObjectStatus } from '@/utils/objectStatusUtils';
 import './PDFEditor.css';
 import '@/Components/PDF/Content/content.css';
 
