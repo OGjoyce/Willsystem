@@ -23,7 +23,7 @@ import BreadcrumbNavigation from '@/Components/AdditionalComponents/BreadcrumbNa
 import { handleProfileData } from '@/utils/profileUtils';
 import { getObjectStatus, initializeObjectStructure, initializeSpousalWill } from '@/utils/objectStatusUtils';
 import { packageDocuments, initializePackageDocuments } from '@/utils/packageUtils'
-import { getVisibleSteps } from '@/utils/stepUtils';
+import { getVisibleSteps, stepHasData, findFirstIncompleteStep } from '@/utils/stepUtils';
 import { assignDocuments } from '@/utils/documentsUtils';
 
 
@@ -64,17 +64,17 @@ export default function Personal({ auth }) {
     const [validationErrors, setValidationErrors] = useState({});
 
 
+    useEffect(() => {
+        setVisibleSteps(getVisibleSteps(getObjectStatus(objectStatus, currentProfile), currentDocument))
+    }, [objectStatus, currentProfile, currentDocument, pointer])
+
+
     //Show the select Package modal when starting a new file
     useEffect(() => {
         if (pointer === 0 && !currIdObjDB) {
             setShowSelectPackageModal(true)
         }
     }, [pointer, currIdObjDB])
-
-
-    useEffect(() => {
-        setVisibleSteps(getVisibleSteps(getObjectStatus(objectStatus, currentProfile), currentDocument))
-    }, [objectStatus, currentProfile, currentDocument])
 
 
     useEffect(() => {
@@ -226,6 +226,7 @@ export default function Personal({ auth }) {
         setShowSelectPackageModal(false);
         setAvailableDocuments(packageDocuments[pkg.description] || []);
         setCurrentDocument((packageDocuments[pkg.description] && packageDocuments[pkg.description][0]) || null);
+
     };
 
 
@@ -549,7 +550,7 @@ export default function Personal({ auth }) {
     // Modified backStep function to navigate to the first incomplete step within visibleSteps
     const backStep = () => {
         // Find the first incomplete step within visibleSteps
-        const firstIncompleteStep = findFirstIncompleteStep();
+        const firstIncompleteStep = findFirstIncompleteStep(objectStatus, currentProfile, visibleSteps);
 
         if (firstIncompleteStep !== null) {
             setPointer(firstIncompleteStep);
@@ -634,155 +635,12 @@ export default function Personal({ auth }) {
         return true;
     };
 
-    const stepHasData = (step) => {
-        const stepDataMap = {
-            0: {
-                key: 'personal',
-                check: (data) => data && data.fullName && data.fullName.trim() !== '' && data.email && data.email.trim() !== '',
-            },
-            1: {
-                key: 'marriedq',
-                check: (data) => data && data.selection && data.selection.trim() !== '',
-            },
-            2: {
-                key: 'married',
-                check: (data) => data && data.firstName && data.firstName.trim() !== '',
-            },
-            3: {
-                key: 'kidsq',
-                check: (data) => data && data.selection && data.selection.trim() !== '',
-            },
-            4: {
-                key: 'kids',
-                check: (data) => data && Array.isArray(data) && data.length > 0,
-            },
-            5: {
-                key: 'executors',
-                check: (data) => data && Array.isArray(data) && data.length > 0,
-            },
-            6: {
-                key: 'bequests',
-                check: (data) => {
-                    if (data && typeof data === 'object') {
-                        const keys = Object.keys(data).filter(k => k !== 'timestamp');
-                        return keys.length > 0;
-                    }
-                    return false;
-                },
-            },
-            7: {
-                key: 'residue',
-                check: (data) => data && data.selected && data.selected.trim() !== '',
-            },
-            8: {
-                key: 'wipeout',
-                check: (data) => data && data.wipeout && Object.keys(data.wipeout).length > 0,
-            },
-            9: {
-                key: 'trusting',
-                check: (data) => {
-                    if (data && typeof data === 'object') {
-                        const keys = Object.keys(data).filter(k => k !== 'timestamp');
-                        return keys.length > 0;
-                    }
-                    return false;
-                },
-            },
-            10: {
-                key: 'guardians',
-                check: (data) => {
-                    if (data && typeof data === 'object') {
-                        const keys = Object.keys(data).filter(k => k !== 'timestamp');
-                        return keys.length > 0;
-                    }
-                    return false;
-                },
-            },
-            11: {
-                key: 'pets',
-                check: (data) => {
-                    if (data && typeof data === 'object') {
-                        const keys = Object.keys(data).filter(k => k !== 'timestamp');
-                        return keys.length > 0;
-                    }
-                    return false;
-                },
-            },
-            12: {
-                key: 'poaProperty',
-                check: (data) => data && Object.keys(data).length > 0,
-            },
-            13: {
-                key: 'poaHealth',
-                check: (data) => data && Object.keys(data).length > 0,
-            },
-            14: {
-                key: 'additional',
-                check: (data) => {
-                    return data &&
-                        (
-                            (data.customClauseText && data.customClauseText.trim().length > 0) ||
-                            (data.otherWishes && data.otherWishes.trim().length > 0) ||
-                            Object.values(data.checkboxes || {}).some(value => value === true)
-                        );
-                },
-            },
 
-            15: {
-                key: 'finalDetails',
-                check: (data) => data && Object.keys(data).length > 0,
-            },
-            16: {
-                key: 'documentDOM',
-                check: (data) => true,
-            },
-        };
-
-        // Usar getObjectStatus para obtener los datos del perfil correcto
-        const profileData = getObjectStatus(objectStatus, currentProfile);
-
-        const { key, check } = stepDataMap[step] || {};
-        if (!key || !check) return false;
-
-        // Buscar los datos en el perfil correspondiente
-        for (const obj of profileData) {
-            if (obj.hasOwnProperty(key)) {
-                const data = obj[key];
-                if (check(data)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    };
 
     // Helper function to find the first incomplete step within visibleSteps
-    const findFirstIncompleteStep = () => {
-        for (let i = 0; i < visibleSteps.length; i++) {
-            if (!stepHasData(visibleSteps[i].step)) {
-                return visibleSteps[i].step;
-            }
-        }
-        return null; // All steps are complete
-    };
 
-    // Function to determine if a step is clickable in the breadcrumb navigation
-    const isStepClickable = (index) => {
-        // Si el índice es 0, siempre permitimos hacer clic
-        if (index === 0) return true;
 
-        // Verificamos si el paso 0 tiene datos completos
-        const step0Data = getObjectStatus(objectStatus, currentProfile).find(obj => obj.hasOwnProperty('personal'));
-        const step1Data = getObjectStatus(objectStatus, currentProfile).find(obj => obj.hasOwnProperty('marriedq'));
 
-        // Si no existe step0Data o falta el nombre completo o el correo electrónico, no se puede hacer clic en otros pasos
-        if (!step0Data || !step0Data.personal.fullName || !step0Data.personal.email || !step1Data?.marriedq?.selection) {
-            return false;
-        }
-
-        // Si el paso 0 está completo, permitimos hacer clic en otros pasos
-        return true;
-    };
 
 
 
@@ -800,20 +658,17 @@ export default function Personal({ auth }) {
                         {visibleSteps[currentStepIndex]?.title || ''}
                     </h2>
                     <BreadcrumbNavigation
+                        objectStatus={objectStatus}
+                        currentProfile={currentProfile}
+                        currentDocument={currentDocument}
                         steps={visibleSteps}
                         currentStep={currentStepIndex}
                         onStepClick={(index) => {
-                            if (!isStepClickable(index)) {
-                                // Optionally, show a message or do nothing
-                                alert("Please complete the Personal Information step first.");
-                                return;
-                            }
                             const actualStep = visibleSteps[index].step;
                             setPointer(actualStep);
                             localStorage.setItem('currentPointer', actualStep.toString());
                         }}
-                        stepHasData={stepHasData}
-                        isStepClickable={isStepClickable}
+
                     />
                 </>
             }
@@ -853,7 +708,7 @@ export default function Personal({ auth }) {
                                 setCurrentDocument={setCurrentDocument}
                                 setObjectStatus={setObjectStatus}
                                 backStep={backStep}
-                                stepHasData={stepHasData}
+
                                 visibleSteps={visibleSteps}
                                 setVisibleSteps={setVisibleSteps}
                             />
@@ -902,10 +757,13 @@ export default function Personal({ auth }) {
                                     </Col>
                                 </Row>
                             </Container>
-                            <SelectPackageModal
-                                show={showSelectPackageModal}
-                                onSelect={(pkg) => handleSelectPackage(pkg)}
-                            />
+                            {pointer === 0 && !currIdObjDB && (
+                                <SelectPackageModal
+                                    show={showSelectPackageModal}
+                                    onHide={() => { }}
+                                    onSelect={(pkg) => handleSelectPackage(pkg)}
+                                />
+                            )}
                         </div>
                     </div>
                 </div>
