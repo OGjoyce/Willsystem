@@ -218,6 +218,8 @@ export default function Personal({ auth }) {
     useEffect(() => {
         if (objectStatus.length === 1 && currentDocument === 'spousalWill') {
 
+
+            const kids = objectStatus[0][4].kids
             const spousalWillData = initializeSpousalWill(objectStatus)
             setCurrentProfile(spousalWillData[0].personal.email)
 
@@ -235,6 +237,12 @@ export default function Personal({ auth }) {
             setObjectStatus(updatedObjectStatus)
             localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus));
             setPointer(3)
+
+
+            setTimeout(() => {
+                // Almacenar 'kids' en localStorage convirtiendo el array a JSON
+                localStorage.setItem('formValues', JSON.stringify({ kids: kids }));
+            }, 1000);
         }
     }, [currentDocument]);
 
