@@ -656,25 +656,20 @@ export default function Personal({ auth }) {
                         {pointer === 13 && <PoaHealth datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
                         {pointer === 14 && <Additional datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
                         {pointer === 15 && <FinalDetails datas={getObjectStatus(objectStatus, currentProfile)} />}
-                        {pointer === 16 && (
-                            <DocumentSelector
-                                errors={validationErrors}
-                                objectStatus={objectStatus}
-                                currentProfile={currentProfile}
-                                currIdObjDB={currIdObjDB}
-                                onSelect={(doc) => {
-                                    setValidationErrors({});
-                                }}
-                                setPointer={setPointer}
-                                setCurrentProfile={setCurrentProfile}
-                                setCurrentDocument={setCurrentDocument}
-                                setObjectStatus={setObjectStatus}
-                                backStep={backStep}
-
-                                visibleSteps={visibleSteps}
-                                setVisibleSteps={setVisibleSteps}
-                            />
-                        )}
+                        {pointer === 16 && <DocumentSelector
+                            errors={validationErrors}
+                            objectStatus={objectStatus}
+                            currentProfile={currentProfile}
+                            currIdObjDB={currIdObjDB}
+                            onSelect={(doc) => { setValidationErrors({}) }}
+                            setPointer={setPointer}
+                            setCurrentProfile={setCurrentProfile}
+                            setCurrentDocument={setCurrentDocument}
+                            setObjectStatus={setObjectStatus}
+                            backStep={backStep}
+                            visibleSteps={visibleSteps}
+                            setVisibleSteps={setVisibleSteps}
+                        />}
 
                         <div className='p-5 flex justify-center mt-28'>
                             <Container fluid="md">
