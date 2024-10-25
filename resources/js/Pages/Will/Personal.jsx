@@ -20,10 +20,9 @@ import FinalDetails from '@/Components/FinalDetails';
 import DocumentSelector from '@/Components/PDF/DocumentSelector';
 import SelectPackageModal from '../Admin/SelectPackageModal';
 import BreadcrumbNavigation from '@/Components/AdditionalComponents/BreadcrumbNavigation';
-import StepRedirect from '@/Components/AdditionalComponents/StepRedirect';
 import { handleProfileData } from '@/utils/profileUtils';
 import { getObjectStatus, initializeObjectStructure, initializeSpousalWill } from '@/utils/objectStatusUtils';
-import { packageDocuments, packageAssociations, initializePackageDocuments } from '@/utils/packageUtils'
+import { packageDocuments, initializePackageDocuments } from '@/utils/packageUtils'
 import { getVisibleSteps } from '@/utils/stepUtils';
 
 
@@ -240,7 +239,7 @@ export default function Personal({ auth }) {
 
 
             setTimeout(() => {
-                // Almacenar 'kids' en localStorage convirtiendo el array a JSON
+
                 localStorage.setItem('formValues', JSON.stringify({ kids: kids }));
             }, 1000);
         }
@@ -834,18 +833,6 @@ export default function Personal({ auth }) {
 
     const currentStepIndex = visibleSteps !== null ? visibleSteps.findIndex((step) => step.step === pointer) : 16
 
-    // Data for StepRedirect
-    const hasSpouse = getObjectStatus(objectStatus, currentProfile).some(
-        (obj) => obj.marriedq && (obj.marriedq.selection === 'true' || obj.marriedq.selection === 'soso')
-    );
-    const hasKids = getObjectStatus(objectStatus, currentProfile).some((obj) => obj.kidsq && obj.kidsq.selection === 'true');
-    const hasSpouseData = getObjectStatus(objectStatus, currentProfile).some((obj) => obj.married);
-    const hasKidsData = getObjectStatus(objectStatus, currentProfile).some((obj) => obj.kids && obj.kids.length > 0);
-    const stepBack = !hasSpouseData ? 1 : !hasKidsData ? 3 : null;
-
-    const spouseData = getObjectStatus(objectStatus, currentProfile).some((obj) => obj.married) ? getObjectStatus(objectStatus, currentProfile).find((obj) => obj.married) : null;
-    const kidsData = getObjectStatus(objectStatus, currentProfile).some((obj) => obj.kids) ? getObjectStatus(objectStatus, currentProfile).find((obj) => obj.kids) : null;
-
     return (
         <AuthenticatedLayout
             user={auth.user}
@@ -880,52 +867,19 @@ export default function Personal({ auth }) {
                         {/* Render components based on the value of pointer */}
                         {pointer === 0 && <FormCity errors={validationErrors} />}
                         {pointer === 1 && <Married humanSelector="spouse" />}
-                        {pointer === 2 && hasSpouse && <AddHuman married={true} errors={validationErrors} />}
+                        {pointer === 2 && <AddHuman married={true} errors={validationErrors} />}
                         {pointer === 3 && <Married humanSelector="children" />}
-                        {pointer === 4 && hasKids && <AddRelative relative="children" errors={validationErrors} datas={getObjectStatus(objectStatus, currentProfile)} />}
+                        {pointer === 4 && <AddRelative relative="children" errors={validationErrors} datas={getObjectStatus(objectStatus, currentProfile)} />}
                         {pointer === 5 && <HumanTable datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
-                        {
-                            pointer === 6 && spouseData !== null && kidsData !== null ?
-                                <Bequest datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />
-                                : (
-                                    pointer === 6
-                                        ? <StepRedirect onGoToStep={setPointer} missingStep={stepBack} />
-                                        : null
-                                )
-                        }
-                        {
-                            pointer === 7 && spouseData !== null && kidsData !== null ?
-                                <Residue datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />
-                                : (
-                                    pointer === 7
-                                        ? <StepRedirect onGoToStep={setPointer} missingStep={stepBack} />
-                                        : null
-                                )
-                        }
-                        {
-                            pointer === 8 && spouseData !== null && kidsData !== null ?
-                                <Wipeout datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />
-                                : (
-                                    pointer === 8
-                                        ? <StepRedirect onGoToStep={setPointer} missingStep={stepBack} />
-                                        : null
-                                )
-                        }
+                        {pointer === 6 && <Bequest datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
+                        {pointer === 7 && <Residue datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
+                        {pointer === 8 && <Wipeout datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
                         {pointer === 9 && <Trusting datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
-                        {pointer === 10 && hasKids && <GuardianForMinors datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
-                        {
-                            pointer === 11 && spouseData !== null && kidsData !== null ?
-                                <Pets datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />
-                                : (
-                                    pointer === 11
-                                        ? <StepRedirect onGoToStep={setPointer} missingStep={stepBack} />
-                                        : null
-                                )
-                        }
+                        {pointer === 10 && <GuardianForMinors datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
+                        {pointer === 11 && <Pets datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
                         {pointer === 12 && <PoaProperty datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
                         {pointer === 13 && <PoaHealth datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
                         {pointer === 14 && <Additional datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
-
                         {pointer === 15 && <FinalDetails datas={getObjectStatus(objectStatus, currentProfile)} />}
                         {pointer === 16 && (
                             <DocumentSelector
