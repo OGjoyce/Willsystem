@@ -22,7 +22,7 @@ let updateOrCreateProperty = (prevStatus, propertiesAndData) => {
     return newStatus;
 };
 
-export const handleProfileData = (currentProfile, propertiesAndData, prevStatus) => {
+const handleProfileData = (currentProfile, propertiesAndData, prevStatus) => {
     // Clonamos el estado anterior para no modificarlo directamente
     const newStatus = [...prevStatus];
 
@@ -44,3 +44,6 @@ export const handleProfileData = (currentProfile, propertiesAndData, prevStatus)
     return newStatus;
 };
 
+export {
+    handleProfileData
+}
