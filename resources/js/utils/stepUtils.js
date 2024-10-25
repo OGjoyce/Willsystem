@@ -4,7 +4,7 @@ import { getObjectStatus } from './objectStatusUtils';
 import { validate } from '@/Components/Validations';
 
 
-  const stepper = [
+const stepper = [
         { step: 0, title: 'Personal Information' },
         { step: 1, title: 'Married Status' },
         { step: 2, title: "Spouse's Information" },
@@ -59,6 +59,31 @@ import { validate } from '@/Components/Validations';
         });
     };
 
+      const isStepClickable = (objectStatus, currentProfile, index) => {
+        // Si el índice es 0, siempre permitimos hacer clic
+        if (index === 0) return true;
+
+        // Verificamos si el paso 0 tiene datos completos
+        const step0Data = getObjectStatus(objectStatus, currentProfile).find(obj => obj.hasOwnProperty('personal'));
+        const step1Data = getObjectStatus(objectStatus, currentProfile).find(obj => obj.hasOwnProperty('marriedq'));
+
+        // Si no existe step0Data o falta el nombre completo o el correo electrónico, no se puede hacer clic en otros pasos
+        if (!step0Data || !step0Data.personal.fullName || !step0Data.personal.email || !step1Data?.marriedq?.selection) {
+            return false;
+        }
+
+        // Si el paso 0 está completo, permitimos hacer clic en otros pasos
+        return true;
+    };
+
+        const findFirstIncompleteStep = (objectStatus, currentProfile, visibleSteps) => {
+        for (let i = 0; i < visibleSteps.length; i++) {
+            if (!stepHasData(objectStatus, currentProfile, visibleSteps[i].step)) {
+                return visibleSteps[i].step;
+            }
+        }
+        return null; // All steps are complete
+    };
 
     // utils/stepHelper.js
 
@@ -153,33 +178,9 @@ export const backStep = (pointer, objectStatus, currentProfile, visibleSteps, se
     return true;
 };
 
-// Función para avanzar al siguiente paso
-export const nextStep = async (nextStepValue, pointer, objectStatus, currentProfile, currentDocument, setPointer, setObjectStatus, currIdObjDB, setValidationErrors) => {
-    const objectStatusResult = await pushInfo(pointer, objectStatus, setObjectStatus, currentProfile, /* demás parámetros */);
-    if (!objectStatusResult) {
-        return false;
-    }
-
-    const newVisibleSteps = getVisibleSteps(getObjectStatus(objectStatusResult, currentProfile), currentDocument);
-    const currentIndex = newVisibleSteps.findIndex((step) => step.step === pointer);
-    let nextVisibleStep = newVisibleSteps[currentIndex + 1];
-
-    // Lógica para ajustar el paso basado en el estado del cónyuge o hijos
-    // ...
-};
-
-// Helper para encontrar el primer paso incompleto
-export const findFirstIncompleteStep = (objectStatus, currentProfile, visibleSteps) => {
-    for (let i = 0; i < visibleSteps.length; i++) {
-        if (!stepHasData(visibleSteps[i].step, objectStatus, currentProfile)) {
-            return visibleSteps[i].step;
-        }
-    }
-    return null;
-};
 
 
-  export const stepHasData = (step, currentProfile, objectStatus) => {
+  const stepHasData = (objectStatus, currentProfile, step) => {
         const stepDataMap = {
             0: {
                 key: 'personal',
@@ -295,9 +296,14 @@ export const findFirstIncompleteStep = (objectStatus, currentProfile, visibleSte
                 const data = obj[key];
                 if (check(data)) {
                     return true;
-                }
+                } 
             }
         }
         return false;
     };
 
+    export {
+        isStepClickable,
+        stepHasData,
+        findFirstIncompleteStep
+    }
