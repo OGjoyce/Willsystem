@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Head, router } from '@inertiajs/react';
+//Import needed components
 import { Container, Row, Col, Button } from 'react-bootstrap';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import FormCity from '@/Components/FormCity';
@@ -20,13 +21,15 @@ import FinalDetails from '@/Components/FinalDetails';
 import DocumentSelector from '@/Components/PDF/DocumentSelector';
 import SelectPackageModal from '../Admin/SelectPackageModal';
 import BreadcrumbNavigation from '@/Components/AdditionalComponents/BreadcrumbNavigation';
+//Import utility functions
 import { handleProfileData } from '@/utils/profileUtils';
 import { getObjectStatus, initializeObjectStructure, initializeSpousalWill } from '@/utils/objectStatusUtils';
 import { packageDocuments, initializePackageDocuments } from '@/utils/packageUtils'
 import { getVisibleSteps, stepHasData, findFirstIncompleteStep } from '@/utils/stepUtils';
 import { assignDocuments } from '@/utils/documentsUtils';
-
-
+import { storeDataObject, updateDataObject } from '@/Components/ObjStatusForm';
+import { validate } from '@/Components/Validations';
+//Import form handlers
 import {
     getFormData,
     getMarriedData,
@@ -47,8 +50,6 @@ import {
     getDocumentDOMInfo,
 } from '@/utils/formHandlers';
 
-import { storeDataObject, updateDataObject } from '@/Components/ObjStatusForm';
-import { validate } from '@/Components/Validations';
 
 export default function Personal({ auth }) {
     // Component state
@@ -64,17 +65,17 @@ export default function Personal({ auth }) {
     const [validationErrors, setValidationErrors] = useState({});
 
 
-    useEffect(() => {
-        setVisibleSteps(getVisibleSteps(getObjectStatus(objectStatus, currentProfile), currentDocument))
-    }, [objectStatus, currentProfile, currentDocument, pointer])
-
-
     //Show the select Package modal when starting a new file
     useEffect(() => {
         if (pointer === 0 && !currIdObjDB) {
             setShowSelectPackageModal(true)
         }
     }, [pointer, currIdObjDB])
+
+    //Set the visible steps for breadcrumb after changing profile or document
+    useEffect(() => {
+        setVisibleSteps(getVisibleSteps(getObjectStatus(objectStatus, currentProfile), currentDocument))
+    }, [objectStatus, currentProfile, currentDocument, pointer])
 
 
     useEffect(() => {
