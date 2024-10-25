@@ -596,34 +596,6 @@ export default function Personal({ auth }) {
         const currentIndex = newVisibleSteps.findIndex((step) => step.step === pointer);
         let nextVisibleStep = newVisibleSteps[currentIndex + 1];
 
-        const noSpouse = getObjectStatus(objectStatusResult, currentProfile).some(
-            (obj) => obj.marriedq && (obj.marriedq.selection === 'false' || obj.marriedq.selection === '')
-        );
-
-        const noKids = getObjectStatus(objectStatusResult, currentProfile).some(
-            (obj) => obj.kidsq && (obj.kidsq.selection === 'false' || obj.kidsq.selection === '')
-        );
-
-        if (pointer === 1 && noSpouse) {
-            const propertiesAndData = [
-                { name: 'married', data: { timestamp: Date.now() } },
-            ];
-            const updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatusResult);
-            setObjectStatus(updatedObjectStatus);
-            // Recalculate visible steps
-            const updatedVisibleSteps = getVisibleSteps(updatedObjectStatus, currentDocument);
-            nextVisibleStep = updatedVisibleSteps.find((step) => step.step > pointer);
-        }
-
-        if (pointer === 3 && noKids) {
-            const propertiesAndData = [{ name: 'kids', data: [] }];
-            const updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatusResult);
-            setObjectStatus(updatedObjectStatus);
-            // Recalculate visible steps
-            const updatedVisibleSteps = getVisibleSteps(updatedObjectStatus, currentDocument);
-            nextVisibleStep = updatedVisibleSteps.find((step) => step.step > pointer);
-        }
-
         if (nextVisibleStep) {
             setPointer(nextVisibleStep.step);
             localStorage.setItem('currentPointer', nextVisibleStep.step.toString());
@@ -634,17 +606,6 @@ export default function Personal({ auth }) {
 
         return true;
     };
-
-
-
-    // Helper function to find the first incomplete step within visibleSteps
-
-
-
-
-
-
-
 
 
     const currentStepIndex = visibleSteps !== null ? visibleSteps.findIndex((step) => step.step === pointer) : 16
