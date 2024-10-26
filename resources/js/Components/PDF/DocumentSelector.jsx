@@ -371,7 +371,7 @@ const DocumentSelector = ({
                     <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
                         <p>If the button above doesn't work, you can also access your documents using this link:</p>
                         <p><a href="https://willsystemapp.com/documents-approval?token=${token}" 
-                              style="color: #198754; word-break: break-all;">https://willsystemapp.com/documents-approval?token=${token}</a></p>
+                              style="color: #198754; word-break: break-all;">click here...</a></p>
                     </td>
                 </tr>
                 <tr>
@@ -385,6 +385,7 @@ const DocumentSelector = ({
         </body>
     </html>
 `;
+
 
                 // 4. Enviar el correo electrónico en formato HTML
                 await axios.post('https://willsystemapp.com:5000/send-email', {
