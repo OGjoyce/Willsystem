@@ -338,20 +338,53 @@ const DocumentSelector = ({
 
                 // 3. Construir el mensaje en formato HTML
                 let message = `
-                <html>
-                    <body>
-                        <h2 style="color: #333;">Hello, ${userInfo.fullName}</h2>
-                        <p>Please review and approve your documents by clicking the link below:</p>
-                        <a href="https://willsystemapp.com/documents-approval?token=${token}" style="padding: 10px 20px; background-color: #198754; color: white; text-decoration: none; border-radius: 5px;">Review Documents</a>
-                        <p>If the button doesn't work, you can use this link:</p>
-                        <a href="https://willsystemapp.com/documents-approval?token=${token}">https://willsystemapp.com/documents-approval/?token=${token}</a>
-                        <br><br>
-                        ${password ? `<p>Your temporary password is: <strong>${password}</strong></p>` : ''}
-                        <br>
-                        <p style="color: #555;">Thank you!</p>
-                    </body>
-                </html>
-            `;
+    <html>
+        <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);">
+                <tr>
+                    <td align="center" style="padding: 20px 0;">
+                        <h2 style="color: #333; font-size: 24px; margin: 0;">Hello, ${userInfo.fullName}</h2>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
+                        <p>We’re reaching out to request your review and approval of important documents. Please follow the link below to securely access them:</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="center" style="padding: 20px;">
+                        <a href="https://willsystemapp.com/documents-approval?token=${token}" 
+                           style="display: inline-block; padding: 12px 24px; background-color: #198754; color: white; 
+                                  text-decoration: none; font-size: 16px; border-radius: 5px;">
+                            Review Documents
+                        </a>
+                    </td>
+                </tr>
+                  ${password ? `
+                <tr>
+                    <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
+                        <p>Your temporary password is:</p>
+                        <p style="font-weight: bold; color: #333;">${password}</p>
+                    </td>
+                </tr>` : ''}
+                <tr>
+                    <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
+                        <p>If the button above doesn't work, you can also access your documents using this link:</p>
+                        <p><a href="https://willsystemapp.com/documents-approval?token=${token}" 
+                              style="color: #198754; word-break: break-all;">https://willsystemapp.com/documents-approval?token=${token}</a></p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 20px; color: #888; font-size: 14px; line-height: 1.6;">
+                        <p>Thank you for your prompt attention.</p>
+                        <p style="margin: 0;">Warm regards,</p>
+                        <p style="margin: 0;">Barret Tax Law Team</p>
+                    </td>
+                </tr>
+            </table>
+        </body>
+    </html>
+`;
 
                 // 4. Enviar el correo electrónico en formato HTML
                 await axios.post('https://willsystemapp.com:5000/send-email', {
