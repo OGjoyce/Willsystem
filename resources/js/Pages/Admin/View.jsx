@@ -180,7 +180,7 @@ const View = () => {
                                                     <Form.Control
                                                         onChange={(e) => setPackageValue(e.target.value)}
                                                         type="email"
-                                                        placeholder="the owner of the will..."
+                                                        placeholder="type the email or name of the owner or id of file..."
                                                     />
                                                 </Form.Group>
                                             </Col>
@@ -191,7 +191,7 @@ const View = () => {
                                     </Form>
                                     <br />
                                     {!loading && !error && !noResults && ArrObj.length === 0 && (
-                                        <p className="text-center">Please, search by email of the owner of the will, then search it on the table</p>
+                                        <p className="text-center">Please, search by email or name of the owner of the file or its id</p>
                                     )}
                                     {loading && <p className="text-center">Loading...</p>}
                                     {error && <p className="text-center text-danger">{error}</p>}
