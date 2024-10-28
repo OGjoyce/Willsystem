@@ -23,7 +23,7 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::get('/files/search', [ObjStatusController::class, 'searchByEmail']);
+Route::get('/files/search', [ObjStatusController::class, 'searchByInput']);
 Route::get('/obj-status/search', [ObjStatusController::class, 'searchById']);
 
 // Ruta específica para obtener contratos
