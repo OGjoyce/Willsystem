@@ -24,7 +24,7 @@ const stepper = [
         { step: 16, title: 'Review, Edit and Download your Documents' },
     ];
 
- export const getVisibleSteps = (objectStatusToUse, currentDocument) => {
+ const getVisibleSteps = (objectStatusToUse, currentDocument) => {
         const hasSpouse = objectStatusToUse.some(
             (obj) => obj.marriedq && (obj.marriedq.selection === 'true' || obj.marriedq.selection === 'soso')
         );
@@ -235,5 +235,6 @@ export const backStep = (pointer, objectStatus, currentProfile, visibleSteps, se
     export {
         isStepClickable,
         stepHasData,
-        findFirstIncompleteStep
+        findFirstIncompleteStep,
+        getVisibleSteps
     }
