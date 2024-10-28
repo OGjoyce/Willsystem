@@ -26,6 +26,7 @@ import { ProfileSelector } from '@/Components/ProfileSelector';
 import DocumentSelector from '@/Components/PDF/DocumentSelector';
 import SelectPackageModal from '../Admin/SelectPackageModal';
 import BreadcrumbNavigation from '@/Components/AdditionalComponents/BreadcrumbNavigation';
+import PaymentModal from '@/Components/PaymentModal';
 //Import utility functions
 import { handleProfileData, handleSelectProfile } from '@/utils/profileUtils';
 import { getObjectStatus, initializeObjectStructure, initializeSpousalWill } from '@/utils/objectStatusUtils';
@@ -70,6 +71,7 @@ export default function Personal({ auth }) {
     const [currentProfile, setCurrentProfile] = useState(null)
     const [currentDocument, setCurrentDocument] = useState();
     const [showSelectPackageModal, setShowSelectPackageModal] = useState(false);
+    const [showPaymentModal, setShowPaymentModal] = useState(false)
     const [showSelectProfileModal, setShowSelectProfileModal] = useState(false)
     const [showPDFEditor, setShowPDFEditor] = useState(false)
     const [selectedPackage, setSelectedPackage] = useState(null);
@@ -241,7 +243,7 @@ export default function Personal({ auth }) {
         setShowSelectPackageModal(false);
         setAvailableDocuments(packageDocuments[pkg.description] || []);
         setCurrentDocument((packageDocuments[pkg.description] && packageDocuments[pkg.description][0]) || null);
-
+        setShowPaymentModal(true)
     };
 
     const handleSelectDocument = (docObj) => {
@@ -837,6 +839,8 @@ export default function Personal({ auth }) {
                                     onSelect={(pkg) => handleSelectPackage(pkg)}
                                 />
                             )}
+                            <PaymentModal show={showPaymentModal} handleClose={() => { setShowPaymentModal(false) }} />
+
                         </div>
                     </div>
                 </div>
