@@ -16,8 +16,10 @@ const Packages = () => {
         id: null,
         name: '',
         price: '',
-        description: '', // Se usa para contractId en dropdown
-        campaign: ''
+        description: '', // Used for contractId in dropdown
+        campaign: '',
+        cliente_reference: '', // Added field
+        expiration_date: '',   // Added field
     });
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
@@ -25,7 +27,7 @@ const Packages = () => {
 
     useEffect(() => {
         fetchPackages();
-        fetchContracts(); // Obtener contratos al montar el componente
+        fetchContracts();
     }, []);
 
     const fetchPackages = async () => {
@@ -40,7 +42,11 @@ const Packages = () => {
     const fetchContracts = async () => {
         try {
             const response = await axios.get('/api/contracts');
-            setContracts(response.data);
+            // Sort contracts alphabetically by description
+            const sortedContracts = response.data.sort((a, b) =>
+                a.description.localeCompare(b.description)
+            );
+            setContracts(sortedContracts);
         } catch (error) {
             console.error('Error fetching contracts:', error);
         }
@@ -48,13 +54,26 @@ const Packages = () => {
 
     const handleClose = () => {
         setShowModal(false);
-        setCurrentPackage({ id: null, name: '', price: '', description: '', campaign: '' });
+        setCurrentPackage({
+            id: null,
+            name: '',
+            price: '',
+            description: '',
+            campaign: '',
+            cliente_reference: '',
+            expiration_date: '',
+        });
     };
 
     const handleShow = (mode, pkg = null) => {
         setModalMode(mode);
         if (pkg) {
-            setCurrentPackage(pkg);
+            // Format the expiration date for the input field if it's not null
+            const formattedPackage = {
+                ...pkg,
+                expiration_date: pkg.expiration_date ? pkg.expiration_date.substring(0, 10) : '',
+            };
+            setCurrentPackage(formattedPackage);
         }
         setShowModal(true);
     };
@@ -84,7 +103,10 @@ const Packages = () => {
         if (!currentPackage.name.trim()) {
             errors.name = 'Name cannot be empty';
         }
-        if (!currentPackage.price.trim() || isNaN(parseFloat(currentPackage.price.replace('$', '')))) {
+        if (
+            !currentPackage.price.trim() ||
+            isNaN(parseFloat(currentPackage.price.replace('$', '')))
+        ) {
             errors.price = 'Price must be a valid number';
         }
         if (!currentPackage.description.trim()) {
@@ -92,6 +114,14 @@ const Packages = () => {
         }
         if (!currentPackage.campaign.trim()) {
             errors.campaign = 'Campaign cannot be empty';
+        }
+        // Optional field; no need to validate cliente_reference unless you have specific rules
+        // Validate expiration_date if provided
+        if (
+            currentPackage.expiration_date &&
+            isNaN(Date.parse(currentPackage.expiration_date))
+        ) {
+            errors.expiration_date = 'Expiration date must be a valid date';
         }
         setValidationErrors(errors);
         return Object.keys(errors).length === 0;
@@ -103,11 +133,15 @@ const Packages = () => {
             return;
         }
         try {
+            const packageData = {
+                ...currentPackage,
+                price: currentPackage.price.replace('$', ''),
+            };
             if (modalMode === 'create') {
-                await axios.post('/api/packages', currentPackage);
+                await axios.post('/api/packages', packageData);
                 setToastMessage('Package created successfully');
             } else if (modalMode === 'edit') {
-                await axios.put(`/api/packages/${currentPackage.id}`, currentPackage);
+                await axios.put(`/api/packages/${currentPackage.id}`, packageData);
                 setToastMessage('Package updated successfully');
             }
             fetchPackages();
@@ -128,12 +162,20 @@ const Packages = () => {
         } catch (error) {
             console.error('Error deleting package:', error);
         }
-        setCurrentPackage({ id: null, name: '', price: '', description: '', campaign: '' });
+        setCurrentPackage({
+            id: null,
+            name: '',
+            price: '',
+            description: '',
+            campaign: '',
+            cliente_reference: '',
+            expiration_date: '',
+        });
     };
 
     return (
         <AuthenticatedLayout
-            user={"Admin"}
+            user={'Admin'}
             header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Manage Packages</h2>}
         >
             <Head title="Manage Packages" />
@@ -160,6 +202,8 @@ const Packages = () => {
                                                         <th>Price</th>
                                                         <th>Description</th>
                                                         <th>Campaign</th>
+                                                        <th>Cliente Reference</th>
+                                                        <th>Expiration Date</th>
                                                         <th>Actions</th>
                                                     </tr>
                                                 </thead>
@@ -168,15 +212,21 @@ const Packages = () => {
                                                         <tr key={pkg.id}>
                                                             <td className="text-break">{pkg.id}</td>
                                                             <td className="text-break">{pkg.name}</td>
-                                                            <td className="text-break">{pkg.price}</td>
+                                                            <td className="text-break">${pkg.price}</td>
                                                             <td className="text-break">{pkg.description}</td>
                                                             <td className="text-break">{pkg.campaign}</td>
+                                                            <td className="text-break">{pkg.cliente_reference}</td>
+                                                            <td className="text-break">
+                                                                {pkg.expiration_date
+                                                                    ? pkg.expiration_date.substring(0, 10)
+                                                                    : 'N/A'}
+                                                            </td>
                                                             <td>
-                                                                <div className='d-flex justify-content-around gap-3'>
+                                                                <div className="d-flex justify-content-around gap-3">
                                                                     <Button
                                                                         variant="outline-danger"
                                                                         size="sm"
-                                                                        className='w-[50%]'
+                                                                        className="w-[50%]"
                                                                         onClick={() => {
                                                                             setCurrentPackage(pkg);
                                                                             setShowDeleteModal(true);
@@ -230,7 +280,9 @@ const Packages = () => {
                                 value={currentPackage.name}
                                 onChange={handleInputChange}
                             />
-                            {validationErrors.name && <p className="mt-2 text-sm text-red-600">{validationErrors.name}</p>}
+                            {validationErrors.name && (
+                                <p className="mt-2 text-sm text-red-600">{validationErrors.name}</p>
+                            )}
                         </Form.Group>
                         <Form.Group className="mb-3">
                             <Form.Label>Price</Form.Label>
@@ -240,7 +292,9 @@ const Packages = () => {
                                 value={currentPackage.price}
                                 onChange={handleInputChange}
                             />
-                            {validationErrors.price && <p className="mt-2 text-sm text-red-600">{validationErrors.price}</p>}
+                            {validationErrors.price && (
+                                <p className="mt-2 text-sm text-red-600">{validationErrors.price}</p>
+                            )}
                         </Form.Group>
                         <Form.Group className="mb-3">
                             <Form.Label>Description</Form.Label>
@@ -251,13 +305,15 @@ const Packages = () => {
                                 onChange={handleSelectChange}
                             >
                                 <option value="">Select a contract</option>
-                                {contracts.map(contract => (
+                                {contracts.map((contract) => (
                                     <option key={contract.id} value={contract.description}>
                                         {contract.description}
                                     </option>
                                 ))}
                             </Form.Control>
-                            {validationErrors.description && <p className="mt-2 text-sm text-red-600">{validationErrors.description}</p>}
+                            {validationErrors.description && (
+                                <p className="mt-2 text-sm text-red-600">{validationErrors.description}</p>
+                            )}
                         </Form.Group>
                         <Form.Group className="mb-3">
                             <Form.Label>Campaign</Form.Label>
@@ -267,7 +323,33 @@ const Packages = () => {
                                 value={currentPackage.campaign}
                                 onChange={handleInputChange}
                             />
-                            {validationErrors.campaign && <p className="mt-2 text-sm text-red-600">{validationErrors.campaign}</p>}
+                            {validationErrors.campaign && (
+                                <p className="mt-2 text-sm text-red-600">{validationErrors.campaign}</p>
+                            )}
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Cliente Reference</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="cliente_reference"
+                                value={currentPackage.cliente_reference}
+                                onChange={handleInputChange}
+                            />
+                            {validationErrors.cliente_reference && (
+                                <p className="mt-2 text-sm text-red-600">{validationErrors.cliente_reference}</p>
+                            )}
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Expiration Date</Form.Label>
+                            <Form.Control
+                                type="date"
+                                name="expiration_date"
+                                value={currentPackage.expiration_date}
+                                onChange={handleInputChange}
+                            />
+                            {validationErrors.expiration_date && (
+                                <p className="mt-2 text-sm text-red-600">{validationErrors.expiration_date}</p>
+                            )}
                         </Form.Group>
                         <Button variant="primary" type="submit">
                             {modalMode === 'create' ? 'Add Package' : 'Update Package'}
@@ -282,11 +364,7 @@ const Packages = () => {
                 onConfirm={handleDelete}
                 message="Are you sure you want to delete this package?"
             />
-            <CustomToast
-                show={showToast}
-                onClose={() => setShowToast(false)}
-                message={toastMessage}
-            />
+            <CustomToast show={showToast} onClose={() => setShowToast(false)} message={toastMessage} />
         </AuthenticatedLayout>
     );
 };
