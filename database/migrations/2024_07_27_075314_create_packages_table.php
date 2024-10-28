@@ -14,6 +14,8 @@ class CreatePackagesTable extends Migration
             $table->string('price');
             $table->string('description');
             $table->string('campaign');
+            $table->string('cliente_reference')->nullable(); 
+            $table->date('expiration_date')->nullable();
             $table->timestamps();
         });
     }
