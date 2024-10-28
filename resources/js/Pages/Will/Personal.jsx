@@ -339,6 +339,12 @@ export default function Personal({ auth }) {
         setObjectStatus(updatedObjectStatus)
         setCurrentProfile(email)
         setShowSelectProfileModal(false)
+        const newVisibleSteps = getVisibleSteps(getObjectStatus(objectStatus, owner), document)
+
+        const firstIncompleteStep = findFirstIncompleteStep(objectStatus, owner, newVisibleSteps)
+        firstIncompleteStep
+            ? setPointer(firstIncompleteStep)
+            : setShowPDFEditor(true)
     }
     // Function to handle advancing to the next step
     const pushInfo = async (step) => {
