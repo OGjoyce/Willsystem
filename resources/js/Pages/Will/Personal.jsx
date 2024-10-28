@@ -18,11 +18,16 @@ import Additional from '@/Components/Additional';
 import PoaProperty from '@/Components/PoaProperty';
 import PoaHealth from '@/Components/PoaHealth';
 import FinalDetails from '@/Components/FinalDetails';
+import PDFEditor from '@/Components/PDF/PDFEditor';
+import WillContent from '@/Components/PDF/Content/WillContent';
+import POA1Content from '@/Components/PDF/Content/POA1Content';
+import POA2Content from '@/Components/PDF/Content/POA2Content';
+import { ProfileSelector } from '@/Components/ProfileSelector';
 import DocumentSelector from '@/Components/PDF/DocumentSelector';
 import SelectPackageModal from '../Admin/SelectPackageModal';
 import BreadcrumbNavigation from '@/Components/AdditionalComponents/BreadcrumbNavigation';
 //Import utility functions
-import { handleProfileData } from '@/utils/profileUtils';
+import { handleProfileData, handleSelectProfile } from '@/utils/profileUtils';
 import { getObjectStatus, initializeObjectStructure, initializeSpousalWill } from '@/utils/objectStatusUtils';
 import { packageDocuments, initializePackageDocuments } from '@/utils/packageUtils'
 import { getVisibleSteps, stepHasData, findFirstIncompleteStep } from '@/utils/stepUtils';
@@ -50,6 +55,13 @@ import {
     getDocumentDOMInfo,
 } from '@/utils/formHandlers';
 
+const contentComponents = {
+    primaryWill: WillContent,
+    spousalWill: WillContent,
+    secondaryWill: WillContent,
+    poaProperty: POA1Content,
+    poaHealth: POA2Content
+};
 
 export default function Personal({ auth }) {
     // Component state
@@ -58,6 +70,8 @@ export default function Personal({ auth }) {
     const [currentProfile, setCurrentProfile] = useState(null)
     const [currentDocument, setCurrentDocument] = useState();
     const [showSelectPackageModal, setShowSelectPackageModal] = useState(false);
+    const [showSelectProfileModal, setShowSelectProfileModal] = useState(false)
+    const [showPDFEditor, setShowPDFEditor] = useState(false)
     const [selectedPackage, setSelectedPackage] = useState(null);
     const [availableDocuments, setAvailableDocuments] = useState([]);
     const [visibleSteps, setVisibleSteps] = useState([]);
@@ -230,8 +244,102 @@ export default function Personal({ auth }) {
 
     };
 
+    const handleSelectDocument = (docObj) => {
+        let owner = docObj.owner || 'unknown';
+        const document = docObj.docType;
+
+        setCurrentDocument(document);
+
+        if (owner !== 'unknown') {
+            const newVisibleSteps = getVisibleSteps(getObjectStatus(objectStatus, owner), document)
+            console.log(newVisibleSteps)
+            const firstIncompleteStep = findFirstIncompleteStep(objectStatus, owner, newVisibleSteps)
+            firstIncompleteStep
+                ? setPointer(firstIncompleteStep)
+                : setShowPDFEditor(true)
+        }
 
 
+        if (document === 'secondaryWill' && owner == 'unknown') {
+            setCurrentDocument(document);
+            setCurrentProfile(null);
+            setPointer(0);
+            return;
+        } else if (document === 'secondaryWill' && owner !== 'unknown') {
+            setCurrentDocument(document);
+            setCurrentProfile(owner);
+
+        }
+        if (document === 'spousalWill' && owner == 'unknown') {
+            setCurrentDocument(document);
+            setCurrentProfile(null);
+            setPointer(3);
+            return;
+        } else if (document === 'spousalWill' && owner !== 'unknown') {
+            setCurrentDocument(document);
+            setCurrentProfile(owner);
+        }
+
+
+
+        // Verificar si el documento tiene un associatedWill
+        if (docObj.associatedWill) {
+            const associatedWillId = docObj.associatedWill;
+
+            // Buscar el Will asociado en los documentos
+            const associatedWill = objectStatus[0]?.[0]?.packageInfo?.documents?.find(will => will.willIdentifier === associatedWillId);
+
+            // Si el Will asociado tiene un owner, asignarlo automáticamente
+            if (associatedWill && associatedWill.owner) {
+                owner = associatedWill.owner;
+                setCurrentProfile(owner);
+                setCurrentDocument(document);
+
+            }
+        }
+
+        // Si no hay associatedWill o el owner es 'unknown', mostrar el modal para seleccionar un email
+        if (owner === 'unknown') {
+            setShowPDFEditor(false)
+            setCurrentProfile(null)
+            setCurrentDocument(document)
+            setShowSelectProfileModal(true);
+            return;
+        }
+
+        // Si el documento ya tiene un owner, continuar con la lógica habitual
+        if (document === currentDocument && owner === currentProfile) {
+
+            setCurrentDocument(currentDocument)
+            setCurrentProfile(currentProfile)
+            return;
+        }
+
+
+
+
+        setCurrentDocument(document);
+        setCurrentProfile(owner);
+        console.log(owner)
+        console.log(document)
+
+
+    };
+
+    const handleCreateNewProfile = () => {
+        setPointer(0);
+        setCurrentProfile(null);
+        setShowSelectProfileModal(false)
+    };
+
+
+    const selectProfile = (objectStatus, email) => {
+        setShowPDFEditor(false)
+        const updatedObjectStatus = handleSelectProfile(objectStatus, email, currentProfile)
+        setObjectStatus(updatedObjectStatus)
+        setCurrentProfile(email)
+        setShowSelectProfileModal(false)
+    }
     // Function to handle advancing to the next step
     const pushInfo = async (step) => {
         let propertiesAndData = [];
@@ -656,21 +764,23 @@ export default function Personal({ auth }) {
                         {pointer === 13 && <PoaHealth datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
                         {pointer === 14 && <Additional datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
                         {pointer === 15 && <FinalDetails datas={getObjectStatus(objectStatus, currentProfile)} />}
-                        {pointer === 16 && <DocumentSelector
-                            errors={validationErrors}
-                            objectStatus={objectStatus}
-                            currentProfile={currentProfile}
-                            currIdObjDB={currIdObjDB}
-                            onSelect={(doc) => { setValidationErrors({}) }}
-                            setPointer={setPointer}
-                            setCurrentProfile={setCurrentProfile}
-                            setCurrentDocument={setCurrentDocument}
-                            setObjectStatus={setObjectStatus}
-                            backStep={backStep}
-                            visibleSteps={visibleSteps}
-                            setVisibleSteps={setVisibleSteps}
-                        />}
-
+                        {pointer === 16 && <DocumentSelector objectStatus={objectStatus} handleSelectDocument={handleSelectDocument} currIdObjDB={currIdObjDB} />}
+                        {pointer === 16 && showSelectProfileModal && <ProfileSelector objectStatus={objectStatus} handleCreateNewProfile={handleCreateNewProfile} selectProfile={selectProfile} />}
+                        {pointer === 16 && showPDFEditor && (
+                            <div className="fixed inset-0 flex justify-center items-center bg-gray-100 z-50 overflow-auto">
+                                <div className="relative w-full max-w-5xl bg-white shadow-lg rounded-lg p-6 mt-12 mb-12">
+                                    <PDFEditor
+                                        documentType={currentDocument}
+                                        objectStatus={objectStatus}
+                                        documentOwner={currentProfile}
+                                        backendId={currIdObjDB}
+                                        ContentComponent={contentComponents[currentDocument]}
+                                        onBack={() => { setShowPDFEditor(false) }}
+                                    />
+                                </div>
+                            </div>
+                        )
+                        }
                         <div className='p-5 flex justify-center mt-28'>
                             <Container fluid="md">
                                 <Row>
