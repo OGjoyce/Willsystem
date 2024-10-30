@@ -28,7 +28,7 @@ def send_email(to_email, subject, message, ishtml):
         email_msg['Subject'] = subject
  
 
-       if is_html:
+       if ishtml:
         email_msg.attach(MIMEText(message, 'html'))
        else:
         email_msg.attach(MIMEText(message, 'plain'))
