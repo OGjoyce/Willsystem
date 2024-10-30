@@ -14,7 +14,7 @@ CORS(app)  # Enable CORS for all routes
 GMAIL_USER = os.getenv('GMAIL_USER')
 GMAIL_PASSWORD = os.getenv('GMAIL_PASSWORD')
 
-def send_email(to_email, subject, message):
+def send_email(to_email, subject, message, ishtml):
     try:
         # Set up the server
         server = smtplib.SMTP('smtp.gmail.com', 587)
@@ -26,11 +26,12 @@ def send_email(to_email, subject, message):
         email_msg['From'] = GMAIL_USER
         email_msg['To'] = to_email
         email_msg['Subject'] = subject
+ 
 
-       #if is_html:
+       if is_html:
         email_msg.attach(MIMEText(message, 'html'))
-       # else:
-        #    email_msg.attach(MIMEText(message, 'plain'))
+       else:
+        email_msg.attach(MIMEText(message, 'plain'))
 
         # Send the email
         server.sendmail(GMAIL_USER, to_email, email_msg.as_string())
@@ -48,9 +49,10 @@ def send_email_endpoint():
     to_email = data.get('to_email')
     subject = data.get('subject')
     message = data.get('message')
+    ishtml = data.get('is_html')
 
     # Call the email sending function
-    result = send_email(to_email, subject, message)
+    result = send_email(to_email, subject, message, ishtml)
 
     return jsonify({"result": result})
 
