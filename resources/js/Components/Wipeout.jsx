@@ -152,9 +152,6 @@ function Wipeout({ id, datas, errors }) {
             newErrors.beneficiary = "Beneficiary is required";
         }
 
-        if (!backup) {
-            newErrors.backup = "Backup is required";
-        }
         if (beneficiary === backup) {
             newErrors.backup = "Beneficiary and backup can't be the same";
         }
@@ -177,7 +174,7 @@ function Wipeout({ id, datas, errors }) {
         const newItem = {
             id: bequestindex,
             beneficiary,
-            backup,
+            backup: backup || 'N/A',
             shares: sharesNum,
             type: isOrganization ? "N/A" : type
         };
