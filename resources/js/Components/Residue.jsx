@@ -216,6 +216,10 @@ function Residue({ id, datas, errors }) {
     const name = `${newPerson.firstName} ${newPerson.lastName}`;
     setIdentifiersNames(prevNames => [...prevNames, name]);
 
+    if (!datas[5].relatives) {
+      datas[5].relatives = [];
+    }
+
     let len = Object.keys(datas[5].relatives).length;
     datas[5].relatives[len] = newPerson;
   };
