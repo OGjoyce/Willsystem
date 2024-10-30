@@ -50,13 +50,6 @@ export const validate = {
       errors.lastName = 'Last name is required';
     }
 
-    if (!data.relative || data.relative.trim() === '') {
-      errors.relative = 'Relative is required';
-    }
-
-    if (!data.relative === '' || data.relative.trim() === '') {
-      errors.otherRelative = 'Please specify the relation';
-    }
 
     if (!data.email || !isValidEmail(data.email)) {
       errors.email = 'Valid email is required';
