@@ -36,6 +36,7 @@ const stepper = [
             // Ocultar pasos basados en la información de spouse y kids
             if (index === 2 && !hasSpouse) return false; // Spouse Information
             if (index === 4 && !hasKids) return false; // Children Information
+            if (index === 9 && !hasKids) return false; // Testamentary trust
             if (index === 10 && !hasKids) return false; // Guardian For Minors
 
             // Lógica basada en currentDocument
