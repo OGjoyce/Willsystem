@@ -149,7 +149,7 @@ export const validate = {
   guardians: (data) => {
     const errors = {};
     if (!data || data.length === 0) {
-      errors.guardians = 'At least one guardian for minors is required';
+
     }
 
     return errors;
