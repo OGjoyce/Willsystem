@@ -38,6 +38,7 @@ function Wipeout({ id, datas, errors }) {
     const [backup, setBackup] = useState('');
     const [shares, setShares] = useState('');
     const [type, setType] = useState('');
+    const [toBeDetermined, setToBeDetermined] = useState(false)
 
     useEffect(() => {
         setValidationErrors(errors);
@@ -295,6 +296,13 @@ function Wipeout({ id, datas, errors }) {
                             label="Specific Wipeout Beneficiary"
                             checked={isSpecificBeneficiary}
                             onChange={handleCheckboxChange}
+                        />
+                        <Form.Check
+                            type="checkbox"
+                            id=""
+                            label=" to be determined by client"
+                            checked={toBeDetermined}
+                            onChange={() => { setToBeDetermined(!toBeDetermined) }}
                         />
                     </Col>
                 </Row>
