@@ -24,6 +24,7 @@ function Trusting({ datas, errors }) {
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
     const [itemToDelete, setItemToDelete] = useState(null);
+    const [testamentaryTrusting, setTestamentaryTrusting] = useState(true)
 
     useEffect(() => {
         const formValues = localStorage.getItem('formValues');
@@ -47,11 +48,17 @@ function Trusting({ datas, errors }) {
         tableDataRef.current = localTableData;
     }, [localTableData]);
 
+    useEffect(() => {
+        if (!testamentaryTrusting) {
+            tableDataRef.current = { 0: 'N/A' }
+        }
+    }, [testamentaryTrusting])
+
     const handleAdd = () => {
         setValidationErrors({});
         const floatShares = parseFloat(shares);
 
-        if (!age || age > 100 || age <= 0) {
+        if (age > 100 || age <= 0) {
             setValidationErrors(prevErrors => ({ ...prevErrors, age: 'A valid age is required' }));
             return;
         }
@@ -157,7 +164,18 @@ function Trusting({ datas, errors }) {
                     <Form.Control type="number" value={shares} onChange={(e) => setShares(e.target.value)} />
                     {validationErrors.shares && <p className="mt-2 text-sm text-red-600">{validationErrors.shares}</p>}
                 </Form.Group>
+
+                <Form.Check
+                    type="checkbox"
+                    id=""
+                    className='mb-4'
+                    label="No testamentary Trusting"
+                    checked={!testamentaryTrusting}
+                    onChange={() => { setTestamentaryTrusting(!testamentaryTrusting) }}
+                />
+
             </Form>
+
             <Button variant="success" size="sm" onClick={handleAdd}>Add new Share</Button>
             <div id="example-collapse-text">
                 {validationErrors.trusting && <p className="mt-2 text-sm text-center text-red-600">{validationErrors.trusting}</p>}
