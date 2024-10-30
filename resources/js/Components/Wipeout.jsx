@@ -258,6 +258,11 @@ function Wipeout({ id, datas, errors }) {
         const name = `${newPerson.firstName} ${newPerson.lastName}`;
         setIdentifiersNames(prevNames => [...prevNames, name]);
 
+        // Verifica si 'relatives' existe; si no, lo inicializa como un objeto vacío
+        if (!datas[5].relatives) {
+            datas[5].relatives = [];
+        }
+
         let len = Object.keys(datas[5].relatives).length;
         datas[5].relatives[len] = newPerson;
     };
