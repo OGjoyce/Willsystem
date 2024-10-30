@@ -142,9 +142,6 @@ export const validate = {
 
   trusting: (data) => {
     const errors = {};
-    if (!data || data.length === 0) {
-      errors.trusting = 'Minimun testamentary trust age is required';
-    }
 
     return errors;
   },
