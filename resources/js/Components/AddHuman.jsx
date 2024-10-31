@@ -52,7 +52,7 @@ export function getHumanData(params) {
                 lastName: lastName,
                 relative: relative,
                 email: email,
-                phone: `+1 ${phone}`,
+                phone: `+${phone}`,
                 city: city,
                 province: province,
                 country: country
@@ -120,7 +120,7 @@ function AddHuman({ married, childrens, human, errors, onDataChange }) {
         if (!value) return '';
 
         // Elimina cualquier carácter que no sea un número
-        const phoneNumber = value.replace(/[^\d]/g, '').slice(0, 10); // Limita a 10 dígitos
+        const phoneNumber = value.replace(/[^\d]/g, '').slice(0, 11); // Limita a 10 dígitos
 
         // Aplica el formato XXX XXX XXXX
 
@@ -241,12 +241,12 @@ function AddHuman({ married, childrens, human, errors, onDataChange }) {
                             <Form.Label>Phone</Form.Label>
                             <InputGroup className="mb-3" controlId="phoneId">
 
-                                <InputGroup.Text>+1 </InputGroup.Text>
+                                <InputGroup.Text>+ </InputGroup.Text>
                                 <Form.Control
                                     type="text"
                                     name="phone"
                                     id="phoneId"
-                                    placeholder="XXX XXX-XXXX"
+                                    placeholder="X XXX XXX-XXXX"
                                     value={formValues?.phone || phone}
                                     onChange={handlePhoneChange}
 
