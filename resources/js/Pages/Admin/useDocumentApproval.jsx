@@ -33,7 +33,7 @@ const useDocumentApproval = (initialDocId) => {
                 if (allParsedDocuments.length > 0) {
                     setDocuments(allParsedDocuments);
                 } else {
-                    setError('No document data found in response');
+                    setError('No documents saved yet');
                 }
             } else {
                 setError('No data received from server');
