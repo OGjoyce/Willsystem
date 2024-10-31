@@ -245,7 +245,7 @@ const FilesReview = () => {
             return {
                 id: item.id || null,
                 user: owner,
-                name: packageInfo.name || 'unknown',
+                name: packageInfo.description || 'unknown',
                 approved: `${approvedCount}/${totalCount}`,
                 createdAt: formattedCreationDate,
                 updatedAt: formattedLatestDate,
