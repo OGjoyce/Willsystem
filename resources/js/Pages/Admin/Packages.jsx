@@ -12,6 +12,7 @@ import { Link, Head } from '@inertiajs/react';
 
 const Packages = () => {
     const [packages, setPackages] = useState([]);
+    const [contracts, setContracts] = useState([]); // Estado para los contratos
     const [searchTerm, setSearchTerm] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -31,6 +32,7 @@ const Packages = () => {
 
     useEffect(() => {
         fetchPackages();
+        fetchContracts(); // Llamar a fetchContracts para obtener los contratos
     }, []);
 
     const fetchPackages = async () => {
@@ -39,6 +41,17 @@ const Packages = () => {
             setPackages(response.data);
         } catch (error) {
             console.error('Error fetching packages:', error);
+        }
+    };
+
+    // Nueva función para obtener contratos desde el endpoint
+    const fetchContracts = async () => {
+        try {
+            const response = await axios.get('/api/contracts');
+            const sortedContracts = response.data.sort((a, b) => a.description.localeCompare(b.description));
+            setContracts(sortedContracts);
+        } catch (error) {
+            console.error('Error fetching contracts:', error);
         }
     };
 
@@ -65,10 +78,17 @@ const Packages = () => {
     };
 
     const filteredPackages = useMemo(() => {
-        return packages.filter(pkg =>
-            pkg.name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+        const today = new Date(); // Obtener la fecha actual
+        return packages.filter(pkg => {
+            const expirationDate = pkg.expiration_date ? new Date(pkg.expiration_date) : null;
+            // Filtrar paquetes cuyo nombre coincida con la búsqueda y cuya fecha de expiración no haya pasado
+            return (
+                pkg.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+                (!expirationDate || expirationDate >= today)
+            );
+        });
     }, [packages, searchTerm]);
+
 
     const exportCSV = () => {
         const headers = ['ID', 'Name', 'Price', 'Description', 'Campaign', 'Cliente Reference', 'Expiration Date'];
@@ -243,11 +263,18 @@ const Packages = () => {
                             <Form.Group className="mb-3">
                                 <Form.Label>Description</Form.Label>
                                 <Form.Control
-                                    type="text"
+                                    as="select"
                                     name="description"
                                     value={currentPackage.description}
                                     onChange={handleInputChange}
-                                />
+                                >
+                                    <option value="">Select a contract</option>
+                                    {contracts.map(contract => (
+                                        <option key={contract.id} value={contract.description}>
+                                            {contract.description}
+                                        </option>
+                                    ))}
+                                </Form.Control>
                                 {validationErrors.description && <p className="text-danger">{validationErrors.description}</p>}
                             </Form.Group>
                             <Form.Group className="mb-3">
