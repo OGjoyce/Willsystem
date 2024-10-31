@@ -6,7 +6,7 @@ const isValidEmail = (email) => {
 };
 
 const isValidPhone = (phone) => {
-  const re = /^\+1 \d{10}$/;
+  const re = /^\+\d{11}$/;
   return re.test(phone);
 };
 
@@ -25,7 +25,7 @@ export const validate = {
     }
 
     if (!data.telephone || !isValidPhone(data.telephone)) {
-      errors.telephone = 'Valid phone number is required (+1 XXX XXX XXXX)';
+      errors.telephone = 'Valid phone number is required (+X XXX XXX XXXX)';
     }
 
     if (!data.city || data.city.trim() === '') {
@@ -57,7 +57,7 @@ export const validate = {
     }
 
     if (!data.phone || !isValidPhone(data.phone)) {
-      errors.phone = 'Valid phone number is required (+1 XXX XXX XXXX)';
+      errors.phone = 'Valid phone number is required (+X XXX XXX XXXX)';
     }
 
     if (!data.city || data.city.trim() === '') {
