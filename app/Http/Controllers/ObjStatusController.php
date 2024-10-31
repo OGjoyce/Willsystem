@@ -158,5 +158,15 @@ public function searchByInput(Request $request)
     return response()->json($files);
 }
 
+    public function searchById(Request $request)
+    {
+        $id = $request->input('id');
+       
+        $files = ObjStatus::where('id', $id)->get();
+
+        \Log::info('Search results by ID: ' . $files);
+        return response()->json($files);
+    }
+
 
 }
