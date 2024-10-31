@@ -63,6 +63,9 @@ function AddPersonDropdown({
                         </Dropdown.Item>
                     ))}
                     <Dropdown.Divider />
+                    <Dropdown.Item eventKey="" className="text-primary">
+                        Clear
+                    </Dropdown.Item>
                     <Dropdown.Item eventKey="add-person" className="text-primary">
                         Add Person
                     </Dropdown.Item>
