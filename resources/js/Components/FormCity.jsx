@@ -34,7 +34,7 @@ const handleCitySelect = (selectedData) => {
 };
 
 export function getFormData() {
-    var telephone = `+1 ${document.getElementById('phone').value}`;
+    var telephone = `+${document.getElementById('phone').value}`;
     var fullname = document.getElementById('firstName')?.value + ' ' + document.getElementById('middleName')?.value + ' ' + document.getElementById('lastName')?.value;
     var email = document.getElementById('email').value;
 
@@ -76,7 +76,7 @@ function FormCity({ auth, laravelVersion, phpVersion, errors }) {
         if (!value) return '';
 
         // Elimina cualquier carácter que no sea un número
-        const phoneNumber = value.replace(/[^\d]/g, '').slice(0, 10); // Limita a 10 dígitos
+        const phoneNumber = value.replace(/[^\d]/g, '').slice(0, 11); // Limita a 10 dígitos
 
         // Aplica el formato XXX XXX XXXX
 
@@ -112,12 +112,12 @@ function FormCity({ auth, laravelVersion, phpVersion, errors }) {
 
                                 </div>
                                 <InputGroup className="mb-3">
-                                    <InputGroup.Text>+1 </InputGroup.Text>
+                                    <InputGroup.Text>+ </InputGroup.Text>
                                     <FormControl
                                         type="text"
                                         name="phone"
                                         id="phone"
-                                        placeholder="XXX XXX-XXXX"
+                                        placeholder="X XXX XXX-XXXX"
                                         value={phone}
                                         onChange={handlePhoneChange}
                                         aria-label="Phone Number"
