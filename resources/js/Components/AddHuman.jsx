@@ -3,10 +3,10 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
-import Form from 'react-bootstrap/Form';
 
 // Import the CityAutocomplete component
 import CityAutocomplete from './CityAutocomplete';
+import { Form, InputGroup } from 'react-bootstrap';
 
 let city = undefined
 let country = undefined
@@ -52,7 +52,7 @@ export function getHumanData(params) {
                 lastName: lastName,
                 relative: relative,
                 email: email,
-                phone: phone,
+                phone: `+1 ${phone}`,
                 city: city,
                 province: province,
                 country: country
@@ -117,20 +117,16 @@ function AddHuman({ married, childrens, human, errors, onDataChange }) {
     };
 
     const formatPhoneNumber = (value) => {
-        if (!value) return value;
+        if (!value) return '';
 
-        const phoneNumber = value.replace(/[^\d]/g, '');
+        // Elimina cualquier carácter que no sea un número
+        const phoneNumber = value.replace(/[^\d]/g, '').slice(0, 10); // Limita a 10 dígitos
 
-        const phoneNumberLength = phoneNumber.length;
-        if (phoneNumberLength < 2) return `+${phoneNumber}`;
-        if (phoneNumberLength < 5) {
-            return `+${phoneNumber[0]} (${phoneNumber.slice(1, 4)}`;
-        }
-        if (phoneNumberLength < 8) {
-            return `+${phoneNumber[0]} (${phoneNumber.slice(1, 4)}) ${phoneNumber.slice(4, 7)}`;
-        }
-        return `+${phoneNumber[0]} (${phoneNumber.slice(1, 4)}) ${phoneNumber.slice(4, 7)}-${phoneNumber.slice(7, 11)}`;
+        // Aplica el formato XXX XXX XXXX
+
+        return phoneNumber;
     };
+
 
     const handlePhoneChange = (e) => {
         const { id } = e.target;
@@ -241,16 +237,23 @@ function AddHuman({ married, childrens, human, errors, onDataChange }) {
                                 />
                                 {(married || human) && validationErrors.email && <p className="mt-2 text-sm text-red-600">{validationErrors.email}</p>}
                             </Form.Group>
-                            <Form.Group className="mb-3" controlId="phoneId">
-                                <Form.Label>Phone</Form.Label>
+
+                            <Form.Label>Phone</Form.Label>
+                            <InputGroup className="mb-3" controlId="phoneId">
+
+                                <InputGroup.Text>+1 </InputGroup.Text>
                                 <Form.Control
                                     type="text"
-                                    placeholder="+1(XXX)XXX-XXXX"
-                                    onChange={handlePhoneChange}
+                                    name="phone"
+                                    id="phoneId"
+                                    placeholder="XXX XXX-XXXX"
                                     value={formValues?.phone || phone}
+                                    onChange={handlePhoneChange}
+
                                 />
                                 {(married || human) && validationErrors.phone && <p className="mt-2 text-sm text-red-600">{validationErrors.phone}</p>}
-                            </Form.Group>
+                            </InputGroup>
+
                         </>
                     )}
                 </Form.Group>
