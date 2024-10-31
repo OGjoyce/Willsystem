@@ -434,7 +434,9 @@ function Residue({ id, datas, errors }) {
         }));
       }
     }
-
+    if (value == '') {
+      value = "N/A"
+    }
     if (editingRow === index) {
       setTempEditData({ ...tempEditData, [key]: value });
     } else {
