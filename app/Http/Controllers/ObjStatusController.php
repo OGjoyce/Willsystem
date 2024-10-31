@@ -125,14 +125,38 @@ class ObjStatusController extends Controller
         return response()->noContent();
     }
 
-    public function searchByEmail(Request $request)
-    {
-        $owner = $request->input('owner');
-       
-        $files = ObjStatus::whereRaw("JSON_UNQUOTE(JSON_EXTRACT(information, '$[0][0].owner')) = ?", [$owner])->get();
-        \Log::info('Search results: ' . $files);
-        return response()->json($files);
-    }
+public function searchByInput(Request $request)
+{
+    $input = $request->input('owner');
+
+    $files = ObjStatus::where(function($query) use ($input) {
+        // Trim and escape the input to prevent SQL injection
+        $input = trim($input);
+
+        // Check if the input is numeric, assuming it's an ID
+        if (is_numeric($input)) {
+            $query->where('id', $input);
+        }
+
+        // Prepare the input for partial matching
+        $likeInput = '%' . $input . '%';
+
+        // Search by owner email with partial match
+        $query->orWhereRaw(
+            "JSON_UNQUOTE(JSON_EXTRACT(information, '$[0][0].owner')) LIKE ?",
+            [$likeInput]
+        );
+
+        // Search by full name with partial match
+        $query->orWhereRaw(
+            "JSON_UNQUOTE(JSON_EXTRACT(information, '$[0][0].personal.fullName')) LIKE ?",
+            [$likeInput]
+        );
+    })->get();
+
+    \Log::info('Search results: ' . $files);
+    return response()->json($files);
+}
 
     public function searchById(Request $request)
     {
@@ -143,4 +167,6 @@ class ObjStatusController extends Controller
         \Log::info('Search results by ID: ' . $files);
         return response()->json($files);
     }
+
+
 }

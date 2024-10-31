@@ -22,7 +22,7 @@ let updateOrCreateProperty = (prevStatus, propertiesAndData) => {
     return newStatus;
 };
 
-export const handleProfileData = (currentProfile, propertiesAndData, prevStatus) => {
+const handleProfileData = (currentProfile, propertiesAndData, prevStatus) => {
     // Clonamos el estado anterior para no modificarlo directamente
     const newStatus = [...prevStatus];
 
@@ -44,3 +44,39 @@ export const handleProfileData = (currentProfile, propertiesAndData, prevStatus)
     return newStatus;
 };
 
+    const handleSelectProfile = (objectStatus, email, currentProfile) => {
+        const updatedObjectStatus = objectStatus.map((profileArray) => {
+            return profileArray.map((dataObj) => {
+                // Verifica si este es el perfil actual
+                if (dataObj.packageInfo && dataObj.packageInfo.documents && dataObj.personal?.email === currentProfile) {
+                    let documentUpdated = false; // Indicador de si ya se actualizó un documento
+
+                    const updatedDocuments = dataObj.packageInfo.documents.map((docObj) => {
+                        if (!documentUpdated && docObj.docType === selectedDoc && docObj.owner === 'unknown') {
+                            documentUpdated = true; // Marcamos que ya se actualizó un documento
+                            return { ...docObj, owner: email };
+                        }
+                        return docObj;
+                    });
+
+                    return {
+                        ...dataObj,
+                        packageInfo: {
+                            ...dataObj.packageInfo,
+                            documents: updatedDocuments,
+                        },
+                    };
+                }
+                return dataObj;
+            });
+        });
+
+        return updatedObjectStatus
+    };
+
+
+
+export {
+    handleProfileData,
+    handleSelectProfile
+}

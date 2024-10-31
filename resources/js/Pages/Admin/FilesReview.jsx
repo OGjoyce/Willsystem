@@ -196,6 +196,8 @@ const FilesReview = () => {
             let totalCount = 0;
             let approvedCount = 0;
 
+
+            totalCount = packageInfo.documents.length
             documentDOMs.forEach(documentDOM => {
                 const documents = Object.entries(documentDOM);
 
@@ -225,8 +227,6 @@ const FilesReview = () => {
                             allApproved = false;
                         }
                     }
-
-                    totalCount += 1;
                 });
             });
 
@@ -245,7 +245,7 @@ const FilesReview = () => {
             return {
                 id: item.id || null,
                 user: owner,
-                name: packageInfo.name || 'unknown',
+                name: packageInfo.description || 'unknown',
                 approved: `${approvedCount}/${totalCount}`,
                 createdAt: formattedCreationDate,
                 updatedAt: formattedLatestDate,

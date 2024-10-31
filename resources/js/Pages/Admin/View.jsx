@@ -21,6 +21,11 @@ const View = () => {
     const [allDataFetched, setAllDataFetched] = useState([]);
     const [finalSelection, setFinalSelection] = useState([]);
 
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [noResults, setNoResults] = useState(false);
+
+
     const handleClose = () => setShow(false);
 
     const handleShow = (id) => {
@@ -76,25 +81,44 @@ const View = () => {
     };
 
     const handleSearch = async () => {
-        const response = await axios.get('/api/files/search', {
-            params: { owner: packageValue }
-        });
-        setAllDataFetched(response.data);
+        setLoading(true);
+        setError('');
+        setNoResults(false);
+        setArrObj([]); // Clear previous results
 
-        const newArrObj = response.data.map(element => {
-            const firstElement = element.information[0][0]; // Accede al primer objeto dentro del array anidado
-            return {
-                id: element.id,
-                created: element.created_at,
-                updated: element.updated_at,
-                email: firstElement.owner,
-                name: firstElement.personal.fullName,
-                leng: element.information[0].length // Ajustar según los datos
-            };
-        });
+        try {
+            const response = await axios.get('/api/files/search', {
+                params: { owner: packageValue }
+            });
 
-        setArrObj(newArrObj);
+            if (response.data.length === 0) {
+                setNoResults(true);
+                setAllDataFetched([]);
+            } else {
+                setAllDataFetched(response.data);
+
+                const newArrObj = response.data.map(element => {
+                    const firstElement = element.information[0][0];
+                    return {
+                        id: element.id,
+                        created: element.created_at,
+                        updated: element.updated_at,
+                        email: firstElement.owner,
+                        name: firstElement.personal.fullName,
+                        leng: element.information[0].length
+                    };
+                });
+
+                setArrObj(newArrObj);
+            }
+        } catch (err) {
+            setError('An error occurred while fetching data.');
+            console.error('There was an error fetching the data!', err);
+        } finally {
+            setLoading(false);
+        }
     };
+
 
 
     useEffect(() => {
@@ -156,7 +180,7 @@ const View = () => {
                                                     <Form.Control
                                                         onChange={(e) => setPackageValue(e.target.value)}
                                                         type="email"
-                                                        placeholder="the owner of the will..."
+                                                        placeholder="type the email or name of the owner or id of file..."
                                                     />
                                                 </Form.Group>
                                             </Col>
@@ -166,48 +190,54 @@ const View = () => {
                                         </Row>
                                     </Form>
                                     <br />
-                                    <p class="text-center">Please, search by email of the owner of the will, then search it on the table</p>
-                                    <Table striped bordered hover responsive>
-                                        <thead>
-                                            <tr>
-                                                <th>File id</th>
-                                                <th>Email</th>
-                                                <th>Name</th>
-                                                <th>Created</th>
-                                                <th>Last Modification</th>
-                                                <th>Step</th>
-                                                <th>Edit Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {ArrObj.map((item, index) => (
-                                                <tr key={index}>
-                                                    <td>{item.id}</td>
-                                                    <td>
-                                                        <Link href={route('profile.info', { email: item.email })}>
-                                                            {item.email}
-                                                        </Link>
-                                                    </td>
-                                                    <td>{item.name}</td>
-                                                    <td>{item.created}</td>
-                                                    <td>{item.updated}</td>
-                                                    <td>{item.leng}/16</td>
-                                                    <td>
-                                                        {item.leng > 15 ? (
-                                                            <Button variant="outline-warning" size="sm" onClick={() => saveData(item.id)}>
-                                                                <i className="bi bi-eye"></i>View Documents
-                                                            </Button>
-                                                        ) : (
-                                                            <Button variant="outline-info" size="sm" onClick={() => saveData(item.id)}>
-                                                                <i className="bi bi-eye"></i>Continue Editing
-                                                            </Button>
-                                                        )}
-                                                    </td>
+                                    {!loading && !error && !noResults && ArrObj.length === 0 && (
+                                        <p className="text-center">Please, search by email or name of the owner of the file or its id</p>
+                                    )}
+                                    {loading && <p className="text-center">Loading...</p>}
+                                    {error && <p className="text-center text-danger">{error}</p>}
+                                    {noResults && <p className="text-center">No results found.</p>}
+                                    {ArrObj.length > 0 && (
+                                        <Table striped bordered hover responsive>
+                                            <thead>
+                                                <tr>
+                                                    <th>File id</th>
+                                                    <th>Email</th>
+                                                    <th>Name</th>
+                                                    <th>Created</th>
+                                                    <th>Last Modification</th>
+                                                    <th>Step</th>
+                                                    <th>Edit Action</th>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </Table>
-
+                                            </thead>
+                                            <tbody>
+                                                {ArrObj.map((item, index) => (
+                                                    <tr key={index}>
+                                                        <td>{item.id}</td>
+                                                        <td>
+                                                            <Link href={route('profile.info', { email: item.email })}>
+                                                                {item.email}
+                                                            </Link>
+                                                        </td>
+                                                        <td>{item.name}</td>
+                                                        <td>{item.created}</td>
+                                                        <td>{item.updated}</td>
+                                                        <td>{item.leng}/16</td>
+                                                        <td>
+                                                            {item.leng > 15 ? (
+                                                                <Button variant="outline-warning" size="sm" onClick={() => saveData(item.id)}>
+                                                                    <i className="bi bi-eye"></i>View Documents
+                                                                </Button>
+                                                            ) : (
+                                                                <Button variant="outline-info" size="sm" onClick={() => saveData(item.id)}>
+                                                                    <i className="bi bi-eye"></i>Continue Editing
+                                                                </Button>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </Table>
+                                    )}
                                     <Row style={{ marginBottom: "24px" }}>
                                         <Col xs={6}>
                                             <Link href={route('dashboard')}>

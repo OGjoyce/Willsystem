@@ -162,6 +162,20 @@ export default function GuardianForMinors({ errors, datas }) {
         }));
     };
 
+    const handleAddPerson = (newPerson) => {
+        const name = `${newPerson.firstName} ${newPerson.lastName}`;
+
+
+        identifiers_names = [...identifiers_names, name]
+        // Verifica si 'relatives' existe; si no, lo inicializa como un objeto vacío
+        if (!datas[5].relatives) {
+            datas[5].relatives = [];
+        }
+
+        let len = Object.keys(datas[5].relatives).length;
+        datas[5].relatives[len] = newPerson;
+    };
+
     return (
         <>
             <Container>
@@ -179,6 +193,7 @@ export default function GuardianForMinors({ errors, datas }) {
                                 label="Select Relative"
                                 selected={selected}
                                 onSelect={handleSelectBeneficiary}
+                                onAddPerson={handleAddPerson}
                                 validationErrors={validationErrors}
                                 setValidationErrors={setValidationErrors}
                             />

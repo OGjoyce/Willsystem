@@ -50,13 +50,6 @@ export const validate = {
       errors.lastName = 'Last name is required';
     }
 
-    if (!data.relative || data.relative.trim() === '') {
-      errors.relative = 'Relative is required';
-    }
-
-    if (!data.relative === '' || data.relative.trim() === '') {
-      errors.otherRelative = 'Please specify the relation';
-    }
 
     if (!data.email || !isValidEmail(data.email)) {
       errors.email = 'Valid email is required';
@@ -142,9 +135,6 @@ export const validate = {
 
   trusting: (data) => {
     const errors = {};
-    if (!data || data.length === 0) {
-      errors.trusting = 'Minimun testamentary trust age is required';
-    }
 
     return errors;
   },
@@ -152,7 +142,7 @@ export const validate = {
   guardians: (data) => {
     const errors = {};
     if (!data || data.length === 0) {
-      errors.guardians = 'At least one guardian for minors is required';
+
     }
 
     return errors;

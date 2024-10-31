@@ -19,6 +19,8 @@ class PackageController extends Controller
             'price' => 'required|string',
             'description' => 'required|string',
             'campaign' => 'required|string',
+              'cliente_reference' => 'nullable|string',
+            'expiration_date'   => 'nullable|date',
         ]);
 
         $package = Package::create($validatedData);
@@ -38,6 +40,8 @@ class PackageController extends Controller
             'price' => 'required|string',
             'description' => 'required|string',
             'campaign' => 'required|string',
+            'cliente_reference' => 'nullable|string',
+            'expiration_date'   => 'nullable|date',
         ]);
 
         $package->update($validatedData);

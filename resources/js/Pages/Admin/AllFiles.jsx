@@ -233,7 +233,7 @@ const AllFiles = () => {
             return {
                 id: item.id || null,
                 email: owner,
-                name: packageInfo?.name || 'unknown',
+                name: packageInfo?.description || 'unknown',
                 created: creationTimestamp ? new Date(creationTimestamp).toLocaleDateString() : 'N/A',
                 updated: lastModificationTimestamp ? new Date(lastModificationTimestamp).toLocaleDateString() : 'N/A',
                 leng: completedSteps,
@@ -299,7 +299,7 @@ const AllFiles = () => {
             ),
         },
         {
-            name: 'Name',
+            name: 'Package',
             selector: row => row.name,
             sortable: true,
             wrap: true,

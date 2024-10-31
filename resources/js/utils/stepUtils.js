@@ -4,7 +4,7 @@ import { getObjectStatus } from './objectStatusUtils';
 import { validate } from '@/Components/Validations';
 
 
-  const stepper = [
+const stepper = [
         { step: 0, title: 'Personal Information' },
         { step: 1, title: 'Married Status' },
         { step: 2, title: "Spouse's Information" },
@@ -24,7 +24,7 @@ import { validate } from '@/Components/Validations';
         { step: 16, title: 'Review, Edit and Download your Documents' },
     ];
 
- export const getVisibleSteps = (objectStatusToUse, currentDocument) => {
+ const getVisibleSteps = (objectStatusToUse, currentDocument) => {
         const hasSpouse = objectStatusToUse.some(
             (obj) => obj.marriedq && (obj.marriedq.selection === 'true' || obj.marriedq.selection === 'soso')
         );
@@ -36,6 +36,7 @@ import { validate } from '@/Components/Validations';
             // Ocultar pasos basados en la información de spouse y kids
             if (index === 2 && !hasSpouse) return false; // Spouse Information
             if (index === 4 && !hasKids) return false; // Children Information
+            if (index === 9 && !hasKids) return false; // Testamentary trust
             if (index === 10 && !hasKids) return false; // Guardian For Minors
 
             // Lógica basada en currentDocument
@@ -59,78 +60,33 @@ import { validate } from '@/Components/Validations';
         });
     };
 
+      const isStepClickable = (objectStatus, currentProfile, index) => {
+        // Si el índice es 0, siempre permitimos hacer clic
+        if (index === 0) return true;
 
-    // utils/stepHelper.js
+        // Verificamos si el paso 0 tiene datos completos
+        const step0Data = getObjectStatus(objectStatus, currentProfile).find(obj => obj.hasOwnProperty('personal'));
+        const step1Data = getObjectStatus(objectStatus, currentProfile).find(obj => obj.hasOwnProperty('marriedq'));
 
-
-
-// Función para empujar la información del paso actual
-export const pushInfo = async (step, objectStatus, setObjectStatus, currentProfile, availableDocuments, selectedPackage, currIdObjDB, setCurrIdObjDB, setValidationErrors) => {
-    let propertiesAndData = [];
-    const checkValidation = (validation) => {
-        setValidationErrors({});
-
-        const errors = validation;
-        if (Object.keys(errors).length > 0) {
-            setValidationErrors(errors);
-            console.log(errors);
+        // Si no existe step0Data o falta el nombre completo o el correo electrónico, no se puede hacer clic en otros pasos
+        if (!step0Data || !step0Data.personal.fullName || !step0Data.personal.email || !step1Data?.marriedq?.selection) {
             return false;
         }
+
+        // Si el paso 0 está completo, permitimos hacer clic en otros pasos
         return true;
     };
 
-    let updatedObjectStatus = objectStatus;
-
-    switch (step) {
-        case 0:
-            const personalData = getFormData();
-            if (checkValidation(validate.formData(personalData))) {
-                const initializedDocuments = initializePackageDocuments(availableDocuments, selectedPackage?.description);
-                const dataObj = {
-                    personal: {
-                        ...personalData,
-                        timestamp: Date.now(),
-                    },
-                    owner: personalData.email,
-                    packageInfo: {
-                        ...selectedPackage,
-                        documents: initializedDocuments,
-                    },
-                };
-
-                propertiesAndData = [
-                    { name: 'personal', data: dataObj.personal },
-                    { name: 'owner', data: dataObj.owner },
-                    {
-                        name: 'packageInfo', data: currIdObjDB === null ? dataObj.packageInfo : { 'undefined': "not an owner of any package" }
-                    },
-                ];
-
-                updatedObjectStatus = handleProfileData(personalData.email, propertiesAndData, objectStatus);
-                setObjectStatus(updatedObjectStatus);
-
-                if (currIdObjDB === null) {
-                    const dataFirstStore = await storeDataObject(dataObj);
-                    setCurrIdObjDB(dataFirstStore.id);
-                    localStorage.setItem('currIdObjDB', dataFirstStore.id);
-                }
-            } else {
-                return null;
+        const findFirstIncompleteStep = (objectStatus, currentProfile, visibleSteps) => {
+        for (let i = 0; i < visibleSteps.length; i++) {
+            if (!stepHasData(objectStatus, currentProfile, visibleSteps[i].step)) {
+                return visibleSteps[i].step;
             }
-            break;
-        // Similar estructura para otros pasos (case 1, 2, 3, etc.)
-        // ...
-    }
+        }
+        return null; // All steps are complete
+    };
 
-    // Actualizar base de datos y almacenamiento local
-    if (step !== 0 && currIdObjDB) {
-        updateDataObject(updatedObjectStatus, currIdObjDB);
-    }
-    localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus));
-    localStorage.setItem('currentPointer', step.toString());
-
-    return updatedObjectStatus;
-};
+    // utils/stepHelper.js
 
 // Función para retroceder paso
 export const backStep = (pointer, objectStatus, currentProfile, visibleSteps, setPointer) => {
@@ -153,33 +109,9 @@ export const backStep = (pointer, objectStatus, currentProfile, visibleSteps, se
     return true;
 };
 
-// Función para avanzar al siguiente paso
-export const nextStep = async (nextStepValue, pointer, objectStatus, currentProfile, currentDocument, setPointer, setObjectStatus, currIdObjDB, setValidationErrors) => {
-    const objectStatusResult = await pushInfo(pointer, objectStatus, setObjectStatus, currentProfile, /* demás parámetros */);
-    if (!objectStatusResult) {
-        return false;
-    }
-
-    const newVisibleSteps = getVisibleSteps(getObjectStatus(objectStatusResult, currentProfile), currentDocument);
-    const currentIndex = newVisibleSteps.findIndex((step) => step.step === pointer);
-    let nextVisibleStep = newVisibleSteps[currentIndex + 1];
-
-    // Lógica para ajustar el paso basado en el estado del cónyuge o hijos
-    // ...
-};
-
-// Helper para encontrar el primer paso incompleto
-export const findFirstIncompleteStep = (objectStatus, currentProfile, visibleSteps) => {
-    for (let i = 0; i < visibleSteps.length; i++) {
-        if (!stepHasData(visibleSteps[i].step, objectStatus, currentProfile)) {
-            return visibleSteps[i].step;
-        }
-    }
-    return null;
-};
 
 
-  export const stepHasData = (step, currentProfile, objectStatus) => {
+  const stepHasData = (objectStatus, currentProfile, step) => {
         const stepDataMap = {
             0: {
                 key: 'personal',
@@ -237,7 +169,7 @@ export const findFirstIncompleteStep = (objectStatus, currentProfile, visibleSte
                 key: 'guardians',
                 check: (data) => {
                     if (data && typeof data === 'object') {
-                        const keys = Object.keys(data).filter(k => k !== 'timestamp');
+                        const keys = Object.keys(data).filter(k => k == 'timestamp');
                         return keys.length > 0;
                     }
                     return false;
@@ -295,9 +227,15 @@ export const findFirstIncompleteStep = (objectStatus, currentProfile, visibleSte
                 const data = obj[key];
                 if (check(data)) {
                     return true;
-                }
+                } 
             }
         }
         return false;
     };
 
+    export {
+        isStepClickable,
+        stepHasData,
+        findFirstIncompleteStep,
+        getVisibleSteps
+    }

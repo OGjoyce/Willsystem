@@ -38,6 +38,7 @@ function Wipeout({ id, datas, errors }) {
     const [backup, setBackup] = useState('');
     const [shares, setShares] = useState('');
     const [type, setType] = useState('');
+    const [toBeDetermined, setToBeDetermined] = useState(false)
 
     useEffect(() => {
         setValidationErrors(errors);
@@ -151,9 +152,6 @@ function Wipeout({ id, datas, errors }) {
             newErrors.beneficiary = "Beneficiary is required";
         }
 
-        if (!backup) {
-            newErrors.backup = "Backup is required";
-        }
         if (beneficiary === backup) {
             newErrors.backup = "Beneficiary and backup can't be the same";
         }
@@ -176,7 +174,7 @@ function Wipeout({ id, datas, errors }) {
         const newItem = {
             id: bequestindex,
             beneficiary,
-            backup,
+            backup: backup || 'N/A',
             shares: sharesNum,
             type: isOrganization ? "N/A" : type
         };
@@ -260,6 +258,11 @@ function Wipeout({ id, datas, errors }) {
         const name = `${newPerson.firstName} ${newPerson.lastName}`;
         setIdentifiersNames(prevNames => [...prevNames, name]);
 
+        // Verifica si 'relatives' existe; si no, lo inicializa como un objeto vacío
+        if (!datas[5].relatives) {
+            datas[5].relatives = [];
+        }
+
         let len = Object.keys(datas[5].relatives).length;
         datas[5].relatives[len] = newPerson;
     };
@@ -295,6 +298,13 @@ function Wipeout({ id, datas, errors }) {
                             label="Specific Wipeout Beneficiary"
                             checked={isSpecificBeneficiary}
                             onChange={handleCheckboxChange}
+                        />
+                        <Form.Check
+                            type="checkbox"
+                            id=""
+                            label=" to be determined by client"
+                            checked={toBeDetermined}
+                            onChange={() => { setToBeDetermined(!toBeDetermined) }}
                         />
                     </Col>
                 </Row>

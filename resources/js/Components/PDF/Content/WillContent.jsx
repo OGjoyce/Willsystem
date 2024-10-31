@@ -103,12 +103,13 @@ var WillContent = forwardRef((props, ref) => {
 
                                         </ul>
 
-
+                                        <li>The term "child" or "children" as used in this my Will includes the above listed children and any children of mine that are subsequently born or legally adopted.</li>
                                     </>
+
                                 ) : (
                                     <li>I do not currently have any living children</li>
                                 )}
-                                <li>The term "child" or "children" as used in this my Will includes the above listed children and any children of mine that are subsequently born or legally adopted.</li>
+
                             </ol>
                             <br></br>
                             <p class="align-center"><strong>II. EXECUTOR</strong></p><p><strong><u>Definition</u></strong></p>

@@ -312,8 +312,12 @@ function Bequest({ id, datas, errors }) {
 
         // Update datas[5].relatives
         const updatedDatas = { ...datas };
-        const relatives = updatedDatas[5].relatives || {};
+        const relatives = updatedDatas[5].relatives || [];
         const len = Object.keys(relatives).length;
+
+        if (!datas[5].relatives) {
+            datas[5].relatives = [];
+        }
         relatives[len] = newPerson;
         updatedDatas[5].relatives = relatives;
         datas[5].relatives = relatives; // Update datas
