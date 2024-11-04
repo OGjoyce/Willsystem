@@ -52,13 +52,7 @@ export const validate = {
     }
 
 
-    if (!data.email || !isValidEmail(data.email)) {
-      errors.email = 'Valid email is required';
-    }
 
-    if (!data.phone || !isValidPhone(data.phone)) {
-      errors.phone = 'Valid phone number is required (+X XXX XXX XXXX)';
-    }
 
     if (!data.city || data.city.trim() === '') {
       errors.city = 'City is required';
