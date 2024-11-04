@@ -251,8 +251,9 @@ function AddHuman({ married, childrens, human, errors, onDataChange }) {
                                     onChange={handlePhoneChange}
 
                                 />
-                                {(married || human) && validationErrors.phone && <p className="mt-2 text-sm text-red-600">{validationErrors.phone}</p>}
+
                             </InputGroup>
+                            {(married || human) && validationErrors.phone && <p className="mt-2 text-sm text-red-600">{validationErrors.phone}</p>}
 
                         </>
                     )}
