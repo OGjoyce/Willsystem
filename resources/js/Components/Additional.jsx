@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Form } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 
 // Función para recuperar los datos de `additional` desde localStorage
 export function getAdditionalInformation() {
     const savedFormValues = JSON.parse(localStorage.getItem('formValues')) || {};
     return savedFormValues.additional || {
         customClauseText: '',
-        otherWishes: '',
+        otherWishes: [],
         checkboxes: {
             organdonation: false,
             cremation: false,
@@ -19,7 +19,7 @@ function Additional({ datas, errors }) {
     // State management para los campos del formulario
     const [additional, setAdditional] = useState({
         customClauseText: '',
-        otherWishes: '',
+        otherWishes: [],
         checkboxes: {
             organdonation: false,
             cremation: false,
@@ -27,6 +27,7 @@ function Additional({ datas, errors }) {
         },
     });
 
+    const [newWish, setNewWish] = useState(''); // State para el nuevo deseo
     const [validationErrors, setValidationErrors] = useState({});
 
     // Cargar datos de localStorage al montar el componente
@@ -67,11 +68,26 @@ function Additional({ datas, errors }) {
         updateLocalStorage(newData);
     };
 
-    // Actualizar estado y localStorage para Other Wishes
-    const handleOtherWishesChange = (e) => {
+    // Función para agregar un nuevo deseo a la lista
+    const addWish = () => {
+        if (newWish.trim() !== '') {
+            const updatedWishes = [...additional.otherWishes, newWish.trim()];
+            const newData = {
+                ...additional,
+                otherWishes: updatedWishes,
+            };
+            setAdditional(newData);
+            updateLocalStorage(newData);
+            setNewWish(''); // Limpiar el campo de entrada
+        }
+    };
+
+    // Función para eliminar un deseo de la lista
+    const removeWish = (index) => {
+        const updatedWishes = additional.otherWishes.filter((_, i) => i !== index);
         const newData = {
             ...additional,
-            otherWishes: e.target.value,
+            otherWishes: updatedWishes,
         };
         setAdditional(newData);
         updateLocalStorage(newData);
@@ -159,13 +175,31 @@ function Additional({ datas, errors }) {
                     <Form>
                         <Form.Group controlId="otherWishes">
                             <Form.Label>Other Wishes</Form.Label>
-                            <Form.Control
-                                as="textarea"
-                                rows={3}
-                                value={additional.otherWishes}
-                                onChange={handleOtherWishesChange}
-                                placeholder="Enter your other wishes here..."
-                            />
+                            <div className="d-flex">
+                                <Form.Control
+                                    type="text"
+                                    value={newWish}
+                                    onChange={(e) => setNewWish(e.target.value)}
+                                    placeholder="Enter a wish and press Add"
+                                />
+                                <Button variant="primary" onClick={addWish} className="ms-2">
+                                    Add
+                                </Button>
+                            </div>
+                            <ul className="mt-2">
+                                {additional.otherWishes.map((wish, index) => (
+                                    <li key={index} className="d-flex justify-content-between">
+                                        {wish}
+                                        <Button
+                                            variant="danger"
+                                            size="sm"
+                                            onClick={() => removeWish(index)}
+                                        >
+                                            Remove
+                                        </Button>
+                                    </li>
+                                ))}
+                            </ul>
                             {validationErrors.otherWishes && (
                                 <p className="text-danger">{validationErrors.otherWishes}</p>
                             )}
