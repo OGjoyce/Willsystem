@@ -161,7 +161,7 @@ const FilesReview = () => {
             }
         });
 
-        return documentDOMs.length > 0 ? documentDOMs : null;
+        return documentDOMs?.length > 0 ? documentDOMs : null;
     };
 
     // Transform API Data to Table Format
@@ -197,7 +197,7 @@ const FilesReview = () => {
             let approvedCount = 0;
 
 
-            totalCount = packageInfo.documents.length
+            totalCount = packageInfo?.documents?.length || undefined
             documentDOMs.forEach(documentDOM => {
                 const documents = Object.entries(documentDOM);
 
@@ -208,7 +208,7 @@ const FilesReview = () => {
                     }
 
                     const versionKeys = Object.keys(versions).filter(vKey => vKey.startsWith('v'));
-                    if (versionKeys.length === 0) {
+                    if (versionKeys?.length === 0) {
                         return;
                     }
 
