@@ -358,10 +358,17 @@ var WillContent = forwardRef((props, ref) => {
 
                                             return (
                                                 <li key={index}>
-                                                    I leave {beneficiary.shares} shares of the residue of my estate to {capitalLetters(beneficiary.beneficiary)} of {capitalLetters(city)}, {capitalLetters(country)} if they shall survive me,
-                                                    for their own use absolutely. If {capitalLetters(beneficiary.beneficiary)} should not survive me for thirty full days, or die
-                                                    before becoming entitled to receive the whole of their share of the residue of my estate, I leave this
-                                                    property  {capitalLetters(beneficiary.backup)} {backupCity ? `of ${capitalLetters(backupCity)}, ${capitalLetters(backupCountry)}` : ''}, Type: {beneficiary.type} for their own use absolutely.
+                                                    I leave {beneficiary.shares} shares of the residue of my estate to {capitalLetters(beneficiary.beneficiary)} {city ? `of ${capitalLetters(city)}, ${capitalLetters(country)}` : ''} if they shall survive me,
+                                                    for their own use absolutely. {beneficiary.backup !== "N/A" && (
+                                                        <>
+                                                            If {capitalLetters(beneficiary.beneficiary)} should not survive me for thirty full days, or die
+                                                            before becoming entitled to receive the whole of their share of the residue of my estate, I leave
+                                                            this share of the residue to {capitalLetters(beneficiary.backup)}
+                                                            {backupCity ? ` of ${capitalLetters(backupCity)}, ${capitalLetters(backupCountry)}` : ''}
+                                                            {beneficiary.type !== "N/A" && `, Type: ${beneficiary.type}`} for their own use absolutely.
+                                                        </>
+                                                    )}
+
                                                 </li>
                                             );
                                         })
