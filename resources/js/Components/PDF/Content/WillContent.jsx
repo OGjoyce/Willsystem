@@ -32,7 +32,7 @@ var WillContent = forwardRef((props, ref) => {
         var minTrustingAge = trusting.length > 0
             ? trusting.map(trust => trust.age).reduce((prevValue, currentValue) => prevValue > currentValue ? currentValue : prevValue)
             : null
-        var wipeoutInfo = statusObject.wipeout.wipeout
+        var wipeoutInfo = datasObj[9]?.wipeout.wipeout || [];
 
         var residueInfo = statusObject.residue;
         var additionalInfo = statusObject.additional;
@@ -340,33 +340,56 @@ var WillContent = forwardRef((props, ref) => {
                             </ol>
 
 
-                            <p><strong><u>Wipeout Provision</u></strong></p>
 
+                            <p><strong><u>Wipeout Provision</u></strong></p>
                             <ol>
                                 <li>Should all my named beneficiaries and alternate beneficiaries predecease me or fail to survive me for thirty
                                     full days, or should they all die before becoming entitled to receive the whole of their share of my estate,
                                     then I direct my Executor to divide any remaining residue of my estate into equal shares as outlined below
                                     and to pay and transfer such shares to the following wipeout beneficiaries:
                                 </li>
+
                                 <ul>
-                                    {Array.isArray(wipeoutInfo) ? (
-                                        wipeoutInfo.map((beneficiary, index) => {
-                                            const { city, country, fullName } = findPersonInfo(beneficiary.names, relatives, kids, spouseInfo);
-                                            const { city: backupCity, country: backupCountry } = findPersonInfo(beneficiary.backup, relatives, kids, spouseInfo)
+                                    {/* Caso para custom wipeout provision con beneficiarios en table_dataBequest */}
+                                    {Array.isArray(wipeoutInfo.table_dataBequest) && wipeoutInfo.table_dataBequest.length > 0 ? (
+                                        wipeoutInfo.table_dataBequest.map((beneficiary, index) => {
+                                            const { city, country, fullName } = findPersonInfo(beneficiary.beneficiary, relatives, kids, spouseInfo);
+                                            const { city: backupCity, country: backupCountry } = findPersonInfo(beneficiary.backup, relatives, kids, spouseInfo);
+
                                             return (
                                                 <li key={index}>
-                                                    I leave {beneficiary.shares} shares of the residue of my estate to {capitalLetters(beneficiary.names)} of {capitalLetters(city)}, {capitalLetters(country)} if they shall survive me,
-                                                    for their own use absolutely. If {capitalLetters(beneficiary.names)} should not survive me for thirty full days, or die
+                                                    I leave {beneficiary.shares} shares of the residue of my estate to {capitalLetters(beneficiary.beneficiary)} of {capitalLetters(city)}, {capitalLetters(country)} if they shall survive me,
+                                                    for their own use absolutely. If {capitalLetters(beneficiary.beneficiary)} should not survive me for thirty full days, or die
                                                     before becoming entitled to receive the whole of their share of the residue of my estate, I leave this
-                                                    property to their descendants {beneficiary.backup} {backupCity ? `of ${capitalLetters(backupCity)}, ${capitalLetters(backupCountry)}` : ''}, Type: {beneficiary.type} for their own use absolutely.
+                                                    property  {capitalLetters(beneficiary.backup)} {backupCity ? `of ${capitalLetters(backupCity)}, ${capitalLetters(backupCountry)}` : ''}, Type: {beneficiary.type} for their own use absolutely.
                                                 </li>
                                             );
                                         })
-                                    ) : typeof wipeoutInfo === 'string' ? (
-                                        <li>{wipeoutInfo}</li>
-                                    ) : null}
+                                    ) : (
+                                        // Caso para categorías de wipeout simples como "100% to parents and siblings"
+                                        <li>
+                                            {wipeoutInfo.selectedCategory === "100% to parents and siblings" && (
+                                                <>
+                                                    In the absence of surviving beneficiaries or alternate beneficiaries, I direct that 100% of the residue of my estate
+                                                    shall be distributed to my parents, and if they are no longer living, then to my siblings in equal shares.
+                                                </>
+                                            )}
+                                            {wipeoutInfo.selectedCategory === "100% to siblings" && (
+                                                <>
+                                                    In the absence of surviving beneficiaries or alternate beneficiaries, I direct that 100% of the residue of my estate
+                                                    shall be distributed to my siblings in equal shares.
+                                                </>
+                                            )}
+                                            {wipeoutInfo.custom && wipeoutInfo.table_dataBequest.length === 0 && (
+                                                <>
+                                                    No specific distribution instructions have been provided for the wipeout provision, and custom settings are enabled.
+                                                </>
+                                            )}
+                                        </li>
+                                    )}
                                 </ul>
                             </ol>
+
                             {hasKids && guardians.length > 0 && (
                                 <>
                                     <br></br>
