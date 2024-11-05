@@ -36,6 +36,7 @@ var WillContent = forwardRef((props, ref) => {
 
         var residueInfo = statusObject.residue;
         var additionalInfo = statusObject.additional;
+
         var POAInfo = statusObject.poa;
 
 
