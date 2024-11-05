@@ -6,17 +6,18 @@ const isValidEmail = (email) => {
 };
 
 const isValidPhone = (phone) => {
-  const re = /^\+1 \(\d{3}\) \d{3}-\d{4}$/;
+  const re = /^\+\d{11}$/;
   return re.test(phone);
 };
+
 
 
 export const validate = {
   formData: (data) => {
     const errors = {};
 
-    if (!data.fullName || data.fullName.trim() === '') {
-      errors.fullName = 'Full name is required';
+    if (!data.fullName || data.fullName.trim().split(/\s+/).length < 2) {
+      errors.fullName = 'First and either Middle or Last name are required';
     }
 
     if (!data.email || !isValidEmail(data.email)) {
@@ -24,7 +25,7 @@ export const validate = {
     }
 
     if (!data.telephone || !isValidPhone(data.telephone)) {
-      errors.telephone = 'Valid phone number is required (format: +1 (XXX) XXX-XXXX)';
+      errors.telephone = 'Valid phone number is required (+X XXX XXX XXXX)';
     }
 
     if (!data.city || data.city.trim() === '') {
@@ -51,13 +52,7 @@ export const validate = {
     }
 
 
-    if (!data.email || !isValidEmail(data.email)) {
-      errors.email = 'Valid email is required';
-    }
 
-    if (!data.phone || !isValidPhone(data.phone)) {
-      errors.phone = 'Valid phone number is required (format: +1 (XXX) XXX-XXXX)';
-    }
 
     if (!data.city || data.city.trim() === '') {
       errors.city = 'City is required';

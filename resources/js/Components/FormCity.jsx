@@ -9,6 +9,7 @@ import { Fragment } from 'react'
 import { Listbox, Transition } from '@headlessui/react'
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
 import CityAutocomplete from './CityAutocomplete';
+import { InputGroup, FormControl } from 'react-bootstrap';
 
 
 let city = undefined
@@ -33,8 +34,8 @@ const handleCitySelect = (selectedData) => {
 };
 
 export function getFormData() {
-    var telephone = document.getElementById('phone').value;
-    var fullname = document.getElementById('fullname').value;
+    var telephone = `+${document.getElementById('phone').value}`;
+    var fullname = document.getElementById('firstName')?.value + ' ' + document.getElementById('middleName')?.value + ' ' + document.getElementById('lastName')?.value;
     var email = document.getElementById('email').value;
 
     var obj = {
@@ -72,25 +73,23 @@ function FormCity({ auth, laravelVersion, phpVersion, errors }) {
 
 
     const formatPhoneNumber = (value) => {
-        if (!value) return value;
+        if (!value) return '';
 
-        const phoneNumber = value.replace(/[^\d]/g, '');
+        // Elimina cualquier carácter que no sea un número
+        const phoneNumber = value.replace(/[^\d]/g, '').slice(0, 11); // Limita a 10 dígitos
 
-        const phoneNumberLength = phoneNumber.length;
-        if (phoneNumberLength < 2) return `+${phoneNumber}`;
-        if (phoneNumberLength < 5) {
-            return `+${phoneNumber[0]} (${phoneNumber.slice(1, 4)}`;
-        }
-        if (phoneNumberLength < 8) {
-            return `+${phoneNumber[0]} (${phoneNumber.slice(1, 4)}) ${phoneNumber.slice(4, 7)}`;
-        }
-        return `+${phoneNumber[0]} (${phoneNumber.slice(1, 4)}) ${phoneNumber.slice(4, 7)}-${phoneNumber.slice(7, 11)}`;
+        // Aplica el formato XXX XXX XXXX
+
+        return phoneNumber;
     };
 
     const handlePhoneChange = (e) => {
         const formattedPhoneNumber = formatPhoneNumber(e.target.value);
         setPhone(formattedPhoneNumber);
     };
+
+
+
 
     return (
         <>
@@ -112,15 +111,18 @@ function FormCity({ auth, laravelVersion, phpVersion, errors }) {
                                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
 
                                 </div>
-                                <input
-                                    type="text"
-                                    name="phone"
-                                    id="phone"
-                                    className="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                                    placeholder="+1 (XXX) XXX-XXXX"
-                                    value={phone}
-                                    onChange={handlePhoneChange}
-                                />
+                                <InputGroup className="mb-3">
+                                    <InputGroup.Text>+ </InputGroup.Text>
+                                    <FormControl
+                                        type="text"
+                                        name="phone"
+                                        id="phone"
+                                        placeholder="X XXX XXX-XXXX"
+                                        value={phone}
+                                        onChange={handlePhoneChange}
+                                        aria-label="Phone Number"
+                                    />
+                                </InputGroup>
                             </div>
                             {validationErrors.telephone && <p className="mt-2 text-sm text-red-600">{validationErrors.telephone}</p>}
                         </div>
@@ -143,7 +145,7 @@ function FormCity({ auth, laravelVersion, phpVersion, errors }) {
                         </div>
                         <div>
                             <label htmlFor="name" className="block ">
-                                Full Name
+                                First Name
                             </label>
                             <div className="relative mt-2 rounded-md shadow-sm">
                                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -152,9 +154,37 @@ function FormCity({ auth, laravelVersion, phpVersion, errors }) {
                                 <input
                                     type="text"
                                     name="name"
-                                    id="fullname"
+                                    id="firstName"
                                     className="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                                    placeholder="John Doe..." />
+                                    placeholder="" />
+                            </div>
+                            <label htmlFor="name" className="block ">
+                                Middle Name
+                            </label>
+                            <div className="relative mt-2 rounded-md shadow-sm">
+                                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+
+                                </div>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    id="middleName"
+                                    className="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                    placeholder="" />
+                            </div>
+                            <label htmlFor="name" className="block ">
+                                Last Name
+                            </label>
+                            <div className="relative mt-2 rounded-md shadow-sm">
+                                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+
+                                </div>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    id="lastName"
+                                    className="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                    placeholder="" />
                             </div>
                             {validationErrors.fullName && <p className="mt-2 text-sm text-red-600">{validationErrors.fullName}</p>}
                         </div>

@@ -3,23 +3,26 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
-import Form from 'react-bootstrap/Form';
 
 // Import the CityAutocomplete component
 import CityAutocomplete from './CityAutocomplete';
+import { Form, InputGroup } from 'react-bootstrap';
 
 let city = undefined
 let country = undefined
 let province = undefined
 
+let isFirstCheckDone = false;
+
 export function getHumanData(params) {
     if (params !== false) {
+        isFirstCheckDone = true;
         const firstName = document.getElementById('firstNameId').value;
         const middleName = document.getElementById('middleNameId').value;
         const lastName = document.getElementById('lastNameId').value;
-        let relative = document.getElementById('relativeId').value;
+        let relative = document.getElementById('relativeId')?.value;
         if (relative === 'Other') {
-            relative = document.getElementById('otherRelativeId').value;
+            relative = document.getElementById('otherRelativeId')?.value;
         }
 
         let obj;
@@ -39,20 +42,20 @@ export function getHumanData(params) {
             let control = 0;
             let email = "NA";
             try {
-                email = document.getElementById('emailId0').value;
+                email = document.getElementById('emailId0')?.value;
             } catch (error) {
                 control = 1;
-                email = document.getElementById('emailId1').value;
+                email = document.getElementById('emailId1')?.value;
             }
 
-            const phone = document.getElementById('phoneId').value;
+            const phone = document.getElementById('phoneId')?.value;
             obj = {
                 firstName: firstName,
                 middleName: middleName,
                 lastName: lastName,
                 relative: relative,
                 email: email,
-                phone: phone,
+                phone: `+${phone}`,
                 city: city,
                 province: province,
                 country: country
@@ -100,7 +103,29 @@ function AddHuman({ married, childrens, human, errors, onDataChange }) {
 
     useEffect(() => {
         setValidationErrors(errors);
-    }, [errors]);
+        if (married && isFirstCheckDone) {
+
+
+            const isValidEmail = (email) => {
+                const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+                return re.test(String(email).toLowerCase());
+            };
+
+            const isValidPhone = (phone) => {
+                const re = /^\+\d{11}$/;
+                return re.test(phone);
+            };
+
+            const data = getHumanData()
+            if (!data.email || !isValidEmail(data.email)) {
+                errors.email = 'Valid email is required';
+            }
+
+            if (!data.phone || !isValidPhone(data.phone)) {
+                errors.phone = 'Valid phone number is required (+X XXX XXX XXXX)';
+            }
+        }
+    }, [errors, married]);
 
     const handleInputChange = (e) => {
         const { id, value } = e.target;
@@ -117,20 +142,16 @@ function AddHuman({ married, childrens, human, errors, onDataChange }) {
     };
 
     const formatPhoneNumber = (value) => {
-        if (!value) return value;
+        if (!value) return '';
 
-        const phoneNumber = value.replace(/[^\d]/g, '');
+        // Elimina cualquier carácter que no sea un número
+        const phoneNumber = value.replace(/[^\d]/g, '').slice(0, 11); // Limita a 10 dígitos
 
-        const phoneNumberLength = phoneNumber.length;
-        if (phoneNumberLength < 2) return `+${phoneNumber}`;
-        if (phoneNumberLength < 5) {
-            return `+${phoneNumber[0]} (${phoneNumber.slice(1, 4)}`;
-        }
-        if (phoneNumberLength < 8) {
-            return `+${phoneNumber[0]} (${phoneNumber.slice(1, 4)}) ${phoneNumber.slice(4, 7)}`;
-        }
-        return `+${phoneNumber[0]} (${phoneNumber.slice(1, 4)}) ${phoneNumber.slice(4, 7)}-${phoneNumber.slice(7, 11)}`;
+        // Aplica el formato XXX XXX XXXX
+
+        return phoneNumber;
     };
+
 
     const handlePhoneChange = (e) => {
         const { id } = e.target;
@@ -196,64 +217,74 @@ function AddHuman({ married, childrens, human, errors, onDataChange }) {
                     />
                     {validationErrors.lastName && <p className="mt-2 text-sm text-red-600">{validationErrors.lastName}</p>}
                 </Form.Group>
-                <Form.Group className="mb-3" controlId="relativeId">
-                    <Form.Label>Relative</Form.Label>
-                    {isRelativeReadOnly ? (
-                        <Form.Control type="text" value={defaultRelativeValue} readOnly />
-                    ) : (
-                        <>
-                            <Form.Control as="select" value={relative} onChange={handleRelativeChange}>
-                                <option value="">Select...</option>
-                                <option value="Mother">Mother</option>
-                                <option value="Father">Father</option>
-                                <option value="Brother">Brother</option>
-                                <option value="Sister">Sister</option>
-                                <option value="Uncle">Uncle</option>
-                                <option value="Aunt">Aunt</option>
-                                <option value="Other">Other</option>
-                            </Form.Control>
-                            {!showOther && validationErrors.relative && <p className="mt-2 text-sm text-red-600">{validationErrors.relative}</p>}
-                        </>
-                    )}
-                    {showOther && !isRelativeReadOnly && (
-                        <>
-                            <Form.Group className="mt-3" controlId="otherRelativeId">
-                                <Form.Label>Specify Other</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    placeholder="Enter relation"
-                                    value={formValues?.otherRelative || ''}
-                                    onChange={handleInputChange}
-                                />
-                            </Form.Group>
-                            {validationErrors.otherRelative && <p className="mt-2 text-sm text-red-600">{validationErrors.otherRelative}</p>}
-                        </>
-                    )}
-                    {(married || human) && (
-                        <>
-                            <Form.Group className="mb-3" controlId="emailId1">
-                                <Form.Label>Email for Notifications:</Form.Label>
-                                <Form.Control
-                                    type="email"
-                                    placeholder="example@domain.com"
-                                    value={formValues?.email || ''}
-                                    onChange={handleInputChange}
-                                />
-                                {(married || human) && validationErrors.email && <p className="mt-2 text-sm text-red-600">{validationErrors.email}</p>}
-                            </Form.Group>
-                            <Form.Group className="mb-3" controlId="phoneId">
+                {
+                    !human && <Form.Group className="mb-3" controlId="relativeId">
+                        <Form.Label>Relative</Form.Label>
+                        {isRelativeReadOnly ? (
+                            <Form.Control type="text" value={defaultRelativeValue} readOnly />
+                        ) : (
+                            <>
+                                <Form.Control as="select" value={relative} onChange={handleRelativeChange}>
+                                    <option value="">Select...</option>
+                                    <option value="Mother">Mother</option>
+                                    <option value="Father">Father</option>
+                                    <option value="Brother">Brother</option>
+                                    <option value="Sister">Sister</option>
+                                    <option value="Uncle">Uncle</option>
+                                    <option value="Aunt">Aunt</option>
+                                    <option value="Other">Other</option>
+                                </Form.Control>
+                                {!showOther && validationErrors.relative && <p className="mt-2 text-sm text-red-600">{validationErrors.relative}</p>}
+                            </>
+                        )}
+                        {showOther && !isRelativeReadOnly && (
+                            <>
+                                <Form.Group className="mt-3" controlId="otherRelativeId">
+                                    <Form.Label>Specify Other</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Enter relation"
+                                        value={formValues?.otherRelative || ''}
+                                        onChange={handleInputChange}
+                                    />
+                                </Form.Group>
+                                {validationErrors.otherRelative && <p className="mt-2 text-sm text-red-600">{validationErrors.otherRelative}</p>}
+                            </>
+                        )}
+                        {(married) && (
+                            <>
+                                <Form.Group className="mb-3" controlId="emailId1">
+                                    <Form.Label>Email for Notifications:</Form.Label>
+                                    <Form.Control
+                                        type="email"
+                                        placeholder="example@domain.com"
+                                        value={formValues?.email || ''}
+                                        onChange={handleInputChange}
+                                    />
+                                    {(married || human) && validationErrors.email && <p className="mt-2 text-sm text-red-600">{validationErrors.email}</p>}
+                                </Form.Group>
+
                                 <Form.Label>Phone</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    placeholder="+1(XXX)XXX-XXXX"
-                                    onChange={handlePhoneChange}
-                                    value={formValues?.phone || phone}
-                                />
+                                <InputGroup className="mb-3" controlId="phoneId">
+
+                                    <InputGroup.Text>+ </InputGroup.Text>
+                                    <Form.Control
+                                        type="text"
+                                        name="phone"
+                                        id="phoneId"
+                                        placeholder="X XXX XXX-XXXX"
+                                        value={formValues?.phone || phone}
+                                        onChange={handlePhoneChange}
+
+                                    />
+
+                                </InputGroup>
                                 {(married || human) && validationErrors.phone && <p className="mt-2 text-sm text-red-600">{validationErrors.phone}</p>}
-                            </Form.Group>
-                        </>
-                    )}
-                </Form.Group>
+
+                            </>
+                        )}
+                    </Form.Group>
+                }
 
                 {/* Integrate CityAutocomplete */}
                 <CityAutocomplete onCitySelect={handleCitySelect} validationErrors={validationErrors} />

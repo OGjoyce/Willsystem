@@ -263,6 +263,14 @@ function Pets({ datas, errors }) {
                                     {validationErrors.amount}
                                 </Form.Control.Feedback>
                             </FloatingLabel>
+                            <Form.Check
+                                type="checkbox"
+                                id=""
+                                className='mb-4'
+                                label="No pet guardian"
+                                checked={true}
+                                onChange={() => { }}
+                            />
                         </Form.Group>
 
                         {/* Submit Button */}

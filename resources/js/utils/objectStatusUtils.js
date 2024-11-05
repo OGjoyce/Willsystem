@@ -55,7 +55,7 @@ const initializeSpousalWill = (objectStatus) => {
                     province: personal.province,
                     country: personal.country,
                     telephone: personal.phone,
-                    fullName: personal.firstName + ' ' + personal.lastName,
+                    fullName: personal?.firstName + ' ' + personal?.middleName + ' ' + personal?.lastName,
                     email: personal.email,
                     timestamp: Date.now(),
                 },
@@ -73,9 +73,9 @@ const initializeSpousalWill = (objectStatus) => {
             },
             {
                 "married": {
-                    "firstName": spouse.fullName.split(' ')[0],
-                    "middleName": "",
-                    "lastName": spouse.fullName.split(' ').slice(1).join(' '),
+                    "firstName": spouse.fullName.split(' ')[0] || "",
+                     "middleName": spouse.fullName.split(' ').length === 3 ? spouse.fullName.split(' ')[1] : "",
+                     "lastName": spouse.fullName.split(' ').length > 1 ? spouse.fullName.split(' ')[spouse.fullName.split(' ').length - 1] : "",
                     "relative": "Spouse",
                     "email": spouse.email,
                     "phone": spouse.telephone,
