@@ -562,7 +562,7 @@ export default function Personal({ auth }) {
 
             case 11:
                 const petsData = getPetInfo();
-
+                console.log("pets", petsData)
                 if (checkValidation(validate.pets(petsData))) {
                     propertiesAndData = [
                         { name: 'pets', data: { ...petsData, timestamp: Date.now() } },
