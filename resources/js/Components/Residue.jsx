@@ -110,11 +110,71 @@ function Residue({ id, datas, errors }) {
     }
   }, []);
 
+  useEffect(() => {
+    if (selectedCategory === 'Custom Selection') {
+      setOptions(['Custom Clause', 'Specific Beneficiaries']);
+    } else if (selectedCategory === 'Bloodline Selection') {
+      setOptions(bloodlineOptions);
+    }
+  }, [selectedCategory])
+
   // Update availableShares based on table_dataBequest
   useEffect(() => {
     let totalShares = table_dataBequest.reduce((sum, item) => sum + Number(item.shares), 0);
     setAvailableShares(100 - totalShares);
   }, [table_dataBequest]);
+
+
+  useEffect(() => {
+    // Escanea el estado de objectStatus en busca de la clave residue
+    const savedResidue = datas[8].residue;
+    console.log('saved', datas[8])
+    if (savedResidue) {
+      // Configura la categoría de selección según la propiedad "selected"
+      setSelectedCategory(savedResidue.selected || null);
+
+      if (savedResidue.selected === "Custom Clause") {
+        setSelectedCategory("Custom Selection");
+
+        setSelectedOption(savedResidue.selected);
+        // Caso: Custom Clause
+        setCustom(true);
+        setSpecific(false);
+        setClauseValue(savedResidue.clause || "");
+        setTable_dataBequest([]); // Aseguramos que no haya datos de beneficiarios
+      }
+      else if (savedResidue.selected === "Specific Beneficiaries") {
+        setSelectedCategory("Custom Selection");
+        // Caso: Specific Beneficiaries
+        setSelectedOption(savedResidue.selected);
+
+        setSpecific(true);
+        setCustom(false);
+        setTable_dataBequest(savedResidue.beneficiary || []);
+        setAvailableShares(
+          100 - (savedResidue.beneficiary?.reduce((sum, item) => sum + item.shares, 0) || 0)
+        );
+
+        // Configura el estado de organización si es necesario
+        const isOrg = savedResidue.beneficiary?.some(b => b.isOrganization) || false;
+        setIsOrganization(isOrg);
+      }
+      else if (savedResidue.selected?.startsWith("Have the residue go to")) {
+        setSelectedCategory("Bloodline Selection");
+        // Caso: Bloodline Selection
+        setSelectedOption(savedResidue.selected);
+
+        setCustom(false);
+        setSpecific(false);
+        setTable_dataBequest([]);
+      }
+      console.log(savedResidue)
+      obj = { selectedOption: savedResidue.selected };
+      setSelected(obj)
+
+    }
+  }, []);
+
 
   useEffect(() => {
     let newBloodlineOptions = [
@@ -482,7 +542,7 @@ function Residue({ id, datas, errors }) {
                     key={index}
                     type="checkbox"
                     label={option}
-                    checked={selected.selectedOption === option}
+                    checked={selected.selectedOption == option}
                     onChange={() => handleCheckboxChange(option)}
                     id={`checkbox-${index}`}
                   />
