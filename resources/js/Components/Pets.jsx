@@ -29,10 +29,18 @@ function Pets({ datas, errors }) {
     const [itemToDelete, setItemToDelete] = useState(null);
     const [tempData, setTempData] = useState({});
     const [petName, setPetName] = useState('');
+    const [skipPetGuardian, setSkipPetGuardian] = useState(false)
 
     useEffect(() => {
         setValidationErrors(errors);
-    }, [errors]);
+
+        if (skipPetGuardian) {
+            setValidationErrors({})
+            guardianDataStack = [undefined]
+        } else {
+            guardianDataStack = guardianDataStack.filter(obj => obj !== undefined)
+        }
+    }, [errors, skipPetGuardian]);
 
     useEffect(() => {
         if (datas != null) {
@@ -268,8 +276,8 @@ function Pets({ datas, errors }) {
                                 id=""
                                 className='mb-4'
                                 label="No pet guardian"
-                                checked={true}
-                                onChange={() => { }}
+                                checked={skipPetGuardian}
+                                onChange={() => { setSkipPetGuardian(!skipPetGuardian) }}
                             />
                         </Form.Group>
 
