@@ -253,42 +253,86 @@ var WillContent = forwardRef((props, ref) => {
                                 )}
                             </ol>
 
+                            <p><strong><u>III. DISPOSITION OF ESTATE</u></strong></p>
                             <p><strong><u>Distribution of Residue</u></strong></p>
+                            <p>Last Will and Testament of Nicholas David West Folk</p>
                             <ol>
                                 <li>To receive any gift or property under this Will a beneficiary must survive me for thirty days.</li>
                                 <li>Beneficiaries or any alternate beneficiaries of my estate residue will receive and share all of my property
                                     and assets not specifically bequeathed or otherwise required for the payment of any debts owed, including
                                     but not limited to, expenses associated with the probate of my Will, the payment of taxes, funeral expenses
-                                    or any other expense resulting from the administration of my Will.</li>
-                                <li>The entire estate residue is to be divided between my designated beneficiaries or any alternate
-                                    beneficiaries with the beneficiaries or any alternate beneficiaries receiving a part of the entire estate
-                                    residue.</li>
-                                <li>All property given under this Will is subject to any encumbrances or liens attached to the property.</li>
-                                <li>The entire of my estate shall be divided into as many equal shares as there shall be children of mine then
-                                    alive at my death, subject to the provisions hereinafter specified and to pay and transfer one such share to
-                                    each of those surviving children.</li>
-                                <li>If any child of mine shall predecease me or die before becoming entitled, in accordance with the terms of
-                                    this my Will, to receive the whole of his or her share of my estate, but such child has a child or children
-                                    which survive me, that child of mine shall be deemed to have survived me and such share or the amount
-                                    remaining of that share will be divided and transferred in equal shares to each of the surviving children of
-                                    that deceased child of mine. If any of such children of my deceased child dies before receiving the whole of
-                                    his or her share of my estate, that share or the amount remaining thereof will be divided in equal shares
-                                    amongst the surviving children of that child of mine. But if that deceased child of mine leaves no surviving
-                                    children, then that share or the amount remaining of that share will be divided amongst my surviving
-                                    children in equal shares.</li>
-                                {pets && pets.map(caretaker => (
-                                    caretaker.amount > 0
-                                        ? <li>
-                                            I direct my Executor to provide a maximum of {caretaker.amount} (CAD) out of the residue of my
-                                            estate to the the pet caretaker assigned below as a one-time only sum to be used for
-                                            the future care, feeding and maintenance of my pet {caretaker.petName}. Upon the death of all of my pets,
-                                            the remainder of any funds provided to the caretaker for the care and maintenance
-                                            shall be given to a local animal rescue or humane shelter, to be decided upon by the
-                                            caretaker
-                                        </li>
-                                        : null
-                                ))}
+                                    or any other expense resulting from the administration of my Will.
+                                </li>
+                                <li>The entire estate residue is to be divided between my designated beneficiaries or any alternate beneficiaries with the beneficiaries or any alternate beneficiaries receiving a part of the entire estate residue.</li>
+
+
+                                {/* Condicional para "Specific Beneficiaries" */}
+                                {statusObject.residue.selected === "Specific Beneficiaries" && (
+                                    <>
+                                        <li>The entire estate residue is to be divided between my designated beneficiaries or any alternate beneficiaries as follows:</li>
+                                        <ul>
+                                            {statusObject.residue.beneficiary.map((beneficiary, index) => (
+                                                <li key={index}>
+                                                    {beneficiary.isOrganization ? (
+                                                        <>
+                                                            Organization: {beneficiary.beneficiary} - {beneficiary.shares}% share
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            Beneficiary: {beneficiary.beneficiary} - {beneficiary.shares}% share, Backup: {beneficiary.backup}, Type: {beneficiary.type}
+                                                        </>
+                                                    )}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                        <li>All property given under this Will is subject to any encumbrances or liens attached to the property.</li>
+                                    </>
+                                )}
+
+                                {/* Condicional para "Custom Clause" */}
+                                {statusObject.residue.selected === "Custom Clause" && (
+                                    <>
+                                        <li>The residue of my estate shall be distributed in accordance with the following custom clause:</li>
+                                        <blockquote>"{statusObject.residue.clause}"</blockquote>
+                                        <li>All property given under this Will is subject to any encumbrances or liens attached to the property.</li>
+                                    </>
+                                )}
+
+                                {/* Condicional para "Bloodline Selection" */}
+                                {statusObject.residue.selected === "Have the residue go to parents then siblings per stirpes" && (
+                                    <>
+                                        <li>The residue of my estate shall go to my parents, and if they predecease me, to my siblings per stirpes, ensuring each line of descent receives an equal portion.</li>
+                                        <li>If any of my siblings predecease me, their share shall be divided equally among their surviving descendants.</li>
+                                        <li>All property given under this Will is subject to any encumbrances or liens attached to the property.</li>
+                                    </>
+                                )}
+
+                                {statusObject.residue.selected === "Have the residue go to siblings per stirpes" && (
+                                    <>
+                                        <li>The residue of my estate shall be distributed to my siblings per stirpes, with each line of descent receiving an equal share.</li>
+                                        <li>If any of my siblings predecease me, their share shall be divided among their surviving descendants in equal portions.</li>
+                                        <li>All property given under this Will is subject to any encumbrances or liens attached to the property.</li>
+                                    </>
+                                )}
+
+                                {statusObject.residue.selected === "Have the residue go to children per stirpes" && (
+                                    <>
+                                        <li>The residue of my estate shall be distributed among my children per stirpes, where each line of descent receives an equal portion of the estate.</li>
+                                        <li>If any of my children predecease me, their share shall be passed equally to their surviving descendants.</li>
+                                        <li>All property given under this Will is subject to any encumbrances or liens attached to the property.</li>
+                                    </>
+                                )}
+
+                                {statusObject.residue.selected === "Have the residue go to children per capita" && (
+                                    <>
+                                        <li>The residue of my estate shall be distributed among my children per capita, with each child receiving an equal share.</li>
+                                        <li>If any of my children predecease me, their portion shall be equally divided among the surviving children.</li>
+                                        <li>All property given under this Will is subject to any encumbrances or liens attached to the property.</li>
+                                    </>
+                                )}
                             </ol>
+
+
                             <p><strong><u>Wipeout Provision</u></strong></p>
 
                             <ol>
