@@ -23,7 +23,7 @@ var WillContent = forwardRef((props, ref) => {
         var spouseInfo = statusObject.married;
         var hasKids = statusObject.kidsq.selection === "true";
         var kids = Object.values(statusObject.kids);
-        var relatives = statusObject.relatives ? Object.values(statusObject.relatives) : [];
+        var relatives = datasObj[5]?.relatives || [];
         var executors = statusObject.executors ? Object.values(statusObject.executors) : [];
         var bequests = statusObject.bequests ? Object.values(statusObject.bequests).filter(item => typeof item === 'object') : [];
         var trusting = statusObject.trusting ? Object.values(statusObject.trusting).filter(item => typeof item === 'object') : [];
@@ -32,21 +32,20 @@ var WillContent = forwardRef((props, ref) => {
         var minTrustingAge = trusting.length > 0
             ? trusting.map(trust => trust.age).reduce((prevValue, currentValue) => prevValue > currentValue ? currentValue : prevValue)
             : null
-        var wipeoutInfo = statusObject.wipeout.wipeout
+        var wipeoutInfo = datasObj[9]?.wipeout.wipeout || [];
 
         var residueInfo = statusObject.residue;
         var additionalInfo = statusObject.additional;
         var POAInfo = statusObject.poa;
 
-        console.log(statusObject)
+
 
     }
 
     function findPersonInfo(name, relatives, kids, spouseInfo) {
         const names = name.trim();
-
         const person =
-            relatives.find(rel => `${rel.firstName} ${rel.lastName}` === names) ||
+            relatives.find(rel => `${rel.firstName} ${rel.lastName}` === names || `${rel.firstName} ${rel.middleName}` === names) ||
             kids.find(kid => `${kid.firstName} ${kid.lastName}` === names) ||
             (spouseInfo.firstName && spouseInfo.lastName && `${spouseInfo.firstName} ${spouseInfo.lastName}` === names ? spouseInfo : null);
 
@@ -61,6 +60,7 @@ var WillContent = forwardRef((props, ref) => {
 
         return { city: '', country: '', province: '', fullName: names };
     }
+
 
 
     return (
@@ -253,68 +253,150 @@ var WillContent = forwardRef((props, ref) => {
                                 )}
                             </ol>
 
+                            <p><strong><u>III. DISPOSITION OF ESTATE</u></strong></p>
                             <p><strong><u>Distribution of Residue</u></strong></p>
+                            <p>Last Will and Testament of Nicholas David West Folk</p>
                             <ol>
                                 <li>To receive any gift or property under this Will a beneficiary must survive me for thirty days.</li>
                                 <li>Beneficiaries or any alternate beneficiaries of my estate residue will receive and share all of my property
                                     and assets not specifically bequeathed or otherwise required for the payment of any debts owed, including
                                     but not limited to, expenses associated with the probate of my Will, the payment of taxes, funeral expenses
-                                    or any other expense resulting from the administration of my Will.</li>
-                                <li>The entire estate residue is to be divided between my designated beneficiaries or any alternate
-                                    beneficiaries with the beneficiaries or any alternate beneficiaries receiving a part of the entire estate
-                                    residue.</li>
-                                <li>All property given under this Will is subject to any encumbrances or liens attached to the property.</li>
-                                <li>The entire of my estate shall be divided into as many equal shares as there shall be children of mine then
-                                    alive at my death, subject to the provisions hereinafter specified and to pay and transfer one such share to
-                                    each of those surviving children.</li>
-                                <li>If any child of mine shall predecease me or die before becoming entitled, in accordance with the terms of
-                                    this my Will, to receive the whole of his or her share of my estate, but such child has a child or children
-                                    which survive me, that child of mine shall be deemed to have survived me and such share or the amount
-                                    remaining of that share will be divided and transferred in equal shares to each of the surviving children of
-                                    that deceased child of mine. If any of such children of my deceased child dies before receiving the whole of
-                                    his or her share of my estate, that share or the amount remaining thereof will be divided in equal shares
-                                    amongst the surviving children of that child of mine. But if that deceased child of mine leaves no surviving
-                                    children, then that share or the amount remaining of that share will be divided amongst my surviving
-                                    children in equal shares.</li>
-                                {pets && pets.map(caretaker => (
-                                    caretaker.amount > 0
-                                        ? <li>
-                                            I direct my Executor to provide a maximum of {caretaker.amount} (CAD) out of the residue of my
-                                            estate to the the pet caretaker assigned below as a one-time only sum to be used for
-                                            the future care, feeding and maintenance of my pet {caretaker.petName}. Upon the death of all of my pets,
-                                            the remainder of any funds provided to the caretaker for the care and maintenance
-                                            shall be given to a local animal rescue or humane shelter, to be decided upon by the
-                                            caretaker
-                                        </li>
-                                        : null
-                                ))}
-                            </ol>
-                            <p><strong><u>Wipeout Provision</u></strong></p>
+                                    or any other expense resulting from the administration of my Will.
+                                </li>
+                                <li>The entire estate residue is to be divided between my designated beneficiaries or any alternate beneficiaries with the beneficiaries or any alternate beneficiaries receiving a part of the entire estate residue.</li>
 
+
+                                {/* Condicional para "Specific Beneficiaries" */}
+                                {statusObject.residue.selected === "Specific Beneficiaries" && (
+                                    <>
+                                        <li>The entire estate residue is to be divided between my designated beneficiaries or any alternate beneficiaries as follows:</li>
+                                        <ul>
+                                            {statusObject.residue.beneficiary.map((beneficiary, index) => {
+                                                const { city, country } = findPersonInfo(beneficiary.beneficiary, relatives, kids, spouseInfo);
+                                                const { city: backupCity, country: backupCountry } = findPersonInfo(beneficiary.backup, relatives, kids, spouseInfo)
+
+                                                return (
+
+                                                    <li key={index}>
+                                                        {beneficiary.isOrganization ? (
+                                                            <>
+
+                                                                Organization: {beneficiary.beneficiary} - {beneficiary.shares}% share
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                Beneficiary: {beneficiary.beneficiary} {city ? `of ${capitalLetters(city)}, ${capitalLetters(country)}` : ''} - {beneficiary.shares}% share, Backup: {beneficiary.backup}  {backupCity ? `of ${capitalLetters(backupCity)}, ${capitalLetters(backupCountry)}` : ''}, Type: {beneficiary.type}
+                                                            </>
+                                                        )}
+                                                    </li>
+                                                )
+                                            })}
+                                        </ul>
+                                        <li>All property given under this Will is subject to any encumbrances or liens attached to the property.</li>
+                                    </>
+                                )}
+
+                                {/* Condicional para "Custom Clause" */}
+                                {statusObject.residue.selected === "Custom Clause" && (
+                                    <>
+                                        <li>The residue of my estate shall be distributed in accordance with the following custom clause:</li>
+                                        <blockquote>"{statusObject.residue.clause}"</blockquote>
+                                        <li>All property given under this Will is subject to any encumbrances or liens attached to the property.</li>
+                                    </>
+                                )}
+
+                                {/* Condicional para "Bloodline Selection" */}
+                                {statusObject.residue.selected === "Have the residue go to parents then siblings per stirpes" && (
+                                    <>
+                                        <li>The residue of my estate shall go to my parents, and if they predecease me, to my siblings per stirpes, ensuring each line of descent receives an equal portion.</li>
+                                        <li>If any of my siblings predecease me, their share shall be divided equally among their surviving descendants.</li>
+                                        <li>All property given under this Will is subject to any encumbrances or liens attached to the property.</li>
+                                    </>
+                                )}
+
+                                {statusObject.residue.selected === "Have the residue go to siblings per stirpes" && (
+                                    <>
+                                        <li>The residue of my estate shall be distributed to my siblings per stirpes, with each line of descent receiving an equal share.</li>
+                                        <li>If any of my siblings predecease me, their share shall be divided among their surviving descendants in equal portions.</li>
+                                        <li>All property given under this Will is subject to any encumbrances or liens attached to the property.</li>
+                                    </>
+                                )}
+
+                                {statusObject.residue.selected === "Have the residue go to children per stirpes" && (
+                                    <>
+                                        <li>The residue of my estate shall be distributed among my children per stirpes, where each line of descent receives an equal portion of the estate.</li>
+                                        <li>If any of my children predecease me, their share shall be passed equally to their surviving descendants.</li>
+                                        <li>All property given under this Will is subject to any encumbrances or liens attached to the property.</li>
+                                    </>
+                                )}
+
+                                {statusObject.residue.selected === "Have the residue go to children per capita" && (
+                                    <>
+                                        <li>The residue of my estate shall be distributed among my children per capita, with each child receiving an equal share.</li>
+                                        <li>If any of my children predecease me, their portion shall be equally divided among the surviving children.</li>
+                                        <li>All property given under this Will is subject to any encumbrances or liens attached to the property.</li>
+                                    </>
+                                )}
+                            </ol>
+
+
+
+                            <p><strong><u>Wipeout Provision</u></strong></p>
                             <ol>
                                 <li>Should all my named beneficiaries and alternate beneficiaries predecease me or fail to survive me for thirty
                                     full days, or should they all die before becoming entitled to receive the whole of their share of my estate,
                                     then I direct my Executor to divide any remaining residue of my estate into equal shares as outlined below
                                     and to pay and transfer such shares to the following wipeout beneficiaries:
                                 </li>
+
                                 <ul>
-                                    {Array.isArray(wipeoutInfo) ? (
-                                        wipeoutInfo.map((beneficiary, index) => {
-                                            const { city, country, fullName } = findPersonInfo(beneficiary.names, relatives, kids, spouseInfo);
+                                    {/* Caso para custom wipeout provision con beneficiarios en table_dataBequest */}
+                                    {Array.isArray(wipeoutInfo.table_dataBequest) && wipeoutInfo.table_dataBequest.length > 0 ? (
+                                        wipeoutInfo.table_dataBequest.map((beneficiary, index) => {
+                                            const { city, country, fullName } = findPersonInfo(beneficiary.beneficiary, relatives, kids, spouseInfo);
+                                            const { city: backupCity, country: backupCountry } = findPersonInfo(beneficiary.backup, relatives, kids, spouseInfo);
+
                                             return (
                                                 <li key={index}>
-                                                    I leave {beneficiary.shares} shares of the residue of my estate to {capitalLetters(beneficiary.names)} of {capitalLetters(city)}, {capitalLetters(country)} if they shall survive me,
-                                                    for their own use absolutely. If {capitalLetters(beneficiary.names)} should not survive me for thirty full days, or die
-                                                    before becoming entitled to receive the whole of their share of the residue of my estate, I leave this
-                                                    property to their descendants {beneficiary.backup} for their own use absolutely.
+                                                    I leave {beneficiary.shares} shares of the residue of my estate to {capitalLetters(beneficiary.beneficiary)} {city ? `of ${capitalLetters(city)}, ${capitalLetters(country)}` : ''} if they shall survive me,
+                                                    for their own use absolutely. {beneficiary.backup !== "N/A" && (
+                                                        <>
+                                                            If {capitalLetters(beneficiary.beneficiary)} should not survive me for thirty full days, or die
+                                                            before becoming entitled to receive the whole of their share of the residue of my estate, I leave
+                                                            this share of the residue to {capitalLetters(beneficiary.backup)}
+                                                            {backupCity ? ` of ${capitalLetters(backupCity)}, ${capitalLetters(backupCountry)}` : ''}
+                                                            {beneficiary.type !== "N/A" && `, Type: ${beneficiary.type}`} for their own use absolutely.
+                                                        </>
+                                                    )}
+
                                                 </li>
                                             );
                                         })
-                                    ) : typeof wipeoutInfo === 'string' ? (
-                                        <li>{wipeoutInfo}</li>
-                                    ) : null}
+                                    ) : (
+                                        // Caso para categorías de wipeout simples como "100% to parents and siblings"
+                                        <li>
+                                            {wipeoutInfo.selectedCategory === "100% to parents and siblings" && (
+                                                <>
+                                                    In the absence of surviving beneficiaries or alternate beneficiaries, I direct that 100% of the residue of my estate
+                                                    shall be distributed to my parents, and if they are no longer living, then to my siblings in equal shares.
+                                                </>
+                                            )}
+                                            {wipeoutInfo.selectedCategory === "100% to siblings" && (
+                                                <>
+                                                    In the absence of surviving beneficiaries or alternate beneficiaries, I direct that 100% of the residue of my estate
+                                                    shall be distributed to my siblings in equal shares.
+                                                </>
+                                            )}
+                                            {wipeoutInfo.custom && wipeoutInfo.table_dataBequest.length === 0 && (
+                                                <>
+                                                    No specific distribution instructions have been provided for the wipeout provision, and custom settings are enabled.
+                                                </>
+                                            )}
+                                        </li>
+                                    )}
                                 </ul>
                             </ol>
+
                             {hasKids && guardians.length > 0 && (
                                 <>
                                     <br></br>

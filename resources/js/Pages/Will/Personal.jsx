@@ -27,6 +27,7 @@ import DocumentSelector from '@/Components/PDF/DocumentSelector';
 import SelectPackageModal from '../Admin/SelectPackageModal';
 import BreadcrumbNavigation from '@/Components/AdditionalComponents/BreadcrumbNavigation';
 import PaymentModal from '@/Components/PaymentModal';
+import ProfileSidebar from '@/Components/ProfileSidebar';
 //Import utility functions
 import { handleProfileData, handleSelectProfile } from '@/utils/profileUtils';
 import { getObjectStatus, initializeObjectStructure, initializeSpousalWill } from '@/utils/objectStatusUtils';
@@ -562,7 +563,7 @@ export default function Personal({ auth }) {
 
             case 11:
                 const petsData = getPetInfo();
-
+                console.log("pets", petsData)
                 if (checkValidation(validate.pets(petsData))) {
                     propertiesAndData = [
                         { name: 'pets', data: { ...petsData, timestamp: Date.now() } },
@@ -723,6 +724,19 @@ export default function Personal({ auth }) {
 
         return true;
     };
+    const profiles = [
+        { name: 'danger', id: 1 },
+        { name: 'primary', id: 2 },
+        { name: 'warning', id: 1 },
+        { name: 'success', id: 2 },
+
+    ];
+
+
+    const handleSelectProfile = (profile) => {
+        setCurrentProfile(profile);
+        // Aquí podrías hacer lógica adicional cuando se cambia el perfil, como actualizar el estado global
+    };
 
 
     const currentStepIndex = visibleSteps !== null ? visibleSteps.findIndex((step) => step.step === pointer) : 16
@@ -751,6 +765,11 @@ export default function Personal({ auth }) {
                 </>
             }
         >
+            <ProfileSidebar
+                profiles={profiles}
+                currentProfile={currentProfile}
+                onSelectProfile={handleSelectProfile}
+            />
             <Head title={`Welcome, ${username}`} />
             <div className="py-12 h-[100%]" style={{ height: '100%', overflow: 'hidden' }}>
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8" style={{ height: 'inherit' }}>

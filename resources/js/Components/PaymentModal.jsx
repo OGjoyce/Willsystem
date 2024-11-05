@@ -15,11 +15,13 @@ const PaymentModal = ({ show, handleClose }) => {
     const handleOptionSelect = (option) => {
         setSelectedOption(option);
         setIsDropdownOpen(false);
+
     };
 
     const handleConfirm = () => {
         if (selectedOption) {
             console.log('Selected Payment Option:', selectedOption);
+            handleClose()
             // Add your payment processing logic here
         }
     };
