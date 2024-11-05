@@ -23,7 +23,7 @@ var WillContent = forwardRef((props, ref) => {
         var spouseInfo = statusObject.married;
         var hasKids = statusObject.kidsq.selection === "true";
         var kids = Object.values(statusObject.kids);
-        var relatives = statusObject.relatives ? Object.values(statusObject.relatives) : [];
+        var relatives = datasObj[5]?.relatives || [];
         var executors = statusObject.executors ? Object.values(statusObject.executors) : [];
         var bequests = statusObject.bequests ? Object.values(statusObject.bequests).filter(item => typeof item === 'object') : [];
         var trusting = statusObject.trusting ? Object.values(statusObject.trusting).filter(item => typeof item === 'object') : [];
@@ -38,15 +38,14 @@ var WillContent = forwardRef((props, ref) => {
         var additionalInfo = statusObject.additional;
         var POAInfo = statusObject.poa;
 
-        console.log(statusObject)
+
 
     }
 
     function findPersonInfo(name, relatives, kids, spouseInfo) {
         const names = name.trim();
-
         const person =
-            relatives.find(rel => `${rel.firstName} ${rel.lastName}` === names) ||
+            relatives.find(rel => `${rel.firstName} ${rel.lastName}` === names || `${rel.firstName} ${rel.middleName}` === names) ||
             kids.find(kid => `${kid.firstName} ${kid.lastName}` === names) ||
             (spouseInfo.firstName && spouseInfo.lastName && `${spouseInfo.firstName} ${spouseInfo.lastName}` === names ? spouseInfo : null);
 
@@ -61,6 +60,7 @@ var WillContent = forwardRef((props, ref) => {
 
         return { city: '', country: '', province: '', fullName: names };
     }
+
 
 
     return (
@@ -271,19 +271,26 @@ var WillContent = forwardRef((props, ref) => {
                                     <>
                                         <li>The entire estate residue is to be divided between my designated beneficiaries or any alternate beneficiaries as follows:</li>
                                         <ul>
-                                            {statusObject.residue.beneficiary.map((beneficiary, index) => (
-                                                <li key={index}>
-                                                    {beneficiary.isOrganization ? (
-                                                        <>
-                                                            Organization: {beneficiary.beneficiary} - {beneficiary.shares}% share
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            Beneficiary: {beneficiary.beneficiary} - {beneficiary.shares}% share, Backup: {beneficiary.backup}, Type: {beneficiary.type}
-                                                        </>
-                                                    )}
-                                                </li>
-                                            ))}
+                                            {statusObject.residue.beneficiary.map((beneficiary, index) => {
+                                                const { city, country } = findPersonInfo(beneficiary.beneficiary, relatives, kids, spouseInfo);
+                                                const { city: backupCity, country: backupCountry } = findPersonInfo(beneficiary.backup, relatives, kids, spouseInfo)
+
+                                                return (
+
+                                                    <li key={index}>
+                                                        {beneficiary.isOrganization ? (
+                                                            <>
+
+                                                                Organization: {beneficiary.beneficiary} - {beneficiary.shares}% share
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                Beneficiary: {beneficiary.beneficiary} {city ? `of ${capitalLetters(city)}, ${capitalLetters(country)}` : ''} - {beneficiary.shares}% share, Backup: {beneficiary.backup}  {backupCity ? `of ${capitalLetters(backupCity)}, ${capitalLetters(backupCountry)}` : ''}, Type: {beneficiary.type}
+                                                            </>
+                                                        )}
+                                                    </li>
+                                                )
+                                            })}
                                         </ul>
                                         <li>All property given under this Will is subject to any encumbrances or liens attached to the property.</li>
                                     </>
@@ -345,12 +352,13 @@ var WillContent = forwardRef((props, ref) => {
                                     {Array.isArray(wipeoutInfo) ? (
                                         wipeoutInfo.map((beneficiary, index) => {
                                             const { city, country, fullName } = findPersonInfo(beneficiary.names, relatives, kids, spouseInfo);
+                                            const { city: backupCity, country: backupCountry } = findPersonInfo(beneficiary.backup, relatives, kids, spouseInfo)
                                             return (
                                                 <li key={index}>
                                                     I leave {beneficiary.shares} shares of the residue of my estate to {capitalLetters(beneficiary.names)} of {capitalLetters(city)}, {capitalLetters(country)} if they shall survive me,
                                                     for their own use absolutely. If {capitalLetters(beneficiary.names)} should not survive me for thirty full days, or die
                                                     before becoming entitled to receive the whole of their share of the residue of my estate, I leave this
-                                                    property to their descendants {beneficiary.backup} for their own use absolutely.
+                                                    property to their descendants {beneficiary.backup} {backupCity ? `of ${capitalLetters(backupCity)}, ${capitalLetters(backupCountry)}` : ''}, Type: {beneficiary.type} for their own use absolutely.
                                                 </li>
                                             );
                                         })
