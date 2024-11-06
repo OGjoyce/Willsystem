@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Offcanvas, Button, ButtonGroup } from 'react-bootstrap';
-import { getLastUnlockedDocument } from '@/utils/documentsUtils';
-
+import { stepHasData } from '@/utils/stepUtils';
+import { isObjectLike } from 'lodash';
 
 function ProfileSidebar({ objectStatus, currentProfile, handleSelectDocument }) {
     const [show, setShow] = useState(false);
-    const [profiles, setProfiles] = useState(null);
     const [documents, setDocuments] = useState(null);
+    const [isSpousalWillAvailable, setIsSpousalWillAvailable] = useState(false)
 
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
 
     useEffect(() => {
         setDocuments(objectStatus[0]?.[0]?.packageInfo?.documents);
-        setProfiles(objectStatus.map((data) => data[0].personal?.email));
+
+        //Checks if primaryWill has spousal data available to start spousalWill
+        const isSpousalDataAvailable = stepHasData(objectStatus, objectStatus[0]?.[0]?.personal?.email, 2)
+        setIsSpousalWillAvailable(isSpousalDataAvailable)
     }, [objectStatus]);
 
     const noAssignedDocuments = documents !== null
@@ -78,6 +81,7 @@ function ProfileSidebar({ objectStatus, currentProfile, handleSelectDocument }) 
                                             <Button
                                                 key={index}
                                                 variant={docObj.owner === currentProfile ? 'success' : 'outline-success'}
+                                                disabled={!isSpousalWillAvailable}
                                                 className="flex justify-between items-center"
                                                 onClick={() => {
                                                     handleSelectDocument(docObj)
