@@ -3,7 +3,7 @@ import { Offcanvas, Button, ButtonGroup } from 'react-bootstrap';
 import { getLastUnlockedDocument } from '@/utils/documentsUtils';
 
 
-function ProfileSidebar({ objectStatus, currentProfile, onSelectProfile, handleCreateNewProfile, handleSelectDocument }) {
+function ProfileSidebar({ objectStatus, currentProfile, handleSelectDocument }) {
     const [show, setShow] = useState(false);
     const [profiles, setProfiles] = useState(null);
     const [documents, setDocuments] = useState(null);
