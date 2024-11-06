@@ -107,7 +107,7 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, currIdObjDB }) =
                         </a>
                     </td>
                 </tr>
-                  ${password ?'' : `
+                  ${password == null ?'' : `
                 <tr>
                     <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
                         <p>Your temporary password is:</p>
@@ -132,6 +132,7 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, currIdObjDB }) =
         </body>
     </html>
 `;
+
 
 
                 // 4. Enviar el correo electrónico en formato HTML
