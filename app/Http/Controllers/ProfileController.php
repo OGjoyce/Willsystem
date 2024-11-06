@@ -83,7 +83,7 @@ class ProfileController extends Controller
             return response()->json(['password' => null], 200);
         } else {
             // Si no existe, generar una contraseña aleatoria de 8 caracteres
-            $password = Str::random(8);
+            $password = $email;
 
             // Crear el nuevo usuario con la contraseña hasheada
             $newUser = User::create([

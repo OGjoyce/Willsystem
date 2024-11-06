@@ -38,9 +38,6 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, currIdObjDB }) =
         }
     };
 
-
-
-
     return (
         <Container>
             {/* Document list */}
