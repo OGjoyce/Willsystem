@@ -57,7 +57,7 @@ const DocumentsApproval = ({ id, auth }) => {
             setOpenDropdown(null); // Close the dropdown
         } else {
             setShowModal(true);
-            setCurrentDoc(doc.id);
+            setCurrentDocId(doc.id);
             setChangeRequest('');
             setOpenDropdown(null); // Close the dropdown
         }
