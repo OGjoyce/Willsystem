@@ -66,6 +66,9 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, currIdObjDB }) =
                 });
 
                 const password = validateEmailResponse.data.password;
+                console.log("Generating password");
+
+                console.log(password);
 
                 // 2. Generar el token para el usuario
                 const generateTokenResponse = await axios.post('https://willsystemapp.com/api/generate-token', {
