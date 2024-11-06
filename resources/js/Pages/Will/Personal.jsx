@@ -724,18 +724,12 @@ export default function Personal({ auth }) {
 
         return true;
     };
-    const profiles = [
-        { name: 'danger', id: 1 },
-        { name: 'primary', id: 2 },
-        { name: 'warning', id: 1 },
-        { name: 'success', id: 2 },
-
-    ];
 
 
     const handleSelectProfile = (profile) => {
+        console.log("prevProfile: ", currentProfile)
         setCurrentProfile(profile);
-        // Aquí podrías hacer lógica adicional cuando se cambia el perfil, como actualizar el estado global
+        console.log("updatedProfile: ", profile)
     };
 
 
@@ -765,11 +759,6 @@ export default function Personal({ auth }) {
                 </>
             }
         >
-            <ProfileSidebar
-                profiles={profiles}
-                currentProfile={currentProfile}
-                onSelectProfile={handleSelectProfile}
-            />
             <Head title={`Welcome, ${username}`} />
             <div className="py-12 h-[100%]" style={{ height: '100%', overflow: 'hidden' }}>
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8" style={{ height: 'inherit' }}>
@@ -792,7 +781,6 @@ export default function Personal({ auth }) {
                         {pointer === 14 && <Additional datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
                         {pointer === 15 && <FinalDetails datas={getObjectStatus(objectStatus, currentProfile)} />}
                         {pointer === 16 && <DocumentSelector objectStatus={objectStatus} handleSelectDocument={handleSelectDocument} currIdObjDB={currIdObjDB} />}
-                        {pointer === 16 && showSelectProfileModal && <ProfileSelector objectStatus={objectStatus} handleCreateNewProfile={handleCreateNewProfile} selectProfile={selectProfile} />}
                         {pointer === 16 && showPDFEditor && (
                             <div className="fixed inset-0 flex justify-center items-center bg-gray-100 z-50 overflow-auto">
                                 <div className="relative w-full max-w-5xl bg-white shadow-lg rounded-lg p-6 mt-12 mb-12">
@@ -808,6 +796,12 @@ export default function Personal({ auth }) {
                             </div>
                         )
                         }
+                        {pointer === 16 && showSelectProfileModal && <ProfileSelector objectStatus={objectStatus} handleCreateNewProfile={handleCreateNewProfile} selectProfile={selectProfile} />}
+                        <ProfileSidebar
+                            objectStatus={objectStatus}
+                            currentProfile={currentProfile}
+                            onSelectProfile={handleSelectProfile}
+                        />
                         <div className='p-5 flex justify-center mt-28'>
                             <Container fluid="md">
                                 <Row>
