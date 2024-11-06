@@ -11,6 +11,7 @@ import { Form, InputGroup } from 'react-bootstrap';
 let city = undefined
 let country = undefined
 let province = undefined
+let blendedFamily = false
 
 let isFirstCheckDone = false;
 
@@ -34,6 +35,7 @@ export function getHumanData(params) {
                 relative: relative,
                 email: "NA",
                 phone: "NA",
+                blendedFamily: blendedFamily,
                 city: city,
                 province: province,
                 country: country
@@ -54,7 +56,7 @@ export function getHumanData(params) {
                 middleName: middleName,
                 lastName: lastName,
                 relative: relative,
-                email: email,
+                email: document.getElementById('emailId1')?.value,
                 phone: `+${phone}`,
                 city: city,
                 province: province,
@@ -78,7 +80,6 @@ function AddHuman({ married, childrens, human, errors, onDataChange }) {
     let relationType = null;
     if (married) { relationType = 'spouse'; }
     if (childrens) { relationType = 'child'; }
-
     const [formValues, setFormValues] = useState(() => {
         if (relationType !== 'spouse') return {};
         const key = 'formValues';
@@ -91,6 +92,12 @@ function AddHuman({ married, childrens, human, errors, onDataChange }) {
     const [showOther, setShowOther] = useState(false);
     const [validationErrors, setValidationErrors] = useState(errors);
     const [phone, setPhone] = useState('');
+    const [isBlendedFamily, setIsBlendedFamily] = useState(false)
+
+    useEffect(() => {
+        blendedFamily = isBlendedFamily
+        console.log('blended')
+    }, [isBlendedFamily])
 
     useEffect(() => {
         if (relationType === 'spouse') {
@@ -251,6 +258,16 @@ function AddHuman({ married, childrens, human, errors, onDataChange }) {
                                 {validationErrors.otherRelative && <p className="mt-2 text-sm text-red-600">{validationErrors.otherRelative}</p>}
                             </>
                         )}
+                        {childrens && <Form.Check
+                            type="checkbox"
+
+                            className='mt-2'
+                            label="Blended family"
+                            checked={isBlendedFamily}
+                            onChange={() => { setIsBlendedFamily(!isBlendedFamily) }}
+                        />
+                        }
+
                         {(married) && (
                             <>
                                 <Form.Group className="mb-3" controlId="emailId1">

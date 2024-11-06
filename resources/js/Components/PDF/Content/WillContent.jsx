@@ -36,6 +36,7 @@ var WillContent = forwardRef((props, ref) => {
 
         var residueInfo = statusObject.residue;
         var additionalInfo = statusObject.additional;
+
         var POAInfo = statusObject.poa;
 
 
@@ -702,8 +703,32 @@ var WillContent = forwardRef((props, ref) => {
 
                             <p><strong><u>Additional Provisions</u></strong></p>
                             <ol>
-                                <li>I wish to have ashes scatted over mediteranean sea</li>
+                                {/* Renderizando deseos específicos */}
+                                {additionalInfo.otherWishes && additionalInfo.otherWishes.length > 0 ? (
+                                    additionalInfo.otherWishes.map((wish, index) => (
+                                        <li key={index}>{wish}</li>
+                                    ))
+                                ) : (
+                                    null
+                                )}
+
+                                {/* Renderizando checkbox de opciones */}
+                                {additionalInfo.checkboxes.organdonation && (
+                                    <li>I wish to donate my organs.</li>
+                                )}
+                                {additionalInfo.checkboxes.cremation && (
+                                    <li>I wish to be cremated.</li>
+                                )}
+                                {additionalInfo.checkboxes.buried && (
+                                    <li>I wish to be buried.</li>
+                                )}
+
+                                {/* Renderizando cláusula personalizada */}
+                                {additionalInfo.customClauseText && (
+                                    <li>{additionalInfo.customClauseText}</li>
+                                )}
                             </ol>
+
 
                             <p><strong><u>No Contest Provision</u></strong></p>
                             <ol>

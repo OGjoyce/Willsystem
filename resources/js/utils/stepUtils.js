@@ -199,7 +199,7 @@ export const backStep = (pointer, objectStatus, currentProfile, visibleSteps, se
                     return data &&
                         (
                             (data.customClauseText && data.customClauseText.trim().length > 0) ||
-                            (data.otherWishes && data.otherWishes.trim().length > 0) ||
+                            (data.otherWishes && data.otherWishes.length > 0) ||
                             Object.values(data.checkboxes || {}).some(value => value === true)
                         );
                 },

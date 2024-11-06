@@ -203,7 +203,7 @@ export default function Personal({ auth }) {
         if (objectStatus.length === 1 && currentDocument === 'spousalWill') {
             //Gets the kids data in primaryWill
             const kids = objectStatus[0][4].kids
-
+            const filteredKids = kids.filter(kid => !kid.isBlendedFamily)
             //Initialized structured and data for spousalWill
             const spousalWillData = initializeSpousalWill(objectStatus)
 
@@ -233,7 +233,7 @@ export default function Personal({ auth }) {
             //Add the kids from primaryWill in the spousalWill "kids" step, data will be shown in the view, user can add or eliminate kids before submit to database
             //setTimeout is needed as all data from localstorage is deleted when changing profiles
             setTimeout(() => {
-                localStorage.setItem('formValues', JSON.stringify({ kids: kids }));
+                localStorage.setItem('formValues', JSON.stringify({ kids: filteredKids }));
             }, 1000);
         }
     }, [currentDocument]);
@@ -257,9 +257,13 @@ export default function Personal({ auth }) {
             const newVisibleSteps = getVisibleSteps(getObjectStatus(objectStatus, owner), document)
             console.log(newVisibleSteps)
             const firstIncompleteStep = findFirstIncompleteStep(objectStatus, owner, newVisibleSteps)
-            firstIncompleteStep
-                ? setPointer(firstIncompleteStep)
-                : setShowPDFEditor(true)
+            if (firstIncompleteStep) {
+                setPointer(firstIncompleteStep);
+            } else {
+                setPointer(16);
+                setShowPDFEditor(true);
+            }
+
         }
 
 
@@ -371,6 +375,14 @@ export default function Personal({ auth }) {
         switch (step) {
             case 0:
                 const personalData = getFormData();
+
+                if (objectStatus.find((data) => data[0].personal?.email == personalData.email)) {
+                    console.log('return')
+                    const errors = {}
+                    errors.email = "Email taken. Please choose another"
+                    setValidationErrors(errors)
+                    return null
+                }
                 if (checkValidation(validate.formData(personalData))) {
                     const initializedDocuments = initializePackageDocuments(availableDocuments, selectedPackage?.description);
                     const dataObj = {
@@ -425,6 +437,14 @@ export default function Personal({ auth }) {
 
             case 2:
                 const humanData = getHumanData();
+                console.log(humanData)
+                if (objectStatus.find((data) => data[0].personal?.email == humanData.email)) {
+                    console.log('return')
+                    const errors = {}
+                    errors.email = "Email taken. Please choose another"
+                    setValidationErrors(errors)
+                    return null
+                }
 
                 if (checkValidation(validate.addHumanData(humanData))) {
                     propertiesAndData = [
@@ -724,19 +744,9 @@ export default function Personal({ auth }) {
 
         return true;
     };
-    const profiles = [
-        { name: 'danger', id: 1 },
-        { name: 'primary', id: 2 },
-        { name: 'warning', id: 1 },
-        { name: 'success', id: 2 },
-
-    ];
 
 
-    const handleSelectProfile = (profile) => {
-        setCurrentProfile(profile);
-        // Aquí podrías hacer lógica adicional cuando se cambia el perfil, como actualizar el estado global
-    };
+
 
 
     const currentStepIndex = visibleSteps !== null ? visibleSteps.findIndex((step) => step.step === pointer) : 16
@@ -765,11 +775,6 @@ export default function Personal({ auth }) {
                 </>
             }
         >
-            <ProfileSidebar
-                profiles={profiles}
-                currentProfile={currentProfile}
-                onSelectProfile={handleSelectProfile}
-            />
             <Head title={`Welcome, ${username}`} />
             <div className="py-12 h-[100%]" style={{ height: '100%', overflow: 'hidden' }}>
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8" style={{ height: 'inherit' }}>
@@ -792,7 +797,6 @@ export default function Personal({ auth }) {
                         {pointer === 14 && <Additional datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
                         {pointer === 15 && <FinalDetails datas={getObjectStatus(objectStatus, currentProfile)} />}
                         {pointer === 16 && <DocumentSelector objectStatus={objectStatus} handleSelectDocument={handleSelectDocument} currIdObjDB={currIdObjDB} />}
-                        {pointer === 16 && showSelectProfileModal && <ProfileSelector objectStatus={objectStatus} handleCreateNewProfile={handleCreateNewProfile} selectProfile={selectProfile} />}
                         {pointer === 16 && showPDFEditor && (
                             <div className="fixed inset-0 flex justify-center items-center bg-gray-100 z-50 overflow-auto">
                                 <div className="relative w-full max-w-5xl bg-white shadow-lg rounded-lg p-6 mt-12 mb-12">
@@ -808,6 +812,12 @@ export default function Personal({ auth }) {
                             </div>
                         )
                         }
+                        {showSelectProfileModal && <ProfileSelector objectStatus={objectStatus} handleCreateNewProfile={handleCreateNewProfile} selectProfile={selectProfile} />}
+                        <ProfileSidebar
+                            objectStatus={objectStatus}
+                            currentProfile={currentProfile}
+                            handleSelectDocument={handleSelectDocument}
+                        />
                         <div className='p-5 flex justify-center mt-28'>
                             <Container fluid="md">
                                 <Row>
