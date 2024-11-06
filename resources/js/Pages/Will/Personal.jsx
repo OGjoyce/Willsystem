@@ -801,6 +801,7 @@ export default function Personal({ auth }) {
                             objectStatus={objectStatus}
                             currentProfile={currentProfile}
                             onSelectProfile={handleSelectProfile}
+                            handleCreateNewProfile={handleCreateNewProfile}
                         />
                         <div className='p-5 flex justify-center mt-28'>
                             <Container fluid="md">
