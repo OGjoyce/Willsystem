@@ -57,6 +57,7 @@ function AddRelative({ relative, datas, errors, onDataChange }) {
                 firstName: modalData.firstName,
                 lastName: modalData.lastName,
                 relative: modalData.relative,
+                isBlendedFamily: modalData.blendedFamily,
                 city: modalData.city,
                 country: modalData.country,
                 province: modalData.province,
