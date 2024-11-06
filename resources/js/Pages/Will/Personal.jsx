@@ -742,11 +742,7 @@ export default function Personal({ auth }) {
     };
 
 
-    const handleSelectProfile = (profile) => {
-        console.log("prevProfile: ", currentProfile)
-        setCurrentProfile(profile);
-        console.log("updatedProfile: ", profile)
-    };
+
 
 
     const currentStepIndex = visibleSteps !== null ? visibleSteps.findIndex((step) => step.step === pointer) : 16
@@ -816,8 +812,6 @@ export default function Personal({ auth }) {
                         <ProfileSidebar
                             objectStatus={objectStatus}
                             currentProfile={currentProfile}
-                            onSelectProfile={handleSelectProfile}
-                            handleCreateNewProfile={handleCreateNewProfile}
                             handleSelectDocument={handleSelectDocument}
                         />
                         <div className='p-5 flex justify-center mt-28'>
