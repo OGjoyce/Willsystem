@@ -118,8 +118,10 @@ function Pets({ datas, errors }) {
         setValidationErrors({});
         const petNameTrimmed = petName.trim();
         let amountid = document.getElementById('amountId').value;
-        if (amountid !== "" && amountid !== null) {
+        if (amountid !== "") {
             amountid = parseFloat(amountid);
+        } else {
+            amountid = "N/A"
         }
         const obj = {
             "id": idTable,
@@ -133,8 +135,8 @@ function Pets({ datas, errors }) {
         if (!petNameTrimmed) {
             newErrors.petName = "Pet name is required";
         }
-        if (!Number(amountid) || Number(amountid) <= 0 || selectedOptionGuardian === '' || selectedOptionBackup === '' || selectedOptionBackup === selectedOptionGuardian) {
-            if (!Number(amountid) || Number(amountid) <= 0) {
+        if (Number(amountid) && Number(amountid) <= 0 || selectedOptionGuardian === '' || selectedOptionBackup === '' || selectedOptionBackup === selectedOptionGuardian) {
+            if (Number(amountid) && Number(amountid) <= 0) {
                 newErrors.amount = "A valid amount is required";
             }
 
@@ -363,9 +365,8 @@ function Pets({ datas, errors }) {
                                             onChange={(e) => handleDropdownSelect('amount', e.target.value)}
                                             isInvalid={!tempData.amount || Number(tempData.amount) <= 0}
                                         />
-                                    ) : (
-                                        `$${item.amount.toFixed(2)}`
-                                    )}
+                                    ) : item.amount !== "N/A" ? `$${item.amount.toFixed(2)}` : "N/A"
+                                    }
                                     {editingRow === index && (!tempData.amount || Number(tempData.amount) <= 0) && (
                                         <p className="mt-2 text-sm text-danger">A valid amount is required</p>
                                     )}
