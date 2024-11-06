@@ -20,7 +20,7 @@ const POA1Content = forwardRef((props, ref) => {
     const spouseInfo = statusObject.married || {};
     const kids = Object.values(statusObject.kids || {});
     const relatives = Object.values(statusObject.relatives || {});
-    const POAInfo = statusObject.poa || {};
+    const POAInfo = statusObject.poaProperty || {};
 
     function findPersonInfo(name, relatives, kids, spouseInfo) {
         if (!name) return { city: '', country: '', province: '', fullName: '', relation: '', telephone: '' };
@@ -54,8 +54,12 @@ const POA1Content = forwardRef((props, ref) => {
     }
 
     const attorneyOne = POAInfo.poaProperty ? findPersonInfo(POAInfo.poaProperty.attorney, relatives, kids, spouseInfo) : {};
-    const attorneyTwo = POAInfo.poaProperty ? findPersonInfo(POAInfo.poaProperty.join, relatives, kids, spouseInfo) : {};
+    const attorneyTwo = POAInfo.poaProperty && POAInfo.poaProperty.backups && POAInfo.poaProperty.backups.length > 0
+        ? POAInfo.poaProperty.backups.map((backup) => findPersonInfo(backup, relatives, kids, spouseInfo))
+        : [];
     const restrictions = POAInfo.poaProperty ? (POAInfo.poaProperty.restrictions || '') : '';
+
+
 
     return (
         <div ref={ref}>
@@ -67,12 +71,39 @@ const POA1Content = forwardRef((props, ref) => {
                             <h2 className='document-header'>Continuing Power of Attorney for Property of {personal.fullName || ''}</h2>
                             <br />
                             <p><strong>CONTINUING POWER OF ATTORNEY FOR PROPERTY OF {capitalLetters(personal.fullName)}</strong></p>
-                            <p>I, {capitalLetters(personal.fullName)} of {capitalLetters(personal.city)}{personal.province ? `, ${capitalLetters(personal.province)}` : ""} revoke any previous continuing Power of Attorney for
-                                Property made by me and APPOINT {attorneyOne.relation ? `, my ${attorneyOne.relation}` : ""} {capitalLetters(attorneyOne.fullName)} of {capitalLetters(attorneyOne.city)}{attorneyOne.province ? `, ${capitalLetters(attorneyOne.province)}` : ""} to be my sole Attorney for
-                                Property (my "Attorney").</p>
-                            <p>If {capitalLetters(attorneyOne.fullName)} cannot or will not be my Attorney because of refusal, resignation, death, mental incapacity, or
-                                removal by the court, I SUBSTITUTE {capitalLetters(attorneyTwo.fullName)}{attorneyTwo.relation ? `, my ${attorneyTwo.relation.toLowerCase()}` : ""} of {capitalLetters(attorneyTwo.city)}{attorneyTwo.province ? `, ${capitalLetters(attorneyTwo.province)}` : ""} to be my sole Attorney.</p>
+                            <p>
+                                I, {capitalLetters(personal.fullName)} of {capitalLetters(personal.city)}
+                                {personal.province ? `, ${capitalLetters(personal.province)}` : ""}, revoke any previous continuing Power of Attorney for
+                                Property made by me and APPOINT {attorneyOne.relation ? `, my ${attorneyOne.relation}` : ""} {capitalLetters(attorneyOne.fullName)}
+                                {attorneyOne.city && ` of ${capitalLetters(attorneyOne.city)}`}
+                                {attorneyOne.province ? `, ${capitalLetters(attorneyOne.province)}` : ""} to be my sole Attorney for
+                                Property (my "Attorney").
+                            </p>
+
+                            {attorneyTwo && attorneyTwo.length > 0 && (
+                                <p>
+                                    If {capitalLetters(attorneyOne.fullName)} cannot or will not be my Attorney because of refusal, resignation, death, mental incapacity, or
+                                    removal by the court, I SUBSTITUTE {capitalLetters(attorneyTwo[0].fullName)}
+                                    {attorneyTwo[0].relation ? `, my ${attorneyTwo[0].relation.toLowerCase()}` : ""}
+                                    {attorneyTwo[0].city && ` of ${capitalLetters(attorneyTwo[0].city)}`}
+                                    {attorneyTwo[0].province ? `, ${capitalLetters(attorneyTwo[0].province)}` : ""} to be my sole Attorney.
+                                </p>
+                            )}
+
+                            {attorneyTwo && attorneyTwo.length > 1 &&
+                                attorneyTwo.slice(1).map((backup, index) => (
+                                    <p key={index}>
+                                        If {capitalLetters(attorneyTwo[index].fullName)} cannot or will not be my Attorney because of refusal, resignation, death, mental incapacity, or
+                                        removal by the court, I SUBSTITUTE {capitalLetters(backup.fullName)}
+                                        {backup.relation ? `, my ${backup.relation.toLowerCase()}` : ""}
+                                        {backup.city && ` of ${capitalLetters(backup.city)}`}
+                                        {backup.province ? `, ${capitalLetters(backup.province)}` : ""} to be my sole Attorney.
+                                    </p>
+                                ))
+                            }
+
                             <p>As used in this document:</p>
+
                             <ul>
                                 <li>"Act" means the Ontario Substitute Decisions Act 1992, R.S.O. 1992, c.30.</li>
                                 <li>"Assessor" means a person who is designated by the regulations to the Act as being qualified to do
