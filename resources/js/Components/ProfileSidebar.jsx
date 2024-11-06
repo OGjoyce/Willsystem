@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Offcanvas, Button, ButtonGroup } from 'react-bootstrap';
 import { stepHasData } from '@/utils/stepUtils';
-import { isObjectLike } from 'lodash';
 
 function ProfileSidebar({ objectStatus, currentProfile, handleSelectDocument }) {
     const [show, setShow] = useState(false);
