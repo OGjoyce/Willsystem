@@ -812,12 +812,13 @@ export default function Personal({ auth }) {
                             </div>
                         )
                         }
-                        {pointer === 16 && showSelectProfileModal && <ProfileSelector objectStatus={objectStatus} handleCreateNewProfile={handleCreateNewProfile} selectProfile={selectProfile} />}
+                        {showSelectProfileModal && <ProfileSelector objectStatus={objectStatus} handleCreateNewProfile={handleCreateNewProfile} selectProfile={selectProfile} />}
                         <ProfileSidebar
                             objectStatus={objectStatus}
                             currentProfile={currentProfile}
                             onSelectProfile={handleSelectProfile}
                             handleCreateNewProfile={handleCreateNewProfile}
+                            handleSelectDocument={handleSelectDocument}
                         />
                         <div className='p-5 flex justify-center mt-28'>
                             <Container fluid="md">
