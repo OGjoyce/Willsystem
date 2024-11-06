@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Offcanvas, Button, ButtonGroup } from 'react-bootstrap';
 import { getLastUnlockedDocument } from '@/utils/documentsUtils';
 
-function ProfileSidebar({ objectStatus, currentProfile, onSelectProfile, handleCreateNewProfile }) {
+
+function ProfileSidebar({ objectStatus, currentProfile, onSelectProfile, handleCreateNewProfile, handleSelectDocument }) {
     const [show, setShow] = useState(false);
     const [profiles, setProfiles] = useState(null);
     const [documents, setDocuments] = useState(null);
@@ -14,6 +15,10 @@ function ProfileSidebar({ objectStatus, currentProfile, onSelectProfile, handleC
         setDocuments(objectStatus[0]?.[0]?.packageInfo?.documents);
         setProfiles(objectStatus.map((data) => data[0].personal?.email));
     }, [objectStatus]);
+
+    const noAssignedDocuments = documents !== null
+        ? documents?.filter(document => document.owner == "unknown" && document.associatedWill == "unknown")
+        : null
 
     return (
         <>
@@ -56,12 +61,12 @@ function ProfileSidebar({ objectStatus, currentProfile, onSelectProfile, handleC
                                                 variant={docObj.owner === currentProfile ? 'danger' : 'outline-danger'}
                                                 className="flex justify-between items-center"
                                                 onClick={() => {
-                                                    onSelectProfile(docObj.owner)
+                                                    handleSelectDocument(docObj)
                                                     handleClose();
                                                 }}
                                             >
                                                 <span className="flex items-center flex-grow text-sm font-medium">
-                                                    <i className="bi bi-person-circle me-2"></i>
+                                                    <i className={`bi ${docObj.owner == "unknown" ? "bi-arrow-up-right-square" : "bi-person-circle"}   me-2`}></i>
                                                     {docObj.owner !== 'unknown' ? docObj.owner : "Start Primary Will"}
                                                 </span>
                                                 {docObj.owner === currentProfile && (
@@ -75,12 +80,12 @@ function ProfileSidebar({ objectStatus, currentProfile, onSelectProfile, handleC
                                                 variant={docObj.owner === currentProfile ? 'success' : 'outline-success'}
                                                 className="flex justify-between items-center"
                                                 onClick={() => {
-                                                    onSelectProfile(docObj.owner)
+                                                    handleSelectDocument(docObj)
                                                     handleClose();
                                                 }}
                                             >
                                                 <span className="flex items-center flex-grow text-sm font-medium">
-                                                    <i className="bi bi-person-circle me-2"></i>
+                                                    <i className={`bi ${docObj.owner == "unknown" ? "bi-arrow-up-right-square" : "bi-person-circle"}   me-2`}></i>
                                                     {docObj.owner !== 'unknown' ? docObj.owner : "Start Spousal Will"}
                                                 </span>
                                                 {docObj.owner === currentProfile && (
@@ -94,12 +99,12 @@ function ProfileSidebar({ objectStatus, currentProfile, onSelectProfile, handleC
                                                 variant={docObj.owner === currentProfile ? 'primary' : 'outline-primary'}
                                                 className="flex justify-between items-center"
                                                 onClick={() => {
-                                                    onSelectProfile(docObj.owner)
+                                                    handleSelectDocument(docObj)
                                                     handleClose();
                                                 }}
                                             >
                                                 <span className="flex items-center flex-grow text-sm font-medium">
-                                                    <i className="bi bi-person-circle me-2"></i>
+                                                    <i className={`bi ${docObj.owner == "unknown" ? "bi-arrow-up-right-square" : "bi-person-circle"}   me-2`}></i>
                                                     {docObj.owner !== 'unknown' ? docObj.owner : "Start Secondary Will"}
                                                 </span>
                                                 {docObj.owner === currentProfile && (
@@ -113,12 +118,12 @@ function ProfileSidebar({ objectStatus, currentProfile, onSelectProfile, handleC
                                                 variant={docObj.owner === currentProfile ? 'warning' : 'outline-warning'}
                                                 className="flex justify-between items-center"
                                                 onClick={() => {
-                                                    onSelectProfile(docObj.owner)
+                                                    handleSelectDocument(docObj)
                                                     handleClose();
                                                 }}
                                             >
                                                 <span className="flex items-center flex-grow text-sm font-medium">
-                                                    <i className="bi bi-person-circle me-2"></i>
+                                                    <i className={`bi ${docObj.owner == "unknown" ? "bi-arrow-up-right-square" : "bi-person-circle"}   me-2`}></i>
                                                     {docObj.owner !== 'unknown' ? docObj.owner : "Start Secondary Will"}
                                                 </span>
                                                 {docObj.owner === currentProfile && (
@@ -154,18 +159,20 @@ function ProfileSidebar({ objectStatus, currentProfile, onSelectProfile, handleC
                             });
                         })()}
 
-                        {documents?.find(document => document.owner == "unknown" && document.associatedWill == "unknown") && <Button
-                            variant="outline-dark"
-                            size="md"
-                            className="w-full flex justify-center items-center space-x-2 py-2 border border-gray-300 rounded-lg text-gray-600 transition-all duration-200 ease-in-out"
-                            onClick={() => {
-                                handleClose()
-                                handleCreateNewProfile()
-                            }}
-                        >
-                            <i className="bi bi-plus-circle"></i>
-                            <strong>Create new profile</strong>
-                        </Button>
+                        {noAssignedDocuments && noAssignedDocuments.map(docObj => (
+                            <Button
+                                variant="outline-dark"
+                                size="md"
+                                className="w-full flex justify-center items-center space-x-2 py-2 border border-gray-300 rounded-lg text-gray-600 transition-all duration-200 ease-in-out"
+                                onClick={() => {
+                                    handleClose()
+                                    handleSelectDocument(docObj)
+                                }}
+                            >
+                                <i className="bi bi-plus-circle"></i>
+                                <strong>{`Assign ${docObj.docType}`}</strong>
+                            </Button>
+                        ))
                         }
                         {
                             documents == null && <Button
