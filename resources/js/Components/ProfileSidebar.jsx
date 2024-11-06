@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Offcanvas, Button, ButtonGroup } from 'react-bootstrap';
 import { getLastUnlockedDocument } from '@/utils/documentsUtils';
 
-function ProfileSidebar({ objectStatus, currentProfile, onSelectProfile }) {
+function ProfileSidebar({ objectStatus, currentProfile, onSelectProfile, handleCreateNewProfile }) {
     const [show, setShow] = useState(false);
     const [profiles, setProfiles] = useState(null);
     const [documents, setDocuments] = useState(null);
@@ -158,11 +158,28 @@ function ProfileSidebar({ objectStatus, currentProfile, onSelectProfile }) {
                             variant="outline-dark"
                             size="md"
                             className="w-full flex justify-center items-center space-x-2 py-2 border border-gray-300 rounded-lg text-gray-600 transition-all duration-200 ease-in-out"
-                            onClick={() => { handleClose(); }}
+                            onClick={() => {
+                                handleClose()
+                                handleCreateNewProfile()
+                            }}
                         >
                             <i className="bi bi-plus-circle"></i>
                             <strong>Create new profile</strong>
                         </Button>
+                        }
+                        {
+                            documents == null && <Button
+                                variant="outline-dark"
+                                size="md"
+                                className="w-full flex justify-center items-center space-x-2 py-2 border border-gray-300 rounded-lg text-gray-600 transition-all duration-200 ease-in-out"
+                                onClick={() => {
+                                    handleClose()
+
+                                }}
+                            >
+                                <i className="bi bi-plus-circle"></i>
+                                <strong>Create new profile</strong>
+                            </Button>
                         }
                     </ButtonGroup>
                 </Offcanvas.Body>
