@@ -203,7 +203,7 @@ export default function Personal({ auth }) {
         if (objectStatus.length === 1 && currentDocument === 'spousalWill') {
             //Gets the kids data in primaryWill
             const kids = objectStatus[0][4].kids
-
+            const filteredKids = kids.filter(kid => !kid.isBlendedFamily)
             //Initialized structured and data for spousalWill
             const spousalWillData = initializeSpousalWill(objectStatus)
 
@@ -233,7 +233,7 @@ export default function Personal({ auth }) {
             //Add the kids from primaryWill in the spousalWill "kids" step, data will be shown in the view, user can add or eliminate kids before submit to database
             //setTimeout is needed as all data from localstorage is deleted when changing profiles
             setTimeout(() => {
-                localStorage.setItem('formValues', JSON.stringify({ kids: kids }));
+                localStorage.setItem('formValues', JSON.stringify({ kids: filteredKids }));
             }, 1000);
         }
     }, [currentDocument]);
