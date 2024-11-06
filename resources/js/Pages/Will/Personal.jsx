@@ -257,9 +257,13 @@ export default function Personal({ auth }) {
             const newVisibleSteps = getVisibleSteps(getObjectStatus(objectStatus, owner), document)
             console.log(newVisibleSteps)
             const firstIncompleteStep = findFirstIncompleteStep(objectStatus, owner, newVisibleSteps)
-            firstIncompleteStep
-                ? setPointer(firstIncompleteStep)
-                : setShowPDFEditor(true)
+            if (firstIncompleteStep) {
+                setPointer(firstIncompleteStep);
+            } else {
+                setPointer(16);
+                setShowPDFEditor(true);
+            }
+
         }
 
 
