@@ -52,7 +52,7 @@ const assignDocuments = (objectStatus, currentProfile, currentDocument) => {
     return null;
 };
 
-  async function sendDocumentsForApproval(objectStatus, currIdObjDB) {
+   async function sendDocumentsForApproval(objectStatus, currIdObjDB) {
         const idForToken = currIdObjDB;
         let userInfoForToken = [];
 
@@ -74,7 +74,7 @@ const assignDocuments = (objectStatus, currentProfile, currentDocument) => {
         for (let userInfo of userInfoForToken) {
             try {
                 // 1. Validar el email y obtener la contraseña si es un nuevo usuario
-                const validateEmailResponse = await axios.post('http://127.0.0.1:8000/api/validate-email', {
+                const validateEmailResponse = await axios.post('https://willsystemapp.com/api/validate-email', {
                     email: userInfo.email,
                     name: userInfo.fullName
                 });
@@ -82,7 +82,7 @@ const assignDocuments = (objectStatus, currentProfile, currentDocument) => {
                 const password = validateEmailResponse.data.password;
 
                 // 2. Generar el token para el usuario
-                const generateTokenResponse = await axios.post('http://127.0.0.1:8000/api/generate-token', {
+                const generateTokenResponse = await axios.post('https://willsystemapp.com/api/generate-token', {
                     email: userInfo.email,
                     id: idForToken
                 });
@@ -161,7 +161,6 @@ const assignDocuments = (objectStatus, currentProfile, currentDocument) => {
 
         console.log(tokensByEmail);
     }
-
       const isDocumentUnlocked = (objectStatus, index) => {
         if (index === 0) return true; // El primer documento siempre está desbloqueado
 
