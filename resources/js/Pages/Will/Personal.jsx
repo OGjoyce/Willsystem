@@ -371,6 +371,14 @@ export default function Personal({ auth }) {
         switch (step) {
             case 0:
                 const personalData = getFormData();
+
+                if (objectStatus.find((data) => data[0].personal?.email == personalData.email)) {
+                    console.log('return')
+                    const errors = {}
+                    errors.email = "Email taken. Please choose another"
+                    setValidationErrors(errors)
+                    return null
+                }
                 if (checkValidation(validate.formData(personalData))) {
                     const initializedDocuments = initializePackageDocuments(availableDocuments, selectedPackage?.description);
                     const dataObj = {
@@ -425,6 +433,14 @@ export default function Personal({ auth }) {
 
             case 2:
                 const humanData = getHumanData();
+                console.log(humanData)
+                if (objectStatus.find((data) => data[0].personal?.email == humanData.email)) {
+                    console.log('return')
+                    const errors = {}
+                    errors.email = "Email taken. Please choose another"
+                    setValidationErrors(errors)
+                    return null
+                }
 
                 if (checkValidation(validate.addHumanData(humanData))) {
                     propertiesAndData = [
