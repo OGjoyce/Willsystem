@@ -54,7 +54,7 @@ export function getHumanData(params) {
                 middleName: middleName,
                 lastName: lastName,
                 relative: relative,
-                email: email,
+                email: document.getElementById('emailId1')?.value,
                 phone: `+${phone}`,
                 city: city,
                 province: province,
