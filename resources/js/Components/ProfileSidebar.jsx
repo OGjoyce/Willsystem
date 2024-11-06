@@ -142,7 +142,7 @@ function ProfileSidebar({ objectStatus, currentProfile, handleSelectDocument }) 
                                                     variant={docObj.owner === currentProfile ? 'warning' : 'outline-warning'}
                                                     className="flex justify-between items-center"
                                                     onClick={() => {
-                                                        onSelectProfile(docObj.owner);
+                                                        handleSelectDocument(docObj)
                                                         handleClose();
                                                     }}
                                                 >
