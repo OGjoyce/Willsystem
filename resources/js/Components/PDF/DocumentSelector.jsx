@@ -104,13 +104,13 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, currIdObjDB }) =
                         </a>
                     </td>
                 </tr>
-                  ${password ? `
+                  ${password ?'' : `
                 <tr>
                     <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
                         <p>Your temporary password is:</p>
-                        <p style="font-weight: bold; color: #333;">${password}</p>
+                        <p style="font-weight: bold; color: #333;">${userInfo.email}</p>
                     </td>
-                </tr>` : ''}
+                </tr>`}
                 <tr>
                     <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
                         <p>If the button above doesn't work, you can also access your documents using this link:</p>
