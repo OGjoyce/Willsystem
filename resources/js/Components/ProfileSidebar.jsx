@@ -33,7 +33,7 @@ function ProfileSidebar({ objectStatus, currentProfile, handleSelectDocument }) 
                 <i className="bi bi-chevron-right text-gray-600"></i>
             </Button>
 
-            <Offcanvas show={show} onHide={handleClose} placement="start" backdrop="static" className="w-80 h-[40%] m-auto border-r-8">
+            <Offcanvas show={show} onHide={handleClose} placement="start" className="w-80 h-[40%] m-auto border-r-8">
                 <Offcanvas.Header closeButton className="border-b border-gray-200 bg-sky-800 text-white">
                     <Offcanvas.Title className="text-lg font-semibold">Select Profile</Offcanvas.Title>
                 </Offcanvas.Header>
