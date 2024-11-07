@@ -24,6 +24,7 @@ function ProfileSidebar({ objectStatus, currentProfile, handleSelectDocument }) 
 
     return (
         <>
+
             <Button
                 variant="light"
                 onClick={handleShow}
@@ -54,7 +55,7 @@ function ProfileSidebar({ objectStatus, currentProfile, handleSelectDocument }) 
                                 }
 
 
-
+                                const colors = ["info", "dark", "secondary", "warning"];
                                 return (
                                     <>
                                         {docObj.willIdentifier === 'primaryWill_1' && (
@@ -79,7 +80,7 @@ function ProfileSidebar({ objectStatus, currentProfile, handleSelectDocument }) 
                                         {docObj.willIdentifier === 'spousalWill_1' && (
                                             <Button
                                                 key={index}
-                                                variant={docObj.owner === currentProfile ? 'success' : 'outline-success'}
+                                                variant={docObj.owner === currentProfile ? 'primary' : 'outline-primary'}
                                                 disabled={!isSpousalWillAvailable}
                                                 className="flex justify-between items-center"
                                                 onClick={() => {
@@ -99,7 +100,7 @@ function ProfileSidebar({ objectStatus, currentProfile, handleSelectDocument }) 
                                         {docObj.willIdentifier === 'secondaryWill_1' && (
                                             <Button
                                                 key={index}
-                                                variant={docObj.owner === currentProfile ? 'primary' : 'outline-primary'}
+                                                variant={docObj.owner === currentProfile ? 'warning' : 'outline-warning'}
                                                 className="flex justify-between items-center"
                                                 onClick={() => {
                                                     handleSelectDocument(docObj)
@@ -118,7 +119,7 @@ function ProfileSidebar({ objectStatus, currentProfile, handleSelectDocument }) 
                                         {docObj.willIdentifier === 'secondaryWill_2' && (
                                             <Button
                                                 key={index}
-                                                variant={docObj.owner === currentProfile ? 'warning' : 'outline-warning'}
+                                                variant={docObj.owner === currentProfile ? 'success' : 'outline-success'}
                                                 className="flex justify-between items-center"
                                                 onClick={() => {
                                                     handleSelectDocument(docObj)
@@ -134,15 +135,20 @@ function ProfileSidebar({ objectStatus, currentProfile, handleSelectDocument }) 
                                                 )}
                                             </Button>
                                         )}
+
+
                                         {docObj?.docType?.includes("poa") &&
                                             docObj.owner !== 'unknown' &&
                                             !documents.some(doc => doc.willIdentifier && doc.owner === docObj.owner) && (
                                                 <Button
                                                     key={index}
-                                                    variant={docObj.owner === currentProfile ? 'warning' : 'outline-warning'}
+                                                    // Cycle through colors based on the index
+                                                    variant={docObj.owner === currentProfile ? colors[index % colors.length] : `outline-${colors[index % colors.length]} `}
+
+                                                    data-bs-theme="light"
                                                     className="flex justify-between items-center"
                                                     onClick={() => {
-                                                        handleSelectDocument(docObj)
+                                                        handleSelectDocument(docObj);
                                                         handleClose();
                                                     }}
                                                 >
@@ -155,6 +161,7 @@ function ProfileSidebar({ objectStatus, currentProfile, handleSelectDocument }) 
                                                     )}
                                                 </Button>
                                             )}
+
 
                                     </>
 
