@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Button, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Button, Spinner, Dropdown } from 'react-bootstrap';
 
 import CustomToast from '../AdditionalComponents/CustomToast';
 import { sendDocumentsForApproval, isDocumentUnlocked, areAllDocumentsUnlocked, getLastUnlockedDocument } from '@/utils/documentsUtils';
 
 
 
-const DocumentSelector = ({ objectStatus, handleSelectDocument, currIdObjDB }) => {
+const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocumentToPackage, currIdObjDB }) => {
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
     const [sendingEmails, setSendingEmails] = useState(false);
@@ -86,15 +86,49 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, currIdObjDB }) =
                                 );
                             });
                         })()}
-                        <Button
-                            variant={!allDocumentsCompleted ? 'outline-dark' : 'outline-success'}
-                            disabled={!allDocumentsCompleted}
-                            className=''
-                            onClick={() => { handleSendDocuments(objectStatus, currIdObjDB) }}
-                        >
-                            Send documents for Aproval
-                        </Button>
+
                     </Row>
+                    <Row className="mt-6">
+                        <Col xs={12} md={6} className="mb-3 mb-md-0">
+                            <Dropdown
+                                onSelect={(eventKey) => handleAddNewDocumentToPackage(eventKey)}
+                                className="w-100"
+                            >
+                                <Dropdown.Toggle
+                                    className="w-100"
+                                    variant={!allDocumentsCompleted ? 'outline-dark' : 'outline-primary'}
+                                    disabled={!allDocumentsCompleted}
+                                    id="add-document-dropdown"
+                                >
+                                    <i className="bi bi-file-earmark-plus"></i> Add New Document
+                                </Dropdown.Toggle>
+
+                                <Dropdown.Menu className="text-center w-100">
+                                    <Dropdown.Item eventKey="secondaryWill">
+                                        Secondary Will
+                                    </Dropdown.Item>
+                                    <Dropdown.Item eventKey="poaProperty">
+                                        POA Property
+                                    </Dropdown.Item>
+                                    <Dropdown.Item eventKey="poaHealth">
+                                        POA Health
+                                    </Dropdown.Item>
+                                </Dropdown.Menu>
+                            </Dropdown>
+                        </Col>
+
+                        <Col xs={12} md={6}>
+                            <Button
+                                variant={!allDocumentsCompleted ? 'outline-dark' : 'outline-success'}
+                                disabled={!allDocumentsCompleted}
+                                className="w-100"
+                                onClick={() => { handleSendDocuments(objectStatus, currIdObjDB) }}
+                            >
+                                <i className="bi bi-send"></i> Send Documents for Approval
+                            </Button>
+                        </Col>
+                    </Row>
+
                     {/*errors.documentDOM && <p className="mt-2 text-sm text-center text-red-600">{errors.documentDOM}</p>*/}
                 </>
             ) : null
