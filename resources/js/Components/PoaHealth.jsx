@@ -32,6 +32,7 @@ const PoaHealth = ({ datas, errors }) => {
         attorney: '',
         backups: [],
         restrictions: '',
+        activationType: 'immediate',
         statements: {
             terminalCondition: {
                 noLifeSupport: false,
@@ -113,6 +114,7 @@ const PoaHealth = ({ datas, errors }) => {
             attorney: '',
             backups: [],
             restrictions: '',
+            activationType: 'immediate',
             statements: {}
         });
         setOrganDonation(false);
@@ -178,6 +180,11 @@ const PoaHealth = ({ datas, errors }) => {
         setFormData(prev => ({ ...prev, attorney: value }));
         setValidationErrors(prevErrors => ({ ...prevErrors, attorney: '' }));
     };
+
+    const handleActivationTypeChange = (event) => {
+        setFormData(prev => ({ ...prev, activationType: event.target.value }));
+    };
+
 
     // Add a new person to the identifiersNames and relatives list
     const handleAddPerson = (newPerson) => {
@@ -247,7 +254,8 @@ const PoaHealth = ({ datas, errors }) => {
         poaHealthData.poaHealth = {
             attorney: formData.attorney,
             backups: formData.backups,
-            restrictions: formData.restrictions
+            restrictions: formData.restrictions,
+            activationType: formData.activationType
         };
         poaHealthData.organDonation = organDonation;
         poaHealthData.dnr = dnr;
@@ -402,6 +410,27 @@ const PoaHealth = ({ datas, errors }) => {
                                     placeholder="Enter restrictions..."
                                 />
                             </Form.Group>
+
+                            <Form.Group className="mb-3">
+                                <Form.Label>Activation Type</Form.Label>
+                                <div>
+                                    <Form.Check
+                                        type="radio"
+                                        label="Immediately"
+                                        value="immediate"
+                                        checked={formData.activationType === 'immediate'}
+                                        onChange={handleActivationTypeChange}
+                                    />
+                                    <Form.Check
+                                        type="radio"
+                                        label="Upon a finding of lack of capacity or incapacitation"
+                                        value="incapacity"
+                                        checked={formData.activationType === 'incapacity'}
+                                        onChange={handleActivationTypeChange}
+                                    />
+                                </div>
+                            </Form.Group>
+
 
                             <Form.Group className="mb-3">
                                 <Form.Check
