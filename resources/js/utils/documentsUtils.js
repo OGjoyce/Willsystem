@@ -198,11 +198,47 @@ const assignDocuments = (objectStatus, currentProfile, currentDocument) => {
         return document?.owner || 'unknown';
     };
 
+    const addNewDocumentToPackage = (objectStatus, newDocument) => {
+    // Realiza una copia profunda del objectStatus para evitar mutaciones
+    const newObjectStatus = objectStatus.map(innerArray => innerArray.map(item => ({ ...item })));
+
+    // Accede al primer elemento donde se agregará el nuevo documento
+    const firstItem = newObjectStatus[0][0];
+
+    // Clona packageInfo y documents para mantener la inmutabilidad
+    firstItem.packageInfo = { ...firstItem.packageInfo };
+    firstItem.packageInfo.documents = [...firstItem.packageInfo.documents];
+
+    const documents = firstItem.packageInfo.documents;
+
+    // Determina el siguiente ID disponible
+    const nextId = documents.reduce((maxId, doc) => Math.max(maxId, doc.id), 0) + 1;
+
+    // Crea una copia del nuevo documento y asigna el ID
+    const newDoc = { id: nextId, docType: newDocument,  owner: 'unknown', dataStatus: 'incomplete' };
+
+    // Asigna campos adicionales según el tipo de documento
+    if (newDoc.docType === 'secondaryWill') {
+        const existingSecondaryWills = documents.filter(doc => doc.docType === 'secondaryWill');
+        const willNumber = existingSecondaryWills.length + 1;
+        newDoc.willIdentifier = `secondaryWill_${willNumber}`;
+    } else if (newDoc.docType === 'poaProperty' || newDoc.docType === 'poaHealth') {
+        newDoc.associatedWill = 'unknown';
+    }
+
+    // Agrega el nuevo documento a la lista
+    documents.push(newDoc);
+
+    return newObjectStatus;
+}
+
+
 export { 
     assignDocuments,
     sendDocumentsForApproval,
     getDocumentOwner,
     areAllDocumentsUnlocked,
     isDocumentUnlocked,
-    getLastUnlockedDocument
+    getLastUnlockedDocument,
+    addNewDocumentToPackage
  };
