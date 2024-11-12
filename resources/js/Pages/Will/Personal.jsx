@@ -33,7 +33,7 @@ import { handleProfileData, handleSelectProfile } from '@/utils/profileUtils';
 import { getObjectStatus, initializeObjectStructure, initializeSpousalWill } from '@/utils/objectStatusUtils';
 import { packageDocuments, initializePackageDocuments } from '@/utils/packageUtils'
 import { getVisibleSteps, stepHasData, findFirstIncompleteStep } from '@/utils/stepUtils';
-import { assignDocuments } from '@/utils/documentsUtils';
+import { assignDocuments, addNewDocumentToPackage } from '@/utils/documentsUtils';
 import { storeDataObject, updateDataObject } from '@/Components/ObjStatusForm';
 import { validate } from '@/Components/Validations';
 //Import form handlers
@@ -332,6 +332,11 @@ export default function Personal({ auth }) {
 
 
     };
+
+    const handleAddNewDocumentToPackage = (newDocument) => {
+        const updatedObjectStatus = addNewDocumentToPackage(objectStatus, newDocument)
+        setObjectStatus(updatedObjectStatus)
+    }
 
     const handleCreateNewProfile = () => {
         setPointer(0);
@@ -747,8 +752,6 @@ export default function Personal({ auth }) {
 
 
 
-
-
     const currentStepIndex = visibleSteps !== null ? visibleSteps.findIndex((step) => step.step === pointer) : 16
 
     return (
@@ -796,7 +799,7 @@ export default function Personal({ auth }) {
                         {pointer === 13 && <PoaHealth datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
                         {pointer === 14 && <Additional datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
                         {pointer === 15 && <FinalDetails datas={getObjectStatus(objectStatus, currentProfile)} />}
-                        {pointer === 16 && <DocumentSelector objectStatus={objectStatus} handleSelectDocument={handleSelectDocument} currIdObjDB={currIdObjDB} />}
+                        {pointer === 16 && <DocumentSelector objectStatus={objectStatus} handleSelectDocument={handleSelectDocument} handleAddNewDocumentToPackage={handleAddNewDocumentToPackage} currIdObjDB={currIdObjDB} />}
                         {pointer === 16 && showPDFEditor && (
                             <div className="fixed inset-0 flex justify-center items-center bg-gray-100 z-50 overflow-auto">
                                 <div className="relative w-full max-w-5xl bg-white shadow-lg rounded-lg p-6 mt-12 mb-12">
