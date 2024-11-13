@@ -226,7 +226,7 @@ const PoaHealth = ({ datas, errors }) => {
                 ...prev.statements,
                 [declarationId]: {
                     ...prev.statements[declarationId],
-                    [option]: true
+                    [option]: isChecked
                 }
             }
         }));
