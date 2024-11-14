@@ -17,6 +17,7 @@ GMAIL_USER = os.getenv('GMAIL_USER')
 GMAIL_PASSWORD = os.getenv('GMAIL_PASSWORD')
 
 def send_email(to_email, subject, message, ishtml,  attachments=None):
+  
     try:
         # Set up the server
         server = smtplib.SMTP('smtp.gmail.com', 587)
