@@ -1,20 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Button, Spinner, Dropdown } from 'react-bootstrap';
+import { Container, Row, Col, Button, Spinner, Dropdown, Card, Form, InputGroup, Alert } from 'react-bootstrap';
 
 import CustomToast from '../AdditionalComponents/CustomToast';
 import { sendDocumentsForApproval, isDocumentUnlocked, areAllDocumentsUnlocked, getLastUnlockedDocument } from '@/utils/documentsUtils';
+import AdditionalFeeCard from '../AdditionalComponents/AdditionalFeeCard';
 
 
-
-const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocumentToPackage, currIdObjDB }) => {
+const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocumentToPackage, showAddFeeInput, saveNewFee, currIdObjDB }) => {
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
     const [sendingEmails, setSendingEmails] = useState(false);
+    const [packageInfo, setPackageInfo] = useState(null)
     const [documents, setDocuments] = useState([])
+    const [additionalFee, setAdditionalFee] = useState(0);
+    const [showAdditionalFeeForm, setShowAdditionalFeeForm] = useState(false);
+    const [finalTotal, setFinalTotal] = useState(0);
 
     useEffect(() => {
-        setDocuments(objectStatus[0]?.[0]?.packageInfo?.documents)
-    }, [objectStatus])
+        setPackageInfo(objectStatus[0]?.[0]?.packageInfo);
+        setDocuments(objectStatus[0]?.[0]?.packageInfo?.documents);
+
+    }, [objectStatus]);
 
 
     const lastUnlockedDocument = getLastUnlockedDocument(objectStatus);
@@ -37,6 +43,8 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocu
             setToastMessage("Emails sent successfully!");
         }
     };
+
+
 
     return (
         <Container>
@@ -128,6 +136,26 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocu
                             </Button>
                         </Col>
                     </Row>
+
+
+                    <Col md={4} className='mt-16'>
+                        <AdditionalFeeCard
+                            newPackageInfo={packageInfo}
+                            isAddingFee={showAddFeeInput}
+                            onSave={saveNewFee}
+                        />
+                    </Col>
+
+                    {/* CustomToast for notifications */}
+                    <CustomToast
+                        show={showToast}
+                        onClose={() => setShowToast(false)}
+                        message={
+                            sendingEmails
+                                ? (<><Spinner animation="border" size="sm" /> Sending emails...</>)
+                                : toastMessage
+                        }
+                    />
 
                     {/*errors.documentDOM && <p className="mt-2 text-sm text-center text-red-600">{errors.documentDOM}</p>*/}
                 </>
