@@ -46,16 +46,16 @@ const AdditionalFeeCard = ({ newPackageInfo, isAddingFee, onSave }) => {
     const toggleEditingFee = () => setIsEditingFee(!isEditingFee);
 
     return (
-        <Card className="text-center p-4 ">
+        <Card className="text-center  ">
             <Card.Body>
-                <Card.Title className="font-weight-bold mb-3">Payment Information</Card.Title>
+                <h1 className="font-weight-bold mb-3 text-base">Payment Information</h1>
 
                 <Card.Text className="text-start">
-                    <strong>Package Value</strong> <span className="float-end">{packageInfo?.price || "0.00"}</span>
+                    <strong className='text-sm'>Package Value</strong> <span className="float-end">{packageInfo?.price || "0.00"}</span>
                 </Card.Text>
 
                 <Card.Text className="text-start">
-                    <strong>Additional Fee</strong>
+                    <strong className='text-sm'>Additional Fee</strong>
                     {isEditingFee ? (
                         <>
                             <InputGroup>
@@ -81,13 +81,13 @@ const AdditionalFeeCard = ({ newPackageInfo, isAddingFee, onSave }) => {
                         </>
                     ) : (
                         <span className=" float-end">
-                            ${currentAdditionalFee.toFixed(2)}
+                            ${currentAdditionalFee}
                         </span>
                     )}
                 </Card.Text>
 
                 <Alert variant="info" className="mt-4 mb-4 rounded shadow-sm">
-                    <h4 className="m-0">Total: ${currentFinalTotal.toFixed(2)}</h4>
+                    <h4 className="m-0">Total: ${currentFinalTotal}</h4>
                 </Alert>
             </Card.Body>
         </Card>
