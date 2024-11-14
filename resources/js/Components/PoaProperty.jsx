@@ -29,7 +29,8 @@ const PoaProperty = ({ datas, errors }) => {
     const [formData, setFormData] = useState({
         attorney: '',
         backups: [],
-        restrictions: ''
+        restrictions: '',
+        activationType: 'immediate'
     });
 
 
@@ -38,7 +39,8 @@ const PoaProperty = ({ datas, errors }) => {
         setFormData({
             attorney: '',
             backups: [],
-            restrictions: ''
+            restrictions: '',
+            activationType: 'immediate'
         });
 
         // Limpiar la variable global poaPropertyData
@@ -89,6 +91,10 @@ const PoaProperty = ({ datas, errors }) => {
     const handleInputChange = (event) => {
         const { name, value } = event.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleActivationTypeChange = (event) => {
+        setFormData(prev => ({ ...prev, activationType: event.target.value }));
     };
 
     // Handle attorney selection from dropdown
@@ -151,14 +157,16 @@ const PoaProperty = ({ datas, errors }) => {
         poaPropertyData.poaProperty = {
             attorney: formData.attorney,
             backups: formData.backups,
-            restrictions: formData.restrictions
+            restrictions: formData.restrictions,
+            activationType: formData.activationType
         };
         poaPropertyData.timestamp = Date.now();
         updateLocalStorage();
         setFormData({
             attorney: '',
             backups: [],
-            restrictions: ''
+            restrictions: '',
+            activationType: 'immediate'
         });
         setToastMessage('Property POA added successfully');
         setShowToast(true);
@@ -291,6 +299,27 @@ const PoaProperty = ({ datas, errors }) => {
                                     placeholder="Enter restrictions..."
                                 />
                             </Form.Group>
+
+                            <Form.Group className="mb-3">
+                                <Form.Label>Activation Type</Form.Label>
+                                <div>
+                                    <Form.Check
+                                        type="radio"
+                                        label="Immediately"
+                                        value="immediate"
+                                        checked={formData.activationType === 'immediate'}
+                                        onChange={handleActivationTypeChange}
+                                    />
+                                    <Form.Check
+                                        type="radio"
+                                        label="Upon a finding of lack of capacity or incapacitation"
+                                        value="incapacity"
+                                        checked={formData.activationType === 'incapacity'}
+                                        onChange={handleActivationTypeChange}
+                                    />
+                                </div>
+                            </Form.Group>
+
 
                             <Button className='w-100' variant="outline-success" onClick={handleSubmit}>
                                 <i className="bi bi-check-circle me-2"></i>Save POA
