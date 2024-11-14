@@ -33,7 +33,7 @@ import { handleProfileData, handleSelectProfile } from '@/utils/profileUtils';
 import { getObjectStatus, initializeObjectStructure, initializeSpousalWill } from '@/utils/objectStatusUtils';
 import { packageDocuments, initializePackageDocuments } from '@/utils/packageUtils'
 import { getVisibleSteps, stepHasData, findFirstIncompleteStep } from '@/utils/stepUtils';
-import { assignDocuments } from '@/utils/documentsUtils';
+import { assignDocuments, addNewDocumentToPackage } from '@/utils/documentsUtils';
 import { storeDataObject, updateDataObject } from '@/Components/ObjStatusForm';
 import { validate } from '@/Components/Validations';
 //Import form handlers
@@ -56,6 +56,7 @@ import {
     getFinalDetails,
     getDocumentDOMInfo,
 } from '@/utils/formHandlers';
+import { update } from 'lodash';
 
 const contentComponents = {
     primaryWill: WillContent,
@@ -80,6 +81,7 @@ export default function Personal({ auth }) {
     const [visibleSteps, setVisibleSteps] = useState([]);
     const [pointer, setPointer] = useState(0);
     const [validationErrors, setValidationErrors] = useState({});
+    const [showAddFeeInput, setShowAddFeeInput] = useState(false)
 
 
     //Show the select Package modal when starting a new file
@@ -333,6 +335,12 @@ export default function Personal({ auth }) {
 
     };
 
+    const handleAddNewDocumentToPackage = (newDocument) => {
+        setShowAddFeeInput(true)
+        const updatedObjectStatus = addNewDocumentToPackage(objectStatus, newDocument)
+        setObjectStatus(updatedObjectStatus)
+    }
+
     const handleCreateNewProfile = () => {
         setPointer(0);
         setCurrentProfile(null);
@@ -393,6 +401,7 @@ export default function Personal({ auth }) {
                         owner: personalData.email,
                         packageInfo: {
                             ...selectedPackage,
+                            additionalFee: "$0",
                             documents: initializedDocuments,
                         },
                     };
@@ -746,6 +755,31 @@ export default function Personal({ auth }) {
     };
 
 
+    const handleNewFee = (newFee) => {
+        console.log("additional fee", newFee);
+
+        // Crear una copia de objectStatus y modificar solo el additionalFee dentro de item[0].packageInfo
+        const updatedObjectStatus = objectStatus.map((item, index) => {
+            if (index === 0 && item.length > 0 && item[0].packageInfo) {
+                // Retornar una copia de item, solo modificando item[0].packageInfo.additionalFee
+                return [
+                    {
+                        ...item[0],
+                        packageInfo: {
+                            ...item[0].packageInfo,
+                            additionalFee: `$${newFee}`, // Actualiza el additionalFee con el nuevo valor en formato de moneda
+                        },
+                    },
+                    ...item.slice(1) // Incluye el resto de los elementos en `item` sin cambios
+                ];
+            }
+            return item; // Retorna los demás items sin cambios
+        });
+
+        setObjectStatus(updatedObjectStatus);
+        console.log(updatedObjectStatus);
+        setShowAddFeeInput(false);
+    };
 
 
 
@@ -796,7 +830,7 @@ export default function Personal({ auth }) {
                         {pointer === 13 && <PoaHealth datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
                         {pointer === 14 && <Additional datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
                         {pointer === 15 && <FinalDetails datas={getObjectStatus(objectStatus, currentProfile)} />}
-                        {pointer === 16 && <DocumentSelector objectStatus={objectStatus} handleSelectDocument={handleSelectDocument} currIdObjDB={currIdObjDB} />}
+                        {pointer === 16 && <DocumentSelector objectStatus={objectStatus} handleSelectDocument={handleSelectDocument} handleAddNewDocumentToPackage={handleAddNewDocumentToPackage} showAddFeeInput={showAddFeeInput} saveNewFee={handleNewFee} currIdObjDB={currIdObjDB} />}
                         {pointer === 16 && showPDFEditor && (
                             <div className="fixed inset-0 flex justify-center items-center bg-gray-100 z-50 overflow-auto">
                                 <div className="relative w-full max-w-5xl bg-white shadow-lg rounded-lg p-6 mt-12 mb-12">
