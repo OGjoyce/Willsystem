@@ -14,6 +14,10 @@ CORS(app)  # Enable CORS for all routes
 GMAIL_USER = os.getenv('GMAIL_USER')
 GMAIL_PASSWORD = os.getenv('GMAIL_PASSWORD')
 
+@app.route('/')
+def index():
+    return "Welcome to the main page!"
+
 def send_email(to_email, subject, message, ishtml):
     try:
         # Set up the server

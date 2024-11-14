@@ -1,0 +1,20 @@
+[0;1;32m●[0m flaskapp.service - A simple Flask web application
+     Loaded: loaded (/etc/systemd/system/flaskapp.service; enabled; vendor preset: enabled)
+     Active: [0;1;32mactive (running)[0m since Wed 2024-10-30 01:31:32 UTC; 1 weeks 0 days ago
+   Main PID: 1017682 (python3)
+      Tasks: 5 (limit: 4680)
+     Memory: 121.4M
+     CGroup: /system.slice/flaskapp.service
+             ├─1017682 /usr/bin/python3 /var/www/Willsystem/resources/python/server.py
+             └─1017685 /usr/bin/python3 /var/www/Willsystem/resources/python/server.py
+
+Oct 30 12:19:27 mainserver python3[1017685]: 167.94.145.108 - - [30/Oct/2024 12:19:27] "PRI * HTTP/2.0" HTTPStatus.HTTP_VERSION_NOT_SUPPORTED -
+Oct 30 16:31:30 mainserver python3[1017685]: 35.203.210.142 - - [30/Oct/2024 16:31:30] "GET / HTTP/1.1" 404 -
+Oct 30 18:40:31 mainserver python3[1017685]: 167.94.145.97 - - [30/Oct/2024 18:40:31] "GET / HTTP/1.1" 404 -
+Oct 30 18:40:36 mainserver python3[1017685]: 167.94.145.97 - - [30/Oct/2024 18:40:36] "GET / HTTP/1.1" 404 -
+Oct 30 18:40:36 mainserver python3[1017685]: 167.94.145.97 - - [30/Oct/2024 18:40:36] code 505, message Invalid HTTP version (2.0)
+Oct 30 18:40:36 mainserver python3[1017685]: 167.94.145.97 - - [30/Oct/2024 18:40:36] "PRI * HTTP/2.0" HTTPStatus.HTTP_VERSION_NOT_SUPPORTED -
+Oct 30 19:25:14 mainserver python3[1017685]: 206.168.34.208 - - [30/Oct/2024 19:25:14] "GET / HTTP/1.1" 404 -
+Oct 30 19:25:17 mainserver python3[1017685]: 206.168.34.208 - - [30/Oct/2024 19:25:17] "GET / HTTP/1.1" 404 -
+Oct 30 19:25:18 mainserver python3[1017685]: 206.168.34.208 - - [30/Oct/2024 19:25:18] code 505, message Invalid HTTP version (2.0)
+Oct 30 19:25:18 mainserver python3[1017685]: 206.168.34.208 - - [30/Oct/2024 19:25:18] "PRI * HTTP/2.0" HTTPStatus.HTTP_VERSION_NOT_SUPPORTED -
