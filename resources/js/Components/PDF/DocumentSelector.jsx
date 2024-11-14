@@ -51,7 +51,6 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocu
 
 
 
-
     async function handleSendDocumentsAsPDF(objectStatus, currIdObjDB) {
         const idForToken = currIdObjDB;
         let userInfoForToken = [];
@@ -68,22 +67,39 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocu
             const { fullName } = personalInfo.personal;
             const email = personalInfo.owner;
             const documentDOM = documentData.documentDOM;
-            const documentType = "primaryWill";
-            const documentContent = documentDOM && documentDOM[documentType]?.v1?.content;
 
-            if (!documentContent || !email) {
-                console.error(`No content found for ${fullName} or missing email.`);
+            if (!email) {
+                console.error(`Missing email for ${fullName}.`);
                 continue;
             }
 
             try {
-                // Generar el PDF y obtenerlo en base64 desde el servidor de PDF
-                const response = await axios.post('ttps://willsystemapp.com:5050/generate-pdf', {
-                    htmlContent: documentContent,
-                    fileName: `${fullName}-document.pdf`
-                });
+                // Recopilar todos los documentos en base64
+                let attachments = [];
+                for (const [documentType, docVersion] of Object.entries(documentDOM)) {
+                    const documentContent = docVersion?.v1?.content;
+                    if (!documentContent) {
+                        console.warn(`No content found for document type ${documentType} for ${fullName}.`);
+                        continue;
+                    }
 
-                const pdfBase64 = response.data.pdfBase64; // PDF en base64
+                    // Generar el PDF y obtenerlo en base64 desde el servidor de PDF
+                    const response = await axios.post('https://willsystemapp.com:5050/generate-pdf', {
+                        htmlContent: documentContent,
+                        fileName: `${fullName}-${documentType}.pdf`
+                    });
+
+                    const pdfBase64 = response.data.pdfBase64; // PDF en base64
+                    attachments.push({
+                        filename: `${fullName}-${documentType}.pdf`,
+                        content: pdfBase64
+                    });
+                }
+
+                if (attachments.length === 0) {
+                    console.error(`No documents to attach for ${fullName}.`);
+                    continue;
+                }
 
                 // Validar el email y obtener la contraseña si es un nuevo usuario
                 const validateEmailResponse = await axios.post('https://willsystemapp.com/api/validate-email', {
@@ -103,64 +119,59 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocu
 
                 // Crear el cuerpo del mensaje en formato HTML
                 const message = `
-                <html>
-                    <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
-                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);">
-                            <tr>
-                                <td align="center" style="padding: 20px 0;">
-                                    <h2 style="color: #333; font-size: 24px; margin: 0;">Hello, ${fullName}</h2>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
-                                    <p>We’re reaching out to request your review and approval of important documents. Please follow the link below to securely access them:</p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td align="center" style="padding: 20px;">
-                                    <a href="https://willsystemapp.com/documents-approval?token=${token}" 
-                                       style="display: inline-block; padding: 12px 24px; background-color: #198754; color: white; 
-                                              text-decoration: none; font-size: 16px; border-radius: 5px;">
-                                        Review Documents
-                                    </a>
-                                </td>
-                            </tr>
-                            ${password ? `
-                            <tr>
-                                <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
-                                    <p>Your temporary password is:</p>
-                                    <p style="font-weight: bold; color: #333;">${password}</p>
-                                </td>
-                            </tr>` : ''}
-                            <tr>
-                                <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
-                                    <p>If the button above doesn't work, you can also access your documents using this link:</p>
-                                    <p><a href="https://willsystemapp.com/documents-approval?token=${token}" 
-                                          style="color: #198754; word-break: break-all;">click here...</a></p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 20px; color: #888; font-size: 14px; line-height: 1.6;">
-                                    <p>Thank you for your prompt attention.</p>
-                                    <p style="margin: 0;">Warm regards,</p>
-                                    <p style="margin: 0;">Barret Tax Law Team</p>
-                                </td>
-                            </tr>
-                        </table>
-                    </body>
-                </html>`;
+            <html>
+                <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
+                    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);">
+                        <tr>
+                            <td align="center" style="padding: 20px 0;">
+                                <h2 style="color: #333; font-size: 24px; margin: 0;">Hello, ${fullName}</h2>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
+                                <p>We’re reaching out to request your review and approval of important documents. Please follow the link below to securely access them:</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="center" style="padding: 20px;">
+                                <a href="https://willsystemapp.com/documents-approval?token=${token}" 
+                                   style="display: inline-block; padding: 12px 24px; background-color: #198754; color: white; 
+                                          text-decoration: none; font-size: 16px; border-radius: 5px;">
+                                    Review Documents
+                                </a>
+                            </td>
+                        </tr>
+                        ${password ? `
+                        <tr>
+                            <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
+                                <p>Your temporary password is:</p>
+                                <p style="font-weight: bold; color: #333;">${password}</p>
+                            </td>
+                        </tr>` : ''}
+                        <tr>
+                            <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
+                                <p>If the button above doesn't work, you can also access your documents using this link:</p>
+                                <p><a href="https://willsystemapp.com/documents-approval?token=${token}" 
+                                      style="color: #198754; word-break: break-all;">click here...</a></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 20px; color: #888; font-size: 14px; line-height: 1.6;">
+                                <p>Thank you for your prompt attention.</p>
+                                <p style="margin: 0;">Warm regards,</p>
+                                <p style="margin: 0;">Barret Tax Law Team</p>
+                            </td>
+                        </tr>
+                    </table>
+                </body>
+            </html>`;
 
                 const data = {
                     to_email: email,
                     subject: 'Please review and approve your documents',
                     message: message,
                     is_html: true,
-                    attachments: [
-                        {
-                            filename: `${fullName}-document.pdf`,
-                            content: pdfBase64
-                        }
-                    ]
+                    attachments: attachments
                 };
 
                 // Serializar el objeto JSON
@@ -170,7 +181,7 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocu
                     }
                 });
 
-                console.log(`Email with PDF sent successfully to ${fullName} (${email}).`);
+                console.log(`Email with all documents sent successfully to ${fullName} (${email}).`);
 
             } catch (error) {
                 console.error(`Error processing ${email}:`, error);
@@ -180,6 +191,7 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocu
 
         console.log("All documents processed and emails sent.");
     }
+
 
     // Función auxiliar para generar el PDF con Puppeteer
 
