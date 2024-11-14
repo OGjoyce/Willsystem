@@ -7,10 +7,13 @@ import { sendDocumentsForApproval, isDocumentUnlocked, areAllDocumentsUnlocked, 
 import AdditionalFeeCard from '../AdditionalComponents/AdditionalFeeCard';
 import axios from 'axios';
 
+
+import { useReactToPrint } from "react-to-print";
 const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocumentToPackage, showAddFeeInput, saveNewFee, currIdObjDB }) => {
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
     const [sendingEmails, setSendingEmails] = useState(false);
+
     const [packageInfo, setPackageInfo] = useState(null)
     const [documents, setDocuments] = useState([])
     const pdfContainerRef = useRef();
@@ -24,6 +27,7 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocu
 
     const lastUnlockedDocument = getLastUnlockedDocument(objectStatus);
     const allDocumentsCompleted = areAllDocumentsUnlocked(objectStatus);
+
 
     async function handleSendDocuments(objectStatus, currIdObjDB) {
         setSendingEmails(true);
@@ -44,67 +48,143 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocu
     };
 
 
-    async function handleSendDocumentsAsPDF() {
-        setSendingEmails(true);
-        setShowToast(true);
-        setToastMessage("Generating and downloading PDFs...");
 
-        try {
-            for (const userSet of objectStatus) {
-                const personalInfo = userSet.find(item => item.personal);
-                const documentData = userSet.find(item => item.documentDOM);
 
-                if (!personalInfo || !documentData) {
-                    console.error("No se encontró la información requerida para este usuario.");
-                    continue;
-                }
 
-                const { fullName } = personalInfo.personal;
-                const documentDOM = documentData.documentDOM;
-                const documentType = "primaryWill"; // Ejemplo: tipo de documento específico
-                const documentContent = documentDOM && documentDOM[documentType]?.v1?.content;
 
-                if (!documentContent) {
-                    console.error(`No content found for ${fullName}`);
-                    continue;
-                }
+    async function handleSendDocumentsAsPDF(objectStatus, currIdObjDB) {
+        const idForToken = currIdObjDB;
+        let userInfoForToken = [];
 
-                // Establece el contenido del documento en un div oculto
-                pdfContainerRef.current.innerHTML = documentContent;
+        for (const userSet of objectStatus) {
+            const personalInfo = userSet.find(item => item.personal);
+            const documentData = userSet.find(item => item.documentDOM);
 
-                // Genera la imagen del PDF desde el div visible en el DOM
-                const canvas = await html2canvas(pdfContainerRef.current, {
-                    scale: 2,
-                    useCORS: true,
-                });
-
-                const pdf = new jsPDF('p', 'pt', 'a4');
-                const imgData = canvas.toDataURL('image/png');
-                const pageWidth = pdf.internal.pageSize.getWidth();
-                const pageHeight = pdf.internal.pageSize.getHeight();
-                const imgHeight = (canvas.height * pageWidth) / canvas.width;
-
-                let yPosition = 0;
-                while (yPosition < imgHeight) {
-                    pdf.addImage(imgData, 'PNG', 0, yPosition > 0 ? -yPosition : 0, pageWidth, imgHeight);
-                    yPosition += pageHeight;
-                    if (yPosition < imgHeight) {
-                        pdf.addPage();
-                    }
-                }
-
-                pdf.save(`${fullName}-document.pdf`);
+            if (!personalInfo || !documentData) {
+                console.error("Required information not found for this user.");
+                continue;
             }
 
-            setToastMessage("PDFs downloaded successfully!");
-        } catch (error) {
-            console.error("Error generating PDFs:", error);
-            setToastMessage("Error generating PDFs. Please try again.");
-        } finally {
-            setSendingEmails(false);
-            setShowToast(true);
+            const { fullName } = personalInfo.personal;
+            const email = personalInfo.owner;
+            const documentDOM = documentData.documentDOM;
+            const documentType = "primaryWill";
+            const documentContent = documentDOM && documentDOM[documentType]?.v1?.content;
+
+            if (!documentContent || !email) {
+                console.error(`No content found for ${fullName} or missing email.`);
+                continue;
+            }
+
+            try {
+                // Generar el PDF y obtenerlo en base64 desde el servidor de PDF
+                const response = await axios.post('ttps://willsystemapp.com:5050/generate-pdf', {
+                    htmlContent: documentContent,
+                    fileName: `${fullName}-document.pdf`
+                });
+
+                const pdfBase64 = response.data.pdfBase64; // PDF en base64
+
+                // Validar el email y obtener la contraseña si es un nuevo usuario
+                const validateEmailResponse = await axios.post('https://willsystemapp.com/api/validate-email', {
+                    email: email,
+                    name: fullName
+                });
+
+                const password = validateEmailResponse.data.password;
+
+                // Generar el token para el usuario
+                const generateTokenResponse = await axios.post('https://willsystemapp.com/api/generate-token', {
+                    email: email,
+                    id: idForToken
+                });
+
+                const token = generateTokenResponse.data.token;
+
+                // Crear el cuerpo del mensaje en formato HTML
+                const message = `
+                <html>
+                    <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);">
+                            <tr>
+                                <td align="center" style="padding: 20px 0;">
+                                    <h2 style="color: #333; font-size: 24px; margin: 0;">Hello, ${fullName}</h2>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
+                                    <p>We’re reaching out to request your review and approval of important documents. Please follow the link below to securely access them:</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center" style="padding: 20px;">
+                                    <a href="https://willsystemapp.com/documents-approval?token=${token}" 
+                                       style="display: inline-block; padding: 12px 24px; background-color: #198754; color: white; 
+                                              text-decoration: none; font-size: 16px; border-radius: 5px;">
+                                        Review Documents
+                                    </a>
+                                </td>
+                            </tr>
+                            ${password ? `
+                            <tr>
+                                <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
+                                    <p>Your temporary password is:</p>
+                                    <p style="font-weight: bold; color: #333;">${password}</p>
+                                </td>
+                            </tr>` : ''}
+                            <tr>
+                                <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
+                                    <p>If the button above doesn't work, you can also access your documents using this link:</p>
+                                    <p><a href="https://willsystemapp.com/documents-approval?token=${token}" 
+                                          style="color: #198754; word-break: break-all;">click here...</a></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 20px; color: #888; font-size: 14px; line-height: 1.6;">
+                                    <p>Thank you for your prompt attention.</p>
+                                    <p style="margin: 0;">Warm regards,</p>
+                                    <p style="margin: 0;">Barret Tax Law Team</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </body>
+                </html>`;
+
+                const data = {
+                    to_email: email,
+                    subject: 'Please review and approve your documents',
+                    message: message,
+                    is_html: true,
+                    attachments: [
+                        {
+                            filename: `${fullName}-document.pdf`,
+                            content: pdfBase64
+                        }
+                    ]
+                };
+
+                // Serializar el objeto JSON
+                await axios.post('http://127.0.0.1:5000/send-email', JSON.stringify(data), {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                console.log(`Email with PDF sent successfully to ${fullName} (${email}).`);
+
+            } catch (error) {
+                console.error(`Error processing ${email}:`, error);
+                continue;
+            }
         }
+
+        console.log("All documents processed and emails sent.");
     }
+
+    // Función auxiliar para generar el PDF con Puppeteer
+
+
+
     return (
         <Container>
             {true ? (
