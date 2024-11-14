@@ -8,6 +8,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 import os
+import base64
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -15,7 +16,7 @@ CORS(app)  # Enable CORS for all routes
 GMAIL_USER = os.getenv('GMAIL_USER')
 GMAIL_PASSWORD = os.getenv('GMAIL_PASSWORD')
 
-def send_email(to_email, subject, message, ishtml):
+def send_email(to_email, subject, message, ishtml,  attachments=None):
     try:
         # Set up the server
         server = smtplib.SMTP('smtp.gmail.com', 587)
