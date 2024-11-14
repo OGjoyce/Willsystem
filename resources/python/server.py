@@ -6,6 +6,7 @@ from flask_cors import CORS
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
 import os
 
 app = Flask(__name__)
@@ -31,6 +32,14 @@ def send_email(to_email, subject, message, ishtml):
         else:
             email_msg.attach(MIMEText(message, 'plain'))
 
+              # Attach files if any
+        if attachments:
+            for attachment in attachments:
+                part = MIMEApplication(attachment['content'], Name=attachment['filename'])
+                part['Content-Disposition'] = f'attachment; filename="{attachment["filename"]}"'
+                email_msg.attach(part)
+
+
         # Send the email
         server.sendmail(GMAIL_USER, to_email, email_msg.as_string())
         server.quit()
@@ -48,9 +57,19 @@ def send_email_endpoint():
     subject = data.get('subject')
     message = data.get('message')
     ishtml = data.get('is_html')
+    attachments = data.get('attachments')
+
+    files = []
+    if attachments:
+        for attachment in attachments:
+            file_content = base64.b64decode(attachment['content'])
+            files.append({
+                'content': file_content,
+                'filename': attachment['filename']
+            })
 
     # Call the email sending function
-    result = send_email(to_email, subject, message, ishtml)
+    result = send_email(to_email, subject, message, ishtml, files)
 
     return jsonify({"result": result})
 
