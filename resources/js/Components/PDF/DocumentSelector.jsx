@@ -8,7 +8,6 @@ import AdditionalFeeCard from '../AdditionalComponents/AdditionalFeeCard';
 import axios from 'axios';
 
 
-import { useReactToPrint } from "react-to-print";
 const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocumentToPackage, showAddFeeInput, saveNewFee, currIdObjDB }) => {
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
@@ -50,7 +49,6 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocu
 
 
 
-
     async function handleSendDocumentsAsPDF(objectStatus, currIdObjDB) {
         const idForToken = currIdObjDB;
         let userInfoForToken = [];
@@ -61,20 +59,21 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocu
             for (let i = 1; i <= maxLines; i++) {
                 lineNumbers.push(`<div style="
                 text-align: right;
-                padding-right: 10px;
-                padding-top: 0px;
                 font-family: 'Times New Roman', Times, serif;
+                font-size: 10px;
                 border: 1px solid red;
-                font-size: 12px;
                 color: #666;
-                line-height: 2;
+                line-height: 1.3;
+                height: 1.3em; /* Asegura una altura uniforme por línea */
             ">${i}</div>`);
             }
             return `<div style="
             position: absolute;
             top: 0;
+            margin-top:12px;
             left: 0;
             width: 40px;
+            height: 100%;
         ">${lineNumbers.join('')}</div>`;
         }
 
@@ -82,9 +81,9 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocu
         function combineContentWithLineNumbers(htmlContent, maxLines) {
             const lineNumbersHTML = generateLineNumbers(maxLines);
             return `
-            <div style="position: relative;">
+            <div style="position: relative; font-family: 'Times New Roman', Times, serif; font-size: 10px; line-height: 1.6;">
                 ${lineNumbersHTML}
-                <div style="margin-left: 60px;">
+                <div style="margin-left: 50px; white-space: pre-wrap; word-wrap: break-word;">
                     ${htmlContent}
                 </div>
             </div>
