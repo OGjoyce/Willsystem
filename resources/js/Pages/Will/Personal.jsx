@@ -847,7 +847,7 @@ export default function Personal({ auth }) {
                             </div>
                         )
                         }
-                        {showSelectProfileModal && <ProfileSelector objectStatus={objectStatus} handleCreateNewProfile={handleCreateNewProfile} selectProfile={selectProfile} />}
+                        {showSelectProfileModal && <ProfileSelector currentDocument={currentDocument} objectStatus={objectStatus} handleCreateNewProfile={handleCreateNewProfile} selectProfile={selectProfile} />}
                         <ProfileSidebar
                             objectStatus={objectStatus}
                             currentProfile={currentProfile}
