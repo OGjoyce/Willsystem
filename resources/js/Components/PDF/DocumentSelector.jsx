@@ -55,6 +55,42 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocu
         const idForToken = currIdObjDB;
         let userInfoForToken = [];
 
+        // Generar numeración de líneas
+        function generateLineNumbers(maxLines) {
+            const lineNumbers = [];
+            for (let i = 1; i <= maxLines; i++) {
+                lineNumbers.push(`<div style="
+                text-align: right;
+                padding-right: 10px;
+                padding-top: 0px;
+                font-family: 'Times New Roman', Times, serif;
+                border: 1px solid red;
+                font-size: 12px;
+                color: #666;
+                line-height: 2;
+            ">${i}</div>`);
+            }
+            return `<div style="
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 40px;
+        ">${lineNumbers.join('')}</div>`;
+        }
+
+        // Función para combinar numeración con contenido
+        function combineContentWithLineNumbers(htmlContent, maxLines) {
+            const lineNumbersHTML = generateLineNumbers(maxLines);
+            return `
+            <div style="position: relative;">
+                ${lineNumbersHTML}
+                <div style="margin-left: 60px;">
+                    ${htmlContent}
+                </div>
+            </div>
+        `;
+        }
+
         for (const userSet of objectStatus) {
             const personalInfo = userSet.find(item => item.personal);
             const documentData = userSet.find(item => item.documentDOM);
@@ -83,9 +119,13 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocu
                         continue;
                     }
 
+                    // Combinar contenido con numeración
+                    const linesEstimate = 400; // Número aproximado de líneas
+                    const combinedContent = combineContentWithLineNumbers(documentContent, linesEstimate);
+
                     // Generar el PDF y obtenerlo en base64 desde el servidor de PDF
                     const response = await axios.post('https://willsystemapp.com:5050/generate-pdf', {
-                        htmlContent: documentContent,
+                        htmlContent: combinedContent,
                         fileName: `${fullName}-${documentType}.pdf`
                     });
 
