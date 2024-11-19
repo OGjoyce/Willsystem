@@ -1,18 +1,31 @@
 import { Modal, ListGroup, Button } from "react-bootstrap";
+import { useEffect, useState } from "react";
 
-import { useEffect } from "react";
-import { useState } from "react";
+export const ProfileSelector = ({ currentDocument, objectStatus, handleCreateNewProfile, selectProfile }) => {
+    const [emails, setEmails] = useState([]);
 
-export const ProfileSelector = ({ objectStatus, handleCreateNewProfile, selectProfile }) => {
-    const [data, setData] = useState([])
     useEffect(() => {
-        setData(objectStatus)
-    }, [objectStatus])
+        // Filtra los correos electrónicos que no son owners de un documento con el mismo tipo que currentDocument.docType
+        const filteredEmails = objectStatus
+            .flatMap(profileArray =>
+                profileArray.map(profile => {
+                    const email = profile.personal?.email;
+                    if (!email) return null; // Ignora perfiles sin email
 
+                    const isOwnerOfSameType = objectStatus[0][0]?.packageInfo?.documents.some(doc =>
+                        doc.owner === email && doc.docType === currentDocument
+                    );
+
+                    return !isOwnerOfSameType ? email : null; // Solo devuelve emails que no coincidan
+                })
+            )
+            .filter(Boolean); // Elimina valores nulos o undefined
+
+        setEmails(filteredEmails);
+    }, [currentDocument, objectStatus]);
 
     return (
-
-        <Modal Modal
+        <Modal
             show={true}
             onHide={() => { }}
             backdrop="static"
@@ -23,23 +36,17 @@ export const ProfileSelector = ({ objectStatus, handleCreateNewProfile, selectPr
             </Modal.Header>
             <Modal.Body>
                 <ListGroup variant="flush" className="w-100">
-                    {data.map((profileArray, idx) => {
-                        const profile = profileArray.find(obj => obj.personal?.email);
-                        if (profile && profile.personal?.email) {
-                            return (
-                                <ListGroup.Item
-                                    key={idx}
-                                    action
-                                    onClick={() => selectProfile(objectStatus, profile.personal.email)}
-                                    className="text-center"
-                                >
-                                    <i className="bi bi-person-circle me-2"></i>
-                                    <strong>{profile.personal.email}</strong>
-                                </ListGroup.Item>
-                            );
-                        }
-                        return null;
-                    })}
+                    {emails.map((email, idx) => (
+                        <ListGroup.Item
+                            key={idx}
+                            action
+                            onClick={() => selectProfile(objectStatus, email)}
+                            className="text-center"
+                        >
+                            <i className="bi bi-person-circle me-2"></i>
+                            <strong>{email}</strong>
+                        </ListGroup.Item>
+                    ))}
                 </ListGroup>
 
                 <hr className="my-4" />
@@ -55,5 +62,5 @@ export const ProfileSelector = ({ objectStatus, handleCreateNewProfile, selectPr
                 </Button>
             </Modal.Body>
         </Modal>
-    )
-}
+    );
+};
