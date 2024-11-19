@@ -402,6 +402,7 @@ export default function Personal({ auth }) {
                         packageInfo: {
                             ...selectedPackage,
                             additionalFee: "$0",
+                            documents_sent_at: "Not sent yet",
                             documents: initializedDocuments,
                         },
                     };
