@@ -3,7 +3,7 @@ import { Container, Row, Col, Button, Spinner, Dropdown, Card, Form, InputGroup,
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import CustomToast from '../AdditionalComponents/CustomToast';
-import { sendDocumentsForApproval, isDocumentUnlocked, areAllDocumentsUnlocked, getLastUnlockedDocument } from '@/utils/documentsUtils';
+import { sendDocumentsForApproval, isDocumentUnlocked, areAllDocumentsUnlocked, getLastUnlockedDocument, sendDocumentsAsPDF } from '@/utils/documentsUtils';
 import AdditionalFeeCard from '../AdditionalComponents/AdditionalFeeCard';
 import axios from 'axios';
 
@@ -48,188 +48,6 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocu
 
 
 
-
-    async function handleSendDocumentsAsPDF(objectStatus, currIdObjDB) {
-        const idForToken = currIdObjDB;
-        let userInfoForToken = [];
-
-        // Generar numeración de líneas
-        function generateLineNumbers(maxLines) {
-            const lineNumbers = [];
-            for (let i = 1; i <= maxLines; i++) {
-                lineNumbers.push(`<div style="
-                text-align: right;
-                font-family: 'Times New Roman', Times, serif;
-                font-size: 10px;
-                border: 1px solid red;
-                color: #666;
-                line-height: 1.3;
-                height: 1.3em; /* Asegura una altura uniforme por línea */
-            ">${i}</div>`);
-            }
-            return `<div style="
-            position: absolute;
-            top: 0;
-            margin-top:12px;
-            left: 0;
-            width: 40px;
-            height: 100%;
-        ">${lineNumbers.join('')}</div>`;
-        }
-
-        // Función para combinar numeración con contenido
-        function combineContentWithLineNumbers(htmlContent, maxLines) {
-            const lineNumbersHTML = generateLineNumbers(maxLines);
-            return `
-            <div style="position: relative; font-family: 'Times New Roman', Times, serif; font-size: 10px; line-height: 1.6;">
-                ${lineNumbersHTML}
-                <div style="margin-left: 50px; white-space: pre-wrap; word-wrap: break-word;">
-                    ${htmlContent}
-                </div>
-            </div>
-        `;
-        }
-
-        for (const userSet of objectStatus) {
-            const personalInfo = userSet.find(item => item.personal);
-            const documentData = userSet.find(item => item.documentDOM);
-
-            if (!personalInfo || !documentData) {
-                console.error("Required information not found for this user.");
-                continue;
-            }
-
-            const { fullName } = personalInfo.personal;
-            const email = personalInfo.owner;
-            const documentDOM = documentData.documentDOM;
-
-            if (!email) {
-                console.error(`Missing email for ${fullName}.`);
-                continue;
-            }
-
-            try {
-                // Recopilar todos los documentos en base64
-                let attachments = [];
-                for (const [documentType, docVersion] of Object.entries(documentDOM)) {
-                    const documentContent = docVersion?.v1?.content;
-                    if (!documentContent) {
-                        console.warn(`No content found for document type ${documentType} for ${fullName}.`);
-                        continue;
-                    }
-
-                    // Combinar contenido con numeración
-                    const linesEstimate = 400; // Número aproximado de líneas
-                    const combinedContent = combineContentWithLineNumbers(documentContent, linesEstimate);
-
-                    // Generar el PDF y obtenerlo en base64 desde el servidor de PDF
-                    const response = await axios.post('https://willsystemapp.com:5050/generate-pdf', {
-                        htmlContent: combinedContent,
-                        fileName: `${fullName}-${documentType}.pdf`
-                    });
-
-                    const pdfBase64 = response.data.pdfBase64; // PDF en base64
-                    attachments.push({
-                        filename: `${fullName}-${documentType}.pdf`,
-                        content: pdfBase64
-                    });
-                }
-
-                if (attachments.length === 0) {
-                    console.error(`No documents to attach for ${fullName}.`);
-                    continue;
-                }
-
-                // Validar el email y obtener la contraseña si es un nuevo usuario
-                const validateEmailResponse = await axios.post('https://willsystemapp.com/api/validate-email', {
-                    email: email,
-                    name: fullName
-                });
-
-                const password = validateEmailResponse.data.password;
-
-                // Generar el token para el usuario
-                const generateTokenResponse = await axios.post('https://willsystemapp.com/api/generate-token', {
-                    email: email,
-                    id: idForToken
-                });
-
-                const token = generateTokenResponse.data.token;
-
-                // Crear el cuerpo del mensaje en formato HTML
-                const message = `
-            <html>
-                <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
-                    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);">
-                        <tr>
-                            <td align="center" style="padding: 20px 0;">
-                                <h2 style="color: #333; font-size: 24px; margin: 0;">Hello, ${fullName}</h2>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
-                                <p>We’re reaching out to request your review and approval of important documents. Please follow the link below to securely access them:</p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td align="center" style="padding: 20px;">
-                                <a href="https://willsystemapp.com/documents-approval?token=${token}" 
-                                   style="display: inline-block; padding: 12px 24px; background-color: #198754; color: white; 
-                                          text-decoration: none; font-size: 16px; border-radius: 5px;">
-                                    Review Documents
-                                </a>
-                            </td>
-                        </tr>
-                        ${password ? `
-                        <tr>
-                            <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
-                                <p>Your temporary password is:</p>
-                                <p style="font-weight: bold; color: #333;">${password}</p>
-                            </td>
-                        </tr>` : ''}
-                        <tr>
-                            <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
-                                <p>If the button above doesn't work, you can also access your documents using this link:</p>
-                                <p><a href="https://willsystemapp.com/documents-approval?token=${token}" 
-                                      style="color: #198754; word-break: break-all;">click here...</a></p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 20px; color: #888; font-size: 14px; line-height: 1.6;">
-                                <p>Thank you for your prompt attention.</p>
-                                <p style="margin: 0;">Warm regards,</p>
-                                <p style="margin: 0;">Barret Tax Law Team</p>
-                            </td>
-                        </tr>
-                    </table>
-                </body>
-            </html>`;
-
-                const data = {
-                    to_email: email,
-                    subject: 'Please review and approve your documents',
-                    message: message,
-                    is_html: true,
-                    attachments: attachments
-                };
-
-                // Serializar el objeto JSON
-                await axios.post('https://willsystemapp.com:5000/send-email', JSON.stringify(data), {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                console.log(`Email with all documents sent successfully to ${fullName} (${email}).`);
-
-            } catch (error) {
-                console.error(`Error processing ${email}:`, error);
-                continue;
-            }
-        }
-
-        console.log("All documents processed and emails sent.");
-    }
 
 
     // Función auxiliar para generar el PDF con Puppeteer
@@ -329,7 +147,7 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocu
                                 variant={!allDocumentsCompleted ? 'outline-dark' : 'outline-success'}
                                 disabled={!allDocumentsCompleted}
                                 className="w-100"
-                                onClick={() => { handleSendDocumentsAsPDF(objectStatus, currIdObjDB) }}
+                                onClick={() => { sendDocumentsAsPDF(objectStatus, currIdObjDB) }}
                             >
                                 <i className="bi bi-send"></i> Send Documents as PDFs for Approval
                             </Button>
