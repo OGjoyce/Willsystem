@@ -38,7 +38,7 @@ const AdditionalFeeCard = ({ newPackageInfo, isAddingFee, onSave }) => {
 
     const handleSave = () => {
         if (currentAdditionalFee > parseFloat(newPackageInfo?.additionalFee.replace('$', '')) || 0) {
-            onSave(currentAdditionalFee);
+            onSave(currentAdditionalFee.toFixed(2));
             setIsEditingFee(false);
         }
     };
@@ -51,7 +51,7 @@ const AdditionalFeeCard = ({ newPackageInfo, isAddingFee, onSave }) => {
                 <h1 className="font-weight-bold mb-3 text-base">Payment Information</h1>
 
                 <Card.Text className="text-start">
-                    <strong className='text-sm'>Package Value</strong> <span className="float-end">{packageInfo?.price || "0.00"}</span>
+                    <strong className='text-sm'>Package Value</strong> <span className="float-end">${packageInfo?.price || "0.00"}</span>
                 </Card.Text>
 
                 <Card.Text className="text-start">
@@ -87,7 +87,7 @@ const AdditionalFeeCard = ({ newPackageInfo, isAddingFee, onSave }) => {
                 </Card.Text>
 
                 <Alert variant="info" className="mt-4 mb-4 rounded shadow-sm">
-                    <h4 className="m-0">Total: ${currentFinalTotal}</h4>
+                    <h4 className="m-0">Total: ${currentFinalTotal.toFixed(2)}</h4>
                 </Alert>
             </Card.Body>
         </Card>
