@@ -46,11 +46,27 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocu
         }
     };
 
+    async function handleSendDocumentsAsPDF(objectStatus, currIdObjDB) {
+        setSendingEmails(true);
+        setShowToast(true);
+        setToastMessage("Sending PDFs by email...");
+
+        try {
+            await sendDocumentsAsPDF(objectStatus, currIdObjDB);
+
+        } catch (error) {
+            console.error("Error sending PDFs:", error);
+            setToastMessage("Error sending PDFs by email. Please try again.");
+        } finally {
+            setSendingEmails(false);
+            setShowToast(true);
+            setToastMessage("PDFs sent successfully!");
+        }
+    };
 
 
 
 
-    // Función auxiliar para generar el PDF con Puppeteer
 
 
 
@@ -147,7 +163,7 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocu
                                 variant={!allDocumentsCompleted ? 'outline-dark' : 'outline-success'}
                                 disabled={!allDocumentsCompleted}
                                 className="w-100"
-                                onClick={() => { sendDocumentsAsPDF(objectStatus, currIdObjDB) }}
+                                onClick={() => { handleSendDocumentsAsPDF(objectStatus, currIdObjDB) }}
                             >
                                 <i className="bi bi-send"></i> Send Documents as PDFs for Approval
                             </Button>
