@@ -401,7 +401,7 @@ export default function Personal({ auth }) {
                         owner: personalData.email,
                         packageInfo: {
                             ...selectedPackage,
-                            additionalFee: "$0",
+                            additionalFee: "0",
                             documents_sent_at: "Not sent yet",
                             documents: initializedDocuments,
                         },
@@ -768,7 +768,7 @@ export default function Personal({ auth }) {
                         ...item[0],
                         packageInfo: {
                             ...item[0].packageInfo,
-                            additionalFee: `$${newFee}`, // Actualiza el additionalFee con el nuevo valor en formato de moneda
+                            additionalFee: `${newFee}`, // Actualiza el additionalFee con el nuevo valor en formato de moneda
                         },
                     },
                     ...item.slice(1) // Incluye el resto de los elementos en `item` sin cambios
