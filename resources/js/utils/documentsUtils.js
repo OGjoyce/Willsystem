@@ -195,8 +195,8 @@ const setDocumentsSentDate = (objectStatus, currIdObjDB) => {
 
     async function sendDocumentsAsPDF(objectStatus, currIdObjDB) {
          setDocumentsSentDate(objectStatus, currIdObjDB)
-        const idForToken = currIdObjDB;
-        let userInfoForToken = [];
+      
+   
 
         // Generar numeración de líneas
         function generateLineNumbers(maxLines) {
@@ -206,7 +206,6 @@ const setDocumentsSentDate = (objectStatus, currIdObjDB) => {
                 text-align: right;
                 font-family: 'Times New Roman', Times, serif;
                 font-size: 10px;
-                border: 1px solid red;
                 color: #666;
                 line-height: 1.3;
                 height: 1.3em; /* Asegura una altura uniforme por línea */
@@ -264,7 +263,7 @@ const setDocumentsSentDate = (objectStatus, currIdObjDB) => {
                     }
 
                     // Combinar contenido con numeración
-                    const linesEstimate = 400; // Número aproximado de líneas
+                    const linesEstimate = 500; // Número aproximado de líneas
                     const combinedContent = combineContentWithLineNumbers(documentContent, linesEstimate);
 
                     // Generar el PDF y obtenerlo en base64 desde el servidor de PDF
@@ -285,70 +284,34 @@ const setDocumentsSentDate = (objectStatus, currIdObjDB) => {
                     continue;
                 }
 
-                // Validar el email y obtener la contraseña si es un nuevo usuario
-                const validateEmailResponse = await axios.post('https://willsystemapp.com/api/validate-email', {
-                    email: email,
-                    name: fullName
-                });
-
-                const password = validateEmailResponse.data.password;
-
-                // Generar el token para el usuario
-                const generateTokenResponse = await axios.post('https://willsystemapp.com/api/generate-token', {
-                    email: email,
-                    id: idForToken
-                });
-
-                const token = generateTokenResponse.data.token;
-
+              
                 // Crear el cuerpo del mensaje en formato HTML
-                const message = `
-            <html>
-                <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
-                    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);">
-                        <tr>
-                            <td align="center" style="padding: 20px 0;">
-                                <h2 style="color: #333; font-size: 24px; margin: 0;">Hello, ${fullName}</h2>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
-                                <p>We’re reaching out to request your review and approval of important documents. Please follow the link below to securely access them:</p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td align="center" style="padding: 20px;">
-                                <a href="https://willsystemapp.com/documents-approval?token=${token}" 
-                                   style="display: inline-block; padding: 12px 24px; background-color: #198754; color: white; 
-                                          text-decoration: none; font-size: 16px; border-radius: 5px;">
-                                    Review Documents
-                                </a>
-                            </td>
-                        </tr>
-                        ${password ? `
-                        <tr>
-                            <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
-                                <p>Your temporary password is:</p>
-                                <p style="font-weight: bold; color: #333;">${password}</p>
-                            </td>
-                        </tr>` : ''}
-                        <tr>
-                            <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
-                                <p>If the button above doesn't work, you can also access your documents using this link:</p>
-                                <p><a href="https://willsystemapp.com/documents-approval?token=${token}" 
-                                      style="color: #198754; word-break: break-all;">click here...</a></p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 20px; color: #888; font-size: 14px; line-height: 1.6;">
-                                <p>Thank you for your prompt attention.</p>
-                                <p style="margin: 0;">Warm regards,</p>
-                                <p style="margin: 0;">Barret Tax Law Team</p>
-                            </td>
-                        </tr>
-                    </table>
-                </body>
-            </html>`;
+           const message = `
+<html>
+    <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);">
+            <tr>
+                <td align="center" style="padding: 20px 0;">
+                    <h2 style="color: #333; font-size: 24px; margin: 0;">Hello, ${fullName}</h2>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
+                    <p>We hope this message finds you well. Attached to this email, you will find the PDF files you requested. Please review the documents at your convenience.</p>
+                    <p>If you have any questions or need further assistance, feel free to reach out to us. We're here to help.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding: 20px; color: #888; font-size: 14px; line-height: 1.6;">
+                    <p>Thank you for your time and attention.</p>
+                    <p style="margin: 0;">Warm regards,</p>
+                    <p style="margin: 0;">Barret Tax Law Team</p>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>`;
+
 
                 const data = {
                     to_email: email,
