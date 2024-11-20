@@ -5,8 +5,6 @@ import html2canvas from 'html2canvas';
 import CustomToast from '../AdditionalComponents/CustomToast';
 import { sendDocumentsForApproval, isDocumentUnlocked, areAllDocumentsUnlocked, getLastUnlockedDocument, sendDocumentsAsPDF } from '@/utils/documentsUtils';
 import AdditionalFeeCard from '../AdditionalComponents/AdditionalFeeCard';
-import axios from 'axios';
-
 
 const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocumentToPackage, showAddFeeInput, saveNewFee, currIdObjDB }) => {
     const [showToast, setShowToast] = useState(false);
