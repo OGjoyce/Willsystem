@@ -124,6 +124,8 @@ function HumanTable({ id, datas, errors }) {
         }
     }, [datas, relatives]);
 
+
+
     const handleClose = () => {
         const modalData = getHumanData();
         const errors = validate.addHumanData(modalData);
@@ -242,6 +244,13 @@ function HumanTable({ id, datas, errors }) {
         setTempExecutors(updatedExecutors);
     };
 
+    const availableExecutors = [
+        ...allRelatives,
+        { firstName: "Lawyers & Lattes", lastName: "", relative: "" },
+        { firstName: "Barret Tax Law", lastName: "", relative: "" }
+    ];
+
+
     return (
         <>
             <Table striped bordered hover responsive className="text-center">
@@ -255,7 +264,7 @@ function HumanTable({ id, datas, errors }) {
                     </tr>
                 </thead>
                 <tbody>
-                    {allRelatives.map((relative, index) => (
+                    {availableExecutors.map((relative, index) => (
                         <tr key={index + 1}>
                             <td>{index + 1}</td>
                             <td>{relative.firstName}</td>
@@ -267,6 +276,7 @@ function HumanTable({ id, datas, errors }) {
                                 </Button>
                             </td>
                         </tr>
+
                     ))}
                 </tbody>
             </Table>
