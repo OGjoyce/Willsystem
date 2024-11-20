@@ -1,9 +1,9 @@
-// pdf-server/server.js
 const express = require('express');
-const puppeteer = require('puppeteer');
+const https = require('https'); // Importa el módulo HTTPS
+const fs = require('fs');
 const cors = require('cors');
 const path = require('path');
-const fs = require('fs');
+const puppeteer = require('puppeteer');
 
 const app = express();
 const PORT = 5050;
@@ -18,6 +18,7 @@ if (!fs.existsSync(documentsPath)) {
     fs.mkdirSync(documentsPath);
 }
 
+// Configura la ruta para generar PDFs
 app.post('/generate-pdf', async (req, res) => {
     const { htmlContent, fileName } = req.body;
 
@@ -39,7 +40,7 @@ app.post('/generate-pdf', async (req, res) => {
         await page.addStyleTag({ path: cssFilePath });
 
         // Genera el PDF y guárdalo en el sistema de archivos
-        await page.pdf({ 
+        await page.pdf({
             path: outputFilePath,
             format: 'A4',
             printBackground: true,
@@ -60,7 +61,13 @@ app.post('/generate-pdf', async (req, res) => {
     }
 });
 
-// Inicia el servidor
-app.listen(PORT, async () => {
-    console.log(`Server running on port ${PORT}`);
+// Cargar los certificados SSL
+const httpsOptions = {
+    key: fs.readFileSync('/etc/letsencrypt/live/willsystemapp.com/privkey.pem'),
+    cert: fs.readFileSync('/etc/letsencrypt/live/willsystemapp.com/fullchain.pem'),
+};
+
+// Inicia el servidor HTTPS
+https.createServer(httpsOptions, app).listen(PORT, () => {
+    console.log(`HTTPS server running on port ${PORT}`);
 });
