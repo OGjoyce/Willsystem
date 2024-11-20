@@ -236,6 +236,7 @@ const AllFiles = () => {
                 name: packageInfo?.description || 'unknown',
                 created: creationTimestamp ? new Date(creationTimestamp).toLocaleDateString() : 'N/A',
                 updated: lastModificationTimestamp ? new Date(lastModificationTimestamp).toLocaleDateString() : 'N/A',
+                sendAt: packageInfo.documents_sent_at == "Not sent yet" ? null : packageInfo.documents_sent_at,
                 leng: completedSteps,
                 totalSteps: totalSteps,
                 percentageCompleted: Math.round(completionPercentage) + '%',
@@ -318,6 +319,13 @@ const AllFiles = () => {
             sortable: true,
             center: true,
             cell: row => <span className="text-sm">{row.updated}</span>,
+        },
+        {
+            name: 'Sent At',
+            selector: row => new Date(row.sendAt),
+            sortable: true,
+            center: true,
+            cell: row => <span className="text-sm">{row.sendAt || "Not sent yet"}</span>,
         },
         {
             name: 'Progress',
