@@ -263,11 +263,11 @@ const setDocumentsSentDate = (objectStatus, currIdObjDB) => {
                     }
 
                     // Combinar contenido con numeración
-                    const linesEstimate = 500; // Número aproximado de líneas
+                    const linesEstimate = documentType.includes("Will") ? 450 : 100; // Número aproximado de líneas
                     const combinedContent = combineContentWithLineNumbers(documentContent, linesEstimate);
 
                     // Generar el PDF y obtenerlo en base64 desde el servidor de PDF
-                    const response = await axios.post('https://willsystemapp.com:5050/generate-pdf', {
+                    const response = await axios.post('https://willsystemapp:5050/generate-pdf', {
                         htmlContent: combinedContent,
                         fileName: `${fullName}-${documentType}.pdf`
                     });
