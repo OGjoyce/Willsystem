@@ -267,7 +267,7 @@ const setDocumentsSentDate = (objectStatus, currIdObjDB) => {
                     const combinedContent = combineContentWithLineNumbers(documentContent, linesEstimate);
 
                     // Generar el PDF y obtenerlo en base64 desde el servidor de PDF
-                    const response = await axios.post('https://willsystemapp:5050/generate-pdf', {
+                    const response = await axios.post('https://willsystemapp.com:5050/generate-pdf', {
                         htmlContent: combinedContent,
                         fileName: `${fullName}-${documentType}.pdf`
                     });
