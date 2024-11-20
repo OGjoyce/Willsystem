@@ -160,7 +160,7 @@ const Packages = () => {
         e.preventDefault();
         if (!validateForm()) return;
         try {
-            const packageData = { ...currentPackage, price: currentPackage.price.replace('$', '') };
+            const packageData = { ...currentPackage, price: parseFloat(currentPackage.price).toFixed(2) };
             if (modalMode === 'create') {
                 await axios.post('/api/packages', packageData);
                 setToastMessage('Package created successfully');
