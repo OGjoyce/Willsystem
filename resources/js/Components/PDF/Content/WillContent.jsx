@@ -213,9 +213,10 @@ var WillContent = forwardRef((props, ref) => {
                             </ol>
                             <br></br>
                             <p class="align-center"><strong>III. DISPOSITION OF ESTATE</strong></p>
-                            <p><strong><u>Bequests</u></strong></p>
-                            <ol>
-                                {bequests && bequests.length > 0 ? (
+                            {bequests && bequests.length > 0 && <>
+                                <p><strong><u>Bequests</u></strong></p>
+                                <ol>
+
                                     <>
                                         <li>
                                             To receive a specific bequest under this Will a beneficiary must survive me for thirty days. Any item that
@@ -247,14 +248,11 @@ var WillContent = forwardRef((props, ref) => {
                                             })}
                                         </ul>
                                     </>
-                                ) : (
-                                    <li>
-                                        No bequests added to Will
-                                    </li>
-                                )}
-                            </ol>
 
-                            <p><strong><u>III. DISPOSITION OF ESTATE</u></strong></p>
+                                </ol>
+                            </>}
+
+
                             <p><strong><u>Distribution of Residue</u></strong></p>
                             <p>Last Will and Testament of Nicholas David West Folk</p>
                             <ol>
