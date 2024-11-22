@@ -1,6 +1,6 @@
 import React from 'react';
 import { Modal } from 'react-bootstrap';
-import '@/Components/PDF/Content/content.css';
+import '@/Components/PDF/Content/PDFViewerContent.css';
 
 const PDFViewer = ({ content, show, handleClose }) => {
     return (
