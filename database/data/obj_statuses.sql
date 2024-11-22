@@ -16,8 +16,8 @@ INSERT INTO `obj_statuses` (`id`, `information`, `related_id`, `created_at`, `up
       "packageInfo": {
         "id": 4,
         "name": "Familiar Package",
-        "price": "$999",
-        "additionalFee": "$0",
+        "price": "999",
+        "additionalFee": "0",
         "description": "Two spousal wills and two secondary wills and four POAs",
         "campaign": "Organic",
         "created_at": "2024-10-21T08:42:47.000000Z",
