@@ -458,38 +458,38 @@ var WillContent = forwardRef((props, ref) => {
                             <p><strong><u>Testamentary Trust for Young Beneficiaries</u></strong></p>
 
                             <ol>
-                                <li>
-                                    {trusting && Object.keys(trusting).length > 1 ? (
-                                        <>
-                                            It is my intent to create a testamentary trust (a "Testamentary Trust") for each beneficiary who has not yet
-                                            reached the age of {minTrustingAge} at the time of my death (a "Young Beneficiary"). I name my Executor(s) as trustee (the
-                                            "Trustee") of any and all Testamentary Trusts required in this my Will. Any assets bequeathed, transferred, or
-                                            gifted to a Young Beneficiary are to be held in a separate trust by the Trustee until that Young Beneficiary
-                                            reaches the designated age. Any property left by me to any Young Beneficiary in this my Will shall be given to
-                                            my Executor(s) to be managed until that Young Beneficiary reaches the following ages, at which time they will
-                                            receive that designated percentage of their inheritance:
-                                            <ul>
-                                                {Object.entries(trusting)
-                                                    .filter(([key, value]) => typeof value === 'object' && 'age' in value && 'shares' in value)
-                                                    .sort((a, b) => parseInt(a[1].age) - parseInt(b[1].age))
-                                                    .map(([key, item], index, array) => (
-                                                        <li key={key}>
-                                                            When they reach the age of {item.age} years, {item.shares}% of the total share will be paid or transferred to the beneficiary.
-                                                        </li>
-                                                    ))}
-                                            </ul>
-                                            <li>
-                                                At the age of {Math.max(...Object.values(trusting).filter(item => typeof item === 'object' && 'age' in item).map(item => parseInt(item.age)))} each beneficiary will receive their last payment, plus any other amounts then still remaining in trust for them.
 
-                                                If prior to reaching these ages, the share may be paid or transferred to any parent or guardian of such beneficiary subject to like conditions and the receipt of any such parent or guardian discharges my Executor.
-                                            </li>
-                                        </>
-                                    ) : (
+                                {trusting && Object.keys(trusting).length > 1 ? (
+                                    <>
+                                        It is my intent to create a testamentary trust (a "Testamentary Trust") for each beneficiary who has not yet
+                                        reached the age of {minTrustingAge} at the time of my death (a "Young Beneficiary"). I name my Executor(s) as trustee (the
+                                        "Trustee") of any and all Testamentary Trusts required in this my Will. Any assets bequeathed, transferred, or
+                                        gifted to a Young Beneficiary are to be held in a separate trust by the Trustee until that Young Beneficiary
+                                        reaches the designated age. Any property left by me to any Young Beneficiary in this my Will shall be given to
+                                        my Executor(s) to be managed until that Young Beneficiary reaches the following ages, at which time they will
+                                        receive that designated percentage of their inheritance:
+                                        <ul>
+                                            {Object.entries(trusting)
+                                                .filter(([key, value]) => typeof value === 'object' && 'age' in value && 'shares' in value)
+                                                .sort((a, b) => parseInt(a[1].age) - parseInt(b[1].age))
+                                                .map(([key, item], index, array) => (
+                                                    <li key={key}>
+                                                        When they reach the age of {item.age} years, {item.shares}% of the total share will be paid or transferred to the beneficiary.
+                                                    </li>
+                                                ))}
+                                        </ul>
                                         <li>
-                                            No young beneficiary trusting conditions added to Will
+                                            At the age of {Math.max(...Object.values(trusting).filter(item => typeof item === 'object' && 'age' in item).map(item => parseInt(item.age)))} each beneficiary will receive their last payment, plus any other amounts then still remaining in trust for them.
+
+                                            If prior to reaching these ages, the share may be paid or transferred to any parent or guardian of such beneficiary subject to like conditions and the receipt of any such parent or guardian discharges my Executor.
                                         </li>
-                                    )}
-                                </li>
+                                    </>
+                                ) : (
+                                    <li>
+                                        No young beneficiary trusting conditions added to Will
+                                    </li>
+                                )}
+
                             </ol>
 
                             <p><strong><u>Testamentary Trust for Disabled Beneficiaries</u></strong></p>
