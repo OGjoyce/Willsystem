@@ -11,6 +11,9 @@ var WillContent = forwardRef((props, ref) => {
 
         var datasObj = props.props.datas;
         var documentDOM = props.props.selectedDOMVersion
+        var documentType = props.props.documentType
+        var willType = documentType == "primaryWill" ? "PRIMARY" : documentType == "spousalWill" ? "SPOUSAL" : documentType == "secondaryWill" ? "SECONDARY " : ""
+
         var statusObject = {};
         datasObj.forEach(item => {
             Object.entries(item).forEach(([key, value]) => {
@@ -71,7 +74,7 @@ var WillContent = forwardRef((props, ref) => {
                     ? <div dangerouslySetInnerHTML={{ __html: documentDOM }} />
                     : (
                         <div className='document-container'>
-                            <p class="align-center"><strong>LAST WILL AND TESTAMENT OF {capitalLetters(personal.fullName)} </strong></p>
+                            <p class="align-center"><strong>{willType} LAST WILL AND TESTAMENT OF {capitalLetters(personal.fullName)} </strong></p>
                             <p><br /><br />I, {capitalLetters(personal.fullName)}, presently of {capitalLetters(personal.city)} {personal.province ? `, ${capitalLetters(personal.province)}` : ''} declare that this is my Last Will and Testament.<br /><br /></p>
 
                             <p><strong><u>Prior Wills and Codicils</u></strong></p>
