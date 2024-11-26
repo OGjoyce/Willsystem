@@ -225,7 +225,7 @@ export default function Dashboard({ auth }) {
                                         <IconWrapper>
                                             <i className="bi bi-file-earmark-text"></i>
                                         </IconWrapper>
-                                        <CardTitle>Statitics</CardTitle>
+                                        <CardTitle>Statistics</CardTitle>
                                         <CardText>Dashboard</CardText>
                                         <Button onClick={(e) => handleLinkClick(e, route('statitics'), 'statitics')} variant="outline-dark">See</Button>
                                     </CardBody>

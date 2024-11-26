@@ -92,7 +92,7 @@ export const validate = {
     const errors = {};
 
     if (!data || data.length === 0) {
-      errors.bequest = 'At least one bequest is required';
+      //errors.bequest = 'At least one bequest is required';
     }
     return errors;
   },

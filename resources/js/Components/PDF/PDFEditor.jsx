@@ -231,6 +231,7 @@ const PDFEditor = ({ ContentComponent, documentType, errors, backendId, version,
           ref={ref}
           props={{
             datas,
+            documentType,
             selectedDOMVersion
           }}
         />

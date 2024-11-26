@@ -834,7 +834,7 @@ export default function Personal({ auth }) {
                         {pointer === 16 && <DocumentSelector objectStatus={objectStatus} handleSelectDocument={handleSelectDocument} handleAddNewDocumentToPackage={handleAddNewDocumentToPackage} showAddFeeInput={showAddFeeInput} saveNewFee={handleNewFee} currIdObjDB={currIdObjDB} />}
                         {pointer === 16 && showPDFEditor && (
                             <div className="fixed inset-0 flex justify-center items-center bg-gray-100 z-50 overflow-auto">
-                                <div className="relative w-full max-w-5xl bg-white shadow-lg rounded-lg p-6 mt-12 mb-12">
+                                <div className="relative w-full max-w-5xl bg-white shadow-lg rounded-lg p-6 mt-14">
                                     <PDFEditor
                                         documentType={currentDocument}
                                         objectStatus={objectStatus}
