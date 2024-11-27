@@ -25,6 +25,8 @@
         "@inertiajs/inertia": "^0.11.1",
         "@inertiajs/inertia-react": "^0.8.1",
         "@react-pdf/renderer": "^3.4.4",
+        "@stripe/react-stripe-js": "^3.0.0",
+        "@stripe/stripe-js": "^5.2.0",
         "@tiptap/extension-color": "^2.4.0",
         "@tiptap/extension-highlight": "^2.4.0",
         "@tiptap/extension-link": "^2.4.0",
