@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { StripeWrapper } from './StripePaymentModal';
 
-const PaymentModal = ({ show, handleClose }) => {
+const PaymentModal = ({ show, selectedPackage, handleClose }) => {
     const paymentOptions = [
         { label: 'Stripe', iconClass: 'bi bi-credit-card' },
         { label: 'Bank Transfer', iconClass: 'bi bi-bank' },
@@ -130,7 +130,7 @@ const PaymentModal = ({ show, handleClose }) => {
                         setShowStripePayment(false);
                         handleClose();
                     }}
-                    amount={5000} // Ejemplo de monto en centavos ($50.00)
+                    amount={selectedPackage.price * 100} // Ejemplo de monto en centavos ($50.00)
                 />
             )}
         </>
