@@ -903,7 +903,7 @@ export default function Personal({ auth }) {
                                     onSelect={(pkg) => handleSelectPackage(pkg)}
                                 />
                             )}
-                            <PaymentModal show={showPaymentModal} handleClose={() => { setShowPaymentModal(false) }} />
+                            <PaymentModal show={showPaymentModal} selectedPackage={selectedPackage} handleClose={() => { setShowPaymentModal(false) }} />
 
                         </div>
                     </div>
