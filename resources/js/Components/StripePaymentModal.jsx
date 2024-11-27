@@ -44,6 +44,7 @@ const StripePaymentModal = ({ show, handleClose, amount }) => {
                 setErrorMessage(result.error.message);
             } else if (result.paymentIntent.status === 'succeeded') {
                 setPaymentSuccess(true);
+                console.log(result)
             }
         } catch (error) {
             setErrorMessage('Payment failed. Please try again.');
