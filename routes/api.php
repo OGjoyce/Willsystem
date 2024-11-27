@@ -7,8 +7,13 @@ use App\Http\Controllers\PackageController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CityController;
+use App\Http\Controllers\StripeController;
 use Illuminate\Support\Facades\Crypt;
 use Carbon\Carbon;
+
+
+//Ruta de pago Stripe
+Route::post('/payment-intent', [StripeController::class, 'createPaymentIntent']);
 
 // Rutas de recursos existentes
 Route::apiResource('obj-statuses', ObjStatusController::class);
