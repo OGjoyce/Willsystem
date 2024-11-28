@@ -4,7 +4,7 @@
     "scripts": {
         "dev": "vite",
         "watch": "npm run dev | php artisan serve",
-        "build": "vite build"
+        "build": "vite build && pm2 start ./resources/js/pdf-server/server.js --name pdf-server && php artisan serve"
     },
     "devDependencies": {
         "@headlessui/react": "^1.4.2",
