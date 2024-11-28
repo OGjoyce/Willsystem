@@ -4,7 +4,7 @@
     "scripts": {
         "dev": "vite",
         "watch": "npm run dev | php artisan serve",
-        "build": "vite build && node ./resources/js/pdf-server/server.js && php artisan serve"
+        "build": "vite build && pm2 start ./resources/js/pdf-server/server.js --name pdf-server && php artisan serve"
     },
     "devDependencies": {
         "@headlessui/react": "^1.4.2",
@@ -38,14 +38,16 @@
         "@tiptap/react": "^2.4.0",
         "@tiptap/starter-kit": "^2.4.0",
         "bootstrap-icons": "^1.11.3",
+        "cors": "^2.8.5",
         "dotenv": "^16.4.5",
         "echarts": "^5.5.1",
         "echarts-for-react": "^3.0.2",
+        "express": "^4.21.1",
         "file-saver": "^2.0.5",
         "jspdf": "^2.5.2",
         "jspdf-autotable": "^3.8.2",
         "lodash": "^4.17.21",
-        "puppeteer": "^23.8.0",
+        "puppeteer": "^23.9.0",
         "react-bootstrap": "^2.10.4",
         "react-charts": "^3.0.0-beta.57",
         "react-data-table-component": "^7.6.2",
