@@ -1,9 +1,11 @@
-const express = require('express');
-const https = require('https'); // Importa el módulo HTTPS
-const fs = require('fs');
-const cors = require('cors');
-const path = require('path');
-const puppeteer = require('puppeteer');
+import express from 'express';
+import https from 'https';
+import fs from 'fs';
+import cors from 'cors';
+import path from 'path';
+import puppeteer from 'puppeteer';
+
+const __dirname = path.dirname(new URL(import.meta.url).pathname); // Manejo de __dirname en ES Modules
 
 const app = express();
 const PORT = 5050;
