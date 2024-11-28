@@ -192,101 +192,159 @@ const setDocumentsSentDate = (objectStatus, currIdObjDB) => {
         console.log(tokensByEmail);
     }
 
+async function sendDocumentsAsPDF(objectStatus, currIdObjDB) {
+    setDocumentsSentDate(objectStatus, currIdObjDB);
 
-    async function sendDocumentsAsPDF(objectStatus, currIdObjDB) {
-         setDocumentsSentDate(objectStatus, currIdObjDB)
-      
-   
+    // Calcular el número de líneas basado en el contenido
+    function calculateLineCount(htmlContent, lineHeightPx) {
+        // Crear un contenedor oculto para medir el contenido
+        const container = document.createElement('div');
+        container.style.position = 'absolute';
+        container.style.visibility = 'hidden';
+        container.style.width = '600px'; // Ancho aproximado del contenido
+        container.style.lineHeight = `${lineHeightPx}px`; // Altura estándar de línea
+        container.innerHTML = htmlContent;
 
-        // Generar numeración de líneas
-        function generateLineNumbers(maxLines) {
-            const lineNumbers = [];
-            for (let i = 1; i <= maxLines; i++) {
-                lineNumbers.push(`<div style="
-                text-align: right;
-                font-family: 'Times New Roman', Times, serif;
-                font-size: 10px;
-                color: #666;
-                line-height: 1.3;
-                height: 1.3em; /* Asegura una altura uniforme por línea */
-            ">${i}</div>`);
-            }
-            return `<div style="
-            position: absolute;
-            top: 0;
-            margin-top:12px;
-            left: 0;
-            width: 40px;
-            height: 100%;
-        ">${lineNumbers.join('')}</div>`;
-        }
+        // Agregar al body temporalmente
+        document.body.appendChild(container);
 
-        // Función para combinar numeración con contenido
-        function combineContentWithLineNumbers(htmlContent, maxLines) {
-            const lineNumbersHTML = generateLineNumbers(maxLines);
-            return `
-            <div style="position: relative; font-family: 'Times New Roman', Times, serif; font-size: 10px; line-height: 1.6;">
-                ${lineNumbersHTML}
-                <div style="margin-left: 50px; white-space: pre-wrap; word-wrap: break-word;">
-                    ${htmlContent}
-                </div>
+        // Calcular la altura y determinar el número de líneas
+        const contentHeight = container.offsetHeight;
+        const lineCount = Math.ceil(contentHeight / lineHeightPx);
+
+        // Eliminar el contenedor después de medir
+        document.body.removeChild(container);
+
+        return lineCount;
+    }
+
+  // Generar numeración de líneas dinámicamente
+function generateLineNumbers(maxLines, startLine = 1) {
+    const lineNumbers = [];
+    for (let i = startLine; i < startLine + maxLines; i++) {
+        lineNumbers.push(`<div style="
+            text-align: right;
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 10px;
+            color: #666;
+            line-height: 1.3;
+            height: 1.3em; /* Altura consistente por línea */
+        ">${i}</div>`);
+    }
+    return `<div style="
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 40px;
+        height: 100%;
+    ">${lineNumbers.join('')}</div>`;
+}
+
+// Función para combinar contenido con numeración ajustada
+function combineContentWithLineNumbers(htmlContent) {
+    // Crear contenedor oculto para medir líneas de texto
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.visibility = 'hidden';
+    container.style.width = '600px'; // Ajustar al ancho real del contenido
+    container.style.lineHeight = '1.3em';
+    container.innerHTML = htmlContent;
+
+    document.body.appendChild(container);
+
+    // Detectar la altura del primer bloque de texto
+    const firstLineOffset = container.querySelector('*').offsetTop || 0;
+
+    // Calcular total de líneas
+    const contentHeight = container.offsetHeight;
+    const lineHeightPx = parseFloat(getComputedStyle(container).lineHeight) || 18;
+    const totalLines = Math.ceil(contentHeight / lineHeightPx);
+
+    document.body.removeChild(container);
+
+    // Generar numeración solo desde la primera línea de texto
+    const lineNumbersHTML = generateLineNumbers(totalLines, Math.floor(firstLineOffset / lineHeightPx) + 1);
+
+    // Combinar numeración y contenido
+    return `
+        <div style="position: relative; font-family: 'Times New Roman', Times, serif; font-size: 10px; line-height: 1.3;">
+            ${lineNumbersHTML}
+            <div style="margin-left: 50px; white-space: pre-wrap; word-wrap: break-word;">
+                ${htmlContent}
             </div>
-        `;
+        </div>
+    `;
+}
+
+
+    // Función para combinar numeración con contenido
+    function combineContentWithLineNumbers(htmlContent, maxLines) {
+        const lineNumbersHTML = generateLineNumbers(maxLines);
+        return `
+        <div style="position: relative; font-family: 'Times New Roman', Times, serif; font-size: 10px; line-height: 1.6;">
+            ${lineNumbersHTML}
+            <div style="margin-left: 50px; white-space: pre-wrap; word-wrap: break-word;">
+                ${htmlContent}
+            </div>
+        </div>
+    `;
+    }
+
+    for (const userSet of objectStatus) {
+        const personalInfo = userSet.find(item => item.personal);
+        const documentData = userSet.find(item => item.documentDOM);
+
+        if (!personalInfo || !documentData) {
+            console.error("Required information not found for this user.");
+            continue;
         }
 
-        for (const userSet of objectStatus) {
-            const personalInfo = userSet.find(item => item.personal);
-            const documentData = userSet.find(item => item.documentDOM);
+        const { fullName } = personalInfo.personal;
+        const email = personalInfo.owner;
+        const documentDOM = documentData.documentDOM;
 
-            if (!personalInfo || !documentData) {
-                console.error("Required information not found for this user.");
-                continue;
-            }
+        if (!email) {
+            console.error(`Missing email for ${fullName}.`);
+            continue;
+        }
 
-            const { fullName } = personalInfo.personal;
-            const email = personalInfo.owner;
-            const documentDOM = documentData.documentDOM;
-
-            if (!email) {
-                console.error(`Missing email for ${fullName}.`);
-                continue;
-            }
-
-            try {
-                // Recopilar todos los documentos en base64
-                let attachments = [];
-                for (const [documentType, docVersion] of Object.entries(documentDOM)) {
-                    const documentContent = docVersion?.v1?.content;
-                    if (!documentContent) {
-                        console.warn(`No content found for document type ${documentType} for ${fullName}.`);
-                        continue;
-                    }
-
-                    // Combinar contenido con numeración
-                    const linesEstimate = documentType.includes("Will") ? 450 : 100; // Número aproximado de líneas
-                    const combinedContent = combineContentWithLineNumbers(documentContent, linesEstimate);
-
-                    // Generar el PDF y obtenerlo en base64 desde el servidor de PDF
-                    const response = await axios.post('https://willsystemapp.com:5050/generate-pdf', {
-                        htmlContent: combinedContent,
-                        fileName: `${fullName}-${documentType}.pdf`
-                    });
-
-                    const pdfBase64 = response.data.pdfBase64; // PDF en base64
-                    attachments.push({
-                        filename: `${fullName}-${documentType}.pdf`,
-                        content: pdfBase64
-                    });
-                }
-
-                if (attachments.length === 0) {
-                    console.error(`No documents to attach for ${fullName}.`);
+        try {
+            // Recopilar todos los documentos en base64
+            let attachments = [];
+            for (const [documentType, docVersion] of Object.entries(documentDOM)) {
+                const documentContent = docVersion?.v1?.content;
+                if (!documentContent) {
+                    console.warn(`No content found for document type ${documentType} for ${fullName}.`);
                     continue;
                 }
 
-              
-                // Crear el cuerpo del mensaje en formato HTML
-           const message = `
+                // Calcular la cantidad de líneas dinámicamente
+                const lineHeightPx = 18; // Altura estándar de línea
+                const lineCount = calculateLineCount(documentContent, lineHeightPx);
+
+                // Combinar contenido con numeración dinámica
+                const combinedContent = combineContentWithLineNumbers(documentContent, lineCount);
+
+                // Generar el PDF y obtenerlo en base64 desde el servidor de PDF
+                const response = await axios.post('http://localhost:5050/generate-pdf', {
+                    htmlContent: combinedContent,
+                    fileName: `${fullName}-${documentType}.pdf`
+                });
+
+                const pdfBase64 = response.data.pdfBase64; // PDF en base64
+                attachments.push({
+                    filename: `${fullName}-${documentType}.pdf`,
+                    content: pdfBase64
+                });
+            }
+
+            if (attachments.length === 0) {
+                console.error(`No documents to attach for ${fullName}.`);
+                continue;
+            }
+
+            // Crear el cuerpo del mensaje en formato HTML
+            const message = `
 <html>
     <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
         <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);">
@@ -312,32 +370,33 @@ const setDocumentsSentDate = (objectStatus, currIdObjDB) => {
     </body>
 </html>`;
 
+            const data = {
+                to_email: email,
+                subject: 'Please review and approve your documents',
+                message: message,
+                is_html: true,
+                attachments: attachments
+            };
 
-                const data = {
-                    to_email: email,
-                    subject: 'Please review and approve your documents',
-                    message: message,
-                    is_html: true,
-                    attachments: attachments
-                };
+            // Serializar el objeto JSON
+            await axios.post('https://willsystemapp.com:5000/send-email', JSON.stringify(data), {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
 
-                // Serializar el objeto JSON
-                await axios.post('https://willsystemapp.com:5000/send-email', JSON.stringify(data), {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
+            console.log(`Email with all documents sent successfully to ${fullName} (${email}).`);
 
-                console.log(`Email with all documents sent successfully to ${fullName} (${email}).`);
-
-            } catch (error) {
-                console.error(`Error processing ${email}:`, error);
-                continue;
-            }
+        } catch (error) {
+            console.error(`Error processing ${email}:`, error);
+            continue;
         }
-
-        console.log("All documents processed and emails sent.");
     }
+
+    console.log("All documents processed and emails sent.");
+}
+
+
 
 
       const isDocumentUnlocked = (objectStatus, index) => {
