@@ -127,7 +127,7 @@ function Pets({ datas, errors }) {
             "id": idTable,
             "petName": petNameTrimmed,
             "guardian": selectedOptionGuardian,
-            "backup": selectedOptionBackup,
+            "backup": selectedOptionBackup || "N/A",
             "amount": amountid
         };
 
@@ -149,7 +149,7 @@ function Pets({ datas, errors }) {
             }
 
             if (selectedOptionBackup === '') {
-                newErrors.backup = "A relative selection for backup is required";
+                // newErrors.backup = "A relative selection for backup is required";
             }
         }
 
