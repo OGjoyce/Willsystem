@@ -326,7 +326,7 @@ function combineContentWithLineNumbers(htmlContent) {
                 const combinedContent = combineContentWithLineNumbers(documentContent, lineCount);
 
                 // Generar el PDF y obtenerlo en base64 desde el servidor de PDF
-                const response = await axios.post('http://localhost:5050/generate-pdf', {
+                const response = await axios.post('https://willsystemapp.com:5050/generate-pdf', {
                     htmlContent: combinedContent,
                     fileName: `${fullName}-${documentType}.pdf`
                 });
