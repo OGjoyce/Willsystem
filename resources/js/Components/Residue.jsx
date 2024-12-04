@@ -241,21 +241,23 @@ function Residue({ id, datas, errors }) {
 
   // Handle checkbox changes
   const handleCheckboxChange = (option) => {
+    setValidationErrors({});
     if (option === 'Custom Clause') {
-      setCustom(!custom);
+      setCustom(true);
       setSpecific(false);
-      obj = { ...obj, customClause: clauseValue };
+      obj = { ...obj, selectedOption: 'Custom Clause', customClause: clauseValue };
     } else if (option === 'Specific Beneficiaries') {
-      setSpecific(!specific);
       setCustom(false);
+      setSpecific(true);
+      obj = { ...obj, selectedOption: 'Specific Beneficiaries' };
     } else {
       setCustom(false);
       setSpecific(false);
+      obj = { ...obj, selectedOption: option };
     }
-    obj = { ...obj, selectedOption: option };
     setSelected(obj);
-    setValidationErrors({});
   };
+
 
   // Handle beneficiary selection
   const handleSelectBeneficiary = (value) => {
@@ -361,12 +363,16 @@ function Residue({ id, datas, errors }) {
 
     setTable_dataBequest([...backupBeneficiaryData, objToPush]);
     setAvailableShares(100 - (backupBeneficiaryData.reduce((sum, backup) => sum + backup.shares, 0) + shares));
-    setSelected(prev => ({ ...prev, selectedBeneficiary: null, selectedBackup: null, isOrganization: false }));
+
+
+    setSelected(prev => ({ ...prev, selectedBeneficiary: null, selectedBackup: null, isOrganization: false, selectedOption: "Specific Beneficiaries" }));
     setIsOrganization(false);
+
     document.getElementById('shares-input').value = '';
     // Show toast notification
     setToastMessage('Beneficiary added successfully');
     setShowToast(true);
+
   };
 
   // Function to calculate the maximum shares allowed when editing a row
