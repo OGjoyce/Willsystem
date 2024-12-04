@@ -158,7 +158,7 @@ function Bequest({ id, datas, errors }) {
                     setPendingShares(pendingShares - shares);
                     if (pendingShares - shares > 0) {
                         setSharesInput('');
-                        setBequestText(bequest);
+                        setBequestText('');
                         newErrors.sharedBequest = "Please continue distributing shares for the current bequest";
 
                         if (Object.keys(newErrors).length > 0) {
