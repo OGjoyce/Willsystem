@@ -95,6 +95,7 @@ function Trusting({ datas, errors }) {
 
     const handleDelete = (itemId) => {
         setItemToDelete(itemId);
+        setLocalPointer(prevPointer => prevPointer - 1);
         setShowDeleteModal(true);
     };
 
