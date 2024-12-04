@@ -135,7 +135,14 @@ function Pets({ datas, errors }) {
         if (!petNameTrimmed) {
             newErrors.petName = "Pet name is required";
         }
+
+        if (amountid == 0) {
+            newErrors.amount = "A valid amount is required";
+        }
+
         if (Number(amountid) && Number(amountid) <= 0 || selectedOptionGuardian === '' || selectedOptionBackup === '' || selectedOptionBackup === selectedOptionGuardian) {
+
+
             if (Number(amountid) && Number(amountid) <= 0) {
                 newErrors.amount = "A valid amount is required";
             }
@@ -178,14 +185,17 @@ function Pets({ datas, errors }) {
     };
 
     const confirmDelete = () => {
+        setShowDeleteModal(false);
+        setIdTable(idTable - 1)
         if (itemToDelete !== null) {
             guardianDataStack = guardianDataStack.filter(obj => obj.id !== itemToDelete);
             setPetGuardianData([...guardianDataStack]);
+            setIdTable(idTable - 1)
             saveToLocalStorage(guardianDataStack);
             setToastMessage('Pet guardian removed successfully');
             setShowToast(true);
             setItemToDelete(null);
-            setShowDeleteModal(false);
+
         }
     };
 
