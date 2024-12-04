@@ -214,6 +214,7 @@ function HumanTable({ id, datas, errors }) {
 
     const confirmDelete = () => {
         if (itemToDelete !== null) {
+            nextId == nextId - 1
             setExecutors(prevExecutors => prevExecutors.filter(executor => executor.id !== itemToDelete));
             setToastMessage('Executor removed successfully');
             setShowToast(true);
