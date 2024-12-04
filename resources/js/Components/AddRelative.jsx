@@ -86,6 +86,7 @@ function AddRelative({ relative, datas, errors, onDataChange }) {
 
     const handleDelete = (id) => {
         setItemToDelete(id);
+        ids = ids - 1;
         setShowDeleteModal(true);
     };
 
