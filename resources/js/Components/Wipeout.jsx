@@ -162,6 +162,10 @@ function Wipeout({ id, datas, errors }) {
             newErrors.shares = `Please enter a valid number between 0 and ${availableShares}`;
         }
 
+        if (isNaN(sharesNum) || sharesNum <= 0 || sharesNum > availableShares && availableShares == 0) {
+            newErrors.shares = `Current shares on the list are 100% of the available. you can't add more beneficiaries`;
+        }
+
         if (!isOrganization && !type) {
             newErrors.type = "Type is required";
         }
