@@ -353,7 +353,7 @@ function Residue({ id, datas, errors }) {
     }
 
     const objToPush = {
-      "id": bequestindex,
+      "id": table_dataBequest.length + 1,
       "beneficiary": beneficiary,
       "backup": selected.isOrganization ? "N/A" : backup || "NA",
       "type": selected.isOrganization ? "N/A" : selectedType,

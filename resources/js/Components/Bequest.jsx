@@ -134,7 +134,7 @@ function Bequest({ id, datas, errors }) {
 
         if (bequest !== "" && (isCustomBequest || (selected !== "false" && shares !== "" && shares > 0 && shares <= 100 && selected !== backup))) {
             var obj = {
-                "id": bequestindex + 1,
+                "id": bequestArrObj.length + 1,
                 "names": selected,
                 "backup": backup || "NA",
                 "shares": shares,
@@ -238,6 +238,7 @@ function Bequest({ id, datas, errors }) {
 
         setShowToast(true);
         if (bequestToDelete !== null) {
+            setShowDeleteModal(false);
             const updatedBequests = table_dataBequest.filter(obj => obj.id !== bequestToDelete);
 
             setTable_dataBequest(updatedBequests);
@@ -249,7 +250,7 @@ function Bequest({ id, datas, errors }) {
             localStorage.setItem('formValues', JSON.stringify(storedValues));
 
             setBequestToDelete(null);
-            setShowDeleteModal(false);
+
         }
     };
 
