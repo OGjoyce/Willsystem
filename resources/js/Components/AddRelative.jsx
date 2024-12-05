@@ -53,7 +53,7 @@ function AddRelative({ relative, datas, errors, onDataChange }) {
 
         if (Object.keys(errors).length <= 0) {
             const newEntry = {
-                id: ids,
+                id: tableData.length + 1,
                 firstName: modalData.firstName,
                 lastName: modalData.lastName,
                 relative: modalData.relative,
