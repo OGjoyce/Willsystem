@@ -521,7 +521,6 @@ function Bequest({ id, datas, errors }) {
                                             <th>Backup</th>
                                             <th>Bequest</th>
                                             <th>Shares</th>
-                                            <th>Custom</th>
                                             <th>Options</th>
                                         </tr>
                                     </thead>
@@ -592,7 +591,6 @@ function Bequest({ id, datas, errors }) {
                                                                 item.shares
                                                             )}
                                                         </td>
-                                                        <td>{item.isCustom ? 'Yes' : 'No'}</td>
                                                         <td>
                                                             <div className="d-flex justify-content-around gap-2">
                                                                 {editingRow === index ? (
