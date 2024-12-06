@@ -209,7 +209,6 @@ function Pets({ datas, errors }) {
         updatedData[index] = tempData;
         setPetGuardianData(updatedData);
         guardianDataStack = updatedData;
-        saveToLocalStorage(guardianDataStack);
         setEditingRow(null);
         setTempData({});
         setToastMessage('Pet guardian updated successfully');
