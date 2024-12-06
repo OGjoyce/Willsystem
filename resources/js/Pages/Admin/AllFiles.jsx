@@ -44,9 +44,10 @@ const DateFilter = ({ label, selectedDate, onChange, maxDate, minDate }) => (
 );
 
 // Reusable Component for Action Buttons in DataTable
-const ActionButton = ({ row, totalSteps, handleShow, saveData }) => (
+const ActionButton = ({ row, handleShow, saveData }) => (
+
     <>
-        {row.leng === totalSteps ? (
+        {row.percentageCompleted == "100%" ? (
             <Button
                 variant="outline-warning"
                 size="sm"
@@ -71,7 +72,7 @@ const ActionButton = ({ row, totalSteps, handleShow, saveData }) => (
 );
 
 const AllFiles = () => {
-    const totalSteps = 16;
+
     const [searchTerm, setSearchTerm] = useState('');
     const [files, setFiles] = useState([]);
     const [fromDate, setFromDate] = useState(null);
@@ -205,30 +206,29 @@ const AllFiles = () => {
             const owner = item.information[0]?.find(info => info.personal)?.personal?.email || 'unknown';
             const creationTimestamp = item.created_at || "NA"
             const lastModificationTimestamp = item.updated_at || "NA";
-            const objectStatus = item.information[0] || [];
-            const documentDOM = objectStatus.find(info => info.documentDOM)?.documentDOM || {};
 
-            const allDocumentsHaveV1 = !Object.values(documentDOM).every(doc => doc?.v1 !== undefined && doc.v1 !== null);
+            const documentDOMArray = item.information
+                .map(profile => profile[profile.length - 1])
 
-            let completedSteps = objectStatus.filter(stepObj => {
-                const stepKey = Object.keys(stepObj)[0];
-                const stepData = stepObj[stepKey]?.data || stepObj[stepKey];
+            const savedDocuments = documentDOMArray.flatMap(documentDOM =>
+                Object.values(documentDOM).filter(doc => doc.v1 !== null ? doc : null)
+            );
 
-                if (Array.isArray(stepData)) {
-                    return stepData.length > 0;
-                } else if (typeof stepData === 'object' && stepData !== null) {
-                    return Object.keys(stepData).length > 0;
-                }
-                return false;
-            }).length;
 
-            if (allDocumentsHaveV1 && completedSteps >= 15) {
-                completedSteps = totalSteps;
-            } else if (completedSteps >= 15) {
-                completedSteps = 15;
-            }
+            const totalSavedDocuments = savedDocuments.reduce((count, obj) => {
+                return count + Object.keys(obj).length;
+            }, 0);
 
-            const completionPercentage = (completedSteps / totalSteps) * 100;
+            const availableDocuments = packageInfo.documents.length
+
+
+
+
+            const completionPercentage = totalSavedDocuments > 0
+                ? (availableDocuments / totalSavedDocuments) * 100
+                : 0; // Retorna 0 si no hay documentos guardados
+
+
 
             return {
                 id: item.id || null,
@@ -237,8 +237,8 @@ const AllFiles = () => {
                 created: creationTimestamp ? new Date(creationTimestamp).toLocaleDateString() : 'N/A',
                 updated: lastModificationTimestamp ? new Date(lastModificationTimestamp).toLocaleDateString() : 'N/A',
                 sendAt: packageInfo.documents_sent_at == "Not sent yet" ? null : packageInfo.documents_sent_at,
-                leng: completedSteps,
-                totalSteps: totalSteps,
+                leng: availableDocuments,
+                totalSteps: totalSavedDocuments,
                 percentageCompleted: Math.round(completionPercentage) + '%',
             };
         }).filter(Boolean);
@@ -339,7 +339,6 @@ const AllFiles = () => {
             cell: row => (
                 <ActionButton
                     row={row}
-                    totalSteps={totalSteps}
                     handleShow={handleShow}
                     saveData={saveData}
                 />
