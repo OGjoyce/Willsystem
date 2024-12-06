@@ -81,7 +81,7 @@ function Trusting({ datas, errors }) {
         }
 
         const newEntry = {
-            id: localPointer,
+            id: localTableData.length + 1,
             age: age,
             shares: shares
         };
