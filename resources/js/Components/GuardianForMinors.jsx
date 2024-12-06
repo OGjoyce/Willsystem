@@ -106,7 +106,7 @@ export default function GuardianForMinors({ errors, datas }) {
         }
 
         const newGuardian = {
-            id: bequestindex,
+            id: Object.values(tableData).length + 1,
             guardian: selected,
             position: parseInt(priority),
         };
