@@ -90,10 +90,13 @@ function AddHuman({ married, childrens, human, errors, onDataChange }) {
 
     const [relative, setRelative] = useState('');
     const [showOther, setShowOther] = useState(false);
-    const [validationErrors, setValidationErrors] = useState(errors);
+    const [validationErrors, setValidationErrors] = useState({});
     const [phone, setPhone] = useState('');
     const [isBlendedFamily, setIsBlendedFamily] = useState(false)
 
+    useEffect(() => {
+        setValidationErrors({})
+    }, [])
     useEffect(() => {
         blendedFamily = isBlendedFamily
         console.log('blended')
