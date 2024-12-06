@@ -225,7 +225,7 @@ const AllFiles = () => {
 
 
             const completionPercentage = totalSavedDocuments > 0
-                ? (availableDocuments / totalSavedDocuments) * 100
+                ? (totalSavedDocuments / availableDocuments) * 100
                 : 0; // Retorna 0 si no hay documentos guardados
 
 
