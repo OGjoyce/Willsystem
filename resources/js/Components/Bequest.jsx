@@ -134,7 +134,7 @@ function Bequest({ id, datas, errors }) {
 
         if (bequest !== "" && (isCustomBequest || (selected !== "false" && shares !== "" && shares > 0 && shares <= 100 && selected !== backup))) {
             var obj = {
-                "id": bequestArrObj.length + 1,
+                "id": table_dataBequest.length + 1,
                 "names": selected,
                 "backup": backup || "NA",
                 "shares": shares,
