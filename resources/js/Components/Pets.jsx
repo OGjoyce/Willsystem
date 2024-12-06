@@ -100,7 +100,7 @@ function Pets({ datas, errors }) {
 
         // Also add to tableData
         setTableData(prevData => [...prevData, {
-            id: idTable,
+            id: guardianDataStack,
             firstName: newPerson.firstName,
             lastName: newPerson.lastName,
             relative: newPerson.relative
