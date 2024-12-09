@@ -14,7 +14,7 @@
         'Two spousal wills and one secondary will': ['primaryWill', 'spousalWill', 'secondaryWill'],
         'Two spousal wills and one secondary will and two POAs (property)': ['primaryWill', 'spousalWill', 'secondaryWill', 'poaProperty', 'poaProperty'], //POAS?
         'Two spousal wills and one secondary will and two POAs (health)': ['primaryWill', 'spousalWill', 'secondaryWill', 'poaHealth', 'poaHealth'], //POAS?
-        'Two spousal wills and one secondary will and four POAs': ['primaryWill', 'spousalWill', 'secondaryWills', 'poaProperty', 'poaProperty', 'poaHealth', 'poaHealth'], // POAS?
+        'Two spousal wills and one secondary will and four POAs': ['primaryWill', 'spousalWill', 'secondaryWill', 'poaProperty', 'poaProperty', 'poaHealth', 'poaHealth'], // POAS?
         'Two spousal wills and two secondary wills': ['primaryWill', 'spousalWill', 'secondaryWill', 'secondaryWill'],
         'Two spousal wills and two secondary wills and two POAs (property)': ['primaryWill', 'spousalWill', 'secondaryWill', 'secondaryWill', 'poaProperty', 'poaProperty'], //POAS?
         'Two spousal wills and two secondary wills and two POAs (health)': ['primaryWill', 'spousalWill', 'secondaryWill', 'secondaryWill', 'poaHealth', 'poaHealth'], //POAS?
