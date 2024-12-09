@@ -8,7 +8,7 @@
         'One will and one secondary will and one POA (health)': ['primaryWill', 'secondaryWill', 'poaHealth'],
         'One will and one secondary will and two POAs': ['primaryWill', 'secondaryWill', 'poaProperty', 'poaHealth'],  // POAS?
         'Two spousal wills only': ['primaryWill', 'spousalWill'],
-        'Two spousal wills and two POAs (property)': ['primaryWill', 'spousalWill', 'poaProperty', 'poaPropery'],
+        'Two spousal wills and two POAs (property)': ['primaryWill', 'spousalWill', 'poaProperty', 'poaProperty'],
         'Two spousal wills and two POAs (health)': ['primaryWill', 'spousalWill', 'poaHealth', 'poaHealth'],
         'Two spousal wills and four POAs': ['primaryWill', 'spousalWill', 'poaProperty', 'poaProperty', 'poaHealth', 'poaHealth'],
         'Two spousal wills and one secondary will': ['primaryWill', 'spousalWill', 'secondaryWill'],
