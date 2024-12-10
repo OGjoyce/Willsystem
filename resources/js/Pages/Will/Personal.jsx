@@ -205,7 +205,7 @@ export default function Personal({ auth }) {
         if (objectStatus.length === 1 && currentDocument === 'spousalWill') {
             //Gets the kids data in primaryWill
             const kids = objectStatus[0][4].kids
-            const filteredKids = kids.filter(kid => !kid.isBlendedFamily)
+            const filteredKids = kids.filter(kid => kid.isIncludedOnSpousalWill)
             //Initialized structured and data for spousalWill
             const spousalWillData = initializeSpousalWill(objectStatus)
 
