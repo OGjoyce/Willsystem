@@ -12,6 +12,7 @@ let city = undefined
 let country = undefined
 let province = undefined
 let blendedFamily = false
+let addToSpousalWill = false
 
 let isFirstCheckDone = false;
 
@@ -36,6 +37,7 @@ export function getHumanData(params) {
                 email: "NA",
                 phone: "NA",
                 blendedFamily: blendedFamily,
+                isIncludedOnSpousalWill: addToSpousalWill,
                 city: city,
                 province: province,
                 country: country
@@ -93,14 +95,16 @@ function AddHuman({ married, childrens, human, errors, onDataChange }) {
     const [validationErrors, setValidationErrors] = useState({});
     const [phone, setPhone] = useState('');
     const [isBlendedFamily, setIsBlendedFamily] = useState(false)
+    const [isIncludedOnSpousal, setIsIncludedOnSpousal] = useState(false)
 
     useEffect(() => {
         setValidationErrors({})
     }, [])
     useEffect(() => {
         blendedFamily = isBlendedFamily
-        console.log('blended')
-    }, [isBlendedFamily])
+        addToSpousalWill = isIncludedOnSpousal
+
+    }, [isBlendedFamily, isIncludedOnSpousal])
 
     useEffect(() => {
         if (relationType === 'spouse') {
@@ -261,15 +265,26 @@ function AddHuman({ married, childrens, human, errors, onDataChange }) {
                                 {validationErrors.otherRelative && <p className="mt-2 text-sm text-red-600">{validationErrors.otherRelative}</p>}
                             </>
                         )}
-                        {childrens && <Form.Check
-                            type="checkbox"
+                        {childrens && <>
+                            <Form.Check
+                                type="checkbox"
 
-                            className='mt-2'
-                            label="Blended family"
-                            checked={isBlendedFamily}
-                            onChange={() => { setIsBlendedFamily(!isBlendedFamily) }}
-                        />
-                        }
+                                className='mt-2'
+                                label="Blended family"
+                                checked={isBlendedFamily}
+                                onChange={() => { setIsBlendedFamily(!isBlendedFamily) }}
+                            />
+                            <Form.Check
+                                type="checkbox"
+
+                                className='mt-2'
+                                label="Include it on Spousal Will"
+                                checked={isIncludedOnSpousal}
+                                onChange={() => {
+                                    setIsIncludedOnSpousal(!isIncludedOnSpousal)
+                                }}
+                            />
+                        </>}
 
                         {(married) && (
                             <>
