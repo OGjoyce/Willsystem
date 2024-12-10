@@ -46,29 +46,15 @@ const DateFilter = ({ label, selectedDate, onChange, maxDate, minDate }) => (
 // Reusable Component for Action Buttons in DataTable
 const ActionButton = ({ row, handleShow, saveData }) => (
 
-    <>
-        {row.percentageCompleted == "100%" ? (
-            <Button
-                variant="outline-warning"
-                size="sm"
-                onClick={() => handleShow(row.id)}
-                aria-label={`View documents for file ${row.id}`}
-                className="d-flex align-items-center"
-            >
-                <i className="bi bi-eye me-1"></i> View Documents
-            </Button>
-        ) : (
-            <Button
-                variant="outline-info"
-                size="sm"
-                onClick={() => saveData(row.id)}
-                aria-label={`Continue editing file ${row.id}`}
-                className="d-flex align-items-center"
-            >
-                <i className="bi bi-pencil me-1"></i> Continue Editing
-            </Button>
-        )}
-    </>
+    <Button
+        variant="outline-info"
+        size="sm"
+        onClick={() => saveData(row.id)}
+        aria-label={`Continue editing file ${row.id}`}
+        className="d-flex align-items-center"
+    >
+        <i className="bi bi-pencil me-1"></i> Continue Editing
+    </Button>
 );
 
 const AllFiles = () => {
