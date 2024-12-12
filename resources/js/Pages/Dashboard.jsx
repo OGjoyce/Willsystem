@@ -231,20 +231,21 @@ export default function Dashboard({ auth }) {
                                     </CardBody>
                                 </CustomCard>
                             </Col>
-
-                        </Row>
-                        <Row>
-                        <Col >
+                            <Col >
                                 <CustomCard>
                                     <CardBody>
                                         <IconWrapper>
                                             <i className="bi bi-calendar3"></i>
                                         </IconWrapper>
-                                        
-                                        <Button onClick={(e) => handleLinkClick(e, route('scheduler'), 'scheduler')} variant="outline-dark">See</Button>
+
+                                        <Button onClick={(e) => handleLinkClick(e, route('scheduler'), 'scheduler')} variant="outline-dark">Scheduler</Button>
                                     </CardBody>
                                 </CustomCard>
                             </Col>
+
+                        </Row>
+                        <Row>
+
                         </Row>
                     </Container>
                 </div>

@@ -10,9 +10,11 @@ import {
     Spinner,
     InputGroup,
 } from 'react-bootstrap';
+
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
-import SchedulerUI from '@/Components/Scheduler/Scheduler';
+import SchedulerUI from '@/Components/Scheduler/SchedulerUI';
+import { SchedulerMatrix } from '@/Components/Scheduler/SchedulerMatrix';
 export default function Scheduler(){
     return (
         <>
@@ -23,7 +25,10 @@ export default function Scheduler(){
                 <div className="py-12 bg-gray-100 min-h-screen">
                     <Container className="bg-white p-6 rounded-lg shadow-md">
                      
-                    <SchedulerUI/>
+                    {/* <SchedulerUI/> */}
+                    <SchedulerMatrix />
+
+
 
                     </Container>
                 </div>
