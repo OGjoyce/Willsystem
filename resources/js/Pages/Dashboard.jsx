@@ -233,6 +233,19 @@ export default function Dashboard({ auth }) {
                             </Col>
 
                         </Row>
+                        <Row>
+                        <Col >
+                                <CustomCard>
+                                    <CardBody>
+                                        <IconWrapper>
+                                            <i className="bi bi-calendar3"></i>
+                                        </IconWrapper>
+                                        
+                                        <Button onClick={(e) => handleLinkClick(e, route('scheduler'), 'scheduler')} variant="outline-dark">See</Button>
+                                    </CardBody>
+                                </CustomCard>
+                            </Col>
+                        </Row>
                     </Container>
                 </div>
             </div>
