@@ -1,25 +1,59 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Form, Button, Table } from 'react-bootstrap';
-
+import axios from 'axios';
 
 export function SchedulerUI() {
   const [tasks, setTasks] = useState([]);
   const [task, setTask] = useState({ title: '', description: '', date: '', time: '' });
+
+  // Obtener tareas del backend al cargar el componente
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const response = await axios.get('/api/appointments', {
+          params: { user_id: 1, start_date: '2024-12-01', end_date: '2024-12-31' }, // Ajusta el rango según tus necesidades
+        });
+        setTasks(response.data);
+        console.log(response.data)
+      } catch (error) {
+        console.error('Error fetching tasks:', error);
+      }
+    };
+
+    fetchTasks();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setTask({ ...task, [name]: value });
   };
 
-  const handleAddTask = (e) => {
+  const handleAddTask = async (e) => {
     e.preventDefault();
-    setTasks([...tasks, task]);
-    setTask({ title: '', description: '', date: '', time: '' });
+    try {
+      const response = await axios.post('/api/appointments', {
+        user_id: 1, // Cambiar por el ID del usuario actual
+        title: task.title,
+        description: task.description,
+        date: task.date,
+        time: task.time,
+        duration: 60, // Puedes permitir que el usuario elija la duración si lo necesitas
+      });
+
+      setTasks([...tasks, response.data]);
+      setTask({ title: '', description: '', date: '', time: '' });
+    } catch (error) {
+      console.error('Error adding task:', error);
+    }
   };
 
-  const handleDeleteTask = (index) => {
-    const newTasks = tasks.filter((_, i) => i !== index);
-    setTasks(newTasks);
+  const handleDeleteTask = async (id) => {
+    try {
+      await axios.delete(`/api/appointments/${id}`); // Asegúrate de definir esta ruta en el backend
+      setTasks(tasks.filter((task) => task.id !== id));
+    } catch (error) {
+      console.error('Error deleting task:', error);
+    }
   };
 
   return (
@@ -95,7 +129,7 @@ export function SchedulerUI() {
               </thead>
               <tbody>
                 {tasks.map((task, index) => (
-                  <tr key={index}>
+                  <tr key={task.id}>
                     <td>{index + 1}</td>
                     <td>{task.title}</td>
                     <td>{task.description}</td>
@@ -105,7 +139,7 @@ export function SchedulerUI() {
                       <Button
                         variant="outline-danger"
                         size="sm"
-                        onClick={() => handleDeleteTask(index)}
+                        onClick={() => handleDeleteTask(task.id)}
                       >
                         Delete
                       </Button>
@@ -121,6 +155,6 @@ export function SchedulerUI() {
       </Row>
     </Container>
   );
-};
+}
 
 export default SchedulerUI;
