@@ -1,0 +1,9 @@
+.custom-row {
+    height: 19.1979px;
+    background-color: rgb(251, 251, 251);
+    transition: background-color 0.3s ease; /* Optional smooth transition */
+  }
+  
+  .custom-row:hover {
+    background-color: rgb(193, 255, 218); /* Change the background color on hover */
+  }
