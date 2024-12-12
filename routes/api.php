@@ -9,8 +9,17 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\StripeController;
 use Illuminate\Support\Facades\Crypt;
+use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\AvailabilityController;
 use Carbon\Carbon;
 
+//Scheduler routes
+
+Route::post('/appointments', [AppointmentController::class, 'store']);
+Route::get('/appointments', [AppointmentController::class, 'index']);
+
+Route::post('/availability', [AvailabilityController::class, 'store']);
+Route::get('/availability', [AvailabilityController::class, 'show']);
 
 //Ruta de pago Stripe
 Route::post('/payment-intent', [StripeController::class, 'createPaymentIntent']);
