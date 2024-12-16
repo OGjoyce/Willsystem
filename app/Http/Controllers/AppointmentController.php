@@ -107,5 +107,30 @@ public function getAllAppointments()
     return response()->json($formattedAppointments);
 }
 
+public function getAppointmentsByEmail(Request $request)
+{
+    // Validar que el email es requerido y tiene formato correcto
+    $request->validate([
+        'email' => 'required|email',
+    ]);
+
+    // Obtener todas las citas para el email especificado
+    $appointments = Appointment::where('email', $request->email)->get();
+
+    // Formatear las citas en el formato requerido
+    $formattedAppointments = $appointments->map(function ($appointment) {
+        return [
+            'date' => $appointment->date,
+            'time' => $appointment->time,
+            'duration' => $appointment->duration . ":00",
+            'Title' => $appointment->title,
+            'Description' => $appointment->description,
+            'owner' => $appointment->email,
+        ];
+    });
+
+    return response()->json($formattedAppointments);
+}
+
 
 }
