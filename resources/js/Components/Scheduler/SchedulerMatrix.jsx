@@ -128,14 +128,19 @@ export function SchedulerMatrix() {
                     : matchingAppointment.title;
 
                 return (
-                    <Row
-                        key={formattedHour}
-                        className="custom-row"
-                        onClick={() => handleClickDate(matchingAppointment)}
-                        style={{ cursor: 'pointer' }}
-                    >
-                        <i className="bi bi-eye-fill">{truncatedTitle}</i>
-                    </Row>
+                    <>
+                        <Row
+                            key={formattedHour}
+                            className="custom-row"
+                            onClick={() => handleClickDate(matchingAppointment)}
+                            style={{ cursor: 'pointer' }}
+                        >
+                            <i className="bi bi-eye-fill">{truncatedTitle}</i>
+
+                        </Row>
+                        <hr></hr>
+                    </>
+
                 );
             } else {
                 return (
@@ -174,7 +179,7 @@ export function SchedulerMatrix() {
                 <>
                     <h4><Badge bg={day.color}>0 - 23 hours</Badge></h4>
                     {Array.from({ length: 24 }).map((_, hour) => (
-                        <Row key={hour}><h4>{hour.toString().padStart(2, '0')}:00</h4></Row>
+                        <Row key={hour}><h4>{hour.toString().padStart(2, '0')}:00</h4> <hr></hr></Row>
                     ))}
                 </>
             ) : (
