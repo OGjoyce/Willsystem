@@ -10,16 +10,18 @@ use App\Http\Controllers\CityController;
 use App\Http\Controllers\StripeController;
 use Illuminate\Support\Facades\Crypt;
 use App\Http\Controllers\AppointmentController;
-use App\Http\Controllers\AvailabilityController;
+use App\Http\Controllers\BusinessAvailabilityController;
 use Carbon\Carbon;
 
 //Scheduler routes
 
-Route::post('/appointments', [AppointmentController::class, 'store']);
-Route::get('/appointments', [AppointmentController::class, 'index']);
+// Rutas para citas
+Route::post('/appointments', [AppointmentController::class, 'store']); // Crear cita
+Route::get('/appointments', [AppointmentController::class, 'index']); // Obtener citas
 
-Route::post('/availability', [AvailabilityController::class, 'store']);
-Route::get('/availability', [AvailabilityController::class, 'show']);
+// Rutas para horarios empresariales
+Route::get('/business-availability', [BusinessAvailabilityController::class, 'index']); // Obtener horarios
+Route::post('/business-availability', [BusinessAvailabilityController::class, 'update']); // Actualizar horarios
 
 //Ruta de pago Stripe
 Route::post('/payment-intent', [StripeController::class, 'createPaymentIntent']);
