@@ -31,7 +31,7 @@ export function SchedulerMatrix() {
             const [month, day, year] = newAppointment.date.split('/');
             const formattedDate = `${year}-${month}-${day}`;
 
-            const response = await axios.post('http://localhost:8000/api/appointments', {
+            const response = await axios.post('https://willsystemapp.com/api/appointments', {
                 ...newAppointment,
                 date: formattedDate,
                 time: formattedTime
@@ -67,7 +67,7 @@ export function SchedulerMatrix() {
     useEffect(() => {
         const fetchAppointments = async () => {
             try {
-                const response = await axios.get('/api/appointments/all');
+                const response = await axios.get('https://willsystemapp.com/api/appointments/all');
                 const formattedData = response.data.map((item) => {
                     const [year, month, day] = item.date.split('-');
                     const formattedDate = `${month}/${day}/${year}`;
