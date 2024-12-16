@@ -18,7 +18,10 @@ use Carbon\Carbon;
 // Rutas para citas
 Route::post('/appointments', [AppointmentController::class, 'store']); // Crear cita
 Route::get('/appointments', [AppointmentController::class, 'index']); // Obtener citas
+Route::get('/appointments/available-slots', [AppointmentController::class, 'getAvailableSlots']);
 
+// Obtener todas las citas
+Route::get('/appointments/all', [AppointmentController::class, 'getAllAppointments']);
 // Rutas para horarios empresariales
 Route::get('/business-availability', [BusinessAvailabilityController::class, 'index']); // Obtener horarios
 Route::post('/business-availability', [BusinessAvailabilityController::class, 'update']); // Actualizar horarios
