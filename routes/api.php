@@ -22,6 +22,8 @@ Route::get('/appointments/available-slots', [AppointmentController::class, 'getA
 
 // Obtener todas las citas
 Route::get('/appointments/all', [AppointmentController::class, 'getAllAppointments']);
+Route::get('/appointments/email', [AppointmentController::class, 'getAppointmentsByEmail']);
+
 // Rutas para horarios empresariales
 Route::get('/business-availability', [BusinessAvailabilityController::class, 'index']); // Obtener horarios
 Route::post('/business-availability', [BusinessAvailabilityController::class, 'update']); // Actualizar horarios
