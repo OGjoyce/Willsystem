@@ -15,7 +15,7 @@ export function AppointmentModal({ show, handleClose, appointment }) {
                         <p><strong>Date:</strong> {appointment.date}</p>
                         <p><strong>Time:</strong> {appointment.time}</p>
                         <p><strong>Duration:</strong> {appointment.duration} minutes</p>
-                        <p><strong>Owner:</strong> {appointment.owner || 'Unknown'}</p>
+                        <p><strong>Owner:</strong> {appointment.email || appointment.owner}</p>
                     </>
                 )}
             </Modal.Body>
