@@ -111,7 +111,7 @@ export function SchedulerMatrix() {
                     currTitle = truncatedString;
                     return(
                 
-                        <><Row  className="custom-row"><i class="bi bi-eye-fill">{currTitle}</i></Row><hr></hr></>
+                        <><Row  className="custom-row"><i style={{color:"green"}} class="bi bi-eye-fill">{currTitle}</i></Row><hr></hr></>
                     )
                     
                     
