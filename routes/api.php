@@ -9,24 +9,30 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\StripeController;
 use Illuminate\Support\Facades\Crypt;
-use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\LawyerController;
 use App\Http\Controllers\BusinessAvailabilityController;
 use Carbon\Carbon;
 
 //Scheduler routes
+// Scheduler routes
 
-// Rutas para citas
-Route::post('/appointments', [AppointmentController::class, 'store']); // Crear cita
-Route::get('/appointments', [AppointmentController::class, 'index']); // Obtener citas
-Route::get('/appointments/available-slots', [AppointmentController::class, 'getAvailableSlots']);
+// Crear firma legal
+Route::post('/law-firms', [LawyerController::class, 'createLawFirm']);
 
-// Obtener todas las citas
-Route::get('/appointments/all', [AppointmentController::class, 'getAllAppointments']);
-Route::get('/appointments/email', [AppointmentController::class, 'getAppointmentsByEmail']);
+// Crear abogado
+Route::post('/lawyers', [LawyerController::class, 'createLawyer']);
 
-// Rutas para horarios empresariales
-Route::get('/business-availability', [BusinessAvailabilityController::class, 'index']); // Obtener horarios
-Route::post('/business-availability', [BusinessAvailabilityController::class, 'update']); // Actualizar horarios
+// Configurar disponibilidad
+Route::post('/lawyers/{id}/availability', [LawyerController::class, 'setAvailability']);
+
+// Crear reserva
+Route::post('/reservations', [LawyerController::class, 'createReservation']);
+
+// Obtener horarios disponibles
+Route::get('/law-firms/available-slots', [LawyerController::class, 'getAvailableSlots']);
+
+// Obtener reservas existentes
+Route::get('/law-firms/reservations', [LawyerController::class, 'getReservations']);
 
 //Ruta de pago Stripe
 Route::post('/payment-intent', [StripeController::class, 'createPaymentIntent']);
