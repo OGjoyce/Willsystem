@@ -50,7 +50,28 @@ const ReservationScheduler = () => {
             const response = await axios.get(`http://127.0.0.1:8000/api/law-firms/available-slots`, {
                 params: { law_firm_id: 1, date: date },
             });
-            setAvailableSlots(response.data);
+
+            // Obtener slots únicos y ordenarlos por start_time
+            const uniqueSlots = [];
+            const slotMap = new Map();
+
+            response.data.forEach((slot) => {
+                if (!slotMap.has(slot.start_time)) {
+                    slotMap.set(slot.start_time, true);
+                    uniqueSlots.push({
+                        start_time: slot.start_time,
+                        lawyer_id: slot.lawyer_id,
+                        lawyer_name: slot.lawyer_name,
+                    });
+                }
+            });
+
+            // Ordenar los slots por start_time ascendente
+            const sortedSlots = uniqueSlots.sort((a, b) => {
+                return a.start_time.localeCompare(b.start_time);
+            });
+
+            setAvailableSlots(sortedSlots);
         } catch (error) {
             console.error("Error fetching slots:", error);
             setAvailableSlots([]);
@@ -59,41 +80,62 @@ const ReservationScheduler = () => {
         }
     };
 
+
+
     // Verificar solapamientos y duración
-    const findMaxAvailableDuration = (slot) => {
+    const findMaxAvailableDuration = (selectedSlot) => {
         const durations = [60, 45, 30, 15];
-        let maxDuration = 15;
+
+        // Filtrar slots disponibles para el mismo día
+        const slotsByLawyer = availableSlots.reduce((acc, slot) => {
+            if (!acc[slot.lawyer_id]) acc[slot.lawyer_id] = [];
+            acc[slot.lawyer_id].push(slot);
+            return acc;
+        }, {});
 
         for (const duration of durations) {
             const requiredSlots = duration / 15;
-            let isValid = true;
 
-            for (let i = 0; i < requiredSlots; i++) {
-                const nextTime = new Date(
-                    new Date(`${selectedDay}T${slot.start_time}`).getTime() + i * 15 * 60000
-                )
-                    .toISOString()
-                    .split("T")[1]
-                    .substring(0, 5);
+            // Revisar cada abogado
+            for (const lawyerId in slotsByLawyer) {
+                const lawyerSlots = slotsByLawyer[lawyerId];
 
-                const hasSlot = availableSlots.some(
-                    (s) => s.lawyer_id === slot.lawyer_id && s.start_time === nextTime
-                );
+                // Ordenar los slots por hora de inicio
+                lawyerSlots.sort((a, b) => a.start_time.localeCompare(b.start_time));
 
-                if (!hasSlot) {
-                    isValid = false;
-                    break;
+                // Revisar consecutivos
+                for (let i = 0; i < lawyerSlots.length; i++) {
+                    let isValid = true;
+
+                    for (let j = 0; j < requiredSlots; j++) {
+                        const nextSlotTime = new Date(
+                            new Date(`${selectedDay}T${lawyerSlots[i].start_time}`).getTime() + j * 15 * 60000
+                        )
+                            .toISOString()
+                            .split("T")[1]
+                            .substring(0, 5);
+
+                        if (
+                            !lawyerSlots.some(
+                                (slot) => slot.start_time === nextSlotTime
+                            )
+                        ) {
+                            isValid = false;
+                            break;
+                        }
+                    }
+
+                    if (isValid) {
+                        return duration; // Retorna la primera duración válida encontrada
+                    }
                 }
-            }
-
-            if (isValid) {
-                maxDuration = duration;
-                break;
             }
         }
 
-        return maxDuration;
+        return 15; // Si ningún abogado tiene suficientes slots, retorna 15 minutos
     };
+
+
 
     // Seleccionar slot
     const handleSlotSelection = (slot) => {
