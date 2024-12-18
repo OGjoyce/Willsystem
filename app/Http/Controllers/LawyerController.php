@@ -43,7 +43,7 @@ public function createReservation(Request $request)
         'law_firm_id' => 'required|exists:law_firms,id',
         'date' => 'required|date',
         'start_time' => 'required|date_format:H:i',
-        'duration' => 'required|integer|min:1',
+        'duration' => 'required|integer|min:15|max:60', // Múltiplo de 15 minutos
         'client_name' => 'required|string',
         'client_email' => 'required|email',
         'title' => 'required|string|max:255',
@@ -63,13 +63,20 @@ public function createReservation(Request $request)
         })->get();
 
     foreach ($lawyers as $lawyer) {
+        // Verificar si hay solapamientos con otras reservas
         $isAvailable = !$lawyer->reservations()->whereDate('start_date', $request->date)
             ->where(function ($query) use ($requestedStartTime, $requestedEndTime) {
-                $query->whereBetween('start_date', [date('Y-m-d H:i:s', $requestedStartTime), date('Y-m-d H:i:s', $requestedEndTime)])
-                      ->orWhereBetween('end_date', [date('Y-m-d H:i:s', $requestedStartTime), date('Y-m-d H:i:s', $requestedEndTime)]);
+                $query->whereBetween('start_date', [
+                    date('Y-m-d H:i:s', $requestedStartTime),
+                    date('Y-m-d H:i:s', $requestedEndTime)
+                ])->orWhereBetween('end_date', [
+                    date('Y-m-d H:i:s', $requestedStartTime),
+                    date('Y-m-d H:i:s', $requestedEndTime)
+                ]);
             })->exists();
 
         if ($isAvailable) {
+            // Crear la reserva
             $reservation = Reservation::create([
                 'lawyer_id' => $lawyer->id,
                 'lawyer_email' => $lawyer->email,
@@ -93,6 +100,7 @@ public function createReservation(Request $request)
 
     return response()->json(['message' => 'No lawyers available for the requested time'], 400);
 }
+
 
 
 
@@ -121,32 +129,34 @@ public function getAvailableSlots(Request $request)
             $startTime = strtotime($request->date . ' ' . $slot->start_time);
             $endTime = strtotime($request->date . ' ' . $slot->end_time);
 
-            while ($startTime < $endTime) {
-                $isReserved = false;
-                $slotEndTime = $startTime + 3600; // 1 hora de duración
+           while ($startTime < $endTime) {
+    $isReserved = false;
+    $slotEndTime = $startTime + 900; // Bloques de 15 minutos
 
-                foreach ($lawyer->reservations as $reservation) {
-                    $reservationStart = strtotime($reservation->start_date);
-                    $reservationEnd = strtotime($reservation->end_date);
+    // Verificar si el bloque está reservado
+    foreach ($lawyer->reservations as $reservation) {
+        $reservationStart = strtotime($reservation->start_date);
+        $reservationEnd = strtotime($reservation->end_date);
 
-                    if (($startTime >= $reservationStart && $startTime < $reservationEnd) ||
-                        ($slotEndTime > $reservationStart && $slotEndTime <= $reservationEnd)) {
-                        $isReserved = true;
-                        break;
-                    }
-                }
+        if (($startTime >= $reservationStart && $startTime < $reservationEnd) ||
+            ($slotEndTime > $reservationStart && $slotEndTime <= $reservationEnd)) {
+            $isReserved = true;
+            break;
+        }
+    }
 
-                if (!$isReserved) {
-                    $availableSlots[] = [
-                        'lawyer_id' => $lawyer->id,
-                        'lawyer_name' => $lawyer->name,
-                        'start_time' => date('H:i', $startTime),
-                        'end_time' => date('H:i', $slotEndTime)
-                    ];
-                }
+    if (!$isReserved) {
+        $availableSlots[] = [
+            'lawyer_id' => $lawyer->id,
+            'lawyer_name' => $lawyer->name,
+            'start_time' => date('H:i', $startTime),
+            'end_time' => date('H:i', $slotEndTime)
+        ];
+    }
 
-                $startTime += 3600; // Incrementar en 1 hora
-            }
+    $startTime += 900; // Incrementar en 15 minutos
+}
+
         }
     }
 
