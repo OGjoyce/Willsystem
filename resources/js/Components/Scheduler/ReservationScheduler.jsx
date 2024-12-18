@@ -82,62 +82,47 @@ const ReservationScheduler = () => {
 
 
 
-    // Verificar solapamientos y duración
     const findMaxAvailableDuration = (selectedSlot) => {
-        const durations = [60, 45, 30, 15];
+        const slotTimeInMinutes = 15; // Duración de cada slot
+        const maxDuration = 60; // Máximo tiempo consecutivo
+        let accumulatedMinutes = 0;
 
-        // Filtrar slots disponibles para el mismo día
-        const slotsByLawyer = availableSlots.reduce((acc, slot) => {
-            if (!acc[slot.lawyer_id]) acc[slot.lawyer_id] = [];
-            acc[slot.lawyer_id].push(slot);
-            return acc;
-        }, {});
+        // Filtrar y ordenar los slots del mismo abogado
+        const lawyerSlots = availableSlots
+            .filter(slot => slot.lawyer_id === selectedSlot.lawyer_id)
+            .sort((a, b) => a.start_time.localeCompare(b.start_time));
 
-        for (const duration of durations) {
-            const requiredSlots = duration / 15;
+        // Convertir a un Set para acceso rápido
+        const availableStartTimes = new Set(lawyerSlots.map(slot => slot.start_time));
 
-            // Revisar cada abogado
-            for (const lawyerId in slotsByLawyer) {
-                const lawyerSlots = slotsByLawyer[lawyerId];
+        // Tiempo inicial seleccionado
+        let currentTime = selectedSlot.start_time;
 
-                // Ordenar los slots por hora de inicio
-                lawyerSlots.sort((a, b) => a.start_time.localeCompare(b.start_time));
-
-                // Revisar consecutivos
-                for (let i = 0; i < lawyerSlots.length; i++) {
-                    let isValid = true;
-
-                    for (let j = 0; j < requiredSlots; j++) {
-                        const nextSlotTime = new Date(
-                            new Date(`${selectedDay}T${lawyerSlots[i].start_time}`).getTime() + j * 15 * 60000
-                        )
-                            .toISOString()
-                            .split("T")[1]
-                            .substring(0, 5);
-
-                        if (
-                            !lawyerSlots.some(
-                                (slot) => slot.start_time === nextSlotTime
-                            )
-                        ) {
-                            isValid = false;
-                            break;
-                        }
-                    }
-
-                    if (isValid) {
-                        return duration; // Retorna la primera duración válida encontrada
-                    }
-                }
+        while (accumulatedMinutes < maxDuration) {
+            // Verificar si el tiempo actual está disponible
+            if (availableStartTimes.has(currentTime)) {
+                accumulatedMinutes += slotTimeInMinutes;
+            } else {
+                break; // Si no está disponible, detener el bucle
             }
+
+            // Calcular el siguiente tiempo esperado
+            const [hours, minutes] = currentTime.split(":").map(Number);
+            const nextTime = new Date();
+            nextTime.setHours(hours);
+            nextTime.setMinutes(minutes + slotTimeInMinutes);
+
+            currentTime = nextTime.toTimeString().substring(0, 5); // Actualizar al siguiente tiempo
         }
 
-        return 15; // Si ningún abogado tiene suficientes slots, retorna 15 minutos
+        return accumulatedMinutes;
     };
 
 
 
-    // Seleccionar slot
+
+
+
     const handleSlotSelection = (slot) => {
         const maxDuration = findMaxAvailableDuration(slot);
         if (maxDuration < selectedDuration) {
@@ -148,6 +133,27 @@ const ReservationScheduler = () => {
         }
         setSelectedSlot(slot);
     };
+
+
+
+    // useEffect para validar duración y slot seleccionados
+    useEffect(() => {
+        console.log("slot: ", selectedSlot)
+        console.log("duration: ", selectedDuration)
+        if (selectedSlot && selectedDuration) {
+            const maxDuration = findMaxAvailableDuration(selectedSlot);
+            console.log("maxDuration", maxDuration)
+            if (maxDuration === 0) {
+                setWarning("Selected slot does not have enough availability.");
+                setSelectedDuration(15);
+            } else if (maxDuration < selectedDuration) {
+                setWarning(`Adjusted duration to ${maxDuration} minutes due to limited availability.`);
+                setSelectedDuration(maxDuration);
+            } else {
+                setWarning("");
+            }
+        }
+    }, [selectedSlot, selectedDuration]);
 
     // Crear reserva
     const confirmReservation = async () => {
