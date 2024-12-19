@@ -9,8 +9,30 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\StripeController;
 use Illuminate\Support\Facades\Crypt;
+use App\Http\Controllers\LawyerController;
+use App\Http\Controllers\BusinessAvailabilityController;
 use Carbon\Carbon;
 
+//Scheduler routes
+// Scheduler routes
+
+// Crear firma legal
+Route::post('/law-firms', [LawyerController::class, 'createLawFirm']);
+
+// Crear abogado
+Route::post('/lawyers', [LawyerController::class, 'createLawyer']);
+
+// Configurar disponibilidad
+Route::post('/lawyers/{id}/availability', [LawyerController::class, 'setAvailability']);
+
+// Crear reserva
+Route::post('/reservations', [LawyerController::class, 'createReservation']);
+
+// Obtener horarios disponibles
+Route::get('/law-firms/available-slots', [LawyerController::class, 'getAvailableSlots']);
+
+// Obtener reservas existentes
+Route::get('/law-firms/reservations', [LawyerController::class, 'getReservations']);
 
 //Ruta de pago Stripe
 Route::post('/payment-intent', [StripeController::class, 'createPaymentIntent']);
