@@ -55,27 +55,24 @@ public function createReservation(Request $request)
         $requestedStartTime = strtotime($request->date . ' ' . $request->start_time);
         $requestedEndTime = $requestedStartTime + ($request->duration * 60);
 
-        // Buscar abogados disponibles
         $lawyers = Lawyer::where('law_firm_id', $request->law_firm_id)
-            ->whereHas('availabilitySlots', function ($query) use ($request, $requestedEndTime) {
+            ->whereHas('availabilitySlots', function ($query) use ($request, $requestedStartTime, $requestedEndTime) {
                 $query->where('day_of_week', date('l', strtotime($request->date)))
-                    ->where('start_time', '<=', $request->start_time)
-                    ->where('end_time', '>=', date('H:i', $requestedEndTime));
+                    ->whereRaw("
+                        TIME_TO_SEC(end_time) - TIME_TO_SEC(start_time) >= ?
+                    ", [$request->duration * 60]);
             })->get();
 
         foreach ($lawyers as $lawyer) {
-            $isAvailable = !$lawyer->reservations()->whereDate('start_date', $request->date)
-                ->where(function ($query) use ($requestedStartTime, $requestedEndTime) {
-                    $query->whereBetween('start_date', [
-                        date('Y-m-d H:i:s', $requestedStartTime),
-                        date('Y-m-d H:i:s', $requestedEndTime)
-                    ])->orWhereBetween('end_date', [
-                        date('Y-m-d H:i:s', $requestedStartTime),
-                        date('Y-m-d H:i:s', $requestedEndTime)
-                    ]);
-                })->exists();
+            // Combinar slots consecutivos
+            $availableSlots = $lawyer->availabilitySlots->filter(function ($slot) use ($request, $requestedStartTime, $requestedEndTime) {
+                $slotStart = strtotime($request->date . ' ' . $slot->start_time);
+                $slotEnd = strtotime($request->date . ' ' . $slot->end_time);
 
-            if ($isAvailable) {
+                return $slotStart <= $requestedStartTime && $slotEnd >= $requestedEndTime;
+            });
+
+            if ($availableSlots->isNotEmpty()) {
                 $reservation = Reservation::create([
                     'lawyer_id' => $lawyer->id,
                     'lawyer_email' => $lawyer->email,
@@ -99,16 +96,15 @@ public function createReservation(Request $request)
 
         return response()->json(['message' => 'No lawyers available for the requested time'], 400);
     } catch (\Exception $e) {
-        // Loguear el error
         \Log::error($e);
 
-        // Devolver una respuesta JSON con el error
         return response()->json([
             'message' => 'An error occurred',
             'error' => $e->getMessage()
         ], 500);
     }
 }
+
 
 
 
