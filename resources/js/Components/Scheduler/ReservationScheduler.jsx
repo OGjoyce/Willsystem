@@ -173,7 +173,13 @@ const ReservationScheduler = () => {
         }
     };
 
-    const currentMonth = weeks[currentWeekIndex]?.[0]?.monthLabel || "";
+    const currentMonth = () => {
+        const daysInView = weeks[currentWeekIndex] || [];
+        const uniqueMonths = [...new Set(daysInView.map(day => day.monthLabel))];
+        return uniqueMonths.length > 1
+            ? `${uniqueMonths[0]} / ${uniqueMonths[1]}`
+            : uniqueMonths[0];
+    };
 
     return (
         <div className="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md">
@@ -210,7 +216,8 @@ const ReservationScheduler = () => {
                 >
                     <i className="bi bi-chevron-left"></i>
                 </button>
-                <span className="font-bold">{currentMonth}</span>
+                <span className="font-bold">{currentMonth()}</span>
+
                 <button
                     disabled={currentWeekIndex === weeks.length - 1}
                     onClick={() => setCurrentWeekIndex((prev) => prev + 1)}
