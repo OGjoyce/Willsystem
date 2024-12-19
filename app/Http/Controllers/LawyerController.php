@@ -39,65 +39,104 @@ class LawyerController extends Controller
 
 public function createReservation(Request $request)
 {
-    $request->validate([
-        'law_firm_id' => 'required|exists:law_firms,id',
-        'date' => 'required|date',
-        'start_time' => 'required|date_format:H:i',
-        'duration' => 'required|integer|min:15|max:60',
-        'client_name' => 'required|string',
-        'client_email' => 'required|email',
-        'title' => 'required|string|max:255',
-        'description' => 'nullable|string',
-        'link' => 'nullable|url',
-    ]);
+    try {
+        $request->validate([
+            'law_firm_id' => 'required|exists:law_firms,id',
+            'date' => 'required|date',
+            'start_time' => 'required|date_format:H:i',
+            'duration' => 'required|integer|min:15|max:60',
+            'client_name' => 'required|string',
+            'client_email' => 'required|email',
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'link' => 'nullable|url',
+        ]);
 
-    $requestedStartTime = strtotime($request->date . ' ' . $request->start_time);
-    $requestedEndTime = $requestedStartTime + ($request->duration * 60);
+        $requestedStartTime = strtotime($request->date . ' ' . $request->start_time);
+        $requestedEndTime = $requestedStartTime + ($request->duration * 60);
 
-    $lawyers = Lawyer::where('law_firm_id', $request->law_firm_id)
-        ->whereHas('availabilitySlots', function ($query) use ($request, $requestedStartTime, $requestedEndTime) {
-            $query->where('day_of_week', date('l', strtotime($request->date)))
-                ->whereRaw("
-                    TIME_TO_SEC(end_time) - TIME_TO_SEC(start_time) >= ?
-                ", [$request->duration * 60]);
-        })->get();
+        // Obtener abogados con slots disponibles
+        $lawyers = Lawyer::where('law_firm_id', $request->law_firm_id)
+            ->with(['availabilitySlots' => function ($query) use ($request) {
+                $query->where('day_of_week', date('l', strtotime($request->date)));
+            }, 'reservations' => function ($query) use ($request) {
+                $query->whereDate('start_date', $request->date);
+            }])->get();
 
-    foreach ($lawyers as $lawyer) {
-        $hasConflict = $lawyer->reservations()->whereDate('start_date', $request->date)
-            ->where(function ($query) use ($requestedStartTime, $requestedEndTime) {
-                $query->whereBetween('start_date', [
-                    date('Y-m-d H:i:s', $requestedStartTime),
-                    date('Y-m-d H:i:s', $requestedEndTime)
-                ])->orWhereBetween('end_date', [
-                    date('Y-m-d H:i:s', $requestedStartTime),
-                    date('Y-m-d H:i:s', $requestedEndTime)
+        foreach ($lawyers as $lawyer) {
+            $slots = $lawyer->availabilitySlots->filter(function ($slot) use ($request) {
+                return $slot->day_of_week === date('l', strtotime($request->date));
+            })->sortBy('start_time');
+
+            $isAvailable = $this->checkConsecutiveSlots($slots, $lawyer->reservations, $requestedStartTime, $requestedEndTime, $request->date);
+
+            if ($isAvailable) {
+                $reservation = Reservation::create([
+                    'lawyer_id' => $lawyer->id,
+                    'lawyer_email' => $lawyer->email,
+                    'client_name' => $request->client_name,
+                    'client_email' => $request->client_email,
+                    'title' => $request->title,
+                    'description' => $request->description,
+                    'start_date' => date('Y-m-d H:i:s', $requestedStartTime),
+                    'end_date' => date('Y-m-d H:i:s', $requestedEndTime),
+                    'duration' => $request->duration,
+                    'link' => $request->link,
+                    'object_status_id' => 1,
                 ]);
-            })->exists();
 
-        if (!$hasConflict) {
-            $reservation = Reservation::create([
-                'lawyer_id' => $lawyer->id,
-                'lawyer_email' => $lawyer->email,
-                'client_name' => $request->client_name,
-                'client_email' => $request->client_email,
-                'title' => $request->title,
-                'description' => $request->description,
-                'start_date' => date('Y-m-d H:i:s', $requestedStartTime),
-                'end_date' => date('Y-m-d H:i:s', $requestedEndTime),
-                'duration' => $request->duration,
-                'link' => $request->link,
-                'object_status_id' => 1,
-            ]);
-
-            return response()->json([
-                'message' => 'Reservation created successfully',
-                'reservation' => $reservation
-            ], 201);
+                return response()->json([
+                    'message' => 'Reservation created successfully',
+                    'reservation' => $reservation
+                ], 201);
+            }
         }
+
+        return response()->json(['message' => 'No lawyers available for the requested time'], 400);
+    } catch (\Exception $e) {
+        \Log::error($e);
+
+        return response()->json([
+            'message' => 'An error occurred',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
+private function checkConsecutiveSlots($slots, $reservations, $requestedStartTime, $requestedEndTime, $date)
+{
+    $currentStartTime = $requestedStartTime;
+
+    while ($currentStartTime < $requestedEndTime) {
+        $currentEndTime = $currentStartTime + 900; // Incremento de 15 minutos
+
+        $isSlotAvailable = $slots->contains(function ($slot) use ($currentStartTime, $currentEndTime, $date) {
+            $slotStart = strtotime($date . ' ' . $slot->start_time);
+            $slotEnd = strtotime($date . ' ' . $slot->end_time);
+            return $slotStart <= $currentStartTime && $slotEnd >= $currentEndTime;
+        });
+
+        if (!$isSlotAvailable) {
+            return false;
+        }
+
+        $isSlotReserved = $reservations->contains(function ($reservation) use ($currentStartTime, $currentEndTime) {
+            $reservationStart = strtotime($reservation->start_date);
+            $reservationEnd = strtotime($reservation->end_date);
+            return ($currentStartTime >= $reservationStart && $currentStartTime < $reservationEnd) ||
+                   ($currentEndTime > $reservationStart && $currentEndTime <= $reservationEnd);
+        });
+
+        if ($isSlotReserved) {
+            return false;
+        }
+
+        $currentStartTime += 900; // Incrementar 15 minutos
     }
 
-    return response()->json(['message' => 'No lawyers available for the requested time'], 400);
+    return true;
 }
+
 
 
 
