@@ -10,11 +10,9 @@ const AvailabilitySchedulerGrid = () => {
     const [draggedCells, setDraggedCells] = useState([]);
     const [warning, setWarning] = useState("");
 
-    // Days of the week
     const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
     useEffect(() => {
-        // Fetch the list of lawyers
         const fetchLawyers = async () => {
             try {
                 const response = await axios.get("/api/lawyers");
@@ -23,16 +21,19 @@ const AvailabilitySchedulerGrid = () => {
                 console.error("Error fetching lawyers:", error);
             }
         };
-        fetchLawyers();
 
-        // Initialize the grid
-        const timeSlots = [];
-        for (let hour = 0; hour < 24; hour++) {
-            for (let minute = 0; minute < 60; minute += 30) {
-                timeSlots.push(`${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`);
+        const initializeGrid = () => {
+            const timeSlots = [];
+            for (let hour = 6; hour < 24; hour++) {
+                for (let minute = 0; minute < 60; minute += 30) {
+                    timeSlots.push(`${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`);
+                }
             }
-        }
-        setGrid(timeSlots);
+            setGrid(timeSlots);
+        };
+
+        fetchLawyers();
+        initializeGrid();
     }, []);
 
     const toggleSlot = (day, time) => {
@@ -200,18 +201,16 @@ const AvailabilitySchedulerGrid = () => {
                         {grid.map((time) => (
                             <tr key={time}>
                                 <td
-                                    className={`px-2  text-left h-12 ${time.includes("30") ? "border-b border-gray-300" : ""
-                                        }`}
+                                    className={`px-2 text-left h-8 ${time.includes("30") ? "border-b border-gray-300" : ""}`}
                                 >
                                     {!time.includes("30") ? time : ""}
                                 </td>
                                 {daysOfWeek.map((day) => (
                                     <td
                                         key={day}
-                                        className={`border border-gray-200 px-4 py-2 text-center cursor-pointer ${availability.find((d) => d.day_of_week === day)?.slots.some((slot) => slot.start_time === time)
+                                        className={`border border-gray-200 px-2 py-1 text-center cursor-pointer ${availability.find((d) => d.day_of_week === day)?.slots.some((slot) => slot.start_time === time)
                                             ? "bg-sky-700 text-white"
-                                            : "hover:bg-sky-100"
-                                            }`}
+                                            : "hover:bg-sky-100"}`}
                                         onMouseDown={() => handleMouseDown(day, time)}
                                         onMouseEnter={() => handleMouseEnter(day, time)}
                                     >
@@ -228,8 +227,7 @@ const AvailabilitySchedulerGrid = () => {
                 <button
                     className={`px-6 py-2 text-white font-medium rounded-md ${selectedLawyer
                         ? "bg-sky-600 hover:bg-sky-700"
-                        : "bg-gray-400 cursor-not-allowed"
-                        }`}
+                        : "bg-gray-400 cursor-not-allowed"}`}
                     onClick={handleSubmit}
                     disabled={!selectedLawyer}
                 >
