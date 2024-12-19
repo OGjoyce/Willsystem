@@ -84,35 +84,29 @@ const ReservationScheduler = () => {
 
     const findMaxAvailableDuration = (selectedSlot) => {
         const slotTimeInMinutes = 15; // Duración de cada slot
-        const maxDuration = 60; // Máximo tiempo consecutivo
+        const maxDuration = 60; // Duración máxima permitida
         let accumulatedMinutes = 0;
 
-        // Filtrar y ordenar los slots del mismo abogado
-        const lawyerSlots = availableSlots
-            .filter(slot => slot.lawyer_id === selectedSlot.lawyer_id)
+        // Filtrar slots por hora inicial y ordenar todos los abogados
+        const allSlots = availableSlots
+            .filter(slot => slot.start_time >= selectedSlot.start_time)
             .sort((a, b) => a.start_time.localeCompare(b.start_time));
 
-        // Convertir a un Set para acceso rápido
-        const availableStartTimes = new Set(lawyerSlots.map(slot => slot.start_time));
-
-        // Tiempo inicial seleccionado
+        const availableStartTimes = new Set(allSlots.map(slot => slot.start_time));
         let currentTime = selectedSlot.start_time;
 
         while (accumulatedMinutes < maxDuration) {
-            // Verificar si el tiempo actual está disponible
             if (availableStartTimes.has(currentTime)) {
                 accumulatedMinutes += slotTimeInMinutes;
             } else {
-                break; // Si no está disponible, detener el bucle
+                break; // Detiene si no hay un slot consecutivo
             }
 
-            // Calcular el siguiente tiempo esperado
             const [hours, minutes] = currentTime.split(":").map(Number);
             const nextTime = new Date();
             nextTime.setHours(hours);
             nextTime.setMinutes(minutes + slotTimeInMinutes);
-
-            currentTime = nextTime.toTimeString().substring(0, 5); // Actualizar al siguiente tiempo
+            currentTime = nextTime.toTimeString().substring(0, 5);
         }
 
         return accumulatedMinutes;
@@ -126,7 +120,7 @@ const ReservationScheduler = () => {
     const handleSlotSelection = (slot) => {
         const maxDuration = findMaxAvailableDuration(slot);
         if (maxDuration < selectedDuration) {
-            setWarning(`Adjusted duration to ${maxDuration} minutes due to a conflict.`);
+            setWarning(`Duration adjusted to ${maxDuration} min. Choose another time for full availability`);
             setSelectedDuration(maxDuration);
         } else {
             setWarning("");
@@ -136,47 +130,46 @@ const ReservationScheduler = () => {
 
 
 
-    // useEffect para validar duración y slot seleccionados
-    useEffect(() => {
-        console.log("slot: ", selectedSlot)
-        console.log("duration: ", selectedDuration)
-        if (selectedSlot && selectedDuration) {
-            const maxDuration = findMaxAvailableDuration(selectedSlot);
-            console.log("maxDuration", maxDuration)
-            if (maxDuration === 0) {
-                setWarning("Selected slot does not have enough availability.");
-                setSelectedDuration(15);
-            } else if (maxDuration < selectedDuration) {
-                setWarning(`Adjusted duration to ${maxDuration} minutes due to limited availability.`);
-                setSelectedDuration(maxDuration);
-            } else {
-                setWarning("");
-            }
-        }
-    }, [selectedSlot, selectedDuration]);
+
 
     // Crear reserva
     const confirmReservation = async () => {
-        if (!selectedSlot) return;
+        if (!selectedSlot) {
+            alert("Please select a time slot before confirming.");
+            return;
+        }
 
         const payload = {
             law_firm_id: 1,
-            date: selectedDay,
-            start_time: selectedSlot.start_time,
-            duration: selectedDuration,
+            date: selectedDay, // Asegúrate de que selectedDay tiene el formato 'YYYY-MM-DD'
+            start_time: selectedSlot.start_time, // Asegúrate de que tiene el formato 'HH:mm'
+            duration: selectedDuration, // Ejemplo: 60
             client_name: "Carlos Ramos",
             client_email: "carlos.ramos@example.com",
-            title: "Legal Consultation",
-            description: "Revisión de contrato",
+            title: "Consulta Legal", // Ajusta si es necesario
+            description: "Revisión de contrato", // Ajusta si es necesario
             link: `https://meet.example.com/carlos-ramos`,
         };
 
         try {
-            await axios.post("http://127.0.0.1:8000/api/reservations", payload);
+            const response = await axios.post(
+                "http://127.0.0.1:8000/api/reservations",
+                payload,
+                {
+                    headers: {
+                        "Content-Type": "application/json", // Asegura el formato correcto
+                    },
+                }
+            );
             alert("Reservation created successfully!");
+            console.log("Response:", response.data);
         } catch (error) {
-            console.error("Error creating reservation:", error);
-            alert("Failed to create reservation. Please try again.");
+            console.error("Error creating reservation:", error.response?.data || error.message);
+            if (error.response?.status === 400) {
+                alert("Failed to create reservation: Invalid request. Please review the input.");
+            } else {
+                alert("Failed to create reservation. Please try again.");
+            }
         }
     };
 
