@@ -48,7 +48,7 @@ const ReservationScheduler = () => {
         setLoadingSlots(true);
 
         try {
-            const response = await axios.get(`http://127.0.0.1:8000/api/law-firms/available-slots`, {
+            const response = await axios.get(`/api/law-firms/available-slots`, {
                 params: { law_firm_id: 1, date: date },
             });
 
@@ -159,7 +159,7 @@ const ReservationScheduler = () => {
 
         try {
             const response = await axios.post(
-                "http://127.0.0.1:8000/api/reservations",
+                "/api/reservations",
                 payload,
                 {
                     headers: {
