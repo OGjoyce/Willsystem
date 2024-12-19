@@ -5,7 +5,8 @@ const ReservationScheduler = () => {
     const [currentWeekIndex, setCurrentWeekIndex] = useState(0);
     const [weeks, setWeeks] = useState([]);
     const [selectedDay, setSelectedDay] = useState(null);
-    const [selectedDuration, setSelectedDuration] = useState(60);
+    const [selectedDuration, setSelectedDuration] = useState(15);
+    const [disabledDurations, setDisabledDurations] = useState([]);
     const [availableSlots, setAvailableSlots] = useState([]);
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [loadingSlots, setLoadingSlots] = useState(false);
@@ -119,6 +120,11 @@ const ReservationScheduler = () => {
 
     const handleSlotSelection = (slot) => {
         const maxDuration = findMaxAvailableDuration(slot);
+        const allowedDurations = [15, 30, 45, 60].filter(duration => duration <= maxDuration);
+
+        // Bloquea duraciones que exceden la disponibilidad
+        setDisabledDurations([15, 30, 45, 60].filter(duration => !allowedDurations.includes(duration)));
+
         if (maxDuration < selectedDuration) {
             setWarning(`Duration adjusted to ${maxDuration} min. Choose another time for full availability`);
             setSelectedDuration(maxDuration);
@@ -126,8 +132,8 @@ const ReservationScheduler = () => {
             setWarning("");
         }
         setSelectedSlot(slot);
+        console.log(slot)
     };
-
 
 
 
@@ -195,9 +201,12 @@ const ReservationScheduler = () => {
                         key={duration}
                         className={`px-4 py-2 rounded-md ${selectedDuration === duration
                             ? "bg-gray-800 text-white"
-                            : "bg-gray-200"
+                            : disabledDurations.includes(duration)
+                                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                : "bg-gray-200 hover:bg-gray-300"
                             }`}
                         onClick={() => setSelectedDuration(duration)}
+                        disabled={disabledDurations.includes(duration)}
                     >
                         {duration} min
                     </button>
