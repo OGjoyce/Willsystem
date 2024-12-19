@@ -187,6 +187,9 @@ const ReservationScheduler = () => {
             : uniqueMonths[0];
     };
 
+    useEffect(() => {
+        setDisabledDurations([])
+    }, [selectedDay])
     return (
         <div className="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md">
             <div className="text-center mb-4">
