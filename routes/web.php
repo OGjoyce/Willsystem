@@ -67,6 +67,10 @@ Route::get('/scheduler', function () {
     return Inertia::render('Admin/Scheduler');
 })->name("scheduler");
 
+Route::get('/lawyers-management', function () {
+    return Inertia::render('Admin/LawyersManagement');
+})->name("lawyers-management");
+
 
 Route::get('/documents-approval', [DocumentsApprovalController::class, 'show'])->name('documents-approval');
 
