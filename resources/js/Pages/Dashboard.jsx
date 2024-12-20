@@ -237,7 +237,7 @@ export default function Dashboard({ auth }) {
                                         <IconWrapper>
                                             <i class="bi bi-bank"></i>
                                         </IconWrapper>
-                                        <CardTitle>Lawyers & Lawfirm</CardTitle>
+                                        <CardTitle>Lawyers Management</CardTitle>
                                         <CardText>Organize schedules and manage lawyers seamlessly</CardText>
                                         <Button onClick={(e) => handleLinkClick(e, route('lawyers-management'), 'lawyers-management')} variant="outline-dark">Go now</Button>
                                     </CardBody>
