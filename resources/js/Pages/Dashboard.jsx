@@ -223,10 +223,10 @@ export default function Dashboard({ auth }) {
                                 <CustomCard>
                                     <CardBody>
                                         <IconWrapper>
-                                            <i className="bi bi-file-earmark-text"></i>
+                                            <i class="bi bi-graph-up"></i>
                                         </IconWrapper>
                                         <CardTitle>Statistics</CardTitle>
-                                        <CardText>Dashboard</CardText>
+                                        <CardText>View key metrics and analytics in the dashboard</CardText>
                                         <Button onClick={(e) => handleLinkClick(e, route('statitics'), 'statitics')} variant="outline-dark">See</Button>
                                     </CardBody>
                                 </CustomCard>
@@ -235,10 +235,11 @@ export default function Dashboard({ auth }) {
                                 <CustomCard>
                                     <CardBody>
                                         <IconWrapper>
-                                            <i className="bi bi-calendar3"></i>
+                                            <i class="bi bi-bank"></i>
                                         </IconWrapper>
-
-                                        <Button onClick={(e) => handleLinkClick(e, route('scheduler'), 'scheduler')} variant="outline-dark">Scheduler</Button>
+                                        <CardTitle>Lawyers & Lawfirm</CardTitle>
+                                        <CardText>Organize schedules and manage lawyers seamlessly</CardText>
+                                        <Button onClick={(e) => handleLinkClick(e, route('lawyers-management'), 'lawyers-management')} variant="outline-dark">Go now</Button>
                                     </CardBody>
                                 </CustomCard>
                             </Col>
