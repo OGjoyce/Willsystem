@@ -95,17 +95,52 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
         }
 
         const formattedAvailability = availability.map((day) => {
-            const sortedSlots = day.slots.sort((a, b) => a.start_time.localeCompare(b.start_time));
+            // Ordena los bloques por tiempo de inicio
+            const sortedSlots = day.slots
+                .map((slot) => {
+                    const startTime = slot.start_time;
+                    const [hours, minutes] = startTime.split(":").map(Number);
+                    const endTime = new Date(0, 0, 0, hours, minutes + 30) // Media hora después
+                        .toTimeString()
+                        .slice(0, 5); // Formato HH:mm
+                    return {
+                        start_time: startTime,
+                        end_time: endTime,
+                    };
+                })
+                .sort((a, b) => a.start_time.localeCompare(b.start_time)); // Asegura orden por start_time
+
+            // Realiza el merge de slots consecutivos
+            const mergedSlots = sortedSlots.reduce((acc, curr) => {
+                if (acc.length === 0) {
+                    // Si no hay grupos, agrega el primer bloque
+                    acc.push(curr);
+                } else {
+                    const lastSlot = acc[acc.length - 1];
+                    // Verifica si es consecutivo
+                    if (lastSlot.end_time === curr.start_time) {
+                        // Extiende el último slot
+                        lastSlot.end_time = curr.end_time;
+                    } else {
+                        // Crea un nuevo slot
+                        acc.push(curr);
+                    }
+                }
+                return acc;
+            }, []);
+
             return {
                 day_of_week: day.day_of_week,
-                slots: sortedSlots,
+                slots: mergedSlots,
             };
-
         });
 
-        console.log(formattedAvailability)
-        alert("Availability updated successfully!");
+        console.log(JSON.stringify({ availability: formattedAvailability }, null, 2));
+        alert("Availability merged and updated successfully!");
     };
+
+
+
 
     return (
         <div
