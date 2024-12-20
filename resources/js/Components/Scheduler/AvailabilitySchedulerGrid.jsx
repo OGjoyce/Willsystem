@@ -96,11 +96,11 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
             const dayIndex = updated.findIndex((d) => d.day_of_week === day);
 
             if (dayIndex === -1) {
-                updated.push({ day_of_week: day, slots: [{ start_time: time, end_time: time }] });
+                updated.push({ day_of_week: day, slots: [{ start_time: time, end_time: addThirtyMinutes(time) }] });
             } else {
                 const slotIndex = updated[dayIndex].slots.findIndex((slot) => slot.start_time === time);
                 if (slotIndex === -1) {
-                    updated[dayIndex].slots.push({ start_time: time, end_time: time });
+                    updated[dayIndex].slots.push({ start_time: time, end_time: addThirtyMinutes(time) });
                 } else {
                     updated[dayIndex].slots.splice(slotIndex, 1);
                     if (updated[dayIndex].slots.length === 0) {
@@ -108,9 +108,21 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
                     }
                 }
             }
+
             return updated;
         });
     };
+
+    const addThirtyMinutes = (time) => {
+        let [hour, minute] = time.split(":").map(Number);
+        minute += 30;
+        if (minute >= 60) {
+            minute -= 60;
+            hour += 1;
+        }
+        return `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+    };
+
 
     const handleMouseDown = (day, time) => {
         const isSelected = availability.find((d) => d.day_of_week === day)?.slots.some((slot) => slot.start_time === time);
@@ -177,6 +189,49 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
         console.log(JSON.stringify({ availability: formattedAvailability }, null, 2));
         alert("Availability merged and updated successfully!");
     };
+
+
+    const renderSlotText = (day, time) => {
+        const dayAvailability = availability.find((d) => d.day_of_week === day);
+        if (!dayAvailability) return "";
+
+        // Ordenar los slots por hora de inicio
+        const slots = dayAvailability.slots.sort((a, b) =>
+            a.start_time.localeCompare(b.start_time)
+        );
+
+        // Buscar el índice del bloque actual
+        const currentSlotIndex = slots.findIndex((slot) => slot.start_time === time);
+        if (currentSlotIndex === -1) return ""; // No hay un slot seleccionado en este bloque
+
+        // Definir el inicio y el final del rango consecutivo
+        let rangeStart = slots[currentSlotIndex].start_time;
+        let rangeEnd = slots[currentSlotIndex].end_time;
+
+        // Buscar hacia adelante para determinar el rango consecutivo
+        for (let i = currentSlotIndex + 1; i < slots.length; i++) {
+            if (slots[i].start_time === rangeEnd) {
+                rangeEnd = slots[i].end_time;
+            } else {
+                break; // No es consecutivo, termina
+            }
+        }
+
+        // Verificar si es el inicio de un rango
+        const isFirstInRange =
+            currentSlotIndex === 0 || slots[currentSlotIndex - 1].end_time !== rangeStart;
+
+        if (isFirstInRange) {
+            return `${rangeStart} - ${rangeEnd}`;
+        }
+
+        return ""; // Si no es el primer bloque del rango, no mostrar texto
+    };
+
+
+
+
+
 
     return (
         <div
@@ -245,10 +300,12 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
                                     const isDragged = draggedCells.some((cell) => cell.day === day && cell.time === time);
                                     const isRemoving = removingCells.some((cell) => cell.day === day && cell.time === time);
 
+                                    const slotText = renderSlotText(day, time);
+
                                     return (
                                         <td
                                             key={day}
-                                            className={` text-center cursor-pointer ${isRemoving
+                                            className={`text-center cursor-pointer ${isRemoving
                                                 ? "bg-red-500 text-white"
                                                 : isSelected
                                                     ? "border-l bg-sky-700 text-white"
@@ -259,10 +316,16 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
                                             onMouseDown={() => handleMouseDown(day, time)}
                                             onMouseEnter={() => handleMouseEnter(day, time)}
                                         >
-                                            {isSelected ? "" : ""}
+                                            {slotText}
                                         </td>
                                     );
                                 })}
+
+
+
+
+
+
                             </tr>
                         ))}
                     </tbody>
