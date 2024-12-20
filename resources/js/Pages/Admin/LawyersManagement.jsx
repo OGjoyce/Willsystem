@@ -106,7 +106,7 @@ const LawyersManagement = () => {
             cell: (row) => (
                 <div className="d-flex align-items-center gap-2">
                     <Button
-                        variant="info"
+                        variant="outline-info"
                         size="sm"
                         onClick={() => handleManageSchedule(row)}
                     >
@@ -114,7 +114,7 @@ const LawyersManagement = () => {
                         Manage Schedule
                     </Button>
                     <Button
-                        variant="warning"
+                        variant="outline-warning"
                         size="sm"
                         onClick={() => handleEditLawyer(row)}
                     >
@@ -122,7 +122,7 @@ const LawyersManagement = () => {
                         Edit
                     </Button>
                     <Button
-                        variant="danger"
+                        variant="outline-danger"
                         size="sm"
                         onClick={() => handleDeleteLawyer(row)}
                     >
