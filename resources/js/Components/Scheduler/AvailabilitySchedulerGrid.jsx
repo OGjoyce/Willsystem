@@ -6,7 +6,7 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
     const [grid, setGrid] = useState([]);
     const [dragging, setDragging] = useState(false);
     const [draggedCells, setDraggedCells] = useState([]);
-    const [removingCells, setRemovingCells] = useState([]); // Lista de celdas que se eliminarán
+    const [removingCells, setRemovingCells] = useState([]);
     const [warning, setWarning] = useState("");
 
     const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -29,6 +29,66 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
 
         initializeGrid();
     }, []);
+
+    const generateHalfHourSlots = (start, end, breakStart, breakEnd) => {
+        const slots = [];
+        let [startHour, startMinute] = start.split(":").map(Number);
+        const [endHour, endMinute] = end.split(":").map(Number);
+        const [breakStartHour, breakStartMinute] = breakStart.split(":").map(Number);
+        const [breakEndHour, breakEndMinute] = breakEnd.split(":").map(Number);
+
+        while (
+            startHour < endHour ||
+            (startHour === endHour && startMinute < endMinute)
+        ) {
+            const nextMinute = startMinute + 30;
+            const nextHour = startHour + Math.floor(nextMinute / 60);
+
+            const slotStart = `${startHour.toString().padStart(2, "0")}:${startMinute
+                .toString()
+                .padStart(2, "0")}`;
+            const slotEnd = `${(nextHour % 24).toString().padStart(2, "0")}:${(nextMinute % 60)
+                .toString()
+                .padStart(2, "0")}`;
+
+            // Excluir el horario de almuerzo
+            if (
+                !(startHour >= breakStartHour && startHour < breakEndHour) ||
+                (startHour === breakStartHour && startMinute < breakStartMinute)
+            ) {
+                slots.push({
+                    start_time: slotStart,
+                    end_time: slotEnd,
+                });
+            }
+
+            startMinute = nextMinute % 60;
+            startHour = nextHour % 24;
+        }
+
+        return slots;
+    };
+
+    const handleLoadDefaultSchedule = () => {
+        const workDays = ["Mon", "Tue", "Wed", "Thu", "Fri"]; // Días laborales por defecto
+        const includeSaturday = false; // Cambiar a true si se desea incluir el sábado
+
+        if (includeSaturday) {
+            workDays.push("Sat");
+        }
+
+        const defaultSlots = generateHalfHourSlots("08:00", "16:00", "12:00", "13:00");
+        const defaultSchedule = workDays.map((day) => ({
+            day_of_week: day,
+            slots: [...defaultSlots],
+        }));
+
+        setAvailability(defaultSchedule);
+    };
+
+
+
+
 
     const toggleSlot = (day, time) => {
         setAvailability((prev) => {
@@ -55,7 +115,7 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
     const handleMouseDown = (day, time) => {
         const isSelected = availability.find((d) => d.day_of_week === day)?.slots.some((slot) => slot.start_time === time);
         setDragging(true);
-        setRemovingCells(isSelected ? [{ day, time }] : []); // Marca la celda como eliminada si está seleccionada
+        setRemovingCells(isSelected ? [{ day, time }] : []);
         setDraggedCells([{ day, time }]);
     };
 
@@ -63,7 +123,6 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
         if (dragging) {
             const isSelected = availability.find((d) => d.day_of_week === day)?.slots.some((slot) => slot.start_time === time);
 
-            // Actualiza las celdas arrastradas
             setDraggedCells((prev) => {
                 if (!prev.some((cell) => cell.day === day && cell.time === time)) {
                     return [...prev, { day, time }];
@@ -71,7 +130,6 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
                 return prev;
             });
 
-            // Actualiza las celdas que se eliminarán
             setRemovingCells((prev) => {
                 if (isSelected && !prev.some((cell) => cell.day === day && cell.time === time)) {
                     return [...prev, { day, time }];
@@ -95,34 +153,15 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
         }
 
         const formattedAvailability = availability.map((day) => {
-            // Ordena los bloques por tiempo de inicio
-            const sortedSlots = day.slots
-                .map((slot) => {
-                    const startTime = slot.start_time;
-                    const [hours, minutes] = startTime.split(":").map(Number);
-                    const endTime = new Date(0, 0, 0, hours, minutes + 30) // Media hora después
-                        .toTimeString()
-                        .slice(0, 5); // Formato HH:mm
-                    return {
-                        start_time: startTime,
-                        end_time: endTime,
-                    };
-                })
-                .sort((a, b) => a.start_time.localeCompare(b.start_time)); // Asegura orden por start_time
-
-            // Realiza el merge de slots consecutivos
+            const sortedSlots = day.slots.sort((a, b) => a.start_time.localeCompare(b.start_time));
             const mergedSlots = sortedSlots.reduce((acc, curr) => {
                 if (acc.length === 0) {
-                    // Si no hay grupos, agrega el primer bloque
                     acc.push(curr);
                 } else {
                     const lastSlot = acc[acc.length - 1];
-                    // Verifica si es consecutivo
                     if (lastSlot.end_time === curr.start_time) {
-                        // Extiende el último slot
                         lastSlot.end_time = curr.end_time;
                     } else {
-                        // Crea un nuevo slot
                         acc.push(curr);
                     }
                 }
@@ -138,9 +177,6 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
         console.log(JSON.stringify({ availability: formattedAvailability }, null, 2));
         alert("Availability merged and updated successfully!");
     };
-
-
-
 
     return (
         <div
@@ -158,8 +194,6 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
 
             {warning && <div className="alert alert-warning">{warning}</div>}
 
-
-            {/* Contenedor de botones alineados a la izquierda */}
             <div className="d-flex justify-content-start gap-2 mb-4">
                 <Button
                     variant="outline-dark"
@@ -172,9 +206,9 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
                 <Button
                     variant="outline-primary"
                     className="px-4"
-
+                    onClick={handleLoadDefaultSchedule}
                 >
-                    <i class="bi bi-calendar3"></i> Load Default Schedule
+                    <i className="bi bi-calendar3"></i> Load Default Schedule
                 </Button>
                 <Button
                     variant="outline-success"
@@ -182,10 +216,9 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
                     onClick={handleSubmit}
                     disabled={!lawyer}
                 >
-                    <i class="bi bi-floppy"></i> Save Availability
+                    <i className="bi bi-floppy"></i> Save Availability
                 </Button>
             </div>
-
 
             <div className="overflow-x-auto relative">
                 <table className="w-full table-auto border-collapse border border-gray-200 text-sm">
@@ -216,11 +249,11 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
                                         <td
                                             key={day}
                                             className={` text-center cursor-pointer ${isRemoving
-                                                ? "bg-red-500 text-white" // Eliminando
+                                                ? "bg-red-500 text-white"
                                                 : isSelected
-                                                    ? "border-l bg-sky-700 text-white" // Seleccionado
+                                                    ? "border-l bg-sky-700 text-white"
                                                     : isDragged
-                                                        ? "bg-sky-200 border-slate-950" // Arrastrando para agregar
+                                                        ? "bg-sky-200 border-slate-950"
                                                         : "hover:bg-sky-100 border"
                                                 }`}
                                             onMouseDown={() => handleMouseDown(day, time)}
@@ -235,7 +268,7 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
                     </tbody>
                 </table>
             </div>
-        </div >
+        </div>
     );
 };
 
