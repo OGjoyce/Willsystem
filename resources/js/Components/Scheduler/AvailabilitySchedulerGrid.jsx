@@ -22,10 +22,7 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
             setGrid(timeSlots);
         };
 
-        setAvailability([
-            { day_of_week: "Mon", slots: [{ start_time: "08:00", end_time: "09:00" }] },
-            { day_of_week: "Wed", slots: [{ start_time: "10:00", end_time: "11:30" }] },
-        ]);
+        setAvailability([]);
 
         initializeGrid();
     }, []);
@@ -77,7 +74,7 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
             workDays.push("Sat");
         }
 
-        const defaultSlots = generateHalfHourSlots("08:00", "16:00", "12:00", "13:00");
+        const defaultSlots = generateHalfHourSlots("08:00", "18:00", "12:00", "13:00");
         const defaultSchedule = workDays.map((day) => ({
             day_of_week: day,
             slots: [...defaultSlots],
