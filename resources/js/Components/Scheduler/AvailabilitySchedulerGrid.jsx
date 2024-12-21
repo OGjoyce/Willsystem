@@ -288,7 +288,7 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
                         {grid.map((time) => (
                             <tr key={time}>
                                 <td
-                                    className={`px-2 text-left h-6 ${time.includes("30") ? "border-b border-gray-300" : ""}`}
+                                    className={`px-2 text-left w-24 h-6 ${time.includes("30") ? "border-b border-gray-300" : ""}`}
                                 >
                                     {!time.includes("30") ? time : ""}
                                 </td>
@@ -302,12 +302,12 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
                                     return (
                                         <td
                                             key={day}
-                                            className={`text-center cursor-pointer ${isRemoving
+                                            className={`text-center cursor-pointer w-24 h-4 ${isRemoving
                                                 ? "bg-red-500 text-white"
                                                 : isSelected
                                                     ? "border-l bg-sky-700 text-white"
                                                     : isDragged
-                                                        ? "bg-sky-200 border-slate-950"
+                                                        ? "bg-sky-200 "
                                                         : "hover:bg-sky-100 border"
                                                 }`}
                                             onMouseDown={() => handleMouseDown(day, time)}
@@ -315,6 +315,7 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
                                         >
                                             {slotText}
                                         </td>
+
                                     );
                                 })}
 
