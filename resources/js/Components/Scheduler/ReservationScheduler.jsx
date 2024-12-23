@@ -14,6 +14,7 @@ const ReservationScheduler = () => {
 
     const today = new Date();
 
+    // Generar semanas dinámicas
     const generateWeeks = () => {
         const weeksArray = [];
         for (let week = 0; week < 4; week++) {
@@ -38,6 +39,7 @@ const ReservationScheduler = () => {
         generateWeeks();
     }, []);
 
+    // Fetch slots
     const fetchSlots = async (date, isPast) => {
         if (isPast) return;
         setSelectedDay(date);
@@ -50,6 +52,7 @@ const ReservationScheduler = () => {
                 params: { law_firm_id: 1, date: date },
             });
 
+            // Obtener slots únicos y ordenarlos por start_time
             const uniqueSlots = [];
             const slotMap = new Map();
 
@@ -64,7 +67,11 @@ const ReservationScheduler = () => {
                 }
             });
 
-            const sortedSlots = uniqueSlots.sort((a, b) => a.start_time.localeCompare(b.start_time));
+            // Ordenar los slots por start_time ascendente
+            const sortedSlots = uniqueSlots.sort((a, b) => {
+                return a.start_time.localeCompare(b.start_time);
+            });
+
             setAvailableSlots(sortedSlots);
         } catch (error) {
             console.error("Error fetching slots:", error);
@@ -74,10 +81,64 @@ const ReservationScheduler = () => {
         }
     };
 
-    const handleSlotSelection = (slot) => {
-        setSelectedSlot(slot);
+
+
+    const findMaxAvailableDuration = (selectedSlot) => {
+        const slotTimeInMinutes = 15; // Duración de cada slot
+        const maxDuration = 60; // Duración máxima permitida
+        let accumulatedMinutes = 0;
+
+        // Filtrar slots por hora inicial y ordenar todos los abogados
+        const allSlots = availableSlots
+            .filter(slot => slot.start_time >= selectedSlot.start_time)
+            .sort((a, b) => a.start_time.localeCompare(b.start_time));
+
+        const availableStartTimes = new Set(allSlots.map(slot => slot.start_time));
+        let currentTime = selectedSlot.start_time;
+
+        while (accumulatedMinutes < maxDuration) {
+            if (availableStartTimes.has(currentTime)) {
+                accumulatedMinutes += slotTimeInMinutes;
+            } else {
+                break; // Detiene si no hay un slot consecutivo
+            }
+
+            const [hours, minutes] = currentTime.split(":").map(Number);
+            const nextTime = new Date();
+            nextTime.setHours(hours);
+            nextTime.setMinutes(minutes + slotTimeInMinutes);
+            currentTime = nextTime.toTimeString().substring(0, 5);
+        }
+
+        return accumulatedMinutes;
     };
 
+
+
+
+
+
+    const handleSlotSelection = (slot) => {
+        const maxDuration = findMaxAvailableDuration(slot);
+        const allowedDurations = [15, 30, 45, 60].filter(duration => duration <= maxDuration);
+
+        // Bloquea duraciones que exceden la disponibilidad
+        setDisabledDurations([15, 30, 45, 60].filter(duration => !allowedDurations.includes(duration)));
+
+        if (maxDuration < selectedDuration) {
+            setWarning(`Duration adjusted to ${maxDuration} min. Choose another time for full availability`);
+            setSelectedDuration(maxDuration);
+        } else {
+            setWarning("");
+        }
+        setSelectedSlot(slot);
+        console.log(slot)
+    };
+
+
+
+
+    // Crear reserva
     const confirmReservation = async () => {
         if (!selectedSlot) {
             alert("Please select a time slot before confirming.");
@@ -86,73 +147,123 @@ const ReservationScheduler = () => {
 
         const payload = {
             law_firm_id: 1,
-            date: selectedDay,
-            start_time: selectedSlot.start_time,
-            duration: selectedDuration,
+            date: selectedDay, // Asegúrate de que selectedDay tiene el formato 'YYYY-MM-DD'
+            start_time: selectedSlot.start_time, // Asegúrate de que tiene el formato 'HH:mm'
+            duration: selectedDuration, // Ejemplo: 60
             client_name: "Carlos Ramos",
             client_email: "carlos.ramos@example.com",
-            title: "Consulta Legal",
-            description: "Revisión de contrato",
+            title: "Consulta Legal", // Ajusta si es necesario
+            description: "Revisión de contrato", // Ajusta si es necesario
             link: `https://meet.example.com/carlos-ramos`,
         };
 
         try {
-            await axios.post("/api/reservations", payload);
+            const response = await axios.post(
+                "/api/reservations",
+                payload,
+                {
+                    headers: {
+                        "Content-Type": "application/json", // Asegura el formato correcto
+                    },
+                }
+            );
             alert("Reservation created successfully!");
+            console.log("Response:", response.data);
         } catch (error) {
             console.error("Error creating reservation:", error.response?.data || error.message);
-            alert("Failed to create reservation. Please try again.");
+            if (error.response?.status === 400) {
+                alert("Failed to create reservation: Invalid request. Please review the input.");
+            } else {
+                alert("Failed to create reservation. Please try again.");
+            }
         }
     };
 
+    const currentMonth = () => {
+        const daysInView = weeks[currentWeekIndex] || [];
+        const uniqueMonths = [...new Set(daysInView.map(day => day.monthLabel))];
+        return uniqueMonths.length > 1
+            ? `${uniqueMonths[0]} / ${uniqueMonths[1]}`
+            : uniqueMonths[0];
+    };
+
+    useEffect(() => {
+        setDisabledDurations([])
+    }, [selectedDay])
     return (
-        <div className="reservation-scheduler">
-            <div className="p-4 max-w-md bg-white rounded-lg shadow-lg border-sky-700">
-                <h3 className="text-lg font-bold text-center mb-2">Book a Meeting</h3>
+        <div className="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md">
+            <div className="text-center mb-4">
+                <h3 className="text-lg font-bold">Book a Meeting</h3>
+                <p className="text-gray-500 text-sm">Choose a date, duration, and time slot</p>
+            </div>
 
-                {/* Duración */}
-                <div className="flex justify-center space-x-2 mb-3">
-                    {[15, 30, 45, 60].map((duration) => (
-                        <button
-                            key={duration}
-                            className={`px-4 py-2 rounded-md ${selectedDuration === duration
-                                ? "bg-gray-800 text-white"
-                                : disabledDurations.includes(duration)
-                                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                    : "bg-gray-200 hover:bg-gray-300"
-                                }`}
-                            onClick={() => setSelectedDuration(duration)}
-                            disabled={disabledDurations.includes(duration)}
-                        >
-                            {duration} min
-                        </button>
-                    ))}
-                </div>
+            {/* Duración */}
+            <div className="flex justify-center space-x-2 mb-4">
+                {[15, 30, 45, 60].map((duration) => (
+                    <button
+                        key={duration}
+                        className={`px-4 py-2 rounded-md ${selectedDuration === duration
+                            ? "bg-gray-800 text-white"
+                            : disabledDurations.includes(duration)
+                                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                : "bg-gray-200 hover:bg-gray-300"
+                            }`}
+                        onClick={() => setSelectedDuration(duration)}
+                        disabled={disabledDurations.includes(duration)}
+                    >
+                        {duration} min
+                    </button>
+                ))}
+            </div>
 
-                {/* Días */}
-                <div className="flex justify-between mb-3">
-                    {weeks[currentWeekIndex]?.map((day) => (
-                        <div
-                            key={day.date}
-                            className={`text-center cursor-pointer p-2 rounded-md ${day.isPast
-                                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                                : selectedDay === day.date
-                                    ? "bg-pink-600 text-white"
-                                    : "text-gray-700 hover:bg-gray-100"
-                                }`}
-                            onClick={() => fetchSlots(day.date, day.isPast)}
-                        >
-                            <div className="text-sm font-bold">{day.dayLabel}</div>
-                            <div className="text-lg">{day.dateLabel}</div>
-                        </div>
-                    ))}
-                </div>
+            {/* Advertencia */}
+            {warning && <div className="text-yellow-600 text-sm text-center mb-4">{warning}</div>}
 
-                {/* Slots */}
-                {loadingSlots ? (
-                    <p className="text-center text-gray-500">Loading slots...</p>
-                ) : availableSlots.length > 0 ? (
-                    <div className="grid grid-cols-3 gap-2 mb-3">
+            {/* Week Slider */}
+            <div className="flex justify-between items-center mb-2">
+                <button
+                    disabled={currentWeekIndex === 0}
+                    onClick={() => setCurrentWeekIndex((prev) => prev - 1)}
+                    className="text-gray-500 disabled:opacity-50"
+                >
+                    <i className="bi bi-chevron-left"></i>
+                </button>
+                <span className="font-bold">{currentMonth()}</span>
+
+                <button
+                    disabled={currentWeekIndex === weeks.length - 1}
+                    onClick={() => setCurrentWeekIndex((prev) => prev + 1)}
+                    className="text-gray-500 disabled:opacity-50"
+                >
+                    <i className="bi bi-chevron-right"></i>
+                </button>
+            </div>
+
+            {/* Días */}
+            <div className="flex justify-between mb-4">
+                {weeks[currentWeekIndex]?.map((day) => (
+                    <div
+                        key={day.date}
+                        className={`text-center cursor-pointer p-2 rounded-md ${day.isPast
+                            ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                            : selectedDay === day.date
+                                ? "bg-pink-600 text-white"
+                                : "text-gray-700 hover:bg-gray-100"
+                            }`}
+                        onClick={() => fetchSlots(day.date, day.isPast)}
+                    >
+                        <div className="text-sm font-bold">{day.dayLabel}</div>
+                        <div className="text-lg">{day.dateLabel}</div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Slots */}
+            {loadingSlots ? (
+                <p className="text-center text-gray-500">Loading slots...</p>
+            ) : selectedDay ? (
+                availableSlots.length > 0 ? (
+                    <div className="grid grid-cols-3 gap-2">
                         {availableSlots.map((slot, index) => (
                             <button
                                 key={index}
@@ -168,28 +279,24 @@ const ReservationScheduler = () => {
                     </div>
                 ) : (
                     <p className="text-center text-gray-500">No slots available.</p>
-                )}
+                )
+            ) : (
+                <p className="text-center text-gray-500">Select a date to see slots.</p>
+            )}
 
-                {/* Confirmar */}
+            {/* Confirmar */}
+            <div className="text-center mt-4">
                 <button
-                    className="w-full px-4 py-2 rounded-md bg-gray-800 text-white mt-2"
+                    className={`w-full px-4 py-2 rounded-md ${selectedSlot
+                        ? "bg-gray-800 text-white"
+                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        }`}
                     onClick={confirmReservation}
                     disabled={!selectedSlot}
                 >
                     Confirm
                 </button>
             </div>
-
-            {/* Estilos en línea */}
-            <style jsx>{`
-                .reservation-scheduler {
-                    position: fixed;
-                    bottom: 20px;
-                    right: 20px;
-                    z-index: 1000;
-                    max-width: 400px;
-                }
-            `}</style>
         </div>
     );
 };
