@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col, Button, Spinner, Dropdown, Card, Form, InputGroup, Alert } from 'react-bootstrap';
+import ReservationScheduler from '../Scheduler/ReservationScheduler';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import CustomToast from '../AdditionalComponents/CustomToast';
@@ -12,6 +13,7 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocu
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
     const [sendingEmails, setSendingEmails] = useState(false);
+    const [showScheduler, setShowScheduler] = useState(false);
 
     const [packageInfo, setPackageInfo] = useState(null)
     const [documents, setDocuments] = useState([])
@@ -167,7 +169,21 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocu
                             >
                                 <i className="bi bi-send"></i> Send Documents as PDFs for Approval
                             </Button>
+                            <Button
+                                variant="outline-info"
+                                className="mt-3 w-100"
+                                onClick={() => setShowScheduler(!showScheduler)}
+                            >
+                                {showScheduler ? 'Hide Scheduler' : 'Show Scheduler'}
+                            </Button>
+
                             <div ref={pdfContainerRef} ></div>
+                            {showScheduler && (
+                                <div className="mt-4 p-3 border rounded bg-light">
+                                    <ReservationScheduler />
+                                </div>
+                            )}
+
                         </Col>
                     </Row>
 
