@@ -7,6 +7,7 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
     const [dragging, setDragging] = useState(false);
     const [draggedCells, setDraggedCells] = useState([]);
     const [removingCells, setRemovingCells] = useState([]);
+    const [fetchToggle, setFetchToggle] = useState(true)
     const [warning, setWarning] = useState("");
 
     const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -74,7 +75,7 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
 
         initializeGrid();
         fetchAvailability();
-    }, [lawyer]);
+    }, [lawyer, fetchToggle]);
 
 
     const generateHalfHourSlots = (start, end, breakStart, breakEnd) => {
@@ -242,7 +243,9 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
                 }
                 return acc;
             }, []);
-
+            setTimeout(() => {
+                setFetchToggle(!fetchToggle)
+            }, 1000)
             return {
                 day_of_week: dayNameMap[day.day_of_week],
                 slots: mergedSlots,
@@ -274,7 +277,7 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
 
             const result = await response.json();
             console.log("✅ Availability saved successfully:", result);
-            alert("Availability saved successfully!");
+
         } catch (error) {
             console.error("Error saving availability:", error.message);
             setWarning(`Failed to save availability: ${error.message}`);
