@@ -125,13 +125,13 @@ const LawyersManagement = () => {
             }
 
             const data = await response.json();
-            alert(data.message || "Operation successful");
+
 
             setShowModal(false);
             fetchLawyers(); // Recargar la lista de abogados
         } catch (error) {
             console.error("Error submitting modal:", error.message);
-            alert(`Error: ${error.message}`);
+
         }
     };
 
