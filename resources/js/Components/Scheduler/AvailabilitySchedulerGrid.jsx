@@ -67,8 +67,8 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
     };
 
     const handleLoadDefaultSchedule = () => {
-        const workDays = ["Mon", "Tue", "Wed", "Thu", "Fri"]; // Días laborales por defecto
-        const includeSaturday = false; // Cambiar a true si se desea incluir el sábado
+        const workDays = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+        const includeSaturday = false;
 
         if (includeSaturday) {
             workDays.push("Sat");
@@ -161,31 +161,57 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
             return;
         }
 
+        // Map short day names to full day names
+        const dayNameMap = {
+            Mon: "Monday",
+            Tue: "Tuesday",
+            Wed: "Wednesday",
+            Thu: "Thursday",
+            Fri: "Friday",
+            Sat: "Saturday",
+            Sun: "Sunday"
+        };
+
         const formattedAvailability = availability.map((day) => {
+            // Sort slots by start time
             const sortedSlots = day.slots.sort((a, b) => a.start_time.localeCompare(b.start_time));
+
+            // Merge consecutive and overlapping slots
             const mergedSlots = sortedSlots.reduce((acc, curr) => {
                 if (acc.length === 0) {
-                    acc.push(curr);
+                    acc.push(curr); // Add the first slot
                 } else {
                     const lastSlot = acc[acc.length - 1];
-                    if (lastSlot.end_time === curr.start_time) {
-                        lastSlot.end_time = curr.end_time;
+                    if (lastSlot.end_time === curr.start_time || lastSlot.end_time > curr.start_time) {
+                        // Extend the last slot's end_time if needed
+                        lastSlot.end_time = lastSlot.end_time > curr.end_time
+                            ? lastSlot.end_time
+                            : curr.end_time;
                     } else {
-                        acc.push(curr);
+                        acc.push(curr); // Otherwise, add as a new slot
                     }
                 }
                 return acc;
             }, []);
 
             return {
-                day_of_week: day.day_of_week,
+                day_of_week: dayNameMap[day.day_of_week],
                 slots: mergedSlots,
             };
         });
 
-        console.log(JSON.stringify({ availability: formattedAvailability }, null, 2));
-        alert("Availability merged and updated successfully!");
+        // Validate if there are no slots to save
+        if (formattedAvailability.length === 0) {
+            setWarning("No availability slots selected. Please select some slots before saving.");
+            return;
+        }
+
+        console.log("🚀 Final Formatted Availability with Full Day Names:");
+        console.log(JSON.stringify({ lawyer_id: lawyer.id, availability: formattedAvailability }, null, 2));
+
+        alert("Availability formatted with full day names and logged successfully! Check the console.");
     };
+
 
 
     const renderSlotText = (day, time) => {
@@ -216,13 +242,13 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
 
         // Verificar si es el inicio de un rango
         const isFirstInRange =
-            currentSlotIndex === 0 || slots[currentSlotIndex - 1].end_time !== rangeStart;
+            currentSlotIndex === 0 || currentSlotIndex != -1 && slots[currentSlotIndex - 1].end_time !== rangeStart;
 
         if (isFirstInRange) {
             return `${rangeStart} - ${rangeEnd}`;
         }
 
-        return ""; // Si no es el primer bloque del rango, no mostrar texto
+        return "";
     };
 
     return (
