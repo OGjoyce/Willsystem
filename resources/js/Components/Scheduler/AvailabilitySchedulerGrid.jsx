@@ -51,7 +51,7 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
             if (!lawyer?.id) return;
 
             try {
-                const response = await fetch(`http://127.0.0.1:8000/api/lawyers/${lawyer.id}/availability`);
+                const response = await fetch(`/api/lawyers/${lawyer.id}/availability`);
                 if (!response.ok) {
                     throw new Error("Failed to fetch availability");
                 }
