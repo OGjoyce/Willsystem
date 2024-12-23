@@ -11,15 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-      Schema::create('lawyers', function (Blueprint $table) {
-    $table->id();
-    $table->string('name');
-    $table->string('email')->unique();
-    $table->unsignedBigInteger('law_firm_id'); // Clave foránea
-    $table->foreign('law_firm_id')->references('id')->on('law_firms')->onDelete('cascade');
-    $table->timestamps();
-});
-
+        Schema::create('lawyers', function (Blueprint $table) {
+            $table->id();
+            $table->string('first_name');
+            $table->string('last_name');
+            $table->date('date_of_birth'); // Añadido
+            $table->string('email')->unique();
+            $table->unsignedBigInteger('law_firm_id'); // Clave foránea
+            $table->foreign('law_firm_id')->references('id')->on('law_firms')->onDelete('cascade');
+            $table->timestamps();
+        });
     }
 
     /**
