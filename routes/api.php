@@ -16,23 +16,22 @@ use Carbon\Carbon;
 //Scheduler routes
 // Scheduler routes
 
-// Crear firma legal
-Route::post('/law-firms', [LawyerController::class, 'createLawFirm']);
+// CRUD de Lawyers
+Route::get('/lawyers', [LawyerController::class, 'index']);
+Route::get('/lawyers/{id}', [LawyerController::class, 'show']);
+Route::post('/lawyers', [LawyerController::class, 'store']);
+Route::put('/lawyers/{id}', [LawyerController::class, 'update']);
+Route::delete('/lawyers/{id}', [LawyerController::class, 'destroy']);
+Route::get('/lawyers/{id}/availability', [LawyerController::class, 'getAvailability']);
 
-// Crear abogado
-Route::post('/lawyers', [LawyerController::class, 'createLawyer']);
-
-// Configurar disponibilidad
+// Disponibilidad y reservas
 Route::post('/lawyers/{id}/availability', [LawyerController::class, 'setAvailability']);
-
-// Crear reserva
 Route::post('/reservations', [LawyerController::class, 'createReservation']);
-
-// Obtener horarios disponibles
 Route::get('/law-firms/available-slots', [LawyerController::class, 'getAvailableSlots']);
-
-// Obtener reservas existentes
 Route::get('/law-firms/reservations', [LawyerController::class, 'getReservations']);
+
+// Firma legal
+Route::post('/law-firms', [LawyerController::class, 'createLawFirm']);
 
 //Ruta de pago Stripe
 Route::post('/payment-intent', [StripeController::class, 'createPaymentIntent']);
