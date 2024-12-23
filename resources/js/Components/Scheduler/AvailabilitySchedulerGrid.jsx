@@ -225,11 +225,6 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
         return ""; // Si no es el primer bloque del rango, no mostrar texto
     };
 
-
-
-
-
-
     return (
         <div
             className="p-4 max-w-4xl mx-auto bg-gray-50 rounded-lg shadow-md"
@@ -318,12 +313,6 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
 
                                     );
                                 })}
-
-
-
-
-
-
                             </tr>
                         ))}
                     </tbody>
