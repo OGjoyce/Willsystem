@@ -21,26 +21,45 @@ const LawyersManagement = () => {
     const [selectedLawyer, setSelectedLawyer] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [modalType, setModalType] = useState("");
-    const [modalLawyer, setModalLawyer] = useState(null);
+    const [modalLawyer, setModalLawyer] = useState({
+        firstName: "",
+        lastName: "",
+        dateOfBirth: "",
+        email: "",
+        lawFirmId: 1, // Inicializado en 1
+    });
 
+
+    const fetchLawyers = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch('/api/lawyers');
+            if (!response.ok) {
+                throw new Error('Failed to fetch lawyers');
+            }
+            const data = await response.json();
+            setLawyers(data.data || []);
+        } catch (error) {
+            console.error("Error fetching lawyers:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
     useEffect(() => {
-        const fetchLawyers = () => {
-            setTimeout(() => {
-                setLawyers([
-                    { id: 1, name: "John Doe", email: "johndoe@example.com", specialty: "Criminal Law" },
-                    { id: 2, name: "Jane Smith", email: "janesmith@example.com", specialty: "Family Law" },
-                    { id: 3, name: "Robert Johnson", email: "robertjohnson@example.com", specialty: "Corporate Law" },
-                ]);
-                setLoading(false);
-            }, 1000);
-        };
+
 
         fetchLawyers();
     }, []);
 
     const handleAddLawyer = () => {
         setModalType("add");
-        setModalLawyer({ name: "", email: "", specialty: "" });
+        setModalLawyer({
+            firstName: "",
+            lastName: "",
+            dateOfBirth: "",
+            email: "",
+            lawFirmId: 1,
+        });
         setShowModal(true);
     };
 
@@ -61,45 +80,102 @@ const LawyersManagement = () => {
         setShowScheduler(true);
     };
 
-    const handleModalSubmit = () => {
-        if (modalType === "add") {
-            const newId = lawyers.length ? Math.max(lawyers.map((l) => l.id)) + 1 : 1;
-            setLawyers((prev) => [...prev, { ...modalLawyer, id: newId }]);
-        } else if (modalType === "edit") {
-            setLawyers((prev) =>
-                prev.map((lawyer) =>
-                    lawyer.id === modalLawyer.id ? modalLawyer : lawyer
-                )
-            );
-        } else if (modalType === "delete") {
-            setLawyers((prev) => prev.filter((lawyer) => lawyer.id !== modalLawyer.id));
+    const handleModalSubmit = async () => {
+        try {
+            let response;
+            let payload = {
+                first_name: modalLawyer.firstName,
+                last_name: modalLawyer.lastName,
+                date_of_birth: modalLawyer.dateOfBirth,
+                email: modalLawyer.email,
+                law_firm_id: modalLawyer.lawFirmId,
+            };
+
+            if (modalType === "add") {
+                response = await fetch('/api/lawyers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                });
+            } else if (modalType === "edit") {
+                response = await fetch(`/api/lawyers/${modalLawyer.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                });
+            } else if (modalType === "delete") {
+                response = await fetch(`/api/lawyers/${modalLawyer.id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                });
+            }
+
+            if (!response.ok) {
+                const errorResponse = await response.json();
+                console.error("Error response:", errorResponse);
+                throw new Error(errorResponse.message || `Failed to ${modalType} lawyer`);
+            }
+
+            const data = await response.json();
+            alert(data.message || "Operation successful");
+
+            setShowModal(false);
+            fetchLawyers(); // Recargar la lista de abogados
+        } catch (error) {
+            console.error("Error submitting modal:", error.message);
+            alert(`Error: ${error.message}`);
         }
-        setShowModal(false);
     };
 
+
+
     const filteredLawyers = lawyers.filter((lawyer) =>
-        lawyer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        lawyer.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        lawyer.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         lawyer.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+
     const columns = [
         {
-            name: "Name",
-            selector: (row) => row.name,
+            name: "First Name",
+            selector: (row) => row.first_name,
             sortable: true,
-            cell: (row) => <span className="text-sm text-gray-700 font-medium">{row.name}</span>,
+            cell: (row) => (
+                <span className="text-sm text-gray-700 font-medium">{row.first_name}</span>
+            ),
+        },
+        {
+            name: "Last Name",
+            selector: (row) => row.last_name,
+            sortable: true,
+            cell: (row) => (
+                <span className="text-sm text-gray-700 font-medium">{row.last_name}</span>
+            ),
+        },
+        {
+            name: "Date of Birth",
+            selector: (row) => row.date_of_birth,
+            sortable: true,
+            cell: (row) => (
+                <span className="text-sm text-gray-700 font-medium">{row.date_of_birth}</span>
+            ),
         },
         {
             name: "Email",
             selector: (row) => row.email,
             sortable: true,
-            cell: (row) => <span className="text-sm text-gray-700 font-medium">{row.email}</span>,
-        },
-        {
-            name: "Specialty",
-            selector: (row) => row.specialty,
-            sortable: true,
-            cell: (row) => <span className="text-sm text-gray-700 font-medium">{row.specialty}</span>,
+            cell: (row) => (
+                <span className="text-sm text-gray-700 font-medium">{row.email}</span>
+            ),
         },
         {
             name: "Actions",
@@ -135,6 +211,7 @@ const LawyersManagement = () => {
         },
     ];
 
+
     const customStyles = {
         headRow: {
             style: {
@@ -168,7 +245,11 @@ const LawyersManagement = () => {
             <Container className="py-5">
                 {showScheduler ? (
                     <div style={{ height: "75vh", overflow: "auto" }}>
-                        <AvailabilitySchedulerGrid lawyer={selectedLawyer} showScheduler={showScheduler} setShowScheduler={setShowScheduler} />
+                        <AvailabilitySchedulerGrid
+                            lawyer={selectedLawyer}
+                            showScheduler={showScheduler}
+                            setShowScheduler={setShowScheduler}
+                        />
                     </div>
                 ) : (
                     <>
@@ -180,7 +261,7 @@ const LawyersManagement = () => {
                                     </InputGroup.Text>
                                     <Form.Control
                                         type="text"
-                                        placeholder="Search by name or email"
+                                        placeholder="Search by first name, last name or email"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
@@ -228,16 +309,61 @@ const LawyersManagement = () => {
                     </Modal.Header>
                     <Modal.Body>
                         {modalType === "delete" ? (
-                            <p>Are you sure you want to delete {modalLawyer?.name}?</p>
+                            <p>
+                                Are you sure you want to delete{" "}
+                                <strong>
+                                    {modalLawyer?.firstName} {modalLawyer?.lastName}
+                                </strong>
+                                ?
+                            </p>
                         ) : (
                             <Form>
+                                <Row>
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label>First Name</Form.Label>
+                                            <Form.Control
+                                                type="text"
+                                                placeholder="Enter first name"
+                                                value={modalLawyer?.firstName || ""}
+                                                onChange={(e) =>
+                                                    setModalLawyer({
+                                                        ...modalLawyer,
+                                                        firstName: e.target.value,
+                                                    })
+                                                }
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label>Last Name</Form.Label>
+                                            <Form.Control
+                                                type="text"
+                                                placeholder="Enter last name"
+                                                value={modalLawyer?.lastName || ""}
+                                                onChange={(e) =>
+                                                    setModalLawyer({
+                                                        ...modalLawyer,
+                                                        lastName: e.target.value,
+                                                    })
+                                                }
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Name</Form.Label>
+                                    <Form.Label>Date of Birth</Form.Label>
                                     <Form.Control
-                                        type="text"
-                                        placeholder="Enter name"
-                                        value={modalLawyer?.name || ""}
-                                        onChange={(e) => setModalLawyer({ ...modalLawyer, name: e.target.value })}
+                                        type="date"
+                                        placeholder="Enter date of birth"
+                                        value={modalLawyer?.dateOfBirth || ""}
+                                        onChange={(e) =>
+                                            setModalLawyer({
+                                                ...modalLawyer,
+                                                dateOfBirth: e.target.value,
+                                            })
+                                        }
                                     />
                                 </Form.Group>
                                 <Form.Group className="mb-3">
@@ -246,18 +372,24 @@ const LawyersManagement = () => {
                                         type="email"
                                         placeholder="Enter email"
                                         value={modalLawyer?.email || ""}
-                                        onChange={(e) => setModalLawyer({ ...modalLawyer, email: e.target.value })}
+                                        onChange={(e) =>
+                                            setModalLawyer({
+                                                ...modalLawyer,
+                                                email: e.target.value,
+                                            })
+                                        }
                                     />
                                 </Form.Group>
+                                {/* Si deseas mostrar el Law Firm ID, pero no editable, puedes descomentar lo siguiente:
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Specialty</Form.Label>
+                                    <Form.Label>Law Firm ID</Form.Label>
                                     <Form.Control
-                                        type="text"
-                                        placeholder="Enter specialty"
-                                        value={modalLawyer?.specialty || ""}
-                                        onChange={(e) => setModalLawyer({ ...modalLawyer, specialty: e.target.value })}
+                                        type="number"
+                                        value={modalLawyer?.lawFirmId || 1}
+                                        readOnly
                                     />
                                 </Form.Group>
+                                */}
                             </Form>
                         )}
                     </Modal.Body>
