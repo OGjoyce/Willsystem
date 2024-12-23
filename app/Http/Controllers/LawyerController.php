@@ -11,8 +11,98 @@ use App\Models\Reservation;
 
 class LawyerController extends Controller
 {
-    public function setAvailability(Request $request, $lawyerId)
+
+    public function index(Request $request)
 {
+    $query = Lawyer::query();
+
+    if ($request->has('search')) {
+        $search = $request->get('search');
+        $query->where('first_name', 'LIKE', "%{$search}%")
+              ->orWhere('last_name', 'LIKE', "%{$search}%")
+              ->orWhere('email', 'LIKE', "%{$search}%");
+    }
+
+    if ($request->has('law_firm_id')) {
+        $query->where('law_firm_id', $request->get('law_firm_id'));
+    }
+
+    $lawyers = $query->paginate(10);
+
+    return response()->json($lawyers);
+}
+
+public function show($id)
+{
+    $lawyer = Lawyer::find($id);
+
+    if (!$lawyer) {
+        return response()->json(['message' => 'Lawyer not found'], 404);
+    }
+
+    return response()->json($lawyer);
+}
+
+public function store(Request $request)
+{
+    $request->validate([
+        'first_name' => 'required|string|max:255',
+        'last_name' => 'required|string|max:255',
+        'date_of_birth' => 'required|date',
+        'email' => 'required|email|unique:lawyers,email',
+        'law_firm_id' => 'required|exists:law_firms,id',
+    ]);
+
+    $lawyer = Lawyer::create([
+        'first_name' => $request->first_name,
+        'last_name' => $request->last_name,
+        'date_of_birth' => $request->date_of_birth,
+        'email' => $request->email,
+        'law_firm_id' => $request->law_firm_id,
+    ]);
+
+    return response()->json(['message' => 'Lawyer created successfully', 'lawyer' => $lawyer], 201);
+}
+
+public function update(Request $request, $id)
+{
+    $lawyer = Lawyer::find($id);
+
+    if (!$lawyer) {
+        return response()->json(['message' => 'Lawyer not found'], 404);
+    }
+
+    $request->validate([
+        'first_name' => 'sometimes|required|string|max:255',
+        'last_name' => 'sometimes|required|string|max:255',
+        'date_of_birth' => 'sometimes|required|date',
+        'email' => 'sometimes|required|email|unique:lawyers,email,' . $lawyer->id,
+        'law_firm_id' => 'sometimes|required|exists:law_firms,id',
+    ]);
+
+    $lawyer->update($request->only(['first_name', 'last_name', 'date_of_birth', 'email', 'law_firm_id']));
+
+    return response()->json(['message' => 'Lawyer updated successfully', 'lawyer' => $lawyer]);
+}
+
+public function destroy($id)
+{
+    $lawyer = Lawyer::find($id);
+
+    if (!$lawyer) {
+        return response()->json(['message' => 'Lawyer not found'], 404);
+    }
+
+    $lawyer->delete();
+
+    return response()->json(['message' => 'Lawyer deleted successfully']);
+}
+
+
+
+public function setAvailability(Request $request, $lawyerId)
+{
+    // Validar la solicitud
     $request->validate([
         'availability' => 'required|array',
         'availability.*.day_of_week' => 'required|string',
@@ -21,21 +111,33 @@ class LawyerController extends Controller
         'availability.*.slots.*.end_time' => 'required|date_format:H:i|after:availability.*.slots.*.start_time',
     ]);
 
-    foreach ($request->availability as $day) {
-        foreach ($day['slots'] as $slot) {
-            AvailabilitySlot::updateOrCreate(
-                [
+    try {
+        // Eliminar toda la disponibilidad anterior del abogado
+        AvailabilitySlot::where('lawyer_id', $lawyerId)->delete();
+
+        // Insertar la nueva disponibilidad
+        foreach ($request->availability as $day) {
+            foreach ($day['slots'] as $slot) {
+                AvailabilitySlot::create([
                     'lawyer_id' => $lawyerId,
                     'day_of_week' => $day['day_of_week'],
-                    'start_time' => $slot['start_time']
-                ],
-                ['end_time' => $slot['end_time']]
-            );
+                    'start_time' => $slot['start_time'],
+                    'end_time' => $slot['end_time'],
+                ]);
+            }
         }
-    }
 
-    return response()->json(['message' => 'Availability updated successfully']);
+        return response()->json(['message' => 'Availability updated successfully'], 200);
+    } catch (\Exception $e) {
+        \Log::error($e);
+
+        return response()->json([
+            'message' => 'An error occurred while updating availability',
+            'error' => $e->getMessage()
+        ], 500);
+    }
 }
+
 
 public function createReservation(Request $request)
 {
@@ -140,6 +242,40 @@ private function checkConsecutiveSlots($slots, $reservations, $requestedStartTim
 
 
 
+public function getAvailability($lawyerId)
+{
+    // Buscar el abogado
+    $lawyer = Lawyer::find($lawyerId);
+
+    if (!$lawyer) {
+        return response()->json(['message' => 'Lawyer not found'], 404);
+    }
+
+    // Obtener la disponibilidad del abogado
+    $availability = AvailabilitySlot::where('lawyer_id', $lawyerId)
+        ->orderBy('day_of_week')
+        ->orderBy('start_time')
+        ->get()
+        ->groupBy('day_of_week')
+        ->map(function ($slots) {
+            return [
+                'day_of_week' => $slots->first()->day_of_week,
+                'slots' => $slots->map(function ($slot) {
+                    return [
+                        'start_time' => $slot->start_time,
+                        'end_time' => $slot->end_time,
+                    ];
+                })->values()
+            ];
+        })
+        ->values();
+
+    return response()->json([
+        'lawyer_id' => $lawyer->id,
+        'lawyer_name' => $lawyer->first_name . ' ' . $lawyer->last_name,
+        'availability' => $availability,
+    ], 200);
+}
 
 
 
@@ -186,7 +322,8 @@ public function getAvailableSlots(Request $request)
                 if (!$isReserved) {
                     $availableSlots[$lawyer->id][] = [
                         'lawyer_id' => $lawyer->id,
-                        'lawyer_name' => $lawyer->name,
+                'lawyer_name' => $lawyer->first_name . ' ' . $lawyer->last_name,
+
                         'start_time' => date('H:i', $startTime),
                         'end_time' => date('H:i', $slotEndTime)
                     ];
@@ -238,21 +375,5 @@ public function createLawFirm(Request $request)
 }
 
 
-public function createLawyer(Request $request)
-{
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|unique:lawyers,email',
-        'law_firm_id' => 'required|exists:law_firms,id'
-    ]);
-
-    $lawyer = Lawyer::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'law_firm_id' => $request->law_firm_id
-    ]);
-
-    return response()->json(['message' => 'Lawyer created successfully', 'lawyer' => $lawyer], 201);
-}
 
 }
