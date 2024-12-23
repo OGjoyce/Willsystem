@@ -22,10 +22,60 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
             setGrid(timeSlots);
         };
 
-        setAvailability([]);
+        const splitIntoHalfHourSlots = (startTime, endTime) => {
+            let [startHour, startMinute] = startTime.split(":").map(Number);
+            const [endHour, endMinute] = endTime.split(":").map(Number);
+            const slots = [];
+
+            while (
+                startHour < endHour ||
+                (startHour === endHour && startMinute < endMinute)
+            ) {
+                const nextMinute = startMinute + 30;
+                const nextHour = startHour + Math.floor(nextMinute / 60);
+
+                const slotStart = `${startHour.toString().padStart(2, "0")}:${startMinute.toString().padStart(2, "0")}`;
+                const slotEnd = `${(nextHour % 24).toString().padStart(2, "0")}:${(nextMinute % 60).toString().padStart(2, "0")}`;
+
+                slots.push({ start_time: slotStart, end_time: slotEnd });
+
+                startMinute = nextMinute % 60;
+                startHour = nextHour;
+            }
+
+            return slots;
+        };
+
+        const fetchAvailability = async () => {
+            if (!lawyer?.id) return;
+
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/lawyers/${lawyer.id}/availability`);
+                if (!response.ok) {
+                    throw new Error("Failed to fetch availability");
+                }
+
+                const data = await response.json();
+
+                // Mapear y dividir los bloques en intervalos de 30 minutos
+                const formattedAvailability = data.availability.map((day) => ({
+                    day_of_week: day.day_of_week.substring(0, 3), // Abreviar días (Mon, Tue...)
+                    slots: day.slots.flatMap((slot) =>
+                        splitIntoHalfHourSlots(slot.start_time.substring(0, 5), slot.end_time.substring(0, 5))
+                    ),
+                }));
+
+                setAvailability(formattedAvailability);
+            } catch (error) {
+                console.error("Error fetching availability:", error.message);
+                setWarning(`Failed to load availability: ${error.message}`);
+            }
+        };
 
         initializeGrid();
-    }, []);
+        fetchAvailability();
+    }, [lawyer]);
+
 
     const generateHalfHourSlots = (start, end, breakStart, breakEnd) => {
         const slots = [];
@@ -155,13 +205,13 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
         setRemovingCells([]);
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!lawyer) {
             setWarning("Please select a lawyer before submitting.");
             return;
         }
 
-        // Map short day names to full day names
+        // Mapa para convertir abreviaciones de días a nombres completos
         const dayNameMap = {
             Mon: "Monday",
             Tue: "Tuesday",
@@ -173,22 +223,21 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
         };
 
         const formattedAvailability = availability.map((day) => {
-            // Sort slots by start time
+            // Ordenar slots por hora de inicio
             const sortedSlots = day.slots.sort((a, b) => a.start_time.localeCompare(b.start_time));
 
-            // Merge consecutive and overlapping slots
+            // Fusionar rangos consecutivos
             const mergedSlots = sortedSlots.reduce((acc, curr) => {
                 if (acc.length === 0) {
-                    acc.push(curr); // Add the first slot
+                    acc.push(curr); // Agregar primer slot
                 } else {
                     const lastSlot = acc[acc.length - 1];
                     if (lastSlot.end_time === curr.start_time || lastSlot.end_time > curr.start_time) {
-                        // Extend the last slot's end_time if needed
                         lastSlot.end_time = lastSlot.end_time > curr.end_time
                             ? lastSlot.end_time
                             : curr.end_time;
                     } else {
-                        acc.push(curr); // Otherwise, add as a new slot
+                        acc.push(curr); // Agregar como un nuevo slot
                     }
                 }
                 return acc;
@@ -200,17 +249,38 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
             };
         });
 
-        // Validate if there are no slots to save
         if (formattedAvailability.length === 0) {
             setWarning("No availability slots selected. Please select some slots before saving.");
             return;
         }
 
-        console.log("🚀 Final Formatted Availability with Full Day Names:");
-        console.log(JSON.stringify({ lawyer_id: lawyer.id, availability: formattedAvailability }, null, 2));
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/api/lawyers/${lawyer.id}/availability`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify({
+                    availability: formattedAvailability
+                })
+            });
 
-        alert("Availability formatted with full day names and logged successfully! Check the console.");
+            if (!response.ok) {
+                const errorResponse = await response.json();
+                console.error("Error response:", errorResponse);
+                throw new Error(errorResponse.message || "Failed to save availability");
+            }
+
+            const result = await response.json();
+            console.log("✅ Availability saved successfully:", result);
+            alert("Availability saved successfully!");
+        } catch (error) {
+            console.error("Error saving availability:", error.message);
+            setWarning(`Failed to save availability: ${error.message}`);
+        }
     };
+
 
 
 
@@ -260,7 +330,7 @@ const AvailabilitySchedulerGrid = ({ lawyer, setShowScheduler }) => {
         >
             <div className="text-center mb-4">
                 <h1 className="text-xl font-bold text-gray-800">
-                    Editing Weekly Schedule for {lawyer?.name || "Unknown Lawyer"}
+                    Editing Weekly Schedule for {lawyer?.first_name + lawyer?.last_name || "Unknown Lawyer"}
                 </h1>
                 <p className="text-sm text-gray-600">Set and manage availability easily.</p>
             </div>
