@@ -25,6 +25,9 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocu
 
     }, [objectStatus]);
 
+    setTimeout(() => {
+        console.log(packageInfo)
+    }, 1000)
 
     const lastUnlockedDocument = getLastUnlockedDocument(objectStatus);
     const allDocumentsCompleted = areAllDocumentsUnlocked(objectStatus);
@@ -69,8 +72,25 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocu
 
 
 
+    const extractPersonalProfiles = (objectStatus) => {
+        const profiles = [];
+
+        objectStatus.forEach(status => {
+            status.forEach(profile => {
+                if (profile.personal?.fullName && profile.personal?.email) {
+                    profiles.push({
+                        fullName: profile.personal.fullName,
+                        email: profile.personal.email
+                    });
+                }
+            });
+        });
+
+        return profiles;
+    };
 
 
+    const profiles = extractPersonalProfiles(objectStatus);
 
     return (
         <Container>
@@ -169,18 +189,19 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocu
                             >
                                 <i className="bi bi-send"></i> Send Documents as PDFs for Approval
                             </Button>
-                            <Button
-                                variant="outline-info"
-                                className="mt-3 w-100"
-                                onClick={() => setShowScheduler(!showScheduler)}
-                            >
-                                {showScheduler ? 'Hide Scheduler' : 'Show Scheduler'}
-                            </Button>
+                            {packageInfo?.is_signature_required &&
+                                <Button
+                                    variant="outline-dark"
+                                    className="mt-3 w-100"
+                                    onClick={() => setShowScheduler(!showScheduler)}
+                                >
+                                    {showScheduler ? <><i class="bi bi-calendar-x"></i> Hide Scheduler </> : <><i class="bi bi-calendar-plus"></i> Schedule an appointment </>}
+                                </Button>}
 
                             <div ref={pdfContainerRef} ></div>
                             {showScheduler && (
                                 <div className="mt-4 p-3 border rounded bg-light">
-                                    <ReservationScheduler />
+                                    <ReservationScheduler profilesArray={profiles} setShowScheduler={setShowScheduler} />
                                 </div>
                             )}
 
