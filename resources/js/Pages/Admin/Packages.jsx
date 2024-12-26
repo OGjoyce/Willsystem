@@ -25,6 +25,7 @@ const Packages = () => {
         campaign: '',
         cliente_reference: '',
         expiration_date: '',
+        is_signature_required: false
     });
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
@@ -65,6 +66,7 @@ const Packages = () => {
             campaign: '',
             cliente_reference: '',
             expiration_date: '',
+            is_signature_required: false
         });
         setShowModal(true);
     };
@@ -91,10 +93,11 @@ const Packages = () => {
 
 
     const exportCSV = () => {
-        const headers = ['ID', 'Name', 'Price', 'Description', 'Campaign', 'Cliente Reference', 'Expiration Date'];
+        const headers = ['ID', 'Name', 'Price', 'Description', 'Campaign', 'Cliente Reference', 'Expiration Date', 'Is Signature Required'];
         const rows = filteredPackages.map(pkg => [
-            pkg.id, pkg.name, pkg.price, pkg.description, pkg.campaign, pkg.cliente_reference, pkg.expiration_date
+            pkg.id, pkg.name, pkg.price, pkg.description, pkg.campaign, pkg.cliente_reference, pkg.expiration_date, pkg.is_signature_required ? 'Yes' : 'No'
         ]);
+
 
         const csvContent = `${headers.join(',')}\n${rows.map(row => row.join(',')).join('\n')}`;
         saveAs(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }), 'packages_data.csv');
@@ -102,11 +105,12 @@ const Packages = () => {
 
     const exportExcel = () => {
         const worksheetData = [
-            ['ID', 'Name', 'Price', 'Description', 'Campaign', 'Cliente Reference', 'Expiration Date'],
+            ['ID', 'Name', 'Price', 'Description', 'Campaign', 'Cliente Reference', 'Expiration Date', 'Is Signature Required'],
             ...filteredPackages.map(pkg => [
-                pkg.id, pkg.name, pkg.price, pkg.description, pkg.campaign, pkg.cliente_reference, pkg.expiration_date
+                pkg.id, pkg.name, pkg.price, pkg.description, pkg.campaign, pkg.cliente_reference, pkg.expiration_date, pkg.is_signature_required ? 'Yes' : 'No'
             ]),
         ];
+
 
         const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
         const workbook = XLSX.utils.book_new();
@@ -124,16 +128,22 @@ const Packages = () => {
         { name: 'Cliente Reference', selector: row => row.cliente_reference, sortable: true },
         { name: 'Expiration Date', selector: row => row.expiration_date, sortable: true },
         {
+            name: 'Is Signed',
+            selector: row => row.is_signature_required ? 'Yes' : 'No',
+            sortable: true
+        },
+
+        {
             name: 'Actions',
             cell: row => (
-                <div>
-                    <Button className='w-[100%]' variant="outline-warning" size="sm" onClick={() => handleShow('edit', row)}>Edit</Button>
-                    <Button className='w-[100%]' variant="outline-danger" size="sm" onClick={() => { setCurrentPackage(row); setShowDeleteModal(true); }}>Delete</Button>
+                <div className='flex flex-row space-between gap-2'>
+                    <Button className='flex flex-row w-[50%] text-nowrap' variant="outline-warning" size="sm" onClick={() => handleShow('edit', row)}> <i class="bi bi-pencil"></i> Edit</Button>
+                    <Button className='flex flex-row w-[50%] text-nowrap ' variant="outline-danger" size="sm" onClick={() => { setCurrentPackage(row); setShowDeleteModal(true); }}><i class="bi bi-trash"></i> Delete</Button>
                 </div>
             ),
             ignoreRowClick: true,
-            allowOverflow: true,
-            button: true,
+            allowOverflow: false,
+
         }
     ];
 
@@ -160,7 +170,10 @@ const Packages = () => {
         e.preventDefault();
         if (!validateForm()) return;
         try {
-            const packageData = { ...currentPackage, price: parseFloat(currentPackage.price).toFixed(2) };
+            const packageData = {
+                ...currentPackage, price: parseFloat(currentPackage.price).toFixed(2),
+                is_signature_required: currentPackage.is_signature_required,
+            };
             if (modalMode === 'create') {
                 await axios.post('/api/packages', packageData);
                 setToastMessage('Package created successfully');
@@ -199,9 +212,9 @@ const Packages = () => {
                     <Row className="d-flex align-items-center justify-content-between mb-3">
                         <Col><h2 className="font-semibold text-xl text-gray-800">Package Management</h2></Col>
                         <Col className="d-flex justify-content-end gap-2">
-                            <Button variant="outline-success" onClick={exportExcel}>Export Excel</Button>
-                            <Button variant="outline-primary" onClick={exportCSV}>Export CSV</Button>
-                            <Button variant="primary" onClick={() => handleShow('create')}>Add Package</Button>
+                            <Button variant="outline-success" onClick={exportExcel}> <i className="bi bi-file-earmark-spreadsheet me-2"></i> Export Excel</Button>
+                            <Button variant="outline-primary" onClick={exportCSV}>  <i className="bi bi-file-earmark-arrow-down me-2"></i> Export CSV</Button>
+                            <Button variant="primary" onClick={() => handleShow('create')}><i class="bi bi-file-plus"></i> Add Package</Button>
                         </Col>
                     </Row>
                     <Row>
@@ -306,6 +319,17 @@ const Packages = () => {
                                 />
                                 {validationErrors.expiration_date && <p className="text-danger">{validationErrors.expiration_date}</p>}
                             </Form.Group>
+                            <Form.Group className="mb-3">
+
+                                <Form.Check
+                                    type="checkbox"
+                                    name="is_signature_required"
+                                    checked={currentPackage.is_signature_required}
+                                    onChange={(e) => setCurrentPackage({ ...currentPackage, is_signature_required: e.target.checked })}
+                                    label="Require Signature"
+                                />
+                            </Form.Group>
+
                             <Button type="submit">{modalMode === 'create' ? 'Add Package' : 'Update Package'}</Button>
                         </Form>
                     </Modal.Body>
