@@ -21,6 +21,7 @@ class PackageController extends Controller
             'campaign' => 'required|string',
               'cliente_reference' => 'nullable|string',
             'expiration_date'   => 'nullable|date',
+             'is_signature_required' => 'required|boolean',
         ]);
 
         $package = Package::create($validatedData);
@@ -42,6 +43,7 @@ class PackageController extends Controller
             'campaign' => 'required|string',
             'cliente_reference' => 'nullable|string',
             'expiration_date'   => 'nullable|date',
+             'is_signature_required' => 'required|boolean',
         ]);
 
         $package->update($validatedData);
