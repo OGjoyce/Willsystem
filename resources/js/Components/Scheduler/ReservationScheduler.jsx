@@ -11,8 +11,19 @@ const ReservationScheduler = () => {
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [loadingSlots, setLoadingSlots] = useState(false);
     const [warning, setWarning] = useState("");
+    const [selectedEmail, setSelectedEmail] = useState(null)
 
     const today = new Date();
+
+
+    const emails = [
+        "user1@email.com",
+        "user2@email.com",
+        "user3@email.com",
+        "user4@email.com",
+        "user5@email.com",
+        "user6@email.com"
+    ]
 
     // Generar semanas dinámicas
     const generateWeeks = () => {
@@ -284,6 +295,23 @@ const ReservationScheduler = () => {
                 <p className="text-center text-gray-500">Select a date to see slots.</p>
             )}
 
+            {selectedSlot && (
+                <div className="space-y-2 m-6">
+                    <label className="block text-sm font-medium text-gray-700">
+                        Select email address
+                    </label>
+                    <select
+                        value={selectedEmail}
+                        onChange={(e) => setSelectedEmail(e.target.value)}
+                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent transition-colors"
+                    >
+                        <option value="">Select an email</option>
+                        {emails.map((email) => (
+                            <option key={email} value={email}>{email}</option>
+                        ))}
+                    </select>
+                </div>
+            )}
             {/* Confirmar */}
             <div className="text-center mt-4">
                 <button
