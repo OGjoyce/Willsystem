@@ -16,5 +16,6 @@ class Package extends Model
         'campaign',
         'cliente_reference',
         'expiration_date',
+        'is_signature_required',
     ];
 }
