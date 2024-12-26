@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import CustomToast from '../AdditionalComponents/CustomToast';
 
-const ReservationScheduler = () => {
+const ReservationScheduler = ({ profilesArray, setShowScheduler }) => {
     const [currentWeekIndex, setCurrentWeekIndex] = useState(0);
     const [weeks, setWeeks] = useState([]);
     const [selectedDay, setSelectedDay] = useState(null);
@@ -11,21 +12,23 @@ const ReservationScheduler = () => {
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [loadingSlots, setLoadingSlots] = useState(false);
     const [warning, setWarning] = useState("");
-    const [selectedEmail, setSelectedEmail] = useState(null)
-
+    const [selectedProfile, setSelectedProfile] = useState(null);
+    const [profiles, setProfiles] = useState([]);
+    const [timePeriod, setTimePeriod] = useState('morning');
+    const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
     const today = new Date();
 
+    useEffect(() => {
+        if (profilesArray?.length) {
+            setProfiles(profilesArray);
+        }
+    }, [profilesArray]);
 
-    const emails = [
-        "user1@email.com",
-        "user2@email.com",
-        "user3@email.com",
-        "user4@email.com",
-        "user5@email.com",
-        "user6@email.com"
-    ]
+    const showToast = (message, type = 'info') => {
+        setToast({ show: true, message, type });
+        setTimeout(() => setToast({ show: false, message: '', type: 'info' }), 3000);
+    };
 
-    // Generar semanas dinámicas
     const generateWeeks = () => {
         const weeksArray = [];
         for (let week = 0; week < 4; week++) {
@@ -50,7 +53,6 @@ const ReservationScheduler = () => {
         generateWeeks();
     }, []);
 
-    // Fetch slots
     const fetchSlots = async (date, isPast) => {
         if (isPast) return;
         setSelectedDay(date);
@@ -63,43 +65,36 @@ const ReservationScheduler = () => {
                 params: { law_firm_id: 1, date: date },
             });
 
-            // Obtener slots únicos y ordenarlos por start_time
-            const uniqueSlots = [];
-            const slotMap = new Map();
+            const uniqueSlots = Array.from(
+                new Map(response.data.map(slot => [slot.start_time, slot])).values()
+            ).sort((a, b) => a.start_time.localeCompare(b.start_time));
 
-            response.data.forEach((slot) => {
-                if (!slotMap.has(slot.start_time)) {
-                    slotMap.set(slot.start_time, true);
-                    uniqueSlots.push({
-                        start_time: slot.start_time,
-                        lawyer_id: slot.lawyer_id,
-                        lawyer_name: slot.lawyer_name,
-                    });
-                }
-            });
-
-            // Ordenar los slots por start_time ascendente
-            const sortedSlots = uniqueSlots.sort((a, b) => {
-                return a.start_time.localeCompare(b.start_time);
-            });
-
-            setAvailableSlots(sortedSlots);
+            setAvailableSlots(uniqueSlots);
         } catch (error) {
             console.error("Error fetching slots:", error);
+            showToast("Failed to fetch available slots. Please try again.", "error");
             setAvailableSlots([]);
         } finally {
             setLoadingSlots(false);
         }
     };
 
+    const getFilteredSlots = () => {
+        if (timePeriod === 'all') return availableSlots;
 
+        return availableSlots.filter(slot => {
+            const hour = parseInt(slot.start_time.split(':')[0]);
+            return timePeriod === 'morning'
+                ? hour >= 6 && hour < 12
+                : hour >= 12 && hour < 23;
+        });
+    };
 
     const findMaxAvailableDuration = (selectedSlot) => {
-        const slotTimeInMinutes = 15; // Duración de cada slot
-        const maxDuration = 60; // Duración máxima permitida
+        const slotTimeInMinutes = 15;
+        const maxDuration = 60;
         let accumulatedMinutes = 0;
 
-        // Filtrar slots por hora inicial y ordenar todos los abogados
         const allSlots = availableSlots
             .filter(slot => slot.start_time >= selectedSlot.start_time)
             .sort((a, b) => a.start_time.localeCompare(b.start_time));
@@ -111,7 +106,7 @@ const ReservationScheduler = () => {
             if (availableStartTimes.has(currentTime)) {
                 accumulatedMinutes += slotTimeInMinutes;
             } else {
-                break; // Detiene si no hay un slot consecutivo
+                break;
             }
 
             const [hours, minutes] = currentTime.split(":").map(Number);
@@ -124,16 +119,10 @@ const ReservationScheduler = () => {
         return accumulatedMinutes;
     };
 
-
-
-
-
-
     const handleSlotSelection = (slot) => {
         const maxDuration = findMaxAvailableDuration(slot);
         const allowedDurations = [15, 30, 45, 60].filter(duration => duration <= maxDuration);
 
-        // Bloquea duraciones que exceden la disponibilidad
         setDisabledDurations([15, 30, 45, 60].filter(duration => !allowedDurations.includes(duration)));
 
         if (maxDuration < selectedDuration) {
@@ -143,50 +132,49 @@ const ReservationScheduler = () => {
             setWarning("");
         }
         setSelectedSlot(slot);
-        console.log(slot)
     };
 
-
-
-
-    // Crear reserva
     const confirmReservation = async () => {
         if (!selectedSlot) {
-            alert("Please select a time slot before confirming.");
+            showToast("Please select a time slot before confirming.", "error");
             return;
         }
 
-        const payload = {
-            law_firm_id: 1,
-            date: selectedDay, // Asegúrate de que selectedDay tiene el formato 'YYYY-MM-DD'
-            start_time: selectedSlot.start_time, // Asegúrate de que tiene el formato 'HH:mm'
-            duration: selectedDuration, // Ejemplo: 60
-            client_name: "Carlos Ramos",
-            client_email: "carlos.ramos@example.com",
-            title: "Consulta Legal", // Ajusta si es necesario
-            description: "Revisión de contrato", // Ajusta si es necesario
-            link: `https://meet.example.com/carlos-ramos`,
-        };
+        if (!selectedProfile) {
+            showToast("Please select a participant for the meeting.", "error");
+            return;
+        }
 
         try {
             const response = await axios.post(
                 "/api/reservations",
-                payload,
+                {
+                    law_firm_id: 1,
+                    date: selectedDay,
+                    start_time: selectedSlot.start_time,
+                    duration: selectedDuration,
+                    client_name: selectedProfile?.fullName,
+                    client_email: selectedProfile?.email,
+                    title: "Legal Consultation",
+                    description: "Contract Review",
+                    link: `https://meet.example.com/legal-consultation`,
+                },
                 {
                     headers: {
-                        "Content-Type": "application/json", // Asegura el formato correcto
+                        "Content-Type": "application/json",
                     },
                 }
             );
-            alert("Reservation created successfully!");
-            console.log("Response:", response.data);
+            showToast("Reservation created successfully!", "success");
+            setTimeout(() => setShowScheduler(false), 1500);
         } catch (error) {
-            console.error("Error creating reservation:", error.response?.data || error.message);
-            if (error.response?.status === 400) {
-                alert("Failed to create reservation: Invalid request. Please review the input.");
-            } else {
-                alert("Failed to create reservation. Please try again.");
-            }
+            console.error("Reservation error:", error);
+            showToast(
+                error.response?.status === 400
+                    ? "Invalid reservation request. Please check your inputs."
+                    : "Failed to create reservation. Please try again.",
+                "error"
+            );
         }
     };
 
@@ -199,8 +187,9 @@ const ReservationScheduler = () => {
     };
 
     useEffect(() => {
-        setDisabledDurations([])
-    }, [selectedDay])
+        setDisabledDurations([]);
+    }, [selectedDay]);
+
     return (
         <div className="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md">
             <div className="text-center mb-4">
@@ -208,7 +197,6 @@ const ReservationScheduler = () => {
                 <p className="text-gray-500 text-sm">Choose a date, duration, and time slot</p>
             </div>
 
-            {/* Duración */}
             <div className="flex justify-center space-x-2 mb-4">
                 {[15, 30, 45, 60].map((duration) => (
                     <button
@@ -227,10 +215,10 @@ const ReservationScheduler = () => {
                 ))}
             </div>
 
-            {/* Advertencia */}
-            {warning && <div className="text-yellow-600 text-sm text-center mb-4">{warning}</div>}
+            {warning && (
+                <div className="text-yellow-600 text-sm text-center mb-4">{warning}</div>
+            )}
 
-            {/* Week Slider */}
             <div className="flex justify-between items-center mb-2">
                 <button
                     disabled={currentWeekIndex === 0}
@@ -240,7 +228,6 @@ const ReservationScheduler = () => {
                     <i className="bi bi-chevron-left"></i>
                 </button>
                 <span className="font-bold">{currentMonth()}</span>
-
                 <button
                     disabled={currentWeekIndex === weeks.length - 1}
                     onClick={() => setCurrentWeekIndex((prev) => prev + 1)}
@@ -250,7 +237,6 @@ const ReservationScheduler = () => {
                 </button>
             </div>
 
-            {/* Días */}
             <div className="flex justify-between mb-4">
                 {weeks[currentWeekIndex]?.map((day) => (
                     <div
@@ -269,13 +255,37 @@ const ReservationScheduler = () => {
                 ))}
             </div>
 
-            {/* Slots */}
+            {selectedDay && (
+                <div className="mb-4">
+                    <div className="flex justify-center space-x-2">
+                        <button
+                            className={`px-4 py-2 rounded-md ${timePeriod === 'morning'
+                                ? "bg-gray-800 text-white"
+                                : "bg-gray-200 hover:bg-gray-300"
+                                }`}
+                            onClick={() => setTimePeriod('morning')}
+                        >
+                            <i className="bi bi-brightness-alt-high"></i> Morning
+                        </button>
+                        <button
+                            className={`px-4 py-2 rounded-md ${timePeriod === 'evening'
+                                ? "bg-gray-800 text-white"
+                                : "bg-gray-200 hover:bg-gray-300"
+                                }`}
+                            onClick={() => setTimePeriod('evening')}
+                        >
+                            <i className="bi bi-sun"></i> Evening
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {loadingSlots ? (
                 <p className="text-center text-gray-500">Loading slots...</p>
             ) : selectedDay ? (
-                availableSlots.length > 0 ? (
+                getFilteredSlots().length > 0 ? (
                     <div className="grid grid-cols-3 gap-2">
-                        {availableSlots.map((slot, index) => (
+                        {getFilteredSlots().map((slot, index) => (
                             <button
                                 key={index}
                                 className={`px-2 py-1 rounded-md ${selectedSlot?.start_time === slot.start_time
@@ -289,7 +299,7 @@ const ReservationScheduler = () => {
                         ))}
                     </div>
                 ) : (
-                    <p className="text-center text-gray-500">No slots available.</p>
+                    <p className="text-center text-gray-500">No slots available for the selected time period.</p>
                 )
             ) : (
                 <p className="text-center text-gray-500">Select a date to see slots.</p>
@@ -297,26 +307,31 @@ const ReservationScheduler = () => {
 
             {selectedSlot && (
                 <div className="space-y-2 m-6">
-                    <label className="block text-sm font-medium text-gray-700">
-                        Select email address
-                    </label>
+                    <div className="mb-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Assign Meeting To
+                        </label>
+                        <p className="text-sm text-gray-500">Select the person who will attend this meeting</p>
+                    </div>
                     <select
-                        value={selectedEmail}
-                        onChange={(e) => setSelectedEmail(e.target.value)}
+                        value={selectedProfile ? JSON.stringify(selectedProfile) : ""}
+                        onChange={(e) => setSelectedProfile(e.target.value ? JSON.parse(e.target.value) : null)}
                         className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent transition-colors"
                     >
-                        <option value="">Select an email</option>
-                        {emails.map((email) => (
-                            <option key={email} value={email}>{email}</option>
+                        <option value="">Select participant</option>
+                        {profiles.map((profile) => (
+                            <option key={profile.email} value={JSON.stringify(profile)}>
+                                {profile.fullName} ({profile.email})
+                            </option>
                         ))}
                     </select>
                 </div>
             )}
-            {/* Confirmar */}
+
             <div className="text-center mt-4">
                 <button
                     className={`w-full px-4 py-2 rounded-md ${selectedSlot
-                        ? "bg-gray-800 text-white"
+                        ? "bg-gray-800 text-white hover:bg-gray-700"
                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
                         }`}
                     onClick={confirmReservation}
@@ -325,6 +340,13 @@ const ReservationScheduler = () => {
                     Confirm
                 </button>
             </div>
+
+            <CustomToast
+                show={toast.show}
+                onClose={() => setToast({ show: false, message: '', type: 'info' })}
+                message={toast.message}
+                type={toast.type}
+            />
         </div>
     );
 };
