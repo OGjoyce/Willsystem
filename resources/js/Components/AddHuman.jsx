@@ -35,7 +35,7 @@ export function getHumanData(params) {
                 lastName: lastName,
                 relative: relative,
                 email: "NA",
-                phone: "NA",
+                //    phone: "NA",
                 blendedFamily: blendedFamily,
                 isIncludedOnSpousalWill: addToSpousalWill,
                 city: city,
@@ -59,7 +59,7 @@ export function getHumanData(params) {
                 lastName: lastName,
                 relative: relative,
                 email: document.getElementById('emailId1')?.value,
-                phone: `+${phone}`,
+                //  phone: `+${phone}`,
                 city: city,
                 province: province,
                 country: country
@@ -73,12 +73,12 @@ export function getHumanData(params) {
             lastName: "NA",
             relative: "NA",
             email: "NA",
-            phone: "NA"
+            // phone: "NA"
         };
     }
 }
 
-function AddHuman({ married, childrens, human, errors, onDataChange }) {
+function AddHuman({ married, childrens, human, errors, onDataChange, documents }) {
     let relationType = null;
     if (married) { relationType = 'spouse'; }
     if (childrens) { relationType = 'child'; }
@@ -95,11 +95,24 @@ function AddHuman({ married, childrens, human, errors, onDataChange }) {
     const [validationErrors, setValidationErrors] = useState({});
     const [phone, setPhone] = useState('');
     const [isBlendedFamily, setIsBlendedFamily] = useState(false)
+    const [isSpousalDocumentAvailable, setIsSpousalDocumentAvailable] = useState(false)
     const [isIncludedOnSpousal, setIsIncludedOnSpousal] = useState(false)
 
     useEffect(() => {
         setValidationErrors({})
     }, [])
+
+    useEffect(() => {
+        const spousalWill = documents?.find(document => document.docType === "spousalWill")
+
+        if (spousalWill) {
+            setIsSpousalDocumentAvailable(true)
+        } else {
+            setIsSpousalDocumentAvailable(false)
+        }
+
+    }, [documents])
+
     useEffect(() => {
         blendedFamily = isBlendedFamily
         addToSpousalWill = isIncludedOnSpousal
@@ -286,7 +299,7 @@ function AddHuman({ married, childrens, human, errors, onDataChange }) {
                             />
                         </>}
 
-                        {(married) && (
+                        {(married && isSpousalDocumentAvailable) && (
                             <>
                                 <Form.Group className="mb-3" controlId="emailId1">
                                     <Form.Label>Email for Notifications:</Form.Label>
@@ -299,23 +312,27 @@ function AddHuman({ married, childrens, human, errors, onDataChange }) {
                                     {(married || human) && validationErrors.email && <p className="mt-2 text-sm text-red-600">{validationErrors.email}</p>}
                                 </Form.Group>
 
-                                <Form.Label>Phone</Form.Label>
-                                <InputGroup className="mb-3" controlId="phoneId">
+                                {false && (
+                                    <>
+                                        <Form.Label>Phone</Form.Label>
+                                        <InputGroup className="mb-3" controlId="phoneId">
 
-                                    <InputGroup.Text>+ </InputGroup.Text>
-                                    <Form.Control
-                                        type="text"
-                                        name="phone"
-                                        id="phoneId"
-                                        placeholder="X XXX XXX-XXXX"
-                                        value={formValues?.phone || phone}
-                                        onChange={handlePhoneChange}
+                                            <InputGroup.Text>+ </InputGroup.Text>
+                                            <Form.Control
+                                                type="text"
+                                                name="phone"
+                                                id="phoneId"
+                                                placeholder="X XXX XXX-XXXX"
+                                                value={formValues?.phone || phone}
+                                                onChange={handlePhoneChange}
 
-                                    />
+                                            />
 
-                                </InputGroup>
-                                {(married || human) && validationErrors.phone && <p className="mt-2 text-sm text-red-600">{validationErrors.phone}</p>}
+                                        </InputGroup>
+                                        {(married || human) && validationErrors.phone && <p className="mt-2 text-sm text-red-600">{validationErrors.phone}</p>}
 
+                                    </>
+                                )}
                             </>
                         )}
                     </Form.Group>
