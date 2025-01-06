@@ -133,15 +133,12 @@ var WillContent = forwardRef((props, ref) => {
                                         {index === 0 ? " as the sole Executor of this my Will." : " to be the sole Executor of this my Will."}
                                     </li>
                                 ))}
-                                {executors.length > 0 ? (
-                                    <li>
-                                        If {capitalLetters(executors[executors.length - 1].firstName)} {capitalLetters(executors[executors.length - 1].lastName)} should refuse or be unable to act or continue to act as my Executor, then I appoint Lawyers and Lattes Professional Corporation or any successor law firm as the sole Executor of this my Will.
-                                    </li>
-                                ) : (
+                                {!executors.length > 0 &&
+
                                     <li>
                                         I appoint Lawyers and Lattes Professional Corporation or any successor law firm as the sole Executor of this my Will.
                                     </li>
-                                )}
+                                }
                                 <li>No bond or other security of any kind will be required of any Executor appointed in this my Will.</li>
                             </ol>
                             <p><strong><u>Powers of my Executor</u></strong></p>
@@ -288,8 +285,20 @@ var WillContent = forwardRef((props, ref) => {
                                                             </>
                                                         ) : (
                                                             <>
-                                                                Beneficiary: {beneficiary.beneficiary} {city ? `of ${capitalLetters(city)}, ${capitalLetters(country)}` : ''} - {beneficiary.shares}% share, Backup: {beneficiary.backup}  {backupCity ? `of ${capitalLetters(backupCity)}, ${capitalLetters(backupCountry)}` : ''}, Type: {beneficiary.type}
+                                                                Beneficiary: {beneficiary.beneficiary}
+                                                                {city ? ` of ${capitalLetters(city)}, ${capitalLetters(country)}` : ''}
+                                                                - {beneficiary.shares}% share
+                                                                {beneficiary.backup && beneficiary.backup !== 'NA' ? (
+                                                                    <>, if {beneficiary.beneficiary} predeceases me, then I give the residue of my estate to {beneficiary.backup}
+                                                                        {backupCity ? ` of ${capitalLetters(backupCity)}, ${capitalLetters(backupCountry)}` : ''}
+                                                                        {beneficiary.type ? `, Type: ${beneficiary.type}` : ''}
+                                                                    </>
+                                                                ) : (
+                                                                    beneficiary.type ? `, Type: ${beneficiary.type}` : ''
+                                                                )}
                                                             </>
+
+
                                                         )}
                                                     </li>
                                                 )
