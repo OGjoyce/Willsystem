@@ -822,7 +822,7 @@ export default function Personal({ auth }) {
                         {/* Render components based on the value of pointer */}
                         {pointer === 0 && <FormCity errors={validationErrors} />}
                         {pointer === 1 && <Married humanSelector="spouse" />}
-                        {pointer === 2 && <AddHuman married={true} errors={validationErrors} />}
+                        {pointer === 2 && <AddHuman married={true} errors={validationErrors} documents={objectStatus[0]?.[0]?.packageInfo?.documents} />}
                         {pointer === 3 && <Married humanSelector="children" />}
                         {pointer === 4 && <AddRelative relative="children" errors={validationErrors} datas={getObjectStatus(objectStatus, currentProfile)} />}
                         {pointer === 5 && <HumanTable datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
