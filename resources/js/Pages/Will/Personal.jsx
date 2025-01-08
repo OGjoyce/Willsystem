@@ -89,6 +89,7 @@ export default function Personal({ auth }) {
         if (pointer === 0 && !currIdObjDB) {
             setShowSelectPackageModal(true)
         }
+
     }, [pointer, currIdObjDB])
 
     //Set the visible steps for breadcrumb after changing profile or document
@@ -494,7 +495,7 @@ export default function Personal({ auth }) {
 
                 if (currentDocument == "spousalWill") {
                     updateKidsOnPrimaryObjectStatus(objectStatus, objectStatus[1][4].kids, currIdObjDB)
-                    console.log(objectStatus[1][4].kids)
+
                 }
                 break;
 
@@ -825,7 +826,7 @@ export default function Personal({ auth }) {
                         {pointer === 2 && <AddHuman married={true} errors={validationErrors} documents={objectStatus[0]?.[0]?.packageInfo?.documents} />}
                         {pointer === 3 && <Married humanSelector="children" />}
                         {pointer === 4 && <AddRelative relative="children" errors={validationErrors} datas={getObjectStatus(objectStatus, currentProfile)} />}
-                        {pointer === 5 && <HumanTable datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
+                        {pointer === 5 && <HumanTable datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} documents={objectStatus[0]?.[0]?.packageInfo?.documents} />}
                         {pointer === 6 && <Bequest datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
                         {pointer === 7 && <Residue datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
                         {pointer === 8 && <Wipeout datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
