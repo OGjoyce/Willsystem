@@ -21,7 +21,6 @@ function AddPersonDropdown({
     useEffect(() => {
         const objectStatus = JSON.parse(localStorage.getItem('fullData'));
         setAvailableDocuments(objectStatus[0]?.[0]?.packageInfo?.documents)
-        console.log("debbuging", objectStatus[0]?.[0]?.packageInfo?.documents)
     }, [])
 
     const handleSelect = (eventKey) => {
