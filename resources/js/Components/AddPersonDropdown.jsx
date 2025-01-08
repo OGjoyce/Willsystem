@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dropdown, Modal, Button } from 'react-bootstrap';
 import AddHuman from './AddHuman';
 import { getHumanData } from './AddHuman';
@@ -16,6 +16,13 @@ function AddPersonDropdown({
     variant = "outline-dark",
 }) {
     const [showModal, setShowModal] = useState(false);
+    const [availableDocuments, setAvailableDocuments] = useState([])
+
+    useEffect(() => {
+        const objectStatus = JSON.parse(localStorage.getItem('fullData'));
+        setAvailableDocuments(objectStatus[0]?.[0]?.packageInfo?.documents)
+        console.log("debbuging", objectStatus[0]?.[0]?.packageInfo?.documents)
+    }, [])
 
     const handleSelect = (eventKey) => {
         if (eventKey === 'add-person') {
@@ -77,7 +84,7 @@ function AddPersonDropdown({
                     <Modal.Title>Add New Person</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <AddHuman human={true} errors={validationErrors} />
+                    <AddHuman human={true} errors={validationErrors} documents={availableDocuments} />
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" size="sm" onClick={handleCloseAddPersonModal}>
