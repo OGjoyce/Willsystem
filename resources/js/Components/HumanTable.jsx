@@ -24,7 +24,7 @@ export function getExecutors() {
     return executorsObj;
 }
 
-function HumanTable({ id, datas, errors }) {
+function HumanTable({ id, datas, errors, documents }) {
     const [relatives, setRelatives] = useState(() => {
         const savedValues = localStorage.getItem('formValues');
         const parsedValues = savedValues ? JSON.parse(savedValues) : {};
@@ -52,6 +52,7 @@ function HumanTable({ id, datas, errors }) {
     const [itemToDelete, setItemToDelete] = useState(null);
     const [allNames, setAllNames] = useState([]);
     const [tempExecutors, setTempExecutors] = useState([]);
+    const [availabledocuments, setAvailableDocuments] = useState([])
 
     useEffect(() => {
         setValidationErrors(errors);
@@ -61,6 +62,7 @@ function HumanTable({ id, datas, errors }) {
         if (datas) {
             const names = allRelatives.map(relative => `${relative.firstName} ${relative.lastName}`);
             setAllNames([...new Set(names)]); // Elimina duplicados
+            setAvailableDocuments(documents)
         }
     }, [datas, allRelatives]);
 
@@ -355,7 +357,7 @@ function HumanTable({ id, datas, errors }) {
                     <Modal.Title>Add Person</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <AddHuman human={true} errors={validationErrors} />
+                    <AddHuman human={true} errors={validationErrors} documents={availabledocuments} />
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={handleCloseNosave}>
