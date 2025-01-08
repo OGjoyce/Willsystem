@@ -13,6 +13,7 @@ let country = undefined
 let province = undefined
 let blendedFamily = false
 let addToSpousalWill = false
+let addToSpousalRelatives = false
 
 let isFirstCheckDone = false;
 
@@ -62,7 +63,8 @@ export function getHumanData(params) {
                 //  phone: `+${phone}`,
                 city: city,
                 province: province,
-                country: country
+                country: country,
+                isIncludedOnSpousalRelatives: addToSpousalRelatives,
             };
         }
         return obj;
@@ -97,6 +99,7 @@ function AddHuman({ married, childrens, human, errors, onDataChange, documents }
     const [isBlendedFamily, setIsBlendedFamily] = useState(false)
     const [isSpousalDocumentAvailable, setIsSpousalDocumentAvailable] = useState(false)
     const [isIncludedOnSpousal, setIsIncludedOnSpousal] = useState(false)
+    const [isSharedRelative, setIsSharedRelative] = useState(false)
 
     useEffect(() => {
         setValidationErrors({})
@@ -116,8 +119,8 @@ function AddHuman({ married, childrens, human, errors, onDataChange, documents }
     useEffect(() => {
         blendedFamily = isBlendedFamily
         addToSpousalWill = isIncludedOnSpousal
-
-    }, [isBlendedFamily, isIncludedOnSpousal])
+        addToSpousalRelatives = isSharedRelative
+    }, [isBlendedFamily, isIncludedOnSpousal, isSharedRelative])
 
     useEffect(() => {
         if (relationType === 'spouse') {
@@ -281,7 +284,6 @@ function AddHuman({ married, childrens, human, errors, onDataChange, documents }
                         {childrens && <>
                             <Form.Check
                                 type="checkbox"
-
                                 className='mt-2'
                                 label="Blended family"
                                 checked={isBlendedFamily}
@@ -289,7 +291,6 @@ function AddHuman({ married, childrens, human, errors, onDataChange, documents }
                             />
                             <Form.Check
                                 type="checkbox"
-
                                 className='mt-2'
                                 label="Include it on Spousal Will"
                                 checked={isIncludedOnSpousal}
@@ -327,12 +328,12 @@ function AddHuman({ married, childrens, human, errors, onDataChange, documents }
                                                 onChange={handlePhoneChange}
 
                                             />
-
                                         </InputGroup>
                                         {(married || human) && validationErrors.phone && <p className="mt-2 text-sm text-red-600">{validationErrors.phone}</p>}
 
                                     </>
                                 )}
+
                             </>
                         )}
                     </Form.Group>
@@ -340,6 +341,14 @@ function AddHuman({ married, childrens, human, errors, onDataChange, documents }
 
                 {/* Integrate CityAutocomplete */}
                 <CityAutocomplete onCitySelect={handleCitySelect} validationErrors={validationErrors} />
+                {isSpousalDocumentAvailable && (<Form.Check
+                    type="checkbox"
+
+                    className='mt-2'
+                    label="Include on spousal relatives list"
+                    checked={isSharedRelative}
+                    onChange={() => { setIsSharedRelative(!isSharedRelative) }}
+                />)}
             </Form>
         </>
     );
