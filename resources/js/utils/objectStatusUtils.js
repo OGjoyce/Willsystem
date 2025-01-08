@@ -48,6 +48,8 @@ const initializeSpousalWill = (objectStatus) => {
 
             const personal = objectStatus[0].find(obj => obj.married)?.married;
 
+            const relatives = objectStatus[0].find(obj => obj.relatives)?.relatives
+
             const spousalWillData = [{
                 personal: {
                     step: 0,
@@ -93,7 +95,8 @@ const initializeSpousalWill = (objectStatus) => {
                 "kids": []
             },
             {
-                "executors": []
+                "executors": [],
+                "relatives": relatives.filter(relative => relative.isIncludedOnSpousalRelatives === true)
             },
             {
                 "relatives": []
@@ -235,6 +238,8 @@ function updateKidsOnPrimaryObjectStatus(objectStatus, newKids, backendId) {
     // Guarda en el backend
     updateDataObject(objectStatus, backendId);
     console.log(`Nueva versión ${newVersionKey} creada y guardada.`);
+}
+function updateRelativesOnPrimaryObjectStatus(objectStatus, newRelatives, backendId) {
 }
 
 
