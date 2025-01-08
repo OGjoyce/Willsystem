@@ -341,7 +341,7 @@ function AddHuman({ married, childrens, human, errors, onDataChange, documents }
 
                 {/* Integrate CityAutocomplete */}
                 <CityAutocomplete onCitySelect={handleCitySelect} validationErrors={validationErrors} />
-                {isSpousalDocumentAvailable && (<Form.Check
+                {!married && isSpousalDocumentAvailable && (<Form.Check
                     type="checkbox"
 
                     className='mt-2'
