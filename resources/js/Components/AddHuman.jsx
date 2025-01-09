@@ -292,7 +292,7 @@ function AddHuman({ married, childrens, human, errors, onDataChange, documents }
                             <Form.Check
                                 type="checkbox"
                                 className='mt-2'
-                                label="Include it on Spousal Will"
+                                label="Include them on Spousal Will"
                                 checked={isIncludedOnSpousal}
                                 onChange={() => {
                                     setIsIncludedOnSpousal(!isIncludedOnSpousal)
