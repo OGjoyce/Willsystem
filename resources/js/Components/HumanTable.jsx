@@ -60,6 +60,12 @@ function HumanTable({ id, datas, errors, documents }) {
 
     useEffect(() => {
         if (datas) {
+            setAllRelatives(datas[5].relatives)
+        }
+    }, [datas])
+
+    useEffect(() => {
+        if (datas) {
             const names = allRelatives.map(relative => `${relative.firstName} ${relative.lastName}`);
             setAllNames([...new Set(names)]); // Elimina duplicados
             setAvailableDocuments(documents)
