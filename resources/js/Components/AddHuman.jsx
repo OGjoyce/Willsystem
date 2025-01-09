@@ -345,7 +345,7 @@ function AddHuman({ married, childrens, human, errors, onDataChange, documents }
                     type="checkbox"
 
                     className='mt-2'
-                    label="Include on spousal relatives list"
+                    label="Include them in the list of the spouse's relatives"
                     checked={isSharedRelative}
                     onChange={() => { setIsSharedRelative(!isSharedRelative) }}
                 />)}
