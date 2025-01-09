@@ -592,19 +592,19 @@ function Bequest({ id, datas, errors }) {
                                                             )}
                                                         </td>
                                                         <td>
-                                                            <div className="d-flex justify-content-around gap-2">
+                                                            <div className="d-flex gap-2">
                                                                 {editingRow === index ? (
                                                                     <>
                                                                         <Button
                                                                             variant="outline-success"
-                                                                            size="sm"
+                                                                            size=""
                                                                             onClick={() => handleSave(index)}
                                                                         >
                                                                             Save
                                                                         </Button>
                                                                         <Button
                                                                             variant="outline-secondary"
-                                                                            size="sm"
+                                                                            size="lg"
                                                                             onClick={handleCancel}
                                                                         >
                                                                             Cancel
@@ -614,17 +614,17 @@ function Bequest({ id, datas, errors }) {
                                                                     <>
                                                                         <Button
                                                                             variant="outline-danger"
-                                                                            size="sm"
+                                                                            size=""
                                                                             onClick={() => handleDelete(item.id)}
                                                                         >
-                                                                            Delete
+                                                                            <i class="bi bi-trash3"></i>  Delete
                                                                         </Button>
                                                                         <Button
                                                                             variant="outline-warning"
-                                                                            size="sm"
+                                                                            size=""
                                                                             onClick={() => handleEdit(index)}
                                                                         >
-                                                                            Edit
+                                                                            <i class="bi bi-pencil"></i>  Edit
                                                                         </Button>
                                                                     </>
                                                                 )}
