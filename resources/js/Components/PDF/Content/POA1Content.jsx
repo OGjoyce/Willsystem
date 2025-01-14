@@ -147,7 +147,7 @@ const POA1Content = forwardRef((props, ref) => {
                             <p>__________________________________________________<br />
                                 {capitalLetters(personal.fullName)}<br />
                                 {personal.city},{personal.province ? `${personal.province}` : ""}<br />
-                                {personal.postalCode || "[Postal Code]"}</p>
+                            </p>
                             <p>SIGNED AND DECLARED by {capitalLetters(personal.fullName)} on this ____ day of ____________________, 20____to be the
                                 Grantor's Power of Attorney for Property, in our presence, remotely, who at the Grantor's request and in the
                                 presence of the Grantor, via video conference and in the physical presence of each other at Vaughan,
