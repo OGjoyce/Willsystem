@@ -672,7 +672,7 @@ var WillContent = forwardRef((props, ref) => {
                                                         Where I leave my pet {caretaker.petName} which is healthy, I appoint {capitalLetters(guardianInfo.fullName)} of {capitalLetters(guardianInfo.city)}, {capitalLetters(guardianInfo.province)}, {capitalLetters(guardianInfo.country)} to be the caretaker,
                                                         to care of it as it's own with all the rights and responsibilities of ownership.
 
-                                                        {caretaker.backup && (
+                                                        {caretaker.backup && backupInfo.fullName !== "N/A" && (
                                                             <ul>
                                                                 If {capitalLetters(guardianInfo.fullName)} should refuse or be unable to act or continue to act as {caretaker.petName}'s guardian, then I
                                                                 appoint {capitalLetters(backupInfo.fullName)}, of {capitalLetters(backupInfo.city)}, {capitalLetters(backupInfo.province)}, {capitalLetters(backupInfo.country)} to act as it's guardian.
