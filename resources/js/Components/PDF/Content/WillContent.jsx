@@ -255,7 +255,7 @@ var WillContent = forwardRef((props, ref) => {
 
 
                             <p><strong><u>Distribution of Residue</u></strong></p>
-                            <p>Last Will and Testament of Nicholas David West Folk</p>
+                            <p>Last Will and Testament of {capitalLetters(personal.fullName)}</p>
                             <ol>
                                 <li>To receive any gift or property under this Will a beneficiary must survive me for thirty days.</li>
                                 <li>Beneficiaries or any alternate beneficiaries of my estate residue will receive and share all of my property
