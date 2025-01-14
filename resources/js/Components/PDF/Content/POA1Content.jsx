@@ -41,6 +41,7 @@ const POA1Content = forwardRef((props, ref) => {
         }
 
         if (person) {
+            if (person.middleName == undefined) { person.middleName = "" }
             return {
                 city: person.city || '',
                 country: person.country || '',
