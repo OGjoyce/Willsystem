@@ -45,11 +45,12 @@ const POA2Content = forwardRef((props, ref) => {
         }
 
         if (person) {
+            if (person.middleName == undefined) { person.middleName = "" }
             return {
                 city: person.city || '',
                 country: person.country || '',
                 province: person.province || '',
-                fullName: `${person.firstName} ${person.lastName}`.trim() || '',
+                fullName: `${person.firstName} ${person.middleName} ${person.lastName}`.trim() || '',
                 relation: relation,
                 telephone: person.phone || person.telephone || ''
             };
@@ -114,7 +115,7 @@ const POA2Content = forwardRef((props, ref) => {
 
                             {attorneyTwo.slice(1).map((backup, index) => (
                                 <li key={index}>
-                                    If {capitalLetters(attorneyTwo[index].fullName)} cannot or will not be my Attorney because of refusal, resignation, death, mental incapacity, or removal by the court, I SUBSTITUTE {capitalLetters(backup.fullName)} {backup.city && `of ${capitalLetters(backup.city)}`}, {backup.province && `of ${capitalLetters(backup.province)},`} {backup.country && `${capitalLetters(backup.country)} `} {backup.telephone && `tel: ${backup.telephone}`} to be my sole Attorney.
+                                    If {capitalLetters(attorneyTwo[index].fullName)} cannot or will not be my Attorney because of refusal, resignation, death, mental incapacity, or removal by the court, I SUBSTITUTE {capitalLetters(backup.fullName)} {backup.city && `of ${capitalLetters(backup.city)}`}, {backup.province && `of ${capitalLetters(backup.province)},`} {backup.country && `${capitalLetters(backup.country)} `} to be my sole Attorney.
                                 </li>
                             ))}
 
