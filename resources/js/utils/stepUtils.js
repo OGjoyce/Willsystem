@@ -179,7 +179,7 @@ export const backStep = (pointer, objectStatus, currentProfile, visibleSteps, se
                 key: 'pets',
                 check: (data) => {
                     if (data && typeof data === 'object') {
-                        const keys = Object.keys(data).filter(k => k !== 'timestamp');
+                        const keys = Object.keys(data).filter(k => k == 'timestamp');
                         return keys.length > 0;
                     }
                     return false;
