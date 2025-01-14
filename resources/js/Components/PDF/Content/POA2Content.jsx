@@ -23,9 +23,9 @@ const POA2Content = forwardRef((props, ref) => {
     const personal = statusObject.personal || {};
     const spouseInfo = statusObject.married || {};
     const kids = Object.values(statusObject.kids || {});
-    const relatives = Object.values(statusObject.relatives || {});
+    const relatives = Object.values(datasObj[5].relatives || {});
     const POAInfo = statusObject.poaHealth || {};
-
+    console.log('re', relatives)
     // Function to find person information based on name
     function findPersonInfo(name, relatives, kids, spouseInfo) {
         if (!name) return { city: '', country: '', province: '', fullName: '', relation: '', telephone: '' };
@@ -102,18 +102,18 @@ const POA2Content = forwardRef((props, ref) => {
                         <p><strong>Designation of Attorney</strong></p>
                         <ol start="3">
                             <li>
-                                I designate  {attorneyOne.relation && ` my ${attorneyOne?.relation?.toLowerCase()}`} {capitalLetters(attorneyOne.fullName)} {attorneyOne.telephone && `tel: ${attorneyOne.telephone}`} to be my sole Attorney for
+                                I designate  {attorneyOne.relation && ` my ${attorneyOne?.relation?.toLowerCase()}`} {capitalLetters(attorneyOne.fullName)}  {attorneyOne.city && attorneyOne.province && `, of ${capitalLetters(attorneyOne.province)}, ${capitalLetters(attorneyOne.city)}, ${capitalLetters(attorneyOne.country)}`} {attorneyOne.telephone && `tel: ${attorneyOne.telephone}`} to be my sole Attorney for
                                 Personal Care (my "Attorney").
                             </li>
                             {attorneyTwo && attorneyTwo.length > 0 && (
                                 <li>
-                                    If {attorneyOne.relation && `my ${attorneyOne?.relation?.toLowerCase()}`} {capitalLetters(attorneyOne.fullName)} cannot or will not be my Attorney because of refusal, resignation, death, mental incapacity, or removal by the court, I SUBSTITUTE {capitalLetters(attorneyTwo[0].fullName)} {attorneyTwo[0].city && `of ${capitalLetters(attorneyTwo[0].city)}`}, {attorneyTwo[0].province && `of ${capitalLetters(attorneyTwo[0].province)}`} {attorneyTwo[0].telephone && `tel: ${attorneyTwo[0].telephone}`} to be my sole Attorney.
+                                    If {attorneyOne.relation && `my ${attorneyOne?.relation?.toLowerCase()}`} {capitalLetters(attorneyOne.fullName)} cannot or will not be my Attorney because of refusal, resignation, death, mental incapacity, or removal by the court, I SUBSTITUTE {capitalLetters(attorneyTwo[0].fullName)} {attorneyTwo[0].city && `of ${capitalLetters(attorneyTwo[0].city)}`}, {attorneyTwo[0].province && `, ${capitalLetters(attorneyTwo[0].country)}`} {attorneyTwo[0].telephone && `tel: ${attorneyTwo[0].telephone}`} to be my sole Attorney.
                                 </li>
                             )}
 
                             {attorneyTwo.slice(1).map((backup, index) => (
                                 <li key={index}>
-                                    If {capitalLetters(attorneyTwo[index].fullName)} cannot or will not be my Attorney because of refusal, resignation, death, mental incapacity, or removal by the court, I SUBSTITUTE {capitalLetters(backup.fullName)} {backup.city && `of ${capitalLetters(backup.city)}`}, {backup.province && `of ${capitalLetters(backup.province)}`} {backup.telephone && `tel: ${backup.telephone}`} to be my sole Attorney.
+                                    If {capitalLetters(attorneyTwo[index].fullName)} cannot or will not be my Attorney because of refusal, resignation, death, mental incapacity, or removal by the court, I SUBSTITUTE {capitalLetters(backup.fullName)} {backup.city && `of ${capitalLetters(backup.city)}`}, {backup.province && `of ${capitalLetters(backup.province)},`} {backup.country && `${capitalLetters(backup.country)} `} {backup.telephone && `tel: ${backup.telephone}`} to be my sole Attorney.
                                 </li>
                             ))}
 
