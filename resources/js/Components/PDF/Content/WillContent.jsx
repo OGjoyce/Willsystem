@@ -87,7 +87,7 @@ var WillContent = forwardRef((props, ref) => {
                             <ol>
                                 <li>
                                     {isMarried
-                                        ? `I am married to ${capitalLetters(spouseInfo.firstName)} ${capitalLetters(spouseInfo.lastName)} (my "${spouseInfo.relative}").`
+                                        ? `I am married to ${capitalLetters(spouseInfo.firstName)} ${capitalLetters(spouseInfo.middleName)} ${capitalLetters(spouseInfo.lastName)} (my "${spouseInfo.relative}").`
                                         : isCommonRelationship
                                             ? `I am in a common law relationship with ${capitalLetters(spouseInfo.firstName)} ${capitalLetters(spouseInfo.lastName)} (my "${spouseInfo.relative}").`
                                             : "I am not married or in a common law relationship."
@@ -399,12 +399,27 @@ var WillContent = forwardRef((props, ref) => {
                                                     shall be distributed to my siblings in equal shares.
                                                 </>
                                             )}
+                                            {wipeoutInfo.selectedCategory === "50% to parents and siblings and 50% to parents and siblings of spouse" && (
+                                                <>
+                                                    In the absence of surviving beneficiaries or alternate beneficiaries, I direct that 50% of the residue of my estate
+                                                    shall be distributed to my parents and siblings in equal shares, and 50% shall be distributed to the parents and
+                                                    siblings of my spouse in equal shares.
+                                                </>
+                                            )}
+                                            {wipeoutInfo.selectedCategory === "50% to siblings and 50% to siblings of spouse" && (
+                                                <>
+                                                    In the absence of surviving beneficiaries or alternate beneficiaries, I direct that 50% of the residue of my estate
+                                                    shall be distributed to my siblings in equal shares, and 50% shall be distributed to the siblings of my spouse
+                                                    in equal shares.
+                                                </>
+                                            )}
                                             {wipeoutInfo.custom && wipeoutInfo.table_dataBequest.length === 0 && (
                                                 <>
                                                     No specific distribution instructions have been provided for the wipeout provision, and custom settings are enabled.
                                                 </>
                                             )}
                                         </li>
+
                                     )}
                                 </ul>
                             </ol>
