@@ -276,7 +276,6 @@ const POA2Content = forwardRef((props, ref) => {
                         <p>__________________________________________________</p>
                         <p>{capitalLetters(personal.fullName)}</p>
                         <p>{capitalLetters(personal.city)} {personal.province ? `, ${capitalLetters(personal.province)}` : ''}</p>
-                        <p>{personal.postalCode || 'POSTAL CODE:______________'}</p>
                         <p>
                             SIGNED AND DECLARED by {capitalLetters(personal.fullName)} on this ____ day of ____________________, 20____ to
                             be the Grantor's Power of Attorney for Personal Care, in our presence, remotely, who at the Grantor's
