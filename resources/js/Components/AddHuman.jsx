@@ -281,7 +281,7 @@ function AddHuman({ married, childrens, human, errors, onDataChange, documents }
                                 {validationErrors.otherRelative && <p className="mt-2 text-sm text-red-600">{validationErrors.otherRelative}</p>}
                             </>
                         )}
-                        {childrens && <>
+                        {childrens && isSpousalDocumentAvailable && <>
                             <Form.Check
                                 type="checkbox"
                                 className='mt-2'
