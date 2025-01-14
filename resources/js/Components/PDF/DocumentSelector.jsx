@@ -189,10 +189,11 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocu
                             >
                                 <i className="bi bi-send"></i> Send Documents as PDFs for Approval
                             </Button>
-                            {packageInfo?.is_signature_required &&
+                            {packageInfo?.is_signature_required == true &&
                                 <Button
                                     variant="outline-dark"
                                     className="mt-3 w-100"
+                                    disabled={!allDocumentsCompleted}
                                     onClick={() => setShowScheduler(!showScheduler)}
                                 >
                                     {showScheduler ? <><i class="bi bi-calendar-x"></i> Hide Scheduler </> : <><i class="bi bi-calendar-plus"></i> Schedule an appointment </>}
