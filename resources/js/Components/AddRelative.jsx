@@ -55,6 +55,7 @@ function AddRelative({ relative, datas, errors, onDataChange }) {
             const newEntry = {
                 id: tableData.length + 1,
                 firstName: modalData.firstName,
+                middleName: modalData.middleName,
                 lastName: modalData.lastName,
                 relative: modalData.relative,
                 isBlendedFamily: modalData.blendedFamily,
