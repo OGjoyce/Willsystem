@@ -19,7 +19,7 @@ const POA1Content = forwardRef((props, ref) => {
     const personal = statusObject.personal || {};
     const spouseInfo = statusObject.married || {};
     const kids = Object.values(statusObject.kids || {});
-    const relatives = Object.values(statusObject.relatives || {});
+    const relatives = Object.values(datasObj[5].relatives || {});
     const POAInfo = statusObject.poaProperty || {};
 
     function findPersonInfo(name, relatives, kids, spouseInfo) {
