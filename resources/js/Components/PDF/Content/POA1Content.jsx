@@ -36,6 +36,7 @@ const POA1Content = forwardRef((props, ref) => {
         if (!person && spouseInfo.firstName && spouseInfo.lastName &&
             `${spouseInfo.firstName} ${spouseInfo.lastName}`.trim() === names) {
             person = spouseInfo;
+            person.fullName = `${spouseInfo.firstName || ''} ${spouseInfo.middleName || ''} ${spouseInfo.lastName || ''}`.trim()
             relation = 'Spouse';
         }
 
@@ -44,7 +45,7 @@ const POA1Content = forwardRef((props, ref) => {
                 city: person.city || '',
                 country: person.country || '',
                 province: person.province || '',
-                fullName: `${person.firstName || ''} ${person.lastName || ''}`.trim(),
+                fullName: `${person.firstName || ''} ${person.middleName || ''} ${person.lastName || ''}`.trim(),
                 relation: relation,
                 telephone: person.phone || person.telephone || ''
             };
