@@ -61,6 +61,7 @@ export function getHumanData(params) {
                 relative: relative,
                 email: document.getElementById('emailId1')?.value,
                 //  phone: `+${phone}`,
+                phone: `+${phone}` || null,
                 city: city,
                 province: province,
                 country: country,
