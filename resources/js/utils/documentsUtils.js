@@ -53,348 +53,306 @@ const assignDocuments = (objectStatus, currentProfile, currentDocument) => {
     // Return null if no package info or documents are available
     return null;
 };
+// Función para actualizar la fecha de envío en el objeto package
 const setDocumentsSentDate = (objectStatus, currIdObjDB) => {
-
-    const updatedObjectStatus = objectStatus;
-    
-    if (updatedObjectStatus[0] && updatedObjectStatus[0][0] && updatedObjectStatus[0][0].packageInfo) {
-        // Get the current date
-        const currentDate = new Date();
-        
-        // Extract day, month, and year (with proper formatting for two digits)
-        const day = String(currentDate.getDate()).padStart(2, '0');
-        const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Month is zero-based
-        const year = currentDate.getFullYear(); // Get full year (e.g., 2024)
-        
-        // Format the date in MM/DD/YYYY format
-        const formattedDate = `${month}/${day}/${year}`;
-        
-        // Assign the formatted date to the documents_sent_at field
-        updatedObjectStatus[0][0].packageInfo.documents_sent_at = formattedDate;
-    } else {
-        console.error('Error: invalid data structure');
-    }
-
-    // Call the updateDataObject function with the updated object status
-    updateDataObject(objectStatus, currIdObjDB);
+  const updatedObjectStatus = objectStatus;
+  if (updatedObjectStatus[0] && updatedObjectStatus[0][0] && updatedObjectStatus[0][0].packageInfo) {
+    const currentDate = new Date();
+    const day = String(currentDate.getDate()).padStart(2, "0");
+    const month = String(currentDate.getMonth() + 1).padStart(2, "0");
+    const year = currentDate.getFullYear();
+    const formattedDate = `${month}/${day}/${year}`;
+    updatedObjectStatus[0][0].packageInfo.documents_sent_at = formattedDate;
+  } else {
+    console.error("Error: invalid data structure");
+  }
+  updateDataObject(objectStatus, currIdObjDB);
 };
+  
 
 
 
-   async function sendDocumentsForApproval(objectStatus, currIdObjDB) {
-        setDocumentsSentDate(objectStatus, currIdObjDB)
-        const idForToken = currIdObjDB;
-        let userInfoForToken = [];
-
-        // Recolectar emails y nombres
-        objectStatus.forEach(innerList => {
-            innerList.forEach(item => {
-                if (item.owner && item.personal?.fullName) {
-                    userInfoForToken.push({
-                        email: item.owner,
-                        fullName: item.personal.fullName
-                    });
-                }
-            });
+async function sendDocumentsForApproval(objectStatus, currIdObjDB) {
+  setDocumentsSentDate(objectStatus, currIdObjDB);
+  const idForToken = currIdObjDB;
+  let userInfoForToken = [];
+  
+  // Recolectar emails y nombres
+  objectStatus.forEach(innerList => {
+    innerList.forEach(item => {
+      if (item.owner && item.personal?.fullName) {
+        userInfoForToken.push({
+          email: item.owner,
+          fullName: item.personal.fullName
         });
-
-        let tokensByEmail = {};
-
-        // Hacer la petición POST por cada email y nombre
-        for (let userInfo of userInfoForToken) {
-            try {
-                // 1. Validar el email y obtener la contraseña si es un nuevo usuario
-                const validateEmailResponse = await axios.post('https://willsystemapp.com/api/validate-email', {
-                    email: userInfo.email,
-                    name: userInfo.fullName
-                });
-
-                const password = validateEmailResponse.data.password;
-
-                // 2. Generar el token para el usuario
-                const generateTokenResponse = await axios.post('https://willsystemapp.com/api/generate-token', {
-                    email: userInfo.email,
-                    id: idForToken
-                });
-
-                // Asume que el token viene en `response.data.token`
-                const token = generateTokenResponse.data.token;
-                tokensByEmail[userInfo.email] = {
-                    token: token,
-                    fullName: userInfo.fullName
-                };
-
-                // 3. Construir el mensaje en formato HTML
-                let message = `
-    <html>
-        <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
-            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);">
-                <tr>
-                    <td align="center" style="padding: 20px 0;">
-                        <h2 style="color: #333; font-size: 24px; margin: 0;">Hello, ${userInfo.fullName}</h2>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
-                        <p>We’re reaching out to request your review and approval of important documents. Please follow the link below to securely access them:</p>
-                    </td>
-                </tr>
-                <tr>
-                    <td align="center" style="padding: 20px;">
-                        <a href="https://willsystemapp.com/documents-approval?token=${token}" 
-                           style="display: inline-block; padding: 12px 24px; background-color: #198754; color: white; 
-                                  text-decoration: none; font-size: 16px; border-radius: 5px;">
-                            Review Documents
-                        </a>
-                    </td>
-                </tr>
-                  ${password ? `
-                <tr>
-                    <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
-                        <p>Your temporary password is:</p>
-                        <p style="font-weight: bold; color: #333;">${password}</p>
-                    </td>
-                </tr>` : ''}
-                <tr>
-                    <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
-                        <p>If the button above doesn't work, you can also access your documents using this link:</p>
-                        <p><a href="https://willsystemapp.com/documents-approval?token=${token}" 
-                              style="color: #198754; word-break: break-all;">click here...</a></p>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="padding: 20px; color: #888; font-size: 14px; line-height: 1.6;">
-                        <p>Thank you for your prompt attention.</p>
-                        <p style="margin: 0;">Warm regards,</p>
-                        <p style="margin: 0;">Barret Tax Law Team</p>
-                    </td>
-                </tr>
-            </table>
-        </body>
-    </html>
-`;
-
-
-                // 4. Enviar el correo electrónico en formato HTML
-                await axios.post('https://willsystemapp.com:5000/send-email', {
-                    to_email: userInfo.email,
-                    subject: 'Please review and approve your documents',
-                    message: message, // Este será el cuerpo en HTML
-                    is_html: true     // Agrega un flag para indicar que el contenido es HTML
-                });
-
-            } catch (error) {
-                console.error(`Error processing ${userInfo.email}:`, error);
-                throw error; // Lanza el error para que sea manejado en el try-catch de `handleSendDocuments`
-            }
+      }
+    });
+  });
+  
+  // Función para procesar cada envío individual
+  const sendEmail = async (userInfo) => {
+    try {
+      // Validar email y obtener contraseña
+      const validateEmailResponse = await axios.post(
+        "https://willsystemapp.com/api/validate-email",
+        {
+          email: userInfo.email,
+          name: userInfo.fullName
         }
-
-        console.log(tokensByEmail);
+      );
+      const password = validateEmailResponse.data.password;
+  
+      // Generar token
+      const generateTokenResponse = await axios.post(
+        "https://willsystemapp.com/api/generate-token",
+        {
+          email: userInfo.email,
+          id: idForToken
+        }
+      );
+      const token = generateTokenResponse.data.token;
+  
+      // Construir mensaje HTML
+      const message = `
+      <html>
+        <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
+          <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);">
+            <tr>
+              <td align="center" style="padding: 20px 0;">
+                <h2 style="color: #333; font-size: 24px; margin: 0;">Hello, ${userInfo.fullName}</h2>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
+                <p>We’re reaching out to request your review and approval of important documents. Please follow the link below to securely access them:</p>
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="padding: 20px;">
+                <a href="https://willsystemapp.com/documents-approval?token=${token}" 
+                   style="display: inline-block; padding: 12px 24px; background-color: #198754; color: white; 
+                          text-decoration: none; font-size: 16px; border-radius: 5px;">
+                  Review Documents
+                </a>
+              </td>
+            </tr>
+            ${
+              password
+                ? `<tr>
+                    <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
+                      <p>Your temporary password is:</p>
+                      <p style="font-weight: bold; color: #333;">${password}</p>
+                    </td>
+                  </tr>`
+                : ""
+            }
+            <tr>
+              <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
+                <p>If the button above doesn't work, you can also access your documents using this link:</p>
+                <p><a href="https://willsystemapp.com/documents-approval?token=${token}" 
+                      style="color: #198754; word-break: break-all;">click here...</a></p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 20px; color: #888; font-size: 14px; line-height: 1.6;">
+                <p>Thank you for your prompt attention.</p>
+                <p style="margin: 0;">Warm regards,</p>
+                <p style="margin: 0;">Barret Tax Law Team</p>
+              </td>
+            </tr>
+          </table>
+        </body>
+      </html>`;
+  
+      // Enviar email
+      await axios.post("https://willsystemapp.com:5000/send-email", {
+        to_email: userInfo.email,
+        subject: "Please review and approve your documents",
+        message: message,
+        is_html: true
+      });
+    } catch (error) {
+      console.error(`Error processing ${userInfo.email}:`, error);
+      // Se lanza el error para que se capture en el allSettled
+      throw new Error(`Error sending email to ${userInfo.email}`);
     }
-
+  };
+  
+  // Procesar todas las peticiones en paralelo y esperar a que terminen
+  const emailPromises = userInfoForToken.map(userInfo => sendEmail(userInfo));
+  const results = await Promise.allSettled(emailPromises);
+  
+  // Revisar si hubo errores
+  const failed = results.filter(result => result.status === "rejected");
+  if (failed.length > 0) {
+    // Se puede lanzar un error global o simplemente registrarlo
+    console.error("Some emails failed:", failed);
+    throw new Error("One or more emails failed to send.");
+  }
+}
+// Enviar correos con PDFs adjuntos
 async function sendDocumentsAsPDF(objectStatus, currIdObjDB) {
-    setDocumentsSentDate(objectStatus, currIdObjDB);
-
-    // Calcular el número de líneas basado en el contenido
-    function calculateLineCount(htmlContent, lineHeightPx) {
-        // Crear un contenedor oculto para medir el contenido
-        const container = document.createElement('div');
-        container.style.position = 'absolute';
-        container.style.visibility = 'hidden';
-        container.style.width = '600px'; // Ancho aproximado del contenido
-        container.style.lineHeight = `${lineHeightPx}px`; // Altura estándar de línea
-        container.innerHTML = htmlContent;
-
-        // Agregar al body temporalmente
-        document.body.appendChild(container);
-
-        // Calcular la altura y determinar el número de líneas
-        const contentHeight = container.offsetHeight;
-        const lineCount = Math.ceil(contentHeight / lineHeightPx);
-
-        // Eliminar el contenedor después de medir
-        document.body.removeChild(container);
-
-        return lineCount;
-    }
-
-  // Generar numeración de líneas dinámicamente
-function generateLineNumbers(maxLines, startLine = 1) {
+  setDocumentsSentDate(objectStatus, currIdObjDB);
+  
+  // Funciones auxiliares para numeración y combinación de contenido
+  function calculateLineCount(htmlContent, lineHeightPx) {
+    const container = document.createElement("div");
+    container.style.position = "absolute";
+    container.style.visibility = "hidden";
+    container.style.width = "600px";
+    container.style.lineHeight = `${lineHeightPx}px`;
+    container.innerHTML = htmlContent;
+    document.body.appendChild(container);
+    const contentHeight = container.offsetHeight;
+    const lineCount = Math.ceil(contentHeight / lineHeightPx);
+    document.body.removeChild(container);
+    return lineCount;
+  }
+  
+  function generateLineNumbers(maxLines, startLine = 1) {
     const lineNumbers = [];
     for (let i = startLine; i < startLine + maxLines; i++) {
-        lineNumbers.push(`<div style="
-            text-align: right;
-            font-family: 'Times New Roman', Times, serif;
-            font-size: 10px;
-            color: #666;
-            line-height: 1.3;
-            height: 1.3em; /* Altura consistente por línea */
-        ">${i}</div>`);
+      lineNumbers.push(
+        `<div style="
+          text-align: right;
+          font-family: 'Times New Roman', Times, serif;
+          font-size: 10px;
+          color: #666;
+          line-height: 1.3;
+          height: 1.3em;
+        ">${i}</div>`
+      );
     }
     return `<div style="
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 40px;
-        height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 40px;
+      height: 100%;
     ">${lineNumbers.join('')}</div>`;
-}
-
-// Función para combinar contenido con numeración ajustada
-function combineContentWithLineNumbers(htmlContent) {
-    // Crear contenedor oculto para medir líneas de texto
-    const container = document.createElement('div');
-    container.style.position = 'absolute';
-    container.style.visibility = 'hidden';
-    container.style.width = '600px'; // Ajustar al ancho real del contenido
-    container.style.lineHeight = '1.3em';
-    container.innerHTML = htmlContent;
-
-    document.body.appendChild(container);
-
-    // Detectar la altura del primer bloque de texto
-    const firstLineOffset = container.querySelector('*').offsetTop || 0;
-
-    // Calcular total de líneas
-    const contentHeight = container.offsetHeight;
-    const lineHeightPx = parseFloat(getComputedStyle(container).lineHeight) || 18;
-    const totalLines = Math.ceil(contentHeight / lineHeightPx);
-
-    document.body.removeChild(container);
-
-    // Generar numeración solo desde la primera línea de texto
-    const lineNumbersHTML = generateLineNumbers(totalLines, Math.floor(firstLineOffset / lineHeightPx) + 1);
-
-    // Combinar numeración y contenido
+  }
+  
+  // En este ejemplo combinamos el contenido con la numeración
+  function combineContentWithLineNumbers(htmlContent, maxLines) {
+    const lineNumbersHTML = generateLineNumbers(maxLines);
     return `
-        <div style="position: relative; font-family: 'Times New Roman', Times, serif; font-size: 10px; line-height: 1.3;">
-            ${lineNumbersHTML}
-            <div style="margin-left: 50px; white-space: pre-wrap; word-wrap: break-word;">
-                ${htmlContent}
-            </div>
+      <div style="position: relative; font-family: 'Times New Roman', Times, serif; font-size: 10px; line-height: 1.6;">
+        ${lineNumbersHTML}
+        <div style="margin-left: 50px; white-space: pre-wrap; word-wrap: break-word;">
+          ${htmlContent}
         </div>
+      </div>
     `;
-}
-
-
-    // Función para combinar numeración con contenido
-    function combineContentWithLineNumbers(htmlContent, maxLines) {
-        const lineNumbersHTML = generateLineNumbers(maxLines);
-        return `
-        <div style="position: relative; font-family: 'Times New Roman', Times, serif; font-size: 10px; line-height: 1.6;">
-            ${lineNumbersHTML}
-            <div style="margin-left: 50px; white-space: pre-wrap; word-wrap: break-word;">
-                ${htmlContent}
-            </div>
-        </div>
-    `;
+  }
+  
+  // Procesar cada conjunto de documentos para cada usuario
+  for (const userSet of objectStatus) {
+    const personalInfo = userSet.find(item => item.personal);
+    const documentData = userSet.find(item => item.documentDOM);
+  
+    if (!personalInfo || !documentData) {
+      console.error("Required information not found for this user.");
+      continue;
     }
-
-    for (const userSet of objectStatus) {
-        const personalInfo = userSet.find(item => item.personal);
-        const documentData = userSet.find(item => item.documentDOM);
-
-        if (!personalInfo || !documentData) {
-            console.error("Required information not found for this user.");
-            continue;
-        }
-
-        const { fullName } = personalInfo.personal;
-        const email = personalInfo.owner;
-        const documentDOM = documentData.documentDOM;
-
-        if (!email) {
-            console.error(`Missing email for ${fullName}.`);
-            continue;
-        }
-
-        try {
-            // Recopilar todos los documentos en base64
-            let attachments = [];
-            for (const [documentType, docVersion] of Object.entries(documentDOM)) {
-                const documentContent = docVersion?.v1?.content;
-                if (!documentContent) {
-                    console.warn(`No content found for document type ${documentType} for ${fullName}.`);
-                    continue;
-                }
-
-                // Calcular la cantidad de líneas dinámicamente
-                const lineHeightPx = 18; // Altura estándar de línea
-                const lineCount = calculateLineCount(documentContent, lineHeightPx);
-
-                // Combinar contenido con numeración dinámica
-                const combinedContent = combineContentWithLineNumbers(documentContent, lineCount);
-
-                // Generar el PDF y obtenerlo en base64 desde el servidor de PDF
-                const response = await axios.post('https://willsystemapp.com:5050/generate-pdf', {
-                    htmlContent: combinedContent,
-                    fileName: `${fullName}-${documentType}.pdf`
-                });
-
-                const pdfBase64 = response.data.pdfBase64; // PDF en base64
-                attachments.push({
-                    filename: `${fullName}-${documentType}.pdf`,
-                    content: pdfBase64
-                });
-            }
-
-            if (attachments.length === 0) {
-                console.error(`No documents to attach for ${fullName}.`);
-                continue;
-            }
-
-            // Crear el cuerpo del mensaje en formato HTML
-            const message = `
-<html>
-    <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
-        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);">
-            <tr>
-                <td align="center" style="padding: 20px 0;">
-                    <h2 style="color: #333; font-size: 24px; margin: 0;">Hello, ${fullName}</h2>
-                </td>
-            </tr>
-            <tr>
-                <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
-                    <p>We hope this message finds you well. Attached to this email, you will find the PDF files you requested. Please review the documents at your convenience.</p>
-                    <p>If you have any questions or need further assistance, feel free to reach out to us. We're here to help.</p>
-                </td>
-            </tr>
-            <tr>
-                <td style="padding: 20px; color: #888; font-size: 14px; line-height: 1.6;">
-                    <p>Thank you for your time and attention.</p>
-                    <p style="margin: 0;">Warm regards,</p>
-                    <p style="margin: 0;">Barret Tax Law Team</p>
-                </td>
-            </tr>
-        </table>
-    </body>
-</html>`;
-
-            const data = {
-                to_email: email,
-                subject: 'Please review and approve your documents',
-                message: message,
-                is_html: true,
-                attachments: attachments
-            };
-
-            // Serializar el objeto JSON
-            await axios.post('https://willsystemapp.com:5000/send-email', JSON.stringify(data), {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            console.log(`Email with all documents sent successfully to ${fullName} (${email}).`);
-
-        } catch (error) {
-            console.error(`Error processing ${email}:`, error);
-            continue;
-        }
+  
+    const { fullName } = personalInfo.personal;
+    const email = personalInfo.owner;
+    const documentDOM = documentData.documentDOM;
+  
+    if (!email) {
+      console.error(`Missing email for ${fullName}.`);
+      continue;
     }
-
-    console.log("All documents processed and emails sent.");
+  
+    try {
+      // Recopilar PDFs adjuntos
+      let attachments = [];
+  
+      for (const [documentType, docVersion] of Object.entries(documentDOM)) {
+        const documentContent = docVersion?.v1?.content;
+        if (!documentContent) {
+          console.warn(`No content found for document type ${documentType} for ${fullName}.`);
+          continue;
+        }
+  
+        // Calcular líneas y combinar contenido
+        const lineHeightPx = 18;
+        const lineCount = calculateLineCount(documentContent, lineHeightPx);
+        const combinedContent = combineContentWithLineNumbers(documentContent, lineCount);
+  
+        // Generar PDF vía llamada al servidor y obtenerlo en base64
+        const response = await axios.post(
+          "https://willsystemapp.com:5050/generate-pdf",
+          {
+            htmlContent: combinedContent,
+            fileName: `${fullName}-${documentType}.pdf`
+          }
+        );
+        const pdfBase64 = response.data.pdfBase64;
+        attachments.push({
+          filename: `${fullName}-${documentType}.pdf`,
+          content: pdfBase64
+        });
+      }
+  
+      if (attachments.length === 0) {
+        console.error(`No documents to attach for ${fullName}.`);
+        continue;
+      }
+  
+      // Construir cuerpo del mensaje HTML
+      const message = `
+      <html>
+        <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
+          <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);">
+            <tr>
+              <td align="center" style="padding: 20px 0;">
+                <h2 style="color: #333; font-size: 24px; margin: 0;">Hello, ${fullName}</h2>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 20px; color: #555; font-size: 16px; line-height: 1.6;">
+                <p>We hope this message finds you well. Attached to this email, you will find the PDF files you requested.</p>
+                <p>If you have any questions, feel free to reach out to us.</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 20px; color: #888; font-size: 14px; line-height: 1.6;">
+                <p>Thank you for your time.</p>
+                <p style="margin: 0;">Warm regards,</p>
+                <p style="margin: 0;">Barret Tax Law Team</p>
+              </td>
+            </tr>
+          </table>
+        </body>
+      </html>`;
+  
+      const data = {
+        to_email: email,
+        subject: "Please review and approve your documents",
+        message: message,
+        is_html: true,
+        attachments: attachments
+      };
+  
+      // Enviar el email con adjuntos
+      await axios.post("https://willsystemapp.com:5000/send-email", JSON.stringify(data), {
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+  
+      console.log(`Email with all documents sent successfully to ${fullName} (${email}).`);
+  
+    } catch (error) {
+      console.error(`Error processing ${email}:`, error);
+      // Continuar con el siguiente usuario en caso de error
+      continue;
+    }
+  }
+  console.log("All documents processed and emails sent.");
 }
+  
 
 
 
