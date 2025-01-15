@@ -158,7 +158,7 @@ const POA1Content = forwardRef((props, ref) => {
                             <p>______________________________<br />
                                 Signature of Witness #1 (Nicole Barrett)<br />
                                 665 Millway Avenue, Unit 44<br />
-                                Vaughan, Ontario<br />
+                                Vaughan, Ontario.<br />
                                 L4K 3T8</p>
                             <p>______________________________<br />
                                 Signature of Witness #2 (Dale Barrett)<br />
