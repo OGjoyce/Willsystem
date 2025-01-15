@@ -60,7 +60,7 @@ const POA1Content = forwardRef((props, ref) => {
         ? POAInfo.poaProperty.backups.map((backup) => findPersonInfo(backup, relatives, kids, spouseInfo))
         : [];
     const restrictions = POAInfo.poaProperty ? (POAInfo.poaProperty.restrictions || '') : '';
-
+    const activationType = POAInfo.poaProperty ? (POAInfo.poaProperty.activationType || '') : '';
 
 
     return (
@@ -138,8 +138,15 @@ const POA1Content = forwardRef((props, ref) => {
                                     : <p>No conditions or restrictions upon Power of Attorney.</p>
                             }
 
-                            <p>The authority granted to my Attorney under this Power of Attorney for Personal Property will be in effect if and
-                                as long as I have been found by an Assessor to lack Capacity, or it is voluntarily revoked by me.</p>
+                            {activationType == "incapacity" &&
+                                <p>The authority granted to my Attorney under this Power of Attorney for Personal Property will be in effect if and
+                                    as long as I have been found by an Assessor to lack Capacity, or it is voluntarily revoked by me.</p>}
+                            {activationType == "immediate" && <p>The authority granted to my Attorney under this Power of Attorney for Personal Property will be in effect immediately.</p>}
+
+
+
+
+
                             <p>Unless otherwise stated in this document, I authorize my Attorney(s) to take annual compensation from my
                                 property in accordance with the fee scale prescribed by regulation for the compensation of Attorneys for
                                 Property made pursuant to Section 90 of the Act.</p>
