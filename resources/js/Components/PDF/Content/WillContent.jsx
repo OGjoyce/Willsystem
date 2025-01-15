@@ -413,6 +413,17 @@ var WillContent = forwardRef((props, ref) => {
                                                     in equal shares.
                                                 </>
                                             )}
+                                            {wipeoutInfo.selectedCategory === "Have the residue of my estate to go to my spouse first, then my children equally per stirpes" && (
+                                                <>
+                                                    In the absence of surviving beneficiaries or alternate beneficiaries, I direct that the residue of my estate shall first be distributed to my spouse. In the event that my spouse predeceases me or is otherwise unable to inherit, I direct that the residue of my estate be distributed to my children in equal shares per stirpes.
+                                                </>
+                                            )}
+                                            {wipeoutInfo.selectedCategory === "Have the residue of my estate to go to my spouse first, then my children equally per capita" && (
+                                                <>
+                                                    In the absence of surviving beneficiaries or alternate beneficiaries, I direct that the residue of my estate shall first be distributed to my spouse. In the event that my spouse predeceases me or is otherwise unable to inherit, I direct that the residue of my estate be distributed to my children in equal shares per capita.
+                                                </>
+                                            )}
+
                                             {wipeoutInfo.custom && wipeoutInfo.table_dataBequest.length === 0 && (
                                                 <>
                                                     No specific distribution instructions have been provided for the wipeout provision, and custom settings are enabled.
