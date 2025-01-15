@@ -189,6 +189,13 @@ function Residue({ id, datas, errors }) {
       );
     }
 
+    if (marriedStatus || sosoStatus) {
+      newBloodlineOptions.unshift(
+        'Have the residue of my estate to go to my spouse first, then my children equally per stirpes',
+        'Have the residue of my estate to go to my spouse first, then my children equally per capita'
+      );
+    }
+
     setBloodlineOptions(newBloodlineOptions);
     if (selectedCategory === 'Bloodline Selection' || !selectedCategory) {
       setOptions(newBloodlineOptions);
