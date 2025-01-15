@@ -377,7 +377,7 @@ var WillContent = forwardRef((props, ref) => {
                                                             before becoming entitled to receive the whole of their share of the residue of my estate, I leave
                                                             this share of the residue to {capitalLetters(beneficiary.backup)}
                                                             {backupCity ? ` of ${capitalLetters(backupCity)}, ${capitalLetters(backupCountry)}` : ''}
-                                                            {beneficiary.type !== "N/A" && `, Type: ${beneficiary.type}`} for their own use absolutely.
+                                                            {beneficiary.type !== "N/A" && `, ${beneficiary.type}`} for their own use absolutely.
                                                         </>
                                                     )}
 
