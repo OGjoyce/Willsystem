@@ -196,12 +196,11 @@ export const backStep = (pointer, objectStatus, currentProfile, visibleSteps, se
             14: {
                 key: 'additional',
                 check: (data) => {
-                    return data &&
-                        (
-                            (data.customClauseText && data.customClauseText.trim().length > 0) ||
-                            (data.otherWishes && data.otherWishes.length > 0) ||
-                            Object.values(data.checkboxes || {}).some(value => value === true)
-                        );
+                    if (data && typeof data === 'object') {
+                        const keys = Object.keys(data).filter(k => k == 'timestamp');
+                        return keys.length > 0;
+                    }
+                    return false;
                 },
             },
 
@@ -227,7 +226,7 @@ export const backStep = (pointer, objectStatus, currentProfile, visibleSteps, se
                 const data = obj[key];
                 if (check(data)) {
                     return true;
-                } 
+                }
             }
         }
         return false;
