@@ -738,6 +738,7 @@ var WillContent = forwardRef((props, ref) => {
                                     Executor full authority to decrease each bequest by a proportionate amount.</li>
                             </ol>
 
+
                             <p><strong><u>Additional Provisions</u></strong></p>
                             <ol>
                                 {/* Renderizando deseos específicos */}
@@ -748,6 +749,9 @@ var WillContent = forwardRef((props, ref) => {
                                 ) : (
                                     null
                                 )}
+
+                                {/* Default option in any checkbox is selected */}
+                                {!Object.values(additionalInfo.checkboxes).includes(true) && <p>I wish to be burried</p>}
 
                                 {/* Renderizando checkbox de opciones */}
                                 {additionalInfo.checkboxes.organdonation && (
@@ -764,8 +768,8 @@ var WillContent = forwardRef((props, ref) => {
                                 {additionalInfo.customClauseText && (
                                     <li>{additionalInfo.customClauseText}</li>
                                 )}
-                            </ol>
 
+                            </ol>
 
                             <p><strong><u>No Contest Provision</u></strong></p>
                             <ol>
