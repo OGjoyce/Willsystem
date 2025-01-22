@@ -604,7 +604,6 @@ export default function Personal({ auth }) {
 
             case 11:
                 const petsData = getPetInfo();
-                console.log("pets", petsData)
                 if (checkValidation(validate.pets(petsData))) {
                     propertiesAndData = [
                         { name: 'pets', data: { ...petsData, timestamp: Date.now() } },
@@ -830,7 +829,7 @@ export default function Personal({ auth }) {
                         {pointer === 1 && <Married humanSelector="spouse" />}
                         {pointer === 2 && <AddHuman married={true} errors={validationErrors} documents={objectStatus[0]?.[0]?.packageInfo?.documents} />}
                         {pointer === 3 && <Married humanSelector="children" />}
-                        {pointer === 4 && <AddRelative relative="children" errors={validationErrors} datas={getObjectStatus(objectStatus, currentProfile)} />}
+                        {pointer === 4 && <AddRelative relative="children" errors={validationErrors} datas={getObjectStatus(objectStatus, currentProfile)} documents={objectStatus[0]?.[0]?.packageInfo?.documents} />}
                         {pointer === 5 && <HumanTable datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} documents={objectStatus[0]?.[0]?.packageInfo?.documents} />}
                         {pointer === 6 && <Bequest datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
                         {pointer === 7 && <Residue datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
