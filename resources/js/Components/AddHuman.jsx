@@ -114,7 +114,7 @@ function AddHuman({ married, childrens, human, errors, onDataChange, documents }
         } else {
             setIsSpousalDocumentAvailable(false)
         }
-
+        console.log('documents', documents)
     }, [documents])
 
     useEffect(() => {
