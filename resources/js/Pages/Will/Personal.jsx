@@ -336,6 +336,7 @@ export default function Personal({ auth }) {
 
     };
 
+
     const handleAddNewDocumentToPackage = (newDocument) => {
         setShowAddFeeInput(true)
         const updatedObjectStatus = addNewDocumentToPackage(objectStatus, newDocument)
@@ -448,9 +449,8 @@ export default function Personal({ auth }) {
 
             case 2:
                 const humanData = getHumanData();
-                console.log(humanData)
                 if (objectStatus.find((data) => data[0].personal?.email == humanData.email)) {
-                    console.log('return')
+
                     const errors = {}
                     errors.email = "Email taken. Please choose another"
                     setValidationErrors(errors)
@@ -501,14 +501,19 @@ export default function Personal({ auth }) {
 
             case 5:
                 const executorsData = [...getExecutors()];
-                const relativesData = [...getRelatives()];
+                let relativesData = [...getRelatives()];
+
+                if (currentDocument == "spousalWill") {
+                    relativesData = [...relativesData, ...objectStatus[1][5]?.relatives]
+                }
+
 
                 if (checkValidation(validate.executors(executorsData))) {
                     propertiesAndData = [
                         { name: 'relatives', data: relativesData },
                         { name: 'executors', data: executorsData },
                     ];
-                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);;
+                    updatedObjectStatus = handleProfileData(currentProfile, propertiesAndData, objectStatus);
                     setObjectStatus(updatedObjectStatus);
                 } else {
                     return null;
