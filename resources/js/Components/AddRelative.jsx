@@ -25,6 +25,7 @@ function AddRelative({ relative, datas, errors, onDataChange }) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [itemToDelete, setItemToDelete] = useState(null);
 
+
     useEffect(() => {
         childRelatives = tableData;
         console.log(childRelatives);
@@ -258,7 +259,7 @@ function AddRelative({ relative, datas, errors, onDataChange }) {
                     <Modal.Title>Add Child</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <AddHuman childrens={true} errors={validationErrors} />
+                    <AddHuman childrens={true} errors={validationErrors} documents={datas[0]?.packageInfo?.documents} />
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" size="sm" onClick={handleCloseNosave}>
