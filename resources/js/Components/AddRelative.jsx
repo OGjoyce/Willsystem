@@ -9,7 +9,7 @@ import { validate } from './Validations';
 let ids = 1;
 var childRelatives;
 
-function AddRelative({ relative, datas, errors, onDataChange }) {
+function AddRelative({ relative, datas, errors, onDataChange, documents }) {
     const [show, setShow] = useState(false);
     const [tableData, setTableData] = useState(() => {
         const key = 'formValues';
@@ -259,7 +259,7 @@ function AddRelative({ relative, datas, errors, onDataChange }) {
                     <Modal.Title>Add Child</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <AddHuman childrens={true} errors={validationErrors} documents={datas[0]?.packageInfo?.documents} />
+                    <AddHuman childrens={true} errors={validationErrors} documents={documents} />
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" size="sm" onClick={handleCloseNosave}>
