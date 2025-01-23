@@ -60,7 +60,7 @@ function HumanTable({ id, datas, errors, documents }) {
 
     useEffect(() => {
         if (datas) {
-            setAllRelatives(datas[5].relatives)
+            setAllRelatives(datas[5]?.relatives)
         }
     }, [datas])
 
