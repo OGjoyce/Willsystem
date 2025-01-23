@@ -150,7 +150,9 @@ const initializeSecondaryWill = (objectStatus, email, currentDocument) => {
 
     const married = objectStatus[targetIndex].find(obj => obj.married)?.married;
 
-            const relatives = objectStatus[targetIndex].find(obj => obj.relatives)?.relatives || []
+    const kids = objectStatus[targetIndex].find(obj => obj.kids)?.kids;
+
+    const relatives = objectStatus[targetIndex].find(obj => obj.relatives)?.relatives || []
 
     // Verificar si los objetos necesarios existen
     if (!personal) return objectStatus;  // Si no hay información personal, retornar el objectStatus tal como está.
@@ -202,7 +204,7 @@ const initializeSecondaryWill = (objectStatus, email, currentDocument) => {
             kidsq: [],
         },
         {
-            kids: [],
+            kids: kids || [],
         },
         {
             executors: [],
