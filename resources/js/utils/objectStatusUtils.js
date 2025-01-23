@@ -138,6 +138,123 @@ const initializeSpousalWill = (objectStatus) => {
             return spousalWillData
 }
 
+const initializeSecondaryWill = (objectStatus, email, currentDocument) => {
+    // Buscar el índice del objeto que contiene la dirección de correo electrónico.
+    const targetIndex = objectStatus.findIndex(obj => obj[0].personal?.email === email);
+
+    // Verificar si el índice encontrado es válido
+    if (targetIndex === -1) return objectStatus;  // Si no se encuentra el índice, retornar el objectStatus tal como está.
+
+    // Desestructuración de los objetos `personal`, `married` y `relatives`
+   const married = objectStatus[targetIndex].find(obj => obj.personal)?.personal // Tomar datos de personal del primer objeto
+
+    const personal = objectStatus[targetIndex].find(obj => obj.married)?.married;
+
+            const relatives = objectStatus[targetIndex].find(obj => obj.relatives)?.relatives
+
+    console.log("debug", personal, married, relatives)
+    // Verificar si los objetos necesarios existen
+    if (!personal) return objectStatus;  // Si no hay información personal, retornar el objectStatus tal como está.
+
+    const { fullName, city, province, country, phone } = personal;
+    const { firstName, middleName, lastName, telephone } = married || {};
+    const currentTimestamp = Date.now();
+
+    // Crear el nuevo perfil a agregar
+    const newProfile = [
+        {
+            personal: {
+                step: 0,
+                title: "Personal Information",
+                city,
+                province,
+                country,
+                telephone: phone,
+                fullName,
+                email: `${personal.email}#${currentDocument}`,
+                timestamp: currentTimestamp,
+            },
+            owner: `${personal.email}#${currentDocument}`,
+            packageInfo: {
+                undefined: "not an owner of any package",
+            },
+        },
+        {
+            marriedq: {
+                selection: "true",
+                timestamp: currentTimestamp,
+            },
+        },
+        {
+            married: married ? {
+                firstName,
+                middleName,
+                lastName,
+                relative: "Spouse",
+                email: married.email,
+                phone: telephone,
+                city: married.city,
+                province: married.province,
+                country: married.country,
+                timestamp: currentTimestamp,
+            } : {},
+        },
+        {
+            kidsq: [],
+        },
+        {
+            kids: [],
+        },
+        {
+            executors: [],
+            relatives: relatives || [],
+        },
+        {
+            relatives: [],
+        },
+        {
+            bequests: [],
+        },
+        {
+            residue: [],
+        },
+        {
+            wipeout: [],
+        },
+        {
+            trusting: [],
+        },
+        {
+            guardians: [],
+        },
+        {
+            pets: [],
+        },
+        {
+            additional: [],
+        },
+        {
+            poaProperty: [],
+        },
+        {
+            poaHealth: [],
+        },
+        {
+            finalDetails: [],
+        },
+        {
+            documentDOM: [],
+        },
+    ];
+
+    const newObject = [...objectStatus, [...newProfile]]
+console.log("updated",newObject)
+    // Devolver objectStatus original junto con el nuevo perfil
+    return newObject;
+};
+
+
+
 function updateKidsOnPrimaryObjectStatus(objectStatus, newKids, backendId) {
     // Encuentra el índice del perfil del documento
     const ownerIndex = objectStatus.findIndex(profile =>
@@ -248,5 +365,6 @@ export {
     getObjectStatus,
     initializeObjectStructure,
     initializeSpousalWill,
-    updateKidsOnPrimaryObjectStatus
+    updateKidsOnPrimaryObjectStatus,
+    initializeSecondaryWill
 }
