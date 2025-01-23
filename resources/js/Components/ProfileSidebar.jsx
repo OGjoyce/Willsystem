@@ -110,7 +110,7 @@ function ProfileSidebar({ objectStatus, currentProfile, handleSelectDocument }) 
                                             >
                                                 <span className="flex items-center flex-grow text-sm font-medium">
                                                     <i className={`bi ${docObj.owner == "unknown" ? "bi-arrow-up-right-square" : "bi-person-circle"}   me-2`}></i>
-                                                    {docObj.owner !== 'unknown' ? `Secondary Will  ${docObj.owner.split('.com*')[0]}` : "Start Secondary Will"}
+                                                    {docObj.owner !== 'unknown' ? `Secondary Will  ${docObj.owner.split('*')[0]}` : "Start Secondary Will"}
                                                 </span>
                                                 {docObj.owner === currentProfile && (
                                                     <i className="bi bi-check-circle-fill text-white"></i>
@@ -129,7 +129,7 @@ function ProfileSidebar({ objectStatus, currentProfile, handleSelectDocument }) 
                                             >
                                                 <span className="flex items-center flex-grow text-sm font-medium">
                                                     <i className={`bi ${docObj.owner == "unknown" ? "bi-arrow-up-right-square" : "bi-person-circle"}   me-2`}></i>
-                                                    {docObj.owner !== 'unknown' ? `Secondary Will  ${docObj.owner.split('.com*')[0]}` : "Start Secondary Will"}
+                                                    {docObj.owner !== 'unknown' ? `Secondary Will  ${docObj.owner.split('*')[0]}` : "Start Secondary Will"}
                                                 </span>
                                                 {docObj.owner === currentProfile && (
                                                     <i className="bi bi-check-circle-fill text-white"></i>
