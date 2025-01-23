@@ -11,14 +11,22 @@ export const ProfileSelector = ({ currentDocument, objectStatus, handleCreateNew
                 profileArray.map(profile => {
                     const email = profile.personal?.email;
                     if (!email) return null; // Ignora perfiles sin email
-                    const isOwnerOfSameType = objectStatus[0][0]?.packageInfo?.documents.some(doc =>
-                        doc.owner === email && doc.docType === currentDocument
-                    );
+
+                    // Comprobación de si es propietario de un documento del tipo actual
+                    const isOwnerOfSameType = objectStatus[0][0]?.packageInfo?.documents.some(doc => {
+                        if (currentDocument == "secondaryWill") {
+                            // Asegurarse de que retorne un valor booleano
+                            return (doc.owner === email || doc.owner.split("*")[0] === email) && doc.docType === currentDocument;
+                        } else {
+                            return doc.owner === email && doc.docType === currentDocument;
+                        }
+                    });
 
                     return !isOwnerOfSameType ? email : null; // Solo devuelve emails que no coincidan
                 })
             )
             .filter(Boolean); // Elimina valores nulos o undefined
+
 
         setEmails(filteredEmails);
     }, [currentDocument, objectStatus]);
