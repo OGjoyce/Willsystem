@@ -146,13 +146,12 @@ const initializeSecondaryWill = (objectStatus, email, currentDocument) => {
     if (targetIndex === -1) return objectStatus;  // Si no se encuentra el índice, retornar el objectStatus tal como está.
 
     // Desestructuración de los objetos `personal`, `married` y `relatives`
-   const married = objectStatus[targetIndex].find(obj => obj.personal)?.personal // Tomar datos de personal del primer objeto
+   const personal = objectStatus[targetIndex].find(obj => obj.personal)?.personal // Tomar datos de personal del primer objeto
 
-    const personal = objectStatus[targetIndex].find(obj => obj.married)?.married;
+    const married = objectStatus[targetIndex].find(obj => obj.married)?.married;
 
-            const relatives = objectStatus[targetIndex].find(obj => obj.relatives)?.relatives
+            const relatives = objectStatus[targetIndex].find(obj => obj.relatives)?.relatives || []
 
-    console.log("debug", personal, married, relatives)
     // Verificar si los objetos necesarios existen
     if (!personal) return objectStatus;  // Si no hay información personal, retornar el objectStatus tal como está.
 
@@ -171,10 +170,10 @@ const initializeSecondaryWill = (objectStatus, email, currentDocument) => {
                 country,
                 telephone: phone,
                 fullName,
-                email: `${personal.email}#${currentDocument}`,
+                email: `${personal.email}*${currentDocument}`,
                 timestamp: currentTimestamp,
             },
-            owner: `${personal.email}#${currentDocument}`,
+            owner: `${personal.email}*${currentDocument}`,
             packageInfo: {
                 undefined: "not an owner of any package",
             },
