@@ -362,14 +362,20 @@ export default function Personal({ auth }) {
             setCurrentProfile(email)
 
             setShowSelectProfileModal(false)
-            const newVisibleSteps = getVisibleSteps(getObjectStatus(objectStatus, email), document)
+            const newVisibleSteps = getVisibleSteps(getObjectStatus(updatedObjectStatus, email), document)
 
-            const firstIncompleteStep = findFirstIncompleteStep(objectStatus, email, newVisibleSteps)
+            const firstIncompleteStep = findFirstIncompleteStep(updatedObjectStatus, email, newVisibleSteps)
+
+            console.log("fisrtincompl+", firstIncompleteStep)
+            console.log("newvisible", newVisibleSteps)
             firstIncompleteStep
                 ? setPointer(firstIncompleteStep)
                 : setShowPDFEditor(true)
 
+            setCurrentProfile(null)
+            setCurrentDocument(null)
             setCurrentProfile(email)
+            setCurrentDocument("secondaryWill")
 
         } else {
             const updatedObjectStatus = handleSelectProfile(objectStatus, email, currentProfile)
