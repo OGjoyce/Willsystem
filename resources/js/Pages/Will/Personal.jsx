@@ -30,7 +30,7 @@ import PaymentModal from '@/Components/PaymentModal';
 import ProfileSidebar from '@/Components/ProfileSidebar';
 //Import utility functions
 import { handleProfileData, handleSelectProfile } from '@/utils/profileUtils';
-import { getObjectStatus, initializeObjectStructure, initializeSpousalWill, updateKidsOnPrimaryObjectStatus } from '@/utils/objectStatusUtils';
+import { getObjectStatus, initializeObjectStructure, initializeSpousalWill, updateKidsOnPrimaryObjectStatus, initializeSecondaryWill } from '@/utils/objectStatusUtils';
 import { packageDocuments, initializePackageDocuments } from '@/utils/packageUtils'
 import { getVisibleSteps, stepHasData, findFirstIncompleteStep } from '@/utils/stepUtils';
 import { assignDocuments, addNewDocumentToPackage } from '@/utils/documentsUtils';
@@ -271,9 +271,10 @@ export default function Personal({ auth }) {
 
 
         if (document === 'secondaryWill' && owner == 'unknown') {
-            setCurrentDocument(document);
-            setCurrentProfile(null);
-            setPointer(0);
+            setShowPDFEditor(false)
+            setCurrentProfile(null)
+            setCurrentDocument(document)
+            setShowSelectProfileModal(true);
             return;
         } else if (document === 'secondaryWill' && owner !== 'unknown') {
             setCurrentDocument(document);
@@ -350,18 +351,31 @@ export default function Personal({ auth }) {
     };
 
 
-    const selectProfile = (objectStatus, email) => {
+    const selectProfile = (objectStatus, email, currentDocument) => {
         setShowPDFEditor(false)
-        const updatedObjectStatus = handleSelectProfile(objectStatus, email, currentProfile)
-        setObjectStatus(updatedObjectStatus)
-        setCurrentProfile(email)
-        setShowSelectProfileModal(false)
-        const newVisibleSteps = getVisibleSteps(getObjectStatus(objectStatus, owner), document)
+        if (currentDocument == "secondaryWill") {
+            const updatedObjectStatus = initializeSecondaryWill(objectStatus, email, currentDocument)
+            setObjectStatus(updatedObjectStatus)
 
-        const firstIncompleteStep = findFirstIncompleteStep(objectStatus, owner, newVisibleSteps)
-        firstIncompleteStep
-            ? setPointer(firstIncompleteStep)
-            : setShowPDFEditor(true)
+            email = `${email}#${currentDocument}`
+
+            setCurrentProfile(email)
+
+            setShowSelectProfileModal(false)
+            setPointer(3)
+
+        } else {
+            const updatedObjectStatus = handleSelectProfile(objectStatus, email, currentProfile)
+            setObjectStatus(updatedObjectStatus)
+            setCurrentProfile(email)
+            setShowSelectProfileModal(false)
+            const newVisibleSteps = getVisibleSteps(getObjectStatus(objectStatus, owner), document)
+
+            const firstIncompleteStep = findFirstIncompleteStep(objectStatus, owner, newVisibleSteps)
+            firstIncompleteStep
+                ? setPointer(firstIncompleteStep)
+                : setShowPDFEditor(true)
+        }
     }
     // Function to handle advancing to the next step
     const pushInfo = async (step) => {
@@ -778,7 +792,7 @@ export default function Personal({ auth }) {
                         ...item[0],
                         packageInfo: {
                             ...item[0].packageInfo,
-                            additionalFee: `${newFee}`, // Actualiza el additionalFee con el nuevo valor en formato de moneda
+                            additionalFee: `${newFee} `, // Actualiza el additionalFee con el nuevo valor en formato de moneda
                         },
                     },
                     ...item.slice(1) // Incluye el resto de los elementos en `item` sin cambios
@@ -820,7 +834,7 @@ export default function Personal({ auth }) {
                 </>
             }
         >
-            <Head title={`Welcome, ${username}`} />
+            <Head title={`Welcome, ${username} `} />
             <div className="py-12 h-[100%]" style={{ height: '100%', overflow: 'hidden' }}>
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8" style={{ height: 'inherit' }}>
                     <div className="bg-white overflow-visible shadow-sm sm:rounded-lg container" style={{ height: 'inherit' }}>
