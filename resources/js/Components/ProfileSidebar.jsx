@@ -44,6 +44,7 @@ function ProfileSidebar({ objectStatus, currentProfile, handleSelectDocument }) 
                             let poaCount = 0;
 
                             return documents?.map((docObj, index) => {
+                                console.log(docObj)
                                 let documentLabel = '';
 
                                 if (docObj.docType === 'poaProperty') {
@@ -70,7 +71,7 @@ function ProfileSidebar({ objectStatus, currentProfile, handleSelectDocument }) 
                                             >
                                                 <span className="flex items-center flex-grow text-sm font-medium">
                                                     <i className={`bi ${docObj.owner == "unknown" ? "bi-arrow-up-right-square" : "bi-person-circle"}   me-2`}></i>
-                                                    {docObj.owner !== 'unknown' ? docObj.owner : "Start Primary Will"}
+                                                    {docObj.owner !== 'unknown' ? `Primary Will ${docObj.owner}` : "Start Primary Will"}
                                                 </span>
                                                 {docObj.owner === currentProfile && (
                                                     <i className="bi bi-check-circle-fill text-white"></i>
@@ -90,7 +91,7 @@ function ProfileSidebar({ objectStatus, currentProfile, handleSelectDocument }) 
                                             >
                                                 <span className="flex items-center flex-grow text-sm font-medium">
                                                     <i className={`bi ${docObj.owner == "unknown" ? "bi-arrow-up-right-square" : "bi-person-circle"}   me-2`}></i>
-                                                    {docObj.owner !== 'unknown' ? docObj.owner : "Start Spousal Will"}
+                                                    {docObj.owner !== 'unknown' ? `Spousal Will ${docObj.owner}` : "Start Spousal Will"}
                                                 </span>
                                                 {docObj.owner === currentProfile && (
                                                     <i className="bi bi-check-circle-fill text-white"></i>
@@ -109,7 +110,7 @@ function ProfileSidebar({ objectStatus, currentProfile, handleSelectDocument }) 
                                             >
                                                 <span className="flex items-center flex-grow text-sm font-medium">
                                                     <i className={`bi ${docObj.owner == "unknown" ? "bi-arrow-up-right-square" : "bi-person-circle"}   me-2`}></i>
-                                                    {docObj.owner !== 'unknown' ? docObj.owner : "Start Secondary Will"}
+                                                    {docObj.owner !== 'unknown' ? `Secondary Will  ${docObj.owner.split('.com*')[0]}` : "Start Secondary Will"}
                                                 </span>
                                                 {docObj.owner === currentProfile && (
                                                     <i className="bi bi-check-circle-fill text-white"></i>
@@ -128,7 +129,7 @@ function ProfileSidebar({ objectStatus, currentProfile, handleSelectDocument }) 
                                             >
                                                 <span className="flex items-center flex-grow text-sm font-medium">
                                                     <i className={`bi ${docObj.owner == "unknown" ? "bi-arrow-up-right-square" : "bi-person-circle"}   me-2`}></i>
-                                                    {docObj.owner !== 'unknown' ? docObj.owner : "Start Secondary Will"}
+                                                    {docObj.owner !== 'unknown' ? `Secondary Will  ${docObj.owner.split('.com*')[0]}` : "Start Secondary Will"}
                                                 </span>
                                                 {docObj.owner === currentProfile && (
                                                     <i className="bi bi-check-circle-fill text-white"></i>
@@ -154,7 +155,7 @@ function ProfileSidebar({ objectStatus, currentProfile, handleSelectDocument }) 
                                                 >
                                                     <span className="flex items-center flex-grow text-sm font-medium">
                                                         <i className="bi bi-person-circle me-2"></i>
-                                                        {docObj.owner}
+                                                        {docObj.docType} - {docObj.owner.split('.com*')[0]}
                                                     </span>
                                                     {docObj.owner === currentProfile && (
                                                         <i className="bi bi-check-circle-fill text-white"></i>
