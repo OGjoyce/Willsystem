@@ -11,7 +11,6 @@ export const ProfileSelector = ({ currentDocument, objectStatus, handleCreateNew
                 profileArray.map(profile => {
                     const email = profile.personal?.email;
                     if (!email) return null; // Ignora perfiles sin email
-
                     const isOwnerOfSameType = objectStatus[0][0]?.packageInfo?.documents.some(doc =>
                         doc.owner === email && doc.docType === currentDocument
                     );
@@ -44,7 +43,7 @@ export const ProfileSelector = ({ currentDocument, objectStatus, handleCreateNew
                             className="text-center"
                         >
                             <i className="bi bi-person-circle me-2"></i>
-                            <strong>{email}</strong>
+                            <strong>{email.includes('*secondaryWill') ? `${email.split(".com*")[0]} (Secondary Will)` : email}</strong>
                         </ListGroup.Item>
                     ))}
                 </ListGroup>
