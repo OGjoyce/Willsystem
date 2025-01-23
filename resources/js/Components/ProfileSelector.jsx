@@ -40,7 +40,7 @@ export const ProfileSelector = ({ currentDocument, objectStatus, handleCreateNew
                         <ListGroup.Item
                             key={idx}
                             action
-                            onClick={() => selectProfile(objectStatus, email)}
+                            onClick={() => selectProfile(objectStatus, email, currentDocument)}
                             className="text-center"
                         >
                             <i className="bi bi-person-circle me-2"></i>
