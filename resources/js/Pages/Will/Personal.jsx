@@ -203,7 +203,7 @@ export default function Personal({ auth }) {
 
     //Initialize the needed structure for spousalWill, taking data from primaryWill
     useEffect(() => {
-        if (objectStatus.length === 1 && currentDocument === 'spousalWill') {
+        if (objectStatus.length > 0 && currentDocument === 'spousalWill') {
             //Gets the kids data in primaryWill
             const kids = objectStatus[0][4].kids
             const filteredKids = kids.filter(kid => kid.isIncludedOnSpousalWill)
