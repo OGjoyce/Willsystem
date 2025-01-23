@@ -48,7 +48,7 @@ const initializeSpousalWill = (objectStatus) => {
 
             const personal = objectStatus[0].find(obj => obj.married)?.married;
 
-            const relatives = objectStatus[0].find(obj => obj.relatives)?.relatives
+            const relatives = objectStatus[0].find(obj => obj.relatives)?.relatives || []
 
             const spousalWillData = [{
                 personal: {
