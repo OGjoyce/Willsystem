@@ -214,7 +214,7 @@ export default function Personal({ auth }) {
             setCurrentProfile(spousalWillData[0].personal.email)
 
             //Add the spousalWill data next to the primaryWill Data
-            const newObjectStatus = [objectStatus[0], spousalWillData]
+            const newObjectStatus = [...objectStatus, spousalWillData]
 
             // submit dummy data to ensure database update
             const propertiesAndData = [
