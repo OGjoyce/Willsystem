@@ -1,13 +1,27 @@
-// components/CityAutocomplete.jsx
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AsyncSelect from 'react-select/async';
 import debounce from 'lodash/debounce';
 import { Form } from 'react-bootstrap';
 
-const CityAutocomplete = ({ onCitySelect, validationErrors }) => {
+const CityAutocomplete = ({ onCitySelect, validationErrors, formValues }) => {
     const [province, setProvince] = useState('');
     const [country, setCountry] = useState('');
+    const [city, setCity] = useState('');
+
+    // Cargar valores iniciales desde formValues cuando cambien
+    useEffect(() => {
+        if (formValues) {
+            setCity(formValues.city || '');
+            setProvince(formValues.province || '');
+            setCountry(formValues.country || '');
+
+            onCitySelect({
+                city: formValues.city,
+                province: formValues.province,
+                country: formValues.country,
+            });
+        }
+    }, [formValues]);
 
     const loadCityOptions = debounce((inputValue, callback) => {
         if (!inputValue) {
@@ -34,6 +48,7 @@ const CityAutocomplete = ({ onCitySelect, validationErrors }) => {
 
     const handleChange = (selectedOption) => {
         if (selectedOption) {
+            setCity(selectedOption.city);
             setProvince(selectedOption.province);
             setCountry(selectedOption.country);
             onCitySelect({
@@ -42,6 +57,7 @@ const CityAutocomplete = ({ onCitySelect, validationErrors }) => {
                 country: selectedOption.country,
             });
         } else {
+            setCity('');
             setProvince('');
             setCountry('');
             onCitySelect({
@@ -64,7 +80,6 @@ const CityAutocomplete = ({ onCitySelect, validationErrors }) => {
 
     return (
         <>
-
             <Form.Group className="mb-3" controlId="city">
                 <Form.Label>City</Form.Label>
                 <AsyncSelect
@@ -74,6 +89,7 @@ const CityAutocomplete = ({ onCitySelect, validationErrors }) => {
                     onChange={handleChange}
                     placeholder="Type to search for a city..."
                     formatOptionLabel={formatOptionLabel}
+                    value={city ? { label: city, city } : null} // Muestra la ciudad actual como valor seleccionado
                 />
             </Form.Group>
             {validationErrors.city && <p className="mt-2 text-sm text-red-600">{validationErrors.city}</p>}
@@ -83,6 +99,7 @@ const CityAutocomplete = ({ onCitySelect, validationErrors }) => {
                     type="text"
                     placeholder="..."
                     value={province}
+                    readOnly
                 />
                 {validationErrors.province && (
                     <p className="mt-2 text-sm text-red-600">
@@ -96,6 +113,7 @@ const CityAutocomplete = ({ onCitySelect, validationErrors }) => {
                     type="text"
                     placeholder="..."
                     value={country}
+                    readOnly
                 />
                 {validationErrors.country && (
                     <p className="mt-2 text-sm text-red-600">
