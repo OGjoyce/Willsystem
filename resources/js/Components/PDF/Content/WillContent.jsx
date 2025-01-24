@@ -67,6 +67,13 @@ var WillContent = forwardRef((props, ref) => {
     }
 
 
+    function formatLocation(city, province, country) {
+        // Filtrar los valores que no sean null o undefined
+        const locationParts = [city, province, country].filter((part) => part);
+        // Unir las partes con coma si hay datos
+        return locationParts.length > 0 ? ` of ${locationParts.join(", ")}` : "";
+    }
+
 
     return (
         <div ref={ref}>
@@ -80,7 +87,6 @@ var WillContent = forwardRef((props, ref) => {
 
                             <p><strong><u>Prior Wills and Codicils</u></strong></p>
                             <ol>
-
                                 <li>I revoke all prior Wills and Codicils.</li>
                             </ol>
                             <p><strong><u>Marital Status</u></strong></p>
@@ -126,21 +132,69 @@ var WillContent = forwardRef((props, ref) => {
                             </ol>
                             <p><strong><u>Appointment</u></strong></p>
                             <ol>
-                                {executors.length > 0 && executors.map((executor, index) => (
-                                    <li key={index}>
-                                        {index === 0 ? "I appoint " : `If ${capitalLetters(executors[index - 1].firstName)} ${capitalLetters(executors[index - 1].lastName)} should refuse or be unable to act or continue to act as my Executor, then I appoint `}
-                                        {capitalLetters(executor.firstName)} {capitalLetters(executor.lastName)} of {capitalLetters(executor.city)}, {capitalLetters(executor.province)}
-                                        {index === 0 ? " as the sole Executor of this my Will." : " to be the sole Executor of this my Will."}
-                                    </li>
-                                ))}
-                                {!executors.length > 0 &&
-
+                                {Object.entries(
+                                    executors.reduce((acc, executor) => {
+                                        if (!acc[executor.priority]) acc[executor.priority] = [];
+                                        acc[executor.priority].push(executor);
+                                        return acc;
+                                    }, {})
+                                )
+                                    .sort(([priA], [priB]) => parseInt(priA) - parseInt(priB)) // Ordenar por prioridad
+                                    .map(([priority, executorsAtPriority], index, array) => (
+                                        <React.Fragment key={priority}>
+                                            <li>
+                                                {index === 0
+                                                    ? `I appoint `
+                                                    : `If ${array[index - 1][1]
+                                                        .map((e) => {
+                                                            const personInfo = findPersonInfo(
+                                                                `${e.firstName} ${e.lastName}`,
+                                                                relatives,
+                                                                kids,
+                                                                spouseInfo
+                                                            );
+                                                            return `${capitalLetters(personInfo.fullName)}${formatLocation(
+                                                                capitalLetters(personInfo.city),
+                                                                capitalLetters(personInfo.province),
+                                                                capitalLetters(personInfo.country)
+                                                            )}`;
+                                                        })
+                                                        .join(" and ")} cannot act or continue to act as Executor(s), then I appoint `}
+                                                {executorsAtPriority
+                                                    .map((executor, idx) => {
+                                                        const personInfo = findPersonInfo(
+                                                            `${executor.firstName} ${executor.lastName}`,
+                                                            relatives,
+                                                            kids,
+                                                            spouseInfo
+                                                        );
+                                                        return `${idx > 0 ? " and " : ""}${capitalLetters(
+                                                            personInfo.fullName
+                                                        )}${formatLocation(
+                                                            capitalLetters(personInfo.city),
+                                                            capitalLetters(personInfo.province),
+                                                            capitalLetters(personInfo.country)
+                                                        )}`;
+                                                    })
+                                                    .join("")}
+                                                {index === 0
+                                                    ? " as the sole Executor(s) of this my Will."
+                                                    : " to be the alternate Executor(s)."}
+                                            </li>
+                                        </React.Fragment>
+                                    ))}
+                                {!executors.length && (
                                     <li>
                                         I appoint Lawyers and Lattes Professional Corporation or any successor law firm as the sole Executor of this my Will.
                                     </li>
-                                }
+                                )}
                                 <li>No bond or other security of any kind will be required of any Executor appointed in this my Will.</li>
                             </ol>
+
+
+
+
+
                             <p><strong><u>Powers of my Executor</u></strong></p>
                             <ol>
                                 <li>I give and appoint to my Executor the following duties and powers with respect to my estate:</li>
@@ -255,7 +309,6 @@ var WillContent = forwardRef((props, ref) => {
 
 
                             <p><strong><u>Distribution of Residue</u></strong></p>
-                            <p>Last Will and Testament of {capitalLetters(personal.fullName)}</p>
                             <ol>
                                 <li>To receive any gift or property under this Will a beneficiary must survive me for thirty days.</li>
                                 <li>Beneficiaries or any alternate beneficiaries of my estate residue will receive and share all of my property
@@ -434,63 +487,69 @@ var WillContent = forwardRef((props, ref) => {
                                     )}
                                 </ul>
                             </ol>
-
                             {hasKids && guardians.length > 0 && (
                                 <>
-                                    <br></br>
-                                    <p class="align-center"><strong>IV. CHILDREN</strong></p>
+                                    <br />
+                                    <p className="align-center"><strong>IV. CHILDREN</strong></p>
                                     <p><strong><u>Guardian for Minor and Dependent Children</u></strong></p>
                                     <ol>
-                                        {guardians
-                                            .sort((a, b) => parseInt(a.position) - parseInt(b.position))
-                                            .map((guardian, index) => (
-                                                <React.Fragment key={guardian.id}>
-                                                    {index === 0 && (
-                                                        <li>
-                                                            Should my minor or dependent children require a guardian to care for them, I appoint the following individual to
-                                                            be their guardian (the 'Guardian')
-                                                        </li>
-                                                    )}
+                                        {Object.entries(
+                                            guardians.reduce((acc, guardian) => {
+                                                if (!acc[guardian.position]) acc[guardian.position] = [];
+                                                acc[guardian.position].push(guardian);
+                                                return acc;
+                                            }, {})
+                                        )
+                                            .sort(([posA], [posB]) => parseInt(posA) - parseInt(posB)) // Ordenar por posición
+                                            .map(([position, guardiansAtPosition], index, array) => (
+                                                <React.Fragment key={position}>
                                                     <li>
-                                                        {index === 0 ? (
-                                                            <>
-                                                                I appoint {capitalLetters(guardian.guardian)} to be the sole Guardian of all my minor and dependent children until they are
-                                                                at least the age of majority.
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                If {capitalLetters(guardians[index - 1].guardian)} should refuse or be unable to act or to continue to act as the Guardian and my minor
-                                                                or dependent children require a guardian to care for them, then I appoint {capitalLetters(guardian.guardian)} to be
-                                                                the sole Guardian of all my minor and dependent children until they are at least the age of majority.
-                                                            </>
-                                                        )}
+                                                        {index === 0
+                                                            ? `Should my minor or dependent children require a guardian to care for them, I appoint `
+                                                            : `If ${array[index - 1][1]
+                                                                .map((g) => {
+                                                                    const personInfo = findPersonInfo(
+                                                                        g.guardian,
+                                                                        relatives,
+                                                                        kids,
+                                                                        spouseInfo
+                                                                    );
+                                                                    return `${capitalLetters(personInfo.fullName)}${formatLocation(
+                                                                        capitalLetters(personInfo.city),
+                                                                        capitalLetters(personInfo.province),
+                                                                        capitalLetters(personInfo.country)
+                                                                    )}`;
+                                                                })
+                                                                .join(" and ")} cannot act or continue to act as Guardians, I appoint `}
+                                                        {guardiansAtPosition
+                                                            .map((guardian, idx) => {
+                                                                const personInfo = findPersonInfo(
+                                                                    guardian.guardian,
+                                                                    relatives,
+                                                                    kids,
+                                                                    spouseInfo
+                                                                );
+                                                                return `${idx > 0 ? " and " : ""}${capitalLetters(
+                                                                    personInfo.fullName
+                                                                )}${formatLocation(
+                                                                    capitalLetters(personInfo.city),
+                                                                    capitalLetters(personInfo.province),
+                                                                    capitalLetters(personInfo.country)
+                                                                )}`;
+                                                            })
+                                                            .join("")}
+                                                        {index === 0
+                                                            ? " to be the sole Guardian(s) of all my minor and dependent children until they reach the age of majority."
+                                                            : " to be the alternate Guardian(s)."}
                                                     </li>
                                                 </React.Fragment>
-                                            ))
-                                        }
-                                    </ol>
-
-                                    <p><strong><u>RESP and RDSP</u></strong></p>
-                                    <ol>
-                                        <li>
-                                            My Executor(s) shall appoint, as Successor Subscriber, a parent of the beneficiary(ies), Guardian for Property
-                                            of the beneficiary(ies), person standing in the place of a parent of the beneficiary(ies) or to any other
-                                            person, including the beneficiary(ies), which my Executor(s), in their sole discretion, considers to be a proper
-                                            Successor Subscriber.
-                                        </li>
-                                        <li>
-                                            The appointment by my Executor of a Successor Subscriber shall constitute a full and sufficient release to my
-                                            Executor who shall not be obliged to see to the maintenance of the RESP and/or RDSP.
-                                        </li>
-                                        <li>
-                                            Without limiting the foregoing, it is my wish that such Successor Subscriber shall take such steps as are
-                                            necessary in order for the RESP to be maintained by them as the Successor Subscriber until such time as the
-                                            beneficiary(ies) of the said RESP and/or RDSP qualify or may qualify for educational assistance payments (as
-                                            such term is defined in the Income Tax Act).
-                                        </li>
+                                            ))}
                                     </ol>
                                 </>
                             )}
+
+
+
 
                             <br />
                             <p class="align-center"><strong>V. TESTAMENTARY TRUSTS</strong></p>
