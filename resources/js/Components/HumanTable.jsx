@@ -6,6 +6,7 @@ import Pagination from 'react-bootstrap/Pagination';
 import Form from 'react-bootstrap/Form';
 import AddHuman from './AddHuman';
 import { getHumanData } from './AddHuman';
+import { extractData } from '@/utils/objectStatusUtils';
 import { validate } from './Validations';
 import ConfirmationModal from './AdditionalComponents/ConfirmationModal';
 import CustomToast from './AdditionalComponents/CustomToast';
@@ -90,6 +91,9 @@ function HumanTable({ id, datas, errors, documents }) {
 
     useEffect(() => {
         if (datas) {
+
+            const executorsData = extractData(datas, 'executors', null, []);
+            setExecutors(executorsData);
             const newAllRelatives = [];
 
             const marriedData = datas.find(item => item.married);
@@ -166,6 +170,7 @@ function HumanTable({ id, datas, errors, documents }) {
         setSelectedExecutor(relative);
         setShowExecutor(true);
     };
+
 
     const handleCloseExecutor = () => {
         setPriorityError('');
