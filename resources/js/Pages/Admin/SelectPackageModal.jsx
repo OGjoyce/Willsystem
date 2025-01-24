@@ -143,8 +143,8 @@ const SelectPackageModal = ({ show, onHide, onSelect }) => {
                 </div>
             </Modal.Body>
             <Modal.Footer>
-                <Button variant="outline-success" onClick={exportExcel}>Export Excel</Button>
-                <Button variant="outline-primary" onClick={exportCSV}>Export CSV</Button>
+                <Button variant="outline-success" onClick={exportExcel}> <i className="bi bi-file-earmark-spreadsheet me-2"></i> Export Excel</Button>
+                <Button variant="outline-primary" onClick={exportCSV}>  <i className="bi bi-file-earmark-arrow-down me-2"></i> Export CSV</Button>
             </Modal.Footer>
         </Modal>
     );
