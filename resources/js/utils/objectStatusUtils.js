@@ -361,11 +361,36 @@ function updateRelativesOnPrimaryObjectStatus(objectStatus, newRelatives, backen
 }
 
 
+/**
+ * Función general para extraer datos de un array de objetos estandarizados (datas).
+ * @param {Array} datas - El array de objetos con la estructura estándar.
+ * @param {string} key - La clave principal que se desea buscar en los objetos.
+ * @param {string} [subKey=null] - (Opcional) La clave anidada dentro del objeto principal.
+ * @param {*} [defaultValue=null] - (Opcional) Valor por defecto si no se encuentra la clave o subclave.
+ * @returns {*} - El valor encontrado o el valor por defecto.
+ */
+function extractData(datas, key, subKey = null, defaultValue = null) {
+    for (const data of datas) {
+        if (data[key]) {
+            // Si hay una subclave especificada, intenta devolver su valor.
+            if (subKey && typeof data[key] === "object") {
+                return data[key][subKey] !== undefined ? data[key][subKey] : defaultValue;
+            }
+            // Si no hay subclave, retorna el valor asociado a la clave principal.
+            return data[key];
+        }
+    }
+    // Si no se encuentra nada, retorna el valor por defecto.
+    return defaultValue;
+}
+
+
 
 export {
     getObjectStatus,
     initializeObjectStructure,
     initializeSpousalWill,
     updateKidsOnPrimaryObjectStatus,
-    initializeSecondaryWill
+    initializeSecondaryWill,
+    extractData
 }
