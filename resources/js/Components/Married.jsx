@@ -6,6 +6,7 @@ import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Fragment } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
+import { extractData } from '@/utils/objectStatusUtils';
 import Form from 'react-bootstrap/Form';
 
 let selected_value = "";
@@ -13,19 +14,19 @@ export function getMarriedData() {
     return selected_value;
 }
 
-function Married({ humanSelector }) {
-    const [selected, setSelected] = useState(() => {
-        const key = 'formValues';
-        const savedValues = localStorage.getItem(key);
-        const parsedValues = savedValues ? JSON.parse(savedValues) : {};
-        if (humanSelector === "spouse") {
-            return parsedValues.marriedq || "false";
-        } else if (humanSelector === "children") {
-            return parsedValues.kidsq || "false";
+function Married({ datas, humanSelector }) {
+    const [selected, setSelected] = useState([]);
+
+    useEffect(() => {
+        // Extraer la selección inicial desde `datas`.
+        let initialSelection = null
+        if (humanSelector == "spouse") {
+            initialSelection = extractData(datas, "marriedq", "selection", "false");
         } else {
-            return "false";
+            initialSelection = extractData(datas, "kidsq", "selection", "false");
         }
-    });
+        setSelected(initialSelection);
+    }, [datas]);
 
     selected_value = selected
     useEffect(() => {
