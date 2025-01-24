@@ -853,10 +853,10 @@ export default function Personal({ auth }) {
                     <div className="bg-white overflow-visible shadow-sm sm:rounded-lg container" style={{ height: 'inherit' }}>
                         {/* Render components based on the value of pointer */}
                         {pointer === 0 && <FormCity errors={validationErrors} />}
-                        {pointer === 1 && <Married humanSelector="spouse" />}
-                        {pointer === 2 && <AddHuman married={true} errors={validationErrors} documents={objectStatus[0]?.[0]?.packageInfo?.documents} />}
-                        {pointer === 3 && <Married humanSelector="children" />}
-                        {pointer === 4 && <AddRelative relative="children" errors={validationErrors} datas={getObjectStatus(objectStatus, currentProfile)} documents={objectStatus[0]?.[0]?.packageInfo?.documents} />}
+                        {pointer === 1 && <Married datas={getObjectStatus(objectStatus, currentProfile)} humanSelector="spouse" />}
+                        {pointer === 2 && <AddHuman datas={getObjectStatus(objectStatus, currentProfile)} married={true} errors={validationErrors} documents={objectStatus[0]?.[0]?.packageInfo?.documents} />}
+                        {pointer === 3 && <Married datas={getObjectStatus(objectStatus, currentProfile)} humanSelector="children" />}
+                        {pointer === 4 && <AddRelative datas={getObjectStatus(objectStatus, currentProfile)} relative="children" errors={validationErrors} documents={objectStatus[0]?.[0]?.packageInfo?.documents} />}
                         {pointer === 5 && <HumanTable datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} documents={objectStatus[0]?.[0]?.packageInfo?.documents} />}
                         {pointer === 6 && <Bequest datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
                         {pointer === 7 && <Residue datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
