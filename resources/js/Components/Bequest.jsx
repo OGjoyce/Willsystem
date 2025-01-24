@@ -12,6 +12,7 @@ import AddPersonDropdown from './AddPersonDropdown';
 import ConfirmationModal from './AdditionalComponents/ConfirmationModal';
 import CustomToast from './AdditionalComponents/CustomToast';
 import { validate } from './Validations';
+import { extractData } from '@/utils/objectStatusUtils';
 
 let bequestArrObj = [];
 let bequestindex = 0;
@@ -326,6 +327,27 @@ function Bequest({ id, datas, errors }) {
 
         setValidationErrors({});
     };
+    useEffect(() => {
+        if (datas) {
+            // Extraemos el objeto `bequests` y lo convertimos en un array
+            const rawBequests = extractData(datas, 'bequests', null, []);
+            const bequestsArray = Object.keys(rawBequests)
+                .filter(key => !isNaN(key)) // Filtramos solo las claves numéricas
+                .map(key => rawBequests[key]); // Convertimos los valores en un array
+
+            // Configuramos el estado con el arreglo resultante
+            setTable_dataBequest(bequestsArray);
+
+            // Actualizamos las variables globales
+            bequestArrObj = bequestsArray;
+            bequestindex = bequestsArray.length > 0 ? Math.max(...bequestsArray.map(b => b.id)) : 0;
+            if (bequestArrObj.length > 0) {
+                setOpen(true)
+            }
+        }
+
+    }, [datas]);
+
 
     useEffect(() => {
         if (datas != null && firstRender) {
