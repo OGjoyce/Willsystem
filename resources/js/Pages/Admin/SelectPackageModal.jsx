@@ -100,7 +100,7 @@ const SelectPackageModal = ({ show, onHide, onSelect }) => {
             name: 'Actions',
             cell: row => (
                 <div className='d-flex gap-2'>
-                    <Button variant="outline-primary" size="sm" onClick={() => handleSelect(row)}>Select</Button>
+                    <Button variant="outline-primary" size="sm" onClick={() => handleSelect(row)}>Select <i class="bi bi-chevron-double-right"></i></Button>
                 </div>
             ),
             ignoreRowClick: true,
