@@ -3,7 +3,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, Head } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
-
+import { extractData } from '@/utils/objectStatusUtils';
 // Import the CityAutocomplete component
 import CityAutocomplete from './CityAutocomplete';
 import { Form, InputGroup } from 'react-bootstrap';
@@ -81,7 +81,7 @@ export function getHumanData(params) {
     }
 }
 
-function AddHuman({ married, childrens, human, errors, onDataChange, documents }) {
+function AddHuman({ datas, married, childrens, human, errors, onDataChange, documents }) {
     let relationType = null;
     if (married) { relationType = 'spouse'; }
     if (childrens) { relationType = 'child'; }
@@ -107,6 +107,14 @@ function AddHuman({ married, childrens, human, errors, onDataChange, documents }
     }, [])
 
     useEffect(() => {
+        if (married) {
+            const spouseData = extractData(datas, "married", null, {});
+            setFormValues(spouseData);
+            setPhone(spouseData.phone || "");
+        }
+    }, [datas, married]);
+
+    useEffect(() => {
         const spousalWill = documents?.find(document => document.docType === "spousalWill")
 
         if (spousalWill) {
@@ -123,14 +131,7 @@ function AddHuman({ married, childrens, human, errors, onDataChange, documents }
         addToSpousalRelatives = isSharedRelative
     }, [isBlendedFamily, isIncludedOnSpousal, isSharedRelative])
 
-    useEffect(() => {
-        if (relationType === 'spouse') {
-            const key = 'formValues';
-            const storedValues = JSON.parse(localStorage.getItem(key)) || {};
-            storedValues[relationType] = formValues;
-            localStorage.setItem(key, JSON.stringify(storedValues));
-        }
-    }, [formValues, relationType]);
+
 
     useEffect(() => {
         setValidationErrors(errors);
@@ -341,7 +342,7 @@ function AddHuman({ married, childrens, human, errors, onDataChange, documents }
                 }
 
                 {/* Integrate CityAutocomplete */}
-                <CityAutocomplete onCitySelect={handleCitySelect} validationErrors={validationErrors} />
+                <CityAutocomplete onCitySelect={handleCitySelect} validationErrors={validationErrors} formValues={formValues} />
                 {!married && !childrens && isSpousalDocumentAvailable && (<Form.Check
                     type="checkbox"
 
