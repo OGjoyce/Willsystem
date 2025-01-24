@@ -4,19 +4,16 @@ import CustomToast from './AdditionalComponents/CustomToast';
 import ConfirmationModal from './AdditionalComponents/ConfirmationModal';
 import AddHuman from './AddHuman';
 import { getHumanData } from './AddHuman';
+import { extractData } from '@/utils/objectStatusUtils';
 import { validate } from './Validations';
+import { update } from 'lodash';
 
 let ids = 1;
 var childRelatives;
 
 function AddRelative({ relative, datas, errors, onDataChange, documents }) {
     const [show, setShow] = useState(false);
-    const [tableData, setTableData] = useState(() => {
-        const key = 'formValues';
-        const savedValues = localStorage.getItem(key);
-        const parsedValues = savedValues ? JSON.parse(savedValues) : {};
-        return parsedValues.kids || [];
-    });
+    const [tableData, setTableData] = useState([]);
     const [validationErrors, setValidationErrors] = useState(errors);
     const [editId, setEditId] = useState(null);
     const [editValues, setEditValues] = useState({ firstName: '', lastName: '' });
@@ -27,9 +24,12 @@ function AddRelative({ relative, datas, errors, onDataChange, documents }) {
 
 
     useEffect(() => {
-        childRelatives = tableData;
-        console.log(childRelatives);
-    }, [tableData]);
+        const kidsData = extractData(datas, "kids", null, []);
+        if (kidsData.length > 0) {
+            setTableData(kidsData);
+            childRelatives = kidsData
+        }
+    }, [datas]);
 
     useEffect(() => {
         setValidationErrors(errors);
@@ -46,13 +46,14 @@ function AddRelative({ relative, datas, errors, onDataChange, documents }) {
 
     const handleClose = () => {
         const modalData = getHumanData("childrens");
-
+        console.log(modalData)
         // Perform validation
         var errors = validate.addHumanData(modalData);
         const { email, phone, ...restErrors } = errors;
         errors = restErrors;
 
         if (Object.keys(errors).length <= 0) {
+
             const newEntry = {
                 id: tableData.length + 1,
                 firstName: modalData.firstName,
@@ -68,11 +69,8 @@ function AddRelative({ relative, datas, errors, onDataChange, documents }) {
 
             setTableData((prevData) => {
                 const updatedData = [...prevData, newEntry];
-                const key = 'formValues';
-                const savedValues = localStorage.getItem(key);
-                const parsedValues = savedValues ? JSON.parse(savedValues) : {};
-                parsedValues.kids = updatedData;
-                localStorage.setItem(key, JSON.stringify(parsedValues));
+                childRelatives = updatedData
+
                 return updatedData;
             });
 
