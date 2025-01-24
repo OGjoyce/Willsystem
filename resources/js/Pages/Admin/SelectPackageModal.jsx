@@ -1,15 +1,13 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Button, Container, Form, Row, Col, Modal, InputGroup } from 'react-bootstrap';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Button, Form, Modal, InputGroup } from 'react-bootstrap';
 import DataTable from 'react-data-table-component';
 import axios from 'axios';
 import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
-import { debounce } from 'lodash';
 
 const SelectPackageModal = ({ show, onHide, onSelect }) => {
     const [packages, setPackages] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [showModal, setShowModal] = useState(false);
     const [currentPackage, setCurrentPackage] = useState({
         id: null,
         name: '',
@@ -21,7 +19,6 @@ const SelectPackageModal = ({ show, onHide, onSelect }) => {
         is_signature_required: false,
     });
 
-    // Fetch packages on modal show
     useEffect(() => {
         if (show) {
             fetchPackages();
@@ -42,16 +39,17 @@ const SelectPackageModal = ({ show, onHide, onSelect }) => {
         onHide();
     };
 
-    const handleSearch = useCallback(debounce((value) => setSearchTerm(value), 300), []);
+    const handleSearchChange = (e) => {
+        const value = e.target.value;
+        setSearchTerm(value);
+    };
 
     const filteredPackages = useMemo(() => {
-        return packages.filter((pkg) =>
-            Object.values(pkg).some(
-                (value) =>
-                    value &&
-                    value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-            )
-        );
+        return packages.filter((pkg) => {
+            return Object.values(pkg).some(value =>
+                value && value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        });
     }, [packages, searchTerm]);
 
     const exportCSV = () => {
@@ -78,10 +76,22 @@ const SelectPackageModal = ({ show, onHide, onSelect }) => {
     };
 
     const columns = [
-        //{ name: 'ID', selector: row => row.id, sortable: true },
         { name: 'Name', selector: row => row.name, sortable: true },
         { name: 'Price', selector: row => row.price, sortable: true },
-        { name: 'Description', selector: row => row.description, sortable: true },
+        {
+            name: 'Description',
+            selector: row => row.description,
+            sortable: true,
+            cell: row => (
+                <div style={{
+                    whiteSpace: 'normal',
+                    wordWrap: 'break-word',
+                    maxWidth: '300px'
+                }}>
+                    {row.description}
+                </div>
+            )
+        },
         { name: 'Campaign', selector: row => row.campaign, sortable: true },
         { name: 'Cliente Reference', selector: row => row.cliente_reference, sortable: true },
         { name: 'Expiration Date', selector: row => row.expiration_date, sortable: true },
@@ -106,7 +116,7 @@ const SelectPackageModal = ({ show, onHide, onSelect }) => {
 
     return (
         <Modal show={show} onHide={onHide} size="xl">
-            <Modal.Header closeButton>
+            <Modal.Header >
                 <Modal.Title>Select a Package</Modal.Title>
             </Modal.Header>
             <Modal.Body>
@@ -115,7 +125,7 @@ const SelectPackageModal = ({ show, onHide, onSelect }) => {
                         type="text"
                         placeholder="Search packages..."
                         value={searchTerm}
-                        onChange={(e) => handleSearch(e.target.value)}
+                        onChange={handleSearchChange}
                     />
                 </InputGroup>
                 <div className="table-responsive">
