@@ -5,7 +5,6 @@ import {
 import ConfirmationModal from './AdditionalComponents/ConfirmationModal';
 import CustomToast from './AdditionalComponents/CustomToast';
 import AddPersonDropdown from './AddPersonDropdown';
-import { extractData } from '@/utils/objectStatusUtils';
 import { validate } from './Validations';
 
 let returndata;
@@ -76,67 +75,44 @@ function Wipeout({ id, datas, errors }) {
     }, [selectedCategory, selectedOption, custom, table_dataBequest, availableShares]);
 
     useEffect(() => {
-        if (datas) {
-            // Extraer datos relevantes de wipeout usando extractData
-            const wipeout = extractData(datas, 'wipeout', null, {}).wipeout;
+        const married = datas[2]?.married;
+        const marriedStatus = datas[1]?.marriedq?.selection === "true";
+        const sosoStatus = datas[1]?.marriedq?.selection === "soso";
+        const kids = datas[4]?.kids;
+        const relatives = datas[5]?.relatives;
+        const kidsq = datas[3]?.kidsq?.selection;
 
-            console.log("debuug", wipeout)
-            // Configurar los estados según los datos extraídos
-            setSelectedCategory(wipeout.selectedCategory || null);
-            setIsSpecificBeneficiary(wipeout.custom)
-            setSelectedOption(wipeout.selectedOption || null);
-            setCustom(wipeout.custom || false);
-            setTable_dataBequest(wipeout.table_dataBequest || []);
-            setAvailableShares(wipeout.availableShares || 100);
+        let names = [];
+        const married_names = married?.firstName || married?.lastName ? `${married?.firstName} ${married?.lastName}` : null;
+        if (married_names) names.push(married_names);
 
-            // Generar lista de nombres de beneficiarios (identifiers_names)
-            const married = datas[2]?.married;
-            const kids = datas[4]?.kids;
-            const relatives = datas[5]?.relatives;
-
-            let names = [];
-            const married_names = married?.firstName || married?.lastName
-                ? `${married?.firstName} ${married?.lastName}`
-                : null;
-
-            if (married_names) names.push(married_names);
-
-            if (kids) {
-                Object.values(kids).forEach(child => {
-                    const childName = `${child?.firstName} ${child?.lastName}`;
-                    names.push(childName);
-                });
-            }
-
-            if (relatives) {
-                Object.values(relatives).forEach(relative => {
-                    const relativeName = `${relative?.firstName} ${relative?.lastName}`;
-                    names.push(relativeName);
-                });
-            }
-
-            setIdentifiersNames(names);
-
-            // Configurar opciones del dropdown basadas en el estado marital
-            const marriedStatus = datas[1]?.marriedq?.selection === "true";
-            const sosoStatus = datas[1]?.marriedq?.selection === "soso";
-
-            let newOptions = [
-                `${marriedStatus || sosoStatus
-                    ? "50% to parents and siblings and 50% to parents and siblings of spouse"
-                    : "100% to parents and siblings"}`,
-                `${marriedStatus || sosoStatus
-                    ? "50% to siblings and 50% to siblings of spouse"
-                    : "100% to siblings"}`,
-            ];
-
-            setOptions(newOptions);
-
-            // Actualizar índice inicial de bequests basado en los datos cargados
-            bequestindex = wipeout.table_dataBequest?.length || 0;
+        if (kidsq === "true" && kids) {
+            Object.values(kids).forEach(child => {
+                const childName = `${child?.firstName} ${child?.lastName}`;
+                names.push(childName);
+            });
         }
-    }, [datas]);
 
+        if (relatives) {
+            Object.values(relatives).forEach(relative => {
+                const relativeName = `${relative?.firstName} ${relative?.lastName}`;
+                names.push(relativeName);
+            });
+        }
+
+        setIdentifiersNames(names);
+
+        let newOptions = [
+            `${marriedStatus || sosoStatus ? "50% to parents and siblings and 50% to parents and siblings of spouse" : "100% to parents and siblings"}`,
+            `${marriedStatus || sosoStatus ? "50% to siblings and 50% to siblings of spouse" : "100% to siblings"}`,
+        ];
+
+        setOptions(newOptions);
+
+        if (firstRender) {
+            setFirstRender(false);
+        }
+    }, [datas, firstRender]);
 
     const handleCategorySelect = (category) => {
         setSelectedCategory(category);
