@@ -1,22 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Form, Button } from 'react-bootstrap';
+import { extractData } from '@/utils/objectStatusUtils'; // Importamos extractData
 
-// Función para recuperar los datos de `additional` desde localStorage
+// Variable global para almacenar los datos de `additional`
+let additionalData = {
+    customClauseText: '',
+    otherWishes: [],
+    checkboxes: {
+        organdonation: false,
+        cremation: false,
+        buried: false,
+    },
+};
+
+// Función para recuperar los datos de `additional`
 export function getAdditionalInformation() {
-    const savedFormValues = JSON.parse(localStorage.getItem('formValues')) || {};
-    return savedFormValues.additional || {
-        customClauseText: '',
-        otherWishes: [],
-        checkboxes: {
-            organdonation: false,
-            cremation: false,
-            buried: false,
-        },
-    };
+    return additionalData;
 }
 
 function Additional({ datas, errors }) {
-    // State management para los campos del formulario
     const [additional, setAdditional] = useState({
         customClauseText: '',
         otherWishes: [],
@@ -30,67 +32,72 @@ function Additional({ datas, errors }) {
     const [newWish, setNewWish] = useState(''); // State para el nuevo deseo
     const [validationErrors, setValidationErrors] = useState({});
 
-    // Cargar datos de localStorage al montar el componente
+    // Inicializar datos utilizando `extractData`
     useEffect(() => {
-        const savedFormValues = getAdditionalInformation();
-        setAdditional(savedFormValues);
-    }, []);
+        if (datas) {
+            const rawAdditionalData = extractData(datas, 'additional', null, {});
+            const mergedAdditional = {
+                ...additionalData,
+                ...rawAdditionalData,
+                otherWishes: Array.isArray(rawAdditionalData.otherWishes)
+                    ? rawAdditionalData.otherWishes
+                    : [], // Aseguramos que sea un arreglo
+                checkboxes: {
+                    ...additionalData.checkboxes,
+                    ...rawAdditionalData.checkboxes,
+                },
+            };
+            setAdditional(mergedAdditional);
+            additionalData = mergedAdditional; // Actualizar la variable global
+        }
+    }, [datas]);
 
-    // Guardar datos en localStorage cada vez que `additional` cambie
-    const updateLocalStorage = (newData) => {
-        const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
-        formValues.additional = newData;
-        localStorage.setItem('formValues', JSON.stringify(formValues));
+    // Actualizar `additionalData` y el estado del componente
+    const updateAdditionalData = (newData) => {
+        setAdditional(newData);
+        additionalData = newData; // Actualizar la variable global
     };
 
-    // Actualizar estado y localStorage para los checkboxes
     const handleCheckboxChange = (e) => {
         const { name, checked } = e.target;
-        const newCheckboxes = {
+        const updatedCheckboxes = {
             ...additional.checkboxes,
             [name]: checked,
         };
-        const newData = {
+        const updatedAdditional = {
             ...additional,
-            checkboxes: newCheckboxes,
+            checkboxes: updatedCheckboxes,
         };
-        setAdditional(newData);
-        updateLocalStorage(newData);
+        updateAdditionalData(updatedAdditional);
     };
 
-    // Actualizar estado y localStorage para el Custom Clause
     const handleCustomClauseChange = (e) => {
-        const newData = {
+        const updatedAdditional = {
             ...additional,
             customClauseText: e.target.value,
         };
-        setAdditional(newData);
-        updateLocalStorage(newData);
+        updateAdditionalData(updatedAdditional);
     };
 
-    // Función para agregar un nuevo deseo a la lista
     const addWish = () => {
         if (newWish.trim() !== '') {
             const updatedWishes = [...additional.otherWishes, newWish.trim()];
-            const newData = {
+            const updatedAdditional = {
                 ...additional,
                 otherWishes: updatedWishes,
             };
-            setAdditional(newData);
-            updateLocalStorage(newData);
+            updateAdditionalData(updatedAdditional);
             setNewWish(''); // Limpiar el campo de entrada
         }
     };
 
-    // Función para eliminar un deseo de la lista
     const removeWish = (index) => {
         const updatedWishes = additional.otherWishes.filter((_, i) => i !== index);
-        const newData = {
+        const updatedAdditional = {
             ...additional,
             otherWishes: updatedWishes,
         };
-        setAdditional(newData);
-        updateLocalStorage(newData);
+        updateAdditionalData(updatedAdditional);
     };
 
     // Sincronizar errores de validación con el componente
@@ -172,39 +179,37 @@ function Additional({ datas, errors }) {
             {/* Sección de otros deseos */}
             <Row className="mt-5">
                 <Col sm={12}>
-                    <Form>
-                        <Form.Group controlId="otherWishes">
-                            <Form.Label>Other Wishes</Form.Label>
-                            <div className="d-flex">
-                                <Form.Control
-                                    type="text"
-                                    value={newWish}
-                                    onChange={(e) => setNewWish(e.target.value)}
-                                    placeholder="Enter a wish and press Add"
-                                />
-                                <Button variant="primary" onClick={addWish} className="ms-2">
-                                    Add
-                                </Button>
-                            </div>
-                            <ul className="mt-2">
-                                {additional.otherWishes.map((wish, index) => (
-                                    <li key={index} className="d-flex justify-content-between">
-                                        {wish}
-                                        <Button
-                                            variant="danger"
-                                            size="sm"
-                                            onClick={() => removeWish(index)}
-                                        >
-                                            Remove
-                                        </Button>
-                                    </li>
-                                ))}
-                            </ul>
-                            {validationErrors.otherWishes && (
-                                <p className="text-danger">{validationErrors.otherWishes}</p>
-                            )}
-                        </Form.Group>
-                    </Form>
+                    <Form.Group controlId="otherWishes">
+                        <Form.Label>Other Wishes</Form.Label>
+                        <div className="d-flex">
+                            <Form.Control
+                                type="text"
+                                value={newWish}
+                                onChange={(e) => setNewWish(e.target.value)}
+                                placeholder="Enter a wish and press Add"
+                            />
+                            <Button variant="primary" onClick={addWish} className="ms-2">
+                                Add
+                            </Button>
+                        </div>
+                        <ul className="mt-2">
+                            {additional.otherWishes.map((wish, index) => (
+                                <li key={index} className="d-flex justify-content-between">
+                                    {wish}
+                                    <Button
+                                        variant="danger"
+                                        size="sm"
+                                        onClick={() => removeWish(index)}
+                                    >
+                                        Remove
+                                    </Button>
+                                </li>
+                            ))}
+                        </ul>
+                        {validationErrors.otherWishes && (
+                            <p className="text-danger">{validationErrors.otherWishes}</p>
+                        )}
+                    </Form.Group>
                 </Col>
             </Row>
         </Container>
