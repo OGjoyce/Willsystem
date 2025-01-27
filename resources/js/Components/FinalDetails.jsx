@@ -24,13 +24,13 @@ export default function FinalDetails({ datas }) {
         if (datas) {
             const rawFinalDetails = extractData(datas, 'finalDetails', null, {});
             const mergedFinalDetails = {
-                ...finalDetailsData,
-                ...rawFinalDetails,
+
+                rawFinalDetails,
             };
             setFinalDetails(mergedFinalDetails);
             finalDetailsData = mergedFinalDetails; // Actualizar la variable global
         }
-    }, [datas]);
+    }, []);
 
     // Actualizar la variable global y el estado
     const updateFinalDetailsData = (newDetails) => {
