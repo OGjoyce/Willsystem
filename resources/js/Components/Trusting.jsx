@@ -4,7 +4,7 @@ import Table from 'react-bootstrap/Table';
 import Button from 'react-bootstrap/Button';
 import CustomToast from './AdditionalComponents/CustomToast';
 import ConfirmationModal from './AdditionalComponents/ConfirmationModal';
-
+import { extractData } from '@/utils/objectStatusUtils';
 const tableDataRef = { current: [] };
 
 export function getTableData() {
@@ -27,24 +27,20 @@ function Trusting({ datas, errors }) {
     const [testamentaryTrusting, setTestamentaryTrusting] = useState(true)
 
     useEffect(() => {
-        const formValues = localStorage.getItem('formValues');
-        if (formValues) {
-            const parsedFormValues = JSON.parse(formValues);
-            if (parsedFormValues.trusting) {
-                const parsedData = parsedFormValues.trusting;
-                setLocalTableData(parsedData);
-                tableDataRef.current = parsedData;
-                setLocalPointer(parsedData.length ? Math.max(...parsedData.map(item => item.id)) + 1 : 1);
-                const totalShares = parsedData.reduce((acc, item) => acc + parseFloat(item.shares), 0);
-                setLocalSharescounter(totalShares);
-            }
-        }
-    }, []);
+        // Extraer datos del objeto `datas` utilizando `extractData`
+        const rawTrustingData = extractData(datas, 'trusting', null, []);
+        const trustingArray = Object.values(rawTrustingData || {}).filter(item => item.age && item.shares);
+
+        setLocalTableData(trustingArray);
+        tableDataRef.current = trustingArray;
+
+        // Calcular el total de shares y ajustar el puntero
+        const totalShares = trustingArray.reduce((acc, item) => acc + parseFloat(item.shares), 0);
+        setLocalSharescounter(totalShares);
+        setLocalPointer(trustingArray.length ? Math.max(...trustingArray.map(item => item.id)) + 1 : 1);
+    }, [datas]);
 
     useEffect(() => {
-        const formValues = localStorage.getItem('formValues') ? JSON.parse(localStorage.getItem('formValues')) : {};
-        formValues.trusting = localTableData;
-        localStorage.setItem('formValues', JSON.stringify(formValues));
         tableDataRef.current = localTableData;
     }, [localTableData]);
 
