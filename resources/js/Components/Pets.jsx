@@ -5,6 +5,7 @@ import ConfirmationModal from './AdditionalComponents/ConfirmationModal';
 import CustomToast from './AdditionalComponents/CustomToast';
 import AddPersonDropdown from './AddPersonDropdown';
 import { validate } from './Validations';
+import { extractData } from '@/utils/objectStatusUtils';
 
 let guardianDataStack = [];
 
@@ -45,9 +46,23 @@ function Pets({ datas, errors }) {
     useEffect(() => {
         if (datas != null) {
             guardianDataStack = []
+
+
             let newTableData = [];
             let newId = 1;
             let namesList = [];
+
+
+            const rawPetsData = extractData(datas, 'pets', null, []);
+            if (rawPetsData) {
+                const processedData = Object.keys(rawPetsData)
+                    .filter((key) => !isNaN(key))
+                    .map((key) => rawPetsData[key]);
+
+                guardianDataStack = processedData;
+                setPetGuardianData([...guardianDataStack]);
+                setIdTable(processedData.length ? Math.max(...processedData.map((item) => item.id)) + 1 : 1);
+            }
 
             datas.forEach(element => {
                 if (element?.married?.firstName || element.married?.lastName && element.married?.relative !== "NA") {
