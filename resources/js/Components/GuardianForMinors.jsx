@@ -8,14 +8,15 @@ import Form from 'react-bootstrap/Form';
 import CustomToast from './AdditionalComponents/CustomToast';
 import ConfirmationModal from './AdditionalComponents/ConfirmationModal';
 import AddPersonDropdown from './AddPersonDropdown';  // <-- Añadido el import
-
+import { extractData } from '@/utils/objectStatusUtils';
 var identifiers_names = [];
 var priorityInformation = [1, 2, 3, 4, 5];
 var bequestindex = 1;
 
+let guardiansInfo = []
 export function getGuardiansForMinors() {
-    const savedData = localStorage.getItem('formValues');
-    return savedData ? JSON.parse(savedData).guardians || [] : [];
+
+    return guardiansInfo;
 }
 
 export default function GuardianForMinors({ errors, datas }) {
@@ -32,18 +33,21 @@ export default function GuardianForMinors({ errors, datas }) {
     const [itemToDelete, setItemToDelete] = useState(null);
 
     useEffect(() => {
-        const savedData = getGuardiansForMinors();
-        setTableData(savedData.reduce((acc, item) => {
-            acc[item.id] = item;
-            return acc;
-        }, {}));
-    }, []);
+        // Extraer los datos de `guardians` utilizando `extractData`
+        const rawGuardians = extractData(datas, 'guardians', null, {});
+        const guardiansArray = Object.keys(rawGuardians)
+            .filter(key => key !== 'timestamp') // Filtrar para excluir el timestamp
+            .reduce((acc, key) => {
+                acc[key] = rawGuardians[key];
+                return acc;
+            }, {});
 
-    useEffect(() => {
-        const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
-        formValues.guardians = Object.values(tableData);
-        localStorage.setItem('formValues', JSON.stringify(formValues));
-    }, [tableData]);
+        setTableData(guardiansArray);
+        guardiansInfo = guardiansArray
+    }, [datas]);
+
+
+
 
     useEffect(() => {
         setValidationErrors(errors);
@@ -112,6 +116,7 @@ export default function GuardianForMinors({ errors, datas }) {
         };
 
         const updatedTableData = { ...tableData, [newGuardian.id]: newGuardian };
+        guardiansInfo = updatedTableData
         setTableData(updatedTableData);
         setPriority(0);
         setSelected(null);
@@ -128,6 +133,7 @@ export default function GuardianForMinors({ errors, datas }) {
             const updatedTableData = { ...tableData };
             delete updatedTableData[itemToDelete];
             setTableData(updatedTableData);
+            guardiansInfo = updatedTableData
             setToastMessage('Guardian removed successfully');
             setShowToast(true);
             setItemToDelete(null);
