@@ -1,49 +1,58 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Button, Container, Row, Col, InputGroup } from 'react-bootstrap';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import { extractData } from '@/utils/objectStatusUtils'; // Importamos extractData
+
+// Variable global para almacenar los datos de finalDetails
+let finalDetailsData = {
+    specialInstructions: '',
+    pickup: false,
+};
 
 export function getFinalDetails() {
-    const storedFormValues = JSON.parse(localStorage.getItem('formValues')) || {};
-    return storedFormValues.finalDetails || {};
+    return finalDetailsData;
 }
 
 export default function FinalDetails({ datas }) {
     const [finalDetails, setFinalDetails] = useState({
         specialInstructions: '',
-        pickup: false
+        pickup: false,
     });
 
+    // Cargar datos al montar el componente utilizando extractData
     useEffect(() => {
-        // Cargar datos del localStorage cuando el componente se monta
-        const storedFormValues = JSON.parse(localStorage.getItem('formValues')) || {};
-        if (storedFormValues.finalDetails) {
-            setFinalDetails(storedFormValues.finalDetails);
+        if (datas) {
+            const rawFinalDetails = extractData(datas, 'finalDetails', null, {});
+            const mergedFinalDetails = {
+                ...finalDetailsData,
+                ...rawFinalDetails,
+            };
+            setFinalDetails(mergedFinalDetails);
+            finalDetailsData = mergedFinalDetails; // Actualizar la variable global
         }
-    }, []);
+    }, [datas]);
 
-    const updateLocalStorage = (newDetails) => {
-        const formValues = JSON.parse(localStorage.getItem('formValues')) || {};
-        formValues.finalDetails = newDetails;
-        localStorage.setItem('formValues', JSON.stringify(formValues));
+    // Actualizar la variable global y el estado
+    const updateFinalDetailsData = (newDetails) => {
+        setFinalDetails(newDetails);
+        finalDetailsData = newDetails; // Actualizar la variable global
     };
 
     const handleSpecialInstructionsChange = (event) => {
         const newDetails = {
             ...finalDetails,
-            specialInstructions: event.target.value
+            specialInstructions: event.target.value,
         };
-        setFinalDetails(newDetails);
-        updateLocalStorage(newDetails);
+        updateFinalDetailsData(newDetails);
     };
 
     const handleCheckboxChange = (event) => {
         const { checked } = event.target;
         const newDetails = {
             ...finalDetails,
-            pickup: checked
+            pickup: checked,
         };
-        setFinalDetails(newDetails);
-        updateLocalStorage(newDetails);
+        updateFinalDetailsData(newDetails);
     };
 
     // Cálculo del tiempo transcurrido
