@@ -1,23 +1,24 @@
+
 import React, { useState, useEffect } from 'react';
 import AsyncSelect from 'react-select/async';
 import debounce from 'lodash/debounce';
 import { Form } from 'react-bootstrap';
+
 
 const CityAutocomplete = ({ onCitySelect, validationErrors, formValues }) => {
     const [province, setProvince] = useState('');
     const [country, setCountry] = useState('');
     const [city, setCity] = useState('');
 
-    // Cargar valores iniciales desde formValues cuando cambien
     useEffect(() => {
         // Solo actualizamos el estado si realmente ha cambiado alguno de los valores
         if (
-            formValues &&
+            formValues !== null &&
             (formValues.city !== city || formValues.province !== province || formValues.country !== country)
         ) {
-            setCity(formValues.city || '');
-            setProvince(formValues.province || '');
-            setCountry(formValues.country || '');
+            setCity(formValues.city);
+            setProvince(formValues.province);
+            setCountry(formValues.country);
 
             onCitySelect({
                 city: formValues.city,
@@ -26,7 +27,6 @@ const CityAutocomplete = ({ onCitySelect, validationErrors, formValues }) => {
             });
         }
     }, [formValues, city, province, country]); // Agregamos city, province y country como dependencias
-
 
     const loadCityOptions = debounce((inputValue, callback) => {
         if (!inputValue) {
@@ -53,6 +53,7 @@ const CityAutocomplete = ({ onCitySelect, validationErrors, formValues }) => {
 
     const handleChange = (selectedOption) => {
         if (selectedOption) {
+            formValues = null
             setCity(selectedOption.city);
             setProvince(selectedOption.province);
             setCountry(selectedOption.country);
@@ -85,6 +86,7 @@ const CityAutocomplete = ({ onCitySelect, validationErrors, formValues }) => {
 
     return (
         <>
+
             <Form.Group className="mb-3" controlId="city">
                 <Form.Label>City</Form.Label>
                 <AsyncSelect
@@ -94,7 +96,7 @@ const CityAutocomplete = ({ onCitySelect, validationErrors, formValues }) => {
                     onChange={handleChange}
                     placeholder="Type to search for a city..."
                     formatOptionLabel={formatOptionLabel}
-                    value={city ? { label: city, city } : null} // Muestra la ciudad actual como valor seleccionado
+                    value={city ? { label: city, city } : null}
                 />
             </Form.Group>
             {validationErrors.city && <p className="mt-2 text-sm text-red-600">{validationErrors.city}</p>}
