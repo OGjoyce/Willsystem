@@ -55,6 +55,7 @@ function Wipeout({ id, datas, errors }) {
             if (rawWipeout.table_dataBequest?.length > 0) {
                 setTable_dataBequest(rawWipeout.table_dataBequest || []);
                 setSelectedOption(null);
+                setSelectedCategory(null)
                 setIsSpecificBeneficiary(true)
                 setAvailableShares(rawWipeout.availableShares);
             } else {
