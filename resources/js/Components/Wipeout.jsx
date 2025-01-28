@@ -52,8 +52,7 @@ function Wipeout({ id, datas, errors }) {
         if (datas) {
             const Wipeout = extractData(datas, 'wipeout', null, {});
             const rawWipeout = Wipeout?.wipeout || {}
-            console.log("raw", rawWipeout)
-            if (rawWipeout.table_dataBequest.length > 0) {
+            if (rawWipeout.table_dataBequest?.length > 0) {
                 setTable_dataBequest(rawWipeout.table_dataBequest || []);
                 setSelectedOption(null);
                 setIsSpecificBeneficiary(true)
