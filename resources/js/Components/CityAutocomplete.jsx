@@ -10,7 +10,11 @@ const CityAutocomplete = ({ onCitySelect, validationErrors, formValues }) => {
 
     // Cargar valores iniciales desde formValues cuando cambien
     useEffect(() => {
-        if (formValues) {
+        // Solo actualizamos el estado si realmente ha cambiado alguno de los valores
+        if (
+            formValues &&
+            (formValues.city !== city || formValues.province !== province || formValues.country !== country)
+        ) {
             setCity(formValues.city || '');
             setProvince(formValues.province || '');
             setCountry(formValues.country || '');
@@ -21,7 +25,8 @@ const CityAutocomplete = ({ onCitySelect, validationErrors, formValues }) => {
                 country: formValues.country,
             });
         }
-    }, [formValues]);
+    }, [formValues, city, province, country]); // Agregamos city, province y country como dependencias
+
 
     const loadCityOptions = debounce((inputValue, callback) => {
         if (!inputValue) {
