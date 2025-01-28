@@ -101,6 +101,7 @@ function AddHuman({ datas, married, childrens, human, errors, onDataChange, docu
     const [isSpousalDocumentAvailable, setIsSpousalDocumentAvailable] = useState(false)
     const [isIncludedOnSpousal, setIsIncludedOnSpousal] = useState(false)
     const [isSharedRelative, setIsSharedRelative] = useState(false)
+    const [isDataLoaded, setIsDataLoaded] = useState(false)
 
     useEffect(() => {
         setValidationErrors({})
@@ -111,6 +112,10 @@ function AddHuman({ datas, married, childrens, human, errors, onDataChange, docu
             const spouseData = extractData(datas, "married", null, {});
             setFormValues(spouseData);
             setPhone(spouseData.phone || "");
+            const prevErrors = validationErrors
+            delete prevErrors.email
+            setValidationErrors(prevErrors)
+            setIsDataLoaded(true)
         }
     }, [datas, married]);
 
@@ -135,8 +140,7 @@ function AddHuman({ datas, married, childrens, human, errors, onDataChange, docu
 
     useEffect(() => {
         setValidationErrors(errors);
-        if (married && isFirstCheckDone) {
-
+        if (married && isFirstCheckDone && !isDataLoaded) {
 
             const isValidEmail = (email) => {
                 const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -157,7 +161,7 @@ function AddHuman({ datas, married, childrens, human, errors, onDataChange, docu
                 errors.phone = 'Valid phone number is required (+X XXX XXX XXXX)';
             }
         }
-    }, [errors, married]);
+    }, [errors, married, isDataLoaded]);
 
     const handleInputChange = (e) => {
         const { id, value } = e.target;
