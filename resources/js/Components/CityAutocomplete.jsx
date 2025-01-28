@@ -14,16 +14,16 @@ const CityAutocomplete = ({ onCitySelect, validationErrors, formValues }) => {
         // Solo actualizamos el estado si realmente ha cambiado alguno de los valores
         if (
             formValues !== null &&
-            (formValues.city !== city || formValues.province !== province || formValues.country !== country)
+            (formValues?.city !== city || formValues?.province !== province || formValues?.country !== country)
         ) {
-            setCity(formValues.city);
-            setProvince(formValues.province);
-            setCountry(formValues.country);
+            setCity(formValues?.city);
+            setProvince(formValues?.province);
+            setCountry(formValues?.country);
 
             onCitySelect({
-                city: formValues.city,
-                province: formValues.province,
-                country: formValues.country,
+                city: formValues?.city,
+                province: formValues?.province,
+                country: formValues?.country,
             });
         }
     }, [formValues, city, province, country]); // Agregamos city, province y country como dependencias
