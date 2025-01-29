@@ -40,7 +40,7 @@ var WillContent = forwardRef((props, ref) => {
 
         var residueInfo = statusObject.residue;
         var additionalInfo = statusObject.additional;
-
+        console.log("debug", additionalInfo)
         var POAInfo = statusObject.poa;
 
 
@@ -807,37 +807,37 @@ var WillContent = forwardRef((props, ref) => {
                             </ol>
 
 
-                            {Object.values(additionalInfo.checkboxes).includes(true) || additionalInfo.otherWishes && additionalInfo.otherWishes.length > 0 && <><p><strong><u>Additional Provisions</u></strong></p>
-                                <ol>
-                                    {/* Renderizando deseos específicos */}
-                                    {additionalInfo.otherWishes && additionalInfo.otherWishes.length > 0 ? (
-                                        additionalInfo.otherWishes.map((wish, index) => (
-                                            <li key={index}>{wish}</li>
-                                        ))
-                                    ) : (
-                                        null
-                                    )}
+                            {(Object.values(additionalInfo.checkboxes).includes(true) || (additionalInfo.otherWishes && additionalInfo.otherWishes.length > 0) || additionalInfo.customClauseText) && (
+                                <>
+                                    <p><strong><u>Additional Provisions</u></strong></p>
+                                    <ol>
+                                        {/* Renderizando deseos específicos */}
+                                        {additionalInfo.otherWishes && additionalInfo.otherWishes.length > 0 && (
+                                            additionalInfo.otherWishes.map((wish, index) => (
+                                                <li key={index}>{wish}</li>
+                                            ))
+                                        )}
 
+                                        {/* Renderizando checkbox de opciones */}
+                                        {additionalInfo.checkboxes.organdonation && (
+                                            <li>I wish to donate my organs.</li>
+                                        )}
+                                        {additionalInfo.checkboxes.cremation && (
+                                            <li>I wish to be cremated.</li>
+                                        )}
+                                        {additionalInfo.checkboxes.buried && (
+                                            <li>I wish to be buried.</li>
+                                        )}
 
+                                        {/* Renderizando cláusula personalizada */}
+                                        {additionalInfo.customClauseText && (
+                                            <li>{additionalInfo.customClauseText}</li>
+                                        )}
 
-                                    {/* Renderizando checkbox de opciones */}
-                                    {additionalInfo.checkboxes.organdonation && (
-                                        <li>I wish to donate my organs.</li>
-                                    )}
-                                    {additionalInfo.checkboxes.cremation && (
-                                        <li>I wish to be cremated.</li>
-                                    )}
-                                    {additionalInfo.checkboxes.buried && (
-                                        <li>I wish to be buried.</li>
-                                    )}
+                                    </ol>
+                                </>
+                            )}
 
-                                    {/* Renderizando cláusula personalizada */}
-                                    {additionalInfo.customClauseText && (
-                                        <li>{additionalInfo.customClauseText}</li>
-                                    )}
-
-                                </ol>
-                            </>}
                             <p><strong><u>No Contest Provision</u></strong></p>
                             <ol>
                                 <li>If any beneficiary under this Will contests in any court any of the provisions of this Will, then each and all
