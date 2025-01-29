@@ -46,6 +46,8 @@ var WillContent = forwardRef((props, ref) => {
 
 
     }
+    console.log("debug", statusObject.residue)
+    console.log("debug", residueInfo)
 
     function findPersonInfo(name, relatives, kids, spouseInfo) {
         const names = name.trim();
@@ -213,7 +215,8 @@ var WillContent = forwardRef((props, ref) => {
                                         assets of the residue of my estate;
                                     </li>
                                     <li>
-                                        To take all legal actions to have the probate of my Will completed as quickly and simply as possible,
+                                        To take all legal a
+                                        ctions to have the probate of my Will completed as quickly and simply as possible,
                                         and as free as possible from any court supervision, under the laws of the Province of Ontario;
                                     </li>
                                     <li>
@@ -362,16 +365,17 @@ var WillContent = forwardRef((props, ref) => {
                                 )}
 
                                 {/* Condicional para "Custom Clause" */}
-                                {statusObject.residue.selected === "Custom Clause" && (
+
+                                {residueInfo.selected === "Custom Clause" && (
                                     <>
                                         <li>The residue of my estate shall be distributed in accordance with the following custom clause:</li>
-                                        <blockquote>"{statusObject.residue.clause}"</blockquote>
+                                        <blockquote>"{residueInfo.clause}"</blockquote>
                                         <li>All property given under this Will is subject to any encumbrances or liens attached to the property.</li>
                                     </>
                                 )}
 
                                 {/* Condicional para "Bloodline Selection" */}
-                                {statusObject.residue.selected === "Have the residue go to parents then siblings per stirpes" && (
+                                {residueInfo.selected === "Have the residue go to parents then siblings per stirpes" && (
                                     <>
                                         <li>The residue of my estate shall go to my parents, and if they predecease me, to my siblings per stirpes, ensuring each line of descent receives an equal portion.</li>
                                         <li>If any of my siblings predecease me, their share shall be divided equally among their surviving descendants.</li>
@@ -379,7 +383,7 @@ var WillContent = forwardRef((props, ref) => {
                                     </>
                                 )}
 
-                                {statusObject.residue.selected === "Have the residue go to siblings per stirpes" && (
+                                {residueInfo.selected === "Have the residue go to siblings per stirpes" && (
                                     <>
                                         <li>The residue of my estate shall be distributed to my siblings per stirpes, with each line of descent receiving an equal share.</li>
                                         <li>If any of my siblings predecease me, their share shall be divided among their surviving descendants in equal portions.</li>
@@ -387,7 +391,7 @@ var WillContent = forwardRef((props, ref) => {
                                     </>
                                 )}
 
-                                {statusObject.residue.selected === "Have the residue go to children per stirpes" && (
+                                {residueInfo.selected === "Have the residue go to children per stirpes" && (
                                     <>
                                         <li>The residue of my estate shall be distributed among my children per stirpes, where each line of descent receives an equal portion of the estate.</li>
                                         <li>If any of my children predecease me, their share shall be passed equally to their surviving descendants.</li>
@@ -395,13 +399,33 @@ var WillContent = forwardRef((props, ref) => {
                                     </>
                                 )}
 
-                                {statusObject.residue.selected === "Have the residue go to children per capita" && (
+                                {residueInfo.selected === "Have the residue go to children per capita" && (
                                     <>
                                         <li>The residue of my estate shall be distributed among my children per capita, with each child receiving an equal share.</li>
                                         <li>If any of my children predecease me, their portion shall be equally divided among the surviving children.</li>
                                         <li>All property given under this Will is subject to any encumbrances or liens attached to the property.</li>
                                     </>
                                 )}
+
+                                {/* Conditional for "Have the residue of my estate to go to my spouse first, then my children equally per stirpes" */}
+                                {residueInfo.selected === "Have the residue of my estate to go to my spouse first, then my children equally per stirpes" && (
+                                    <>
+                                        <li>The residue of my estate shall first be distributed to my spouse. In the event that my spouse predeceases me or is otherwise unable to inherit, the residue of my estate shall be distributed equally among my children per stirpes, ensuring that each line of descent receives an equal portion.</li>
+                                        <li>If any of my children predecease me, their share shall be divided equally among their surviving descendants.</li>
+                                        <li>All property distributed under this Will is subject to any encumbrances or liens attached to the property.</li>
+                                    </>
+                                )}
+
+                                {/* Conditional for "Have the residue of my estate to go to my spouse first, then my children equally per capita" */}
+                                {residueInfo.selected === "Have the residue of my estate to go to my spouse first, then my children equally per capita" && (
+                                    <>
+                                        <li>The residue of my estate shall first be distributed to my spouse. In the event that my spouse predeceases me or is otherwise unable to inherit, the residue of my estate shall be distributed equally among my children per capita, without regard to the line of descent.</li>
+                                        <li>If any of my children predecease me, their portion shall be equally divided among the surviving children.</li>
+                                        <li>All property distributed under this Will is subject to any encumbrances or liens attached to the property.</li>
+                                    </>
+                                )}
+
+
                             </ol>
 
 
@@ -466,22 +490,7 @@ var WillContent = forwardRef((props, ref) => {
                                                     in equal shares.
                                                 </>
                                             )}
-                                            {wipeoutInfo.selectedCategory === "Have the residue of my estate to go to my spouse first, then my children equally per stirpes" && (
-                                                <>
-                                                    In the absence of surviving beneficiaries or alternate beneficiaries, I direct that the residue of my estate shall first be distributed to my spouse. In the event that my spouse predeceases me or is otherwise unable to inherit, I direct that the residue of my estate be distributed to my children in equal shares per stirpes.
-                                                </>
-                                            )}
-                                            {wipeoutInfo.selectedCategory === "Have the residue of my estate to go to my spouse first, then my children equally per capita" && (
-                                                <>
-                                                    In the absence of surviving beneficiaries or alternate beneficiaries, I direct that the residue of my estate shall first be distributed to my spouse. In the event that my spouse predeceases me or is otherwise unable to inherit, I direct that the residue of my estate be distributed to my children in equal shares per capita.
-                                                </>
-                                            )}
 
-                                            {wipeoutInfo.custom && wipeoutInfo.table_dataBequest.length === 0 && (
-                                                <>
-                                                    No specific distribution instructions have been provided for the wipeout provision, and custom settings are enabled.
-                                                </>
-                                            )}
                                         </li>
 
                                     )}
