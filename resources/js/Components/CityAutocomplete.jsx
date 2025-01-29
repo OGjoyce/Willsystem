@@ -3,27 +3,21 @@ import AsyncSelect from 'react-select/async';
 import debounce from 'lodash/debounce';
 import { Form } from 'react-bootstrap';
 
-const CityAutocomplete = ({ onCitySelect, validationErrors, formValues }) => {
+const CityAutocomplete = ({ onCitySelect, validationErrors, formValues, married }) => {
     const [province, setProvince] = useState('');
     const [country, setCountry] = useState('');
     const [city, setCity] = useState('')
-
+    const [formData, setFormData] = useState(null)
     // Cargar valores iniciales desde formValues cuando cambien
+
     useEffect(() => {
 
-        if (
-            (formValues?.city !== city || formValues?.province !== province || formValues?.country !== country)) {
-            setCity(formValues?.city || '');
-            setProvince(formValues?.province || '');
-            setCountry(formValues?.country || '');
-
-            onCitySelect({
-                city: formValues?.city,
-                province: formValues?.province,
-                country: formValues?.country,
-            });
+        if (formValues !== formData) {
+            setFormData(formValues)
         }
-    }, [formValues]); // Solo depende de formValues y onCitySelect
+    }, [formValues])
+
+
 
     const loadCityOptions = debounce((inputValue, callback) => {
         if (!inputValue) {
@@ -89,9 +83,9 @@ const CityAutocomplete = ({ onCitySelect, validationErrors, formValues }) => {
                     loadOptions={loadCityOptions}
                     defaultOptions
                     onChange={handleChange}
-                    placeholder={city || "Type to search for a city..."}
+                    placeholder={formData?.city || city || "Type to search for a city..."}
                     formatOptionLabel={formatOptionLabel}
-                    value={city}
+                    value={formData?.city || city}
                 />
             </Form.Group>
             {validationErrors.city && <p className="mt-2 text-sm text-red-600">{validationErrors.city}</p>}
@@ -100,7 +94,7 @@ const CityAutocomplete = ({ onCitySelect, validationErrors, formValues }) => {
                 <Form.Control
                     type="text"
                     placeholder="..."
-                    value={province}
+                    value={formData?.province || province}
                 />
                 {validationErrors.province && (
                     <p className="mt-2 text-sm text-red-600">
@@ -113,7 +107,7 @@ const CityAutocomplete = ({ onCitySelect, validationErrors, formValues }) => {
                 <Form.Control
                     type="text"
                     placeholder="..."
-                    value={country}
+                    value={formData?.country || country}
                 />
                 {validationErrors.country && (
                     <p className="mt-2 text-sm text-red-600">
