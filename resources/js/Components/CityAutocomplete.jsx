@@ -52,6 +52,7 @@ const CityAutocomplete = ({ onCitySelect, validationErrors, formValues }) => {
         if (selectedOption) {
             setProvince(selectedOption.province);
             setCountry(selectedOption.country);
+            setCity(selectedOption.city)
             onCitySelect({
                 city: selectedOption.city,
                 province: selectedOption.province,
@@ -60,6 +61,7 @@ const CityAutocomplete = ({ onCitySelect, validationErrors, formValues }) => {
         } else {
             setProvince('');
             setCountry('');
+            setCity('')
             onCitySelect({
                 city: '',
                 province: '',
