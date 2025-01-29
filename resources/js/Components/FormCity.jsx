@@ -76,7 +76,7 @@ function FormCity({ auth, laravelVersion, phpVersion, errors }) {
         if (!value) return '';
 
         // Elimina cualquier carácter que no sea un número
-        const phoneNumber = value.replace(/[^\d]/g, '').slice(0, 11); // Limita a 10 dígitos
+        const phoneNumber = value.replace(/[^\d]/g, '') // Limita a 10 dígitos
 
         // Aplica el formato XXX XXX XXXX
 
