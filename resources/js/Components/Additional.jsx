@@ -37,13 +37,11 @@ function Additional({ datas, errors }) {
         if (datas) {
             const rawAdditionalData = extractData(datas, 'additional', null, {});
             const mergedAdditional = {
-                ...additionalData,
                 ...rawAdditionalData,
                 otherWishes: Array.isArray(rawAdditionalData.otherWishes)
                     ? rawAdditionalData.otherWishes
                     : [], // Aseguramos que sea un arreglo
                 checkboxes: {
-                    ...additionalData.checkboxes,
                     ...rawAdditionalData.checkboxes,
                 },
             };
