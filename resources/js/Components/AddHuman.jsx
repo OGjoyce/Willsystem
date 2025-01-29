@@ -146,11 +146,11 @@ function AddHuman({ datas, married, childrens, human, errors, onDataChange, docu
                 const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
                 return re.test(String(email).toLowerCase());
             };
-
             const isValidPhone = (phone) => {
-                const re = /^\+\d{11}$/;
+                const re = /^\+\d+$/;
                 return re.test(phone);
             };
+
 
             const data = getHumanData()
             if (!data.email || !isValidEmail(data.email)) {
