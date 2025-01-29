@@ -1,173 +1,173 @@
 // validations.jsx
 
 const isValidEmail = (email) => {
-  const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  return re.test(String(email).toLowerCase());
+    const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(String(email).toLowerCase());
 };
 
 const isValidPhone = (phone) => {
-  const re = /^\+\d{11}$/;
-  return re.test(phone);
+    const re = /^\+\d+$/;
+    return re.test(phone);
 };
 
 
 
 export const validate = {
-  formData: (data) => {
-    const errors = {};
+    formData: (data) => {
+        const errors = {};
 
-    if (!data.fullName || data.fullName.trim().split(/\s+/).length < 2) {
-      errors.fullName = 'First and either Middle or Last name are required';
-    }
+        if (!data.fullName || data.fullName.trim().split(/\s+/).length < 2) {
+            errors.fullName = 'First and either Middle or Last name are required';
+        }
 
-    if (!data.email || !isValidEmail(data.email)) {
-      errors.email = 'Valid email is required';
-    }
+        if (!data.email || !isValidEmail(data.email)) {
+            errors.email = 'Valid email is required';
+        }
 
-    if (!data.telephone || !isValidPhone(data.telephone)) {
-      errors.telephone = 'Valid phone number is required (+X XXX XXX XXXX)';
-    }
+        if (!data.telephone || !isValidPhone(data.telephone)) {
+            errors.telephone = 'Valid phone number is required (+X XXX XXX XXXX)';
+        }
 
-    if (!data.city || data.city.trim() === '') {
-      errors.city = 'City is required';
-    }
+        if (!data.city || data.city.trim() === '') {
+            errors.city = 'City is required';
+        }
 
-    if (!data.province || data.province.trim() === '') {
-      errors.province = 'Province is required';
-    }
+        if (!data.province || data.province.trim() === '') {
+            errors.province = 'Province is required';
+        }
 
-    return errors;
-  },
+        return errors;
+    },
 
-  addHumanData: (data) => {
-    const errors = {};
+    addHumanData: (data) => {
+        const errors = {};
 
-    if (!data.firstName || data.firstName.trim() === '') {
-      errors.firstName = 'First name is required';
-    }
-
-
-    if (!data.lastName || data.lastName.trim() === '') {
-      errors.lastName = 'Last name is required';
-    }
+        if (!data.firstName || data.firstName.trim() === '') {
+            errors.firstName = 'First name is required';
+        }
 
 
-
-
-    if (!data.city || data.city.trim() === '') {
-      errors.city = 'City is required';
-    }
-
-    if (!data.province || data.province.trim() === '') {
-      errors.province = 'Province is required';
-    }
-
-    if (!data.country || data.country.trim() === '') {
-      errors.country = 'Country is required';
-    }
-
-    return errors;
-  },
-
-  kids: (data) => {
-    const errors = {};
-
-    if (!data || data.length === 0) {
-      errors.kids = 'At least one kid is required';
-    }
-
-    return errors;
-  },
-
-  executors: (data) => {
-    const errors = {};
-
-    if (!data || data.length === 0) {
-      errors.executors = 'At least one executor is required';
-    }
-    return errors;
-  },
-
-  bequest: (data) => {
-    const errors = {};
-
-    if (!data || data.length === 0) {
-      //errors.bequest = 'At least one bequest is required';
-    }
-    return errors;
-  },
-
-
-  residue: (data) => {
-    const errors = {};
-    console.log(data)
-    if (!data || data.selected === null || data.selected === undefined) {
-      errors.residue = 'Residue selection is required';
-    }
-
-    if (data.selected === "Custom Clause" && data.clause === "") {
-      errors.residue = 'Custom clause is required';
-    }
+        if (!data.lastName || data.lastName.trim() === '') {
+            errors.lastName = 'Last name is required';
+        }
 
 
 
-    if (data.selected === "Specific Beneficiaries" && data.beneficiary.length === 0) {
-      errors.residue = 'Specific beneficiary is required';
-    }
+
+        if (!data.city || data.city.trim() === '') {
+            errors.city = 'City is required';
+        }
+
+        if (!data.province || data.province.trim() === '') {
+            errors.province = 'Province is required';
+        }
+
+        if (!data.country || data.country.trim() === '') {
+            errors.country = 'Country is required';
+        }
+
+        return errors;
+    },
+
+    kids: (data) => {
+        const errors = {};
+
+        if (!data || data.length === 0) {
+            errors.kids = 'At least one kid is required';
+        }
+
+        return errors;
+    },
+
+    executors: (data) => {
+        const errors = {};
+
+        if (!data || data.length === 0) {
+            errors.executors = 'At least one executor is required';
+        }
+        return errors;
+    },
+
+    bequest: (data) => {
+        const errors = {};
+
+        if (!data || data.length === 0) {
+            //errors.bequest = 'At least one bequest is required';
+        }
+        return errors;
+    },
 
 
-    return errors;
-  },
+    residue: (data) => {
+        const errors = {};
+        console.log(data)
+        if (!data || data.selected === null || data.selected === undefined) {
+            errors.residue = 'Residue selection is required';
+        }
 
-  wipeout: (data) => {
-    const errors = {};
-    if (!data || data.wipeout === null || data.wipeout === undefined) {
-      errors.wipeout = 'Wipeout selection is required';
-    }
-
-    return errors;
-  },
-
-  trusting: (data) => {
-    const errors = {};
-
-    return errors;
-  },
-
-  guardians: (data) => {
-    const errors = {};
-    if (!data || data.length === 0) {
-
-    }
-
-    return errors;
-  },
-
-  pets: (data) => {
-    const errors = {};
-    if (!data || data.length === 0) {
-      errors.pets = 'At least one guardian for pets is required';
-    }
-
-    return errors;
-  },
-
-  additional: (data) => {
-    const errors = {};
-    if (!data || Object.keys(data).length === 1) {
-      errors.additional = 'Standard or Custom clause is required';
-    }
-
-    return errors;
-  },
+        if (data.selected === "Custom Clause" && data.clause === "") {
+            errors.residue = 'Custom clause is required';
+        }
 
 
-  poa: (data) => {
-    const errors = {};
 
-    // Validate poaProperty
+        if (data.selected === "Specific Beneficiaries" && data.beneficiary.length === 0) {
+            errors.residue = 'Specific beneficiary is required';
+        }
 
-    {/*
+
+        return errors;
+    },
+
+    wipeout: (data) => {
+        const errors = {};
+        if (!data || data.wipeout === null || data.wipeout === undefined) {
+            errors.wipeout = 'Wipeout selection is required';
+        }
+
+        return errors;
+    },
+
+    trusting: (data) => {
+        const errors = {};
+
+        return errors;
+    },
+
+    guardians: (data) => {
+        const errors = {};
+        if (!data || data.length === 0) {
+
+        }
+
+        return errors;
+    },
+
+    pets: (data) => {
+        const errors = {};
+        if (!data || data.length === 0) {
+            errors.pets = 'At least one guardian for pets is required';
+        }
+
+        return errors;
+    },
+
+    additional: (data) => {
+        const errors = {};
+        if (!data || Object.keys(data).length === 1) {
+            errors.additional = 'Standard or Custom clause is required';
+        }
+
+        return errors;
+    },
+
+
+    poa: (data) => {
+        const errors = {};
+
+        // Validate poaProperty
+
+        {/*
     if (!data.poaProperty || typeof data.poaProperty !== 'object') {
       errors.poaProperty = 'poaProperty is required';
     } else {
@@ -202,6 +202,6 @@ export const validate = {
       errors.documentDOM = 'Please Save your Document to proceed';
     }
  */ }
-    return errors;
-  },
+        return errors;
+    },
 }
