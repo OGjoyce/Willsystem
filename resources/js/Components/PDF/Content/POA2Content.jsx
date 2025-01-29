@@ -109,7 +109,7 @@ const POA2Content = forwardRef((props, ref) => {
                             </li>
                             {attorneyTwo && attorneyTwo.length > 0 && (
                                 <li>
-                                    If {attorneyOne.relation && `my ${attorneyOne?.relation?.toLowerCase()}`} {capitalLetters(attorneyOne.fullName)} cannot or will not be my Attorney because of refusal, resignation, death, mental incapacity, or removal by the court, I SUBSTITUTE {capitalLetters(attorneyTwo[0].fullName)} {attorneyTwo[0].city && `of ${capitalLetters(attorneyTwo[0].city)}`}, {attorneyTwo[0].province && `, ${capitalLetters(attorneyTwo[0].country)}`} {attorneyTwo[0].telephone && `tel: ${attorneyTwo[0].telephone}`} to be my sole Attorney.
+                                    If {attorneyOne.relation && `my ${attorneyOne?.relation?.toLowerCase()}`} {capitalLetters(attorneyOne.fullName)} cannot or will not be my Attorney because of refusal, resignation, death, mental incapacity, or removal by the court, I SUBSTITUTE {capitalLetters(attorneyTwo[0].fullName)} {attorneyTwo[0].city && `of ${capitalLetters(attorneyTwo[0].city)}`}, {attorneyTwo[0].province && `, ${capitalLetters(attorneyTwo[0].country)}`}  to be my sole Attorney.
                                 </li>
                             )}
 
