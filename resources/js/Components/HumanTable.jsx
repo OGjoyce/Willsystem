@@ -261,7 +261,7 @@ function HumanTable({ id, datas, errors, documents }) {
     const availableExecutors = [
         ...allRelatives,
         { firstName: "Lawyers & Lattes", lastName: "", relative: "" },
-        { firstName: "Barret Tax Law", lastName: "", relative: "" }
+        { firstName: "Barrett Tax Law", lastName: "", relative: "" }
     ];
 
 
