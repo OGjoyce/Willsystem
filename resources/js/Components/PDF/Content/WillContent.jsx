@@ -97,7 +97,7 @@ var WillContent = forwardRef((props, ref) => {
                                     {isMarried
                                         ? `I am married to ${capitalLetters(spouseInfo.firstName)} ${capitalLetters(spouseInfo.middleName)} ${capitalLetters(spouseInfo.lastName)} (my "${spouseInfo.relative}").`
                                         : isCommonRelationship
-                                            ? `I am in a common law relationship with ${capitalLetters(spouseInfo.firstName)} ${capitalLetters(spouseInfo.lastName)} (my "${spouseInfo.relative}").`
+                                            ? `I am in a common law relationship with ${capitalLetters(spouseInfo.firstName)} ${capitalLetters(spouseInfo.middleName)}  ${capitalLetters(spouseInfo.lastName)} (my "${spouseInfo.relative}").`
                                             : "I am not married or in a common law relationship."
                                     }
                                 </li>
