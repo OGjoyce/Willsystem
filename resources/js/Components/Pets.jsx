@@ -62,6 +62,8 @@ function Pets({ datas, errors }) {
                 guardianDataStack = processedData;
                 setPetGuardianData([...guardianDataStack]);
                 setIdTable(processedData.length + 1);
+                if (guardianDataStack.length == 0)
+                    setSkipPetGuardian(true)
             }
 
             datas.forEach(element => {
@@ -297,6 +299,7 @@ function Pets({ datas, errors }) {
                                     {validationErrors.amount}
                                 </Form.Control.Feedback>
                             </FloatingLabel>
+                            {/* Amount Field
                             <Form.Check
                                 type="checkbox"
                                 id=""
@@ -304,7 +307,7 @@ function Pets({ datas, errors }) {
                                 label="No pet guardian"
                                 checked={skipPetGuardian}
                                 onChange={() => { setSkipPetGuardian(!skipPetGuardian) }}
-                            />
+                            /> */}
                         </Form.Group>
 
                         {/* Submit Button */}
