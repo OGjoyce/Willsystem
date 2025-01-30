@@ -146,7 +146,7 @@ export const validate = {
     pets: (data) => {
         const errors = {};
         if (!data || data.length === 0) {
-            errors.pets = 'At least one guardian for pets is required';
+            //errors.pets = 'At least one guardian for pets is required';
         }
 
         return errors;
