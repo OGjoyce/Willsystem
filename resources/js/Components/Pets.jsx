@@ -20,9 +20,7 @@ function Pets({ datas, errors }) {
     const [validationErrors, setValidationErrors] = useState(errors);
     const [tableData, setTableData] = useState([]);
     const [identifiersNames, setIdentifiersNames] = useState([]);
-    const [idTable, setIdTable] = useState(1
-
-    );
+    const [idTable, setIdTable] = useState(1);
     const [editingRow, setEditingRow] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showToast, setShowToast] = useState(false);
@@ -37,7 +35,7 @@ function Pets({ datas, errors }) {
 
         if (skipPetGuardian) {
             setValidationErrors({})
-            guardianDataStack = [undefined]
+            guardianDataStack = []
         } else {
             guardianDataStack = guardianDataStack.filter(obj => obj !== undefined)
         }
@@ -54,14 +52,16 @@ function Pets({ datas, errors }) {
 
 
             const rawPetsData = extractData(datas, 'pets', null, []);
+            console.log("d", rawPetsData)
             if (rawPetsData) {
                 const processedData = Object.keys(rawPetsData)
                     .filter((key) => !isNaN(key))
+                    .filter(element => element.length > 0)
                     .map((key) => rawPetsData[key]);
 
                 guardianDataStack = processedData;
                 setPetGuardianData([...guardianDataStack]);
-                setIdTable(processedData.length ? Math.max(...processedData.map((item) => item.id)) + 1 : 1);
+                setIdTable(processedData.length + 1);
             }
 
             datas.forEach(element => {
@@ -300,7 +300,7 @@ function Pets({ datas, errors }) {
                             <Form.Check
                                 type="checkbox"
                                 id=""
-                                className='mb-4'
+                                className='m-8 text-bold'
                                 label="No pet guardian"
                                 checked={skipPetGuardian}
                                 onChange={() => { setSkipPetGuardian(!skipPetGuardian) }}
@@ -333,21 +333,21 @@ function Pets({ datas, errors }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {petGuardianData.map((item, index) => (
+                        {petGuardianData?.map((item, index) => (
                             <tr key={index}>
-                                <td>{item.id}</td>
+                                <td>{item?.id}</td>
                                 <td>
                                     {editingRow === index ? (
                                         <Form.Control
                                             type="text"
-                                            value={tempData.petName}
+                                            value={tempData?.petName}
                                             onChange={(e) => handleDropdownSelect('petName', e.target.value)}
-                                            isInvalid={!tempData.petName}
+                                            isInvalid={!tempData?.petName}
                                         />
                                     ) : (
-                                        item.petName
+                                        item?.petName
                                     )}
-                                    {editingRow === index && !tempData.petName && (
+                                    {editingRow === index && !tempData?.petName && (
                                         <p className="mt-2 text-sm text-danger">Pet name is required</p>
                                     )}
                                 </td>
@@ -356,14 +356,14 @@ function Pets({ datas, errors }) {
                                         <AddPersonDropdown
                                             options={identifiersNames}
                                             label="Choose..."
-                                            selected={tempData.guardian}
+                                            selected={tempData?.guardian}
                                             onSelect={(value) => handleDropdownSelect('guardian', value)}
                                             onAddPerson={handleAddPerson}
                                             validationErrors={validationErrors}
                                             setValidationErrors={setValidationErrors}
                                         />
                                     ) : (
-                                        item.guardian
+                                        item?.guardian
                                     )}
                                 </td>
                                 <td>
@@ -378,7 +378,7 @@ function Pets({ datas, errors }) {
                                             setValidationErrors={setValidationErrors}
                                         />
                                     ) : (
-                                        item.backup
+                                        item?.backup
                                     )}
                                 </td>
                                 <td>
@@ -389,7 +389,7 @@ function Pets({ datas, errors }) {
                                             onChange={(e) => handleDropdownSelect('amount', e.target.value)}
                                             isInvalid={!tempData.amount || Number(tempData.amount) <= 0}
                                         />
-                                    ) : item.amount !== "N/A" ? `$${item.amount.toFixed(2)}` : "N/A"
+                                    ) : item?.amount !== "N/A" ? `$${item?.amount.toFixed(2)}` : "N/A"
                                     }
                                     {editingRow === index && (!tempData.amount || Number(tempData.amount) <= 0) && (
                                         <p className="mt-2 text-sm text-danger">A valid amount is required</p>
