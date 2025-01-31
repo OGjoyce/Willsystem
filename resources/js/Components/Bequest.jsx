@@ -22,7 +22,7 @@ export function getBequestArrObj() {
     return bequestArrObj;
 }
 
-function Bequest({ id, datas, errors }) {
+function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
     const [showExecutor, setShowExecutor] = useState(false);
     const [open, setOpen] = useState(false);
     const [firstRender, setFirstRender] = useState(true);
@@ -324,7 +324,7 @@ function Bequest({ id, datas, errors }) {
         relatives[len] = newPerson;
         updatedDatas[5].relatives = relatives;
         datas[5].relatives = relatives; // Update datas
-
+        onAddPersonFromDropdown([newPerson])
         setValidationErrors({});
     };
     useEffect(() => {
