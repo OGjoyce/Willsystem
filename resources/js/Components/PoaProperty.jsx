@@ -18,7 +18,7 @@ export function getPoaProperty() {
 }
 
 
-const PoaProperty = ({ datas, errors }) => {
+const PoaProperty = ({ datas, errors, onAddPersonFromDropdown }) => {
     const [identifiersNames, setIdentifiersNames] = useState([]);
     const [validationErrors, setValidationErrors] = useState(errors || {});
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -111,6 +111,7 @@ const PoaProperty = ({ datas, errors }) => {
         if (!datas[5]) datas[5] = {};
         if (!datas[5].relatives) datas[5].relatives = [];
         datas[5].relatives.push(newPerson);
+        onAddPersonFromDropdown([newPerson])
     };
 
     // Add a new backup attorney
