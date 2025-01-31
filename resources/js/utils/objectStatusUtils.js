@@ -50,6 +50,13 @@ const initializeSpousalWill = (objectStatus) => {
 
             const relatives = objectStatus[0].find(obj => obj.relatives)?.relatives || []
 
+            const kidsq = objectStatus[0].find(obj => obj.kidsq)?.kidsq || []
+
+            const kids = objectStatus[0].find(obj => obj.kids)?.kids || []
+
+            const filteredKids = kids.filter(kid => kid.isIncludedOnSpousalWill)
+
+
             const spousalWillData = [{
                 personal: {
                     step: 0,
@@ -89,10 +96,10 @@ const initializeSpousalWill = (objectStatus) => {
                 }
             },
             {
-                "kidsq": []
+                "kidsq": kidsq
             },
             {
-                "kids": []
+                "kids": filteredKids
             },
             {
                 "executors": [],
