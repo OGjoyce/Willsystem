@@ -263,107 +263,61 @@ console.log("updated",newObject)
 
 
 
-function updateKidsOnPrimaryObjectStatus(objectStatus, newKids, backendId) {
-    // Encuentra el índice del perfil del documento
-    const ownerIndex = objectStatus.findIndex(profile =>
-        profile[0]?.personal?.email
-    );
+function updateKidsOnObjectStatus(objectStatus, newKids, currentProfile, backendId) {
+    const isSecondary = currentProfile.includes("*secondaryWill");
+    const baseEmail = isSecondary ? currentProfile.replace("*secondaryWill", "") : currentProfile;
+    const secondaryEmail = `${baseEmail}*secondaryWill`;
 
-    if (ownerIndex === -1) {
-        console.error("Perfil no encontrado en el objectStatus.");
-        return;
-    }
+    // Identificar los perfiles relevantes
+    const primaryProfile = objectStatus[0]; // Siempre el primer perfil es el primary
+    const primaryEmail = primaryProfile[0]?.personal?.email;
+    const primarySecondaryEmail = `${primaryEmail}*secondaryWill`;
 
-    const profile = objectStatus[ownerIndex];
+    const spousalEmail = primaryProfile.find(item => item.married)?.married?.email || "";
+    const spousalSecondaryEmail = `${spousalEmail}*secondaryWill`;
 
-    // Obtén la lista actual de niños
-    let kids = profile.find(item => item.kids)?.kids || [];
+    const primaryIndex = objectStatus.findIndex(profile => profile[0]?.personal?.email === primaryEmail);
+    const primarySecondaryIndex = objectStatus.findIndex(profile => profile[0]?.personal?.email === primarySecondaryEmail);
+    const spousalIndex = objectStatus.findIndex(profile => profile[0]?.personal?.email === spousalEmail);
+    const spousalSecondaryIndex = objectStatus.findIndex(profile => profile[0]?.personal?.email === spousalSecondaryEmail);
 
-    // Agrega solo los nuevos niños que no están ya en la lista actual
-    const updatedKids = [
-        ...kids,
-        ...newKids.filter(
-            newKid =>
-                !kids.some(
-                    kid =>
-                        kid.firstName === newKid.firstName &&
-                        kid.lastName === newKid.lastName
-                )
-        )
-    ];
+    function updateKids(profileIndex, kidsToAdd) {
+        if (profileIndex === -1 || kidsToAdd.length === 0) return;
+        const profile = objectStatus[profileIndex];
+        let kids = profile.find(item => item.kids)?.kids || [];
+        const updatedKids = [...kids, ...kidsToAdd.filter(newKid => !kids.some(kid => kid.firstName === newKid.firstName && kid.lastName === newKid.lastName))];
+        const kidsIndex = profile.findIndex(item => item.kids);
 
-    // Actualiza el objectStatus con la nueva lista de niños
-    const kidsIndex = profile.findIndex(item => item.kids);
-    if (kidsIndex !== -1) {
-        profile[kidsIndex].kids = updatedKids;
-    } else {
-        profile.push({ kids: updatedKids });
-    }
-
-    // Filtrar niños incluidos en el testamento (isIncludedOnSpousalWill: true)
-    const includedKids = updatedKids.filter(kid => kid.isIncludedOnSpousalWill);
-
-    // Generar el HTML para la sección de niños
-    const childrenHTML = includedKids
-        .map(child =>
-            `<li>${child.firstName.trim().toUpperCase()} ${child.lastName.trim().toUpperCase()}</li>`
-        )
-        .join("");
-
-    // Obtén la última versión del documentoDOM
-    const documentDOM = profile.find(item => item.documentDOM)?.documentDOM || {};
-    const documentType = "primaryWill";
-    const currentVersionKey = Object.keys(documentDOM[documentType] || {}).sort().pop(); // Última versión
-    const currentContent = documentDOM[documentType]?.[currentVersionKey]?.content || "";
-
-    if (!currentContent) {
-        console.error("No se encontró contenido para la última versión.");
-        return;
-    }
-
-    // Reemplaza la sección `Current Children` en el contenido existente
-    const updatedContent = currentContent.replace(
-        /<p><strong><u>Current Children<\/u><\/strong><\/p><ol>.*?<\/ol>/s,
-        `
-        <p><strong><u>Current Children</u></strong></p>
-        <ol>
-            <li>I have the following living children:</li>
-            <ul>
-                ${childrenHTML}
-            </ul>
-            <li>The term "child" or "children" as used in this my Will includes the above listed children and any children of mine that are subsequently born or legally adopted.</li>
-        </ol>
-        `
-    );
-
-    // Crear una nueva versión del documento
-    const timestamp = new Date().toISOString();
-    const newVersionKey = `v${parseInt(currentVersionKey.slice(1)) + 1}`; // Incrementa el número de versión
-    const newVersion = {
-        [newVersionKey]: {
-            content: updatedContent,
-            timestamp: timestamp,
-            status: "pending",
-            changes: { requestedChanges: [] }
+        if (kidsIndex !== -1) {
+            profile[kidsIndex].kids = updatedKids;
+        } else {
+            profile.push({ kids: updatedKids });
         }
-    };
+    }
 
-    // Actualiza el documentDOM con la nueva versión
-    const updatedDocumentDOM = {
-        ...documentDOM,
-        [documentType]: {
-            ...documentDOM[documentType],
-            ...newVersion
-        }
-    };
+    // Manejo de sincronización entre primary y secondary
+    if (currentProfile === primaryEmail || currentProfile === primarySecondaryEmail) {
+        updateKids(primaryIndex, newKids);
+        updateKids(primarySecondaryIndex, newKids);
+        const spousalKids = newKids.filter(kid => kid.isIncludedOnSpousalWill);
+        updateKids(spousalIndex, spousalKids);
+        updateKids(spousalSecondaryIndex, spousalKids);
+    }
+    // Manejo de sincronización entre spousal y secondary
+    else if (currentProfile === spousalEmail || currentProfile === spousalSecondaryEmail) {
+        updateKids(spousalIndex, newKids);
+        updateKids(spousalSecondaryIndex, newKids);
+        const primaryKids = newKids.filter(kid => kid.isIncludedOnSpousalWill);
+        updateKids(primaryIndex, primaryKids);
+        updateKids(primarySecondaryIndex, primaryKids);
+    }
 
-    // Actualiza el profile en objectStatus
-    profile[profile.length - 1].documentDOM = updatedDocumentDOM;
-
-    // Guarda en el backend
     updateDataObject(objectStatus, backendId);
-    console.log(`Nueva versión ${newVersionKey} creada y guardada.`);
+    console.log("Kids data synchronized across relevant profiles.");
 }
+
+
+
 function updateRelativesOnPrimaryObjectStatus(objectStatus, newRelatives, backendId) {
 }
 
@@ -397,7 +351,7 @@ export {
     getObjectStatus,
     initializeObjectStructure,
     initializeSpousalWill,
-    updateKidsOnPrimaryObjectStatus,
+    updateKidsOnObjectStatus,
     initializeSecondaryWill,
     extractData
 }
