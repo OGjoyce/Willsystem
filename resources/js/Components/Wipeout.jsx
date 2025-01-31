@@ -340,7 +340,7 @@ function Wipeout({ id, datas, errors, onAddPersonFromDropdown }) {
                             variant="outline-success"
                             onClick={handleAddItem}
                         >
-                            Add Wipeout Beneficiary
+                            Save
                         </Button>
                     </>
                 )}
