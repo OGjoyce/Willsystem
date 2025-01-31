@@ -14,7 +14,7 @@ export function getWipeoutData() {
 
 let bequestindex = 0;
 
-function Wipeout({ id, datas, errors }) {
+function Wipeout({ id, datas, errors, onAddPersonFromDropdown }) {
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [options, setOptions] = useState([]);
     const [custom, setCustom] = useState(false);
@@ -191,6 +191,20 @@ function Wipeout({ id, datas, errors }) {
         }
     };
 
+    const handleAddPerson = (newPerson) => {
+        const name = `${newPerson.firstName} ${newPerson.lastName}`;
+        setIdentifiersNames(prevNames => [...prevNames, name]);
+
+        // Verifica si 'relatives' existe; si no, lo inicializa como un objeto vacío
+        if (!datas[5].relatives) {
+            datas[5].relatives = [];
+        }
+
+        let len = Object.keys(datas[5].relatives).length;
+        datas[5].relatives[len] = newPerson;
+        onAddPersonFromDropdown([newPerson])
+    };
+
     return (
         <Container>
             <Form>
@@ -258,6 +272,7 @@ function Wipeout({ id, datas, errors }) {
                                 <AddPersonDropdown
                                     options={identifiers_names}
                                     label="Select a beneficiary"
+                                    onAddPerson={handleAddPerson}
                                     selected={beneficiary}
                                     onSelect={setBeneficiary}
                                     validationErrors={validationErrors}
