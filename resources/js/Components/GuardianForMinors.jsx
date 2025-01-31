@@ -19,7 +19,7 @@ export function getGuardiansForMinors() {
     return guardiansInfo;
 }
 
-export default function GuardianForMinors({ errors, datas }) {
+export default function GuardianForMinors({ errors, datas, onAddPersonFromDropdown }) {
     const [firstRender, setFirstRender] = useState(true);
     const [selected, setSelected] = useState(null);
     const [priority, setPriority] = useState(0);
@@ -180,6 +180,7 @@ export default function GuardianForMinors({ errors, datas }) {
 
         let len = Object.keys(datas[5].relatives).length;
         datas[5].relatives[len] = newPerson;
+        onAddPersonFromDropdown([newPerson])
     };
 
     return (
