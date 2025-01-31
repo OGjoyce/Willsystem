@@ -30,7 +30,7 @@ import PaymentModal from '@/Components/PaymentModal';
 import ProfileSidebar from '@/Components/ProfileSidebar';
 //Import utility functions
 import { handleProfileData, handleSelectProfile } from '@/utils/profileUtils';
-import { getObjectStatus, initializeObjectStructure, initializeSpousalWill, updateKidsOnPrimaryObjectStatus, initializeSecondaryWill } from '@/utils/objectStatusUtils';
+import { getObjectStatus, initializeObjectStructure, initializeSpousalWill, updateKidsOnObjectStatus, initializeSecondaryWill } from '@/utils/objectStatusUtils';
 import { packageDocuments, initializePackageDocuments } from '@/utils/packageUtils'
 import { getVisibleSteps, stepHasData, findFirstIncompleteStep } from '@/utils/stepUtils';
 import { assignDocuments, addNewDocumentToPackage } from '@/utils/documentsUtils';
@@ -207,7 +207,6 @@ export default function Personal({ auth }) {
 
         // Obtener el email del cónyuge desde el primer objeto del array
         const spousalEmail = objectStatus[0][2]?.married?.email || null;
-        console.log("email del cónyuge:", spousalEmail);
 
         if (!spousalEmail) return; // Si no hay email, salir del efecto
 
@@ -217,12 +216,10 @@ export default function Personal({ auth }) {
         );
 
         if (spouseExists) {
-            console.log("El cónyuge ya tiene un perfil, no se hará el proceso.");
             return; // Salir sin hacer nada
         }
 
         if (currentDocument === 'spousalWill') {
-            console.log("Procesando el spousalWill...");
 
             // Inicializar los datos del testamento conyugal
             const spousalWillData = initializeSpousalWill(objectStatus);
@@ -384,8 +381,6 @@ export default function Personal({ auth }) {
 
             const firstIncompleteStep = findFirstIncompleteStep(updatedObjectStatus, email, newVisibleSteps)
 
-            console.log("fisrtincompl+", firstIncompleteStep)
-            console.log("newvisible", newVisibleSteps)
             firstIncompleteStep
                 ? setPointer(firstIncompleteStep)
                 : setShowPDFEditor(true)
@@ -538,10 +533,8 @@ export default function Personal({ auth }) {
                     return null;
                 }
 
-                if (currentDocument == "spousalWill") {
-                    updateKidsOnPrimaryObjectStatus(objectStatus, objectStatus[1][4].kids, currIdObjDB)
+                updateKidsOnObjectStatus(objectStatus, kidsData, currentProfile, currIdObjDB)
 
-                }
                 break;
 
             case 5:
