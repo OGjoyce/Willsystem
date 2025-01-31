@@ -56,7 +56,12 @@ function AddPersonDropdown({
                 <Dropdown.Toggle style={{ width: '100%' }} variant={variant} id="add-person-dropdown">
                     {selected || label}
                 </Dropdown.Toggle>
-                <Dropdown.Menu className="text-center" style={{ width: '100%' }}>
+                <Dropdown.Menu className="text-center" style={{
+                    width: '100%',
+                    maxHeight: '250px',
+                    overflowY: 'auto',
+                    overflowX: 'hidden'
+                }}>
                     {extraOptions.map((item, index) => (
                         <Dropdown.Item key={`extra-${index}`} eventKey={item}>
                             {item}
