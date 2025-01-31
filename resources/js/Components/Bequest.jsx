@@ -508,7 +508,7 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                         <Row className="mt-4">
                             <Col className="d-flex justify-content-between">
                                 <Button variant="outline-success" onClick={addRecepient}>
-                                    Add Recipient
+                                    Save
                                 </Button>
                                 <Button
                                     variant="outline-dark"
