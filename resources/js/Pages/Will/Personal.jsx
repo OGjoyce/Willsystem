@@ -832,6 +832,12 @@ export default function Personal({ auth }) {
 
     const currentStepIndex = visibleSteps !== null ? visibleSteps.findIndex((step) => step.step === pointer) : 16
 
+
+    const updateRelativesFromAddPersonDropdown = (relativesData) => {
+        updateRelativesOnObjectStatus(objectStatus, relativesData, currentProfile, currIdObjDB)
+    }
+
+
     return (
         <AuthenticatedLayout
             user={auth.user}
@@ -867,14 +873,14 @@ export default function Personal({ auth }) {
                         {pointer === 3 && <Married datas={getObjectStatus(objectStatus, currentProfile)} humanSelector="children" />}
                         {pointer === 4 && <AddRelative datas={getObjectStatus(objectStatus, currentProfile)} relative="children" errors={validationErrors} documents={objectStatus[0]?.[0]?.packageInfo?.documents} />}
                         {pointer === 5 && <HumanTable datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} documents={objectStatus[0]?.[0]?.packageInfo?.documents} />}
-                        {pointer === 6 && <Bequest datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
-                        {pointer === 7 && <Residue datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
-                        {pointer === 8 && <Wipeout datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
+                        {pointer === 6 && <Bequest datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} onAddPersonFromDropdown={updateRelativesFromAddPersonDropdown} />}
+                        {pointer === 7 && <Residue datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} onAddPersonFromDropdown={updateRelativesFromAddPersonDropdown} />}
+                        {pointer === 8 && <Wipeout datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} onAddPersonFromDropdown={updateRelativesFromAddPersonDropdown} />}
                         {pointer === 9 && <Trusting datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
-                        {pointer === 10 && <GuardianForMinors datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
-                        {pointer === 11 && <Pets datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
-                        {pointer === 12 && <PoaProperty datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
-                        {pointer === 13 && <PoaHealth datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
+                        {pointer === 10 && <GuardianForMinors datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} onAddPersonFromDropdown={updateRelativesFromAddPersonDropdown} />}
+                        {pointer === 11 && <Pets datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} onAddPersonFromDropdown={updateRelativesFromAddPersonDropdown} />}
+                        {pointer === 12 && <PoaProperty datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} onAddPersonFromDropdown={updateRelativesFromAddPersonDropdown} />}
+                        {pointer === 13 && <PoaHealth datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} onAddPersonFromDropdown={updateRelativesFromAddPersonDropdown} />}
                         {pointer === 14 && <Additional datas={getObjectStatus(objectStatus, currentProfile)} errors={validationErrors} />}
                         {pointer === 15 && <FinalDetails datas={getObjectStatus(objectStatus, currentProfile)} />}
                         {pointer === 16 && <DocumentSelector objectStatus={objectStatus} handleSelectDocument={handleSelectDocument} handleAddNewDocumentToPackage={handleAddNewDocumentToPackage} showAddFeeInput={showAddFeeInput} saveNewFee={handleNewFee} currIdObjDB={currIdObjDB} />}
