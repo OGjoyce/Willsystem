@@ -142,52 +142,58 @@ var WillContent = forwardRef((props, ref) => {
                                     }, {})
                                 )
                                     .sort(([priA], [priB]) => parseInt(priA) - parseInt(priB)) // Ordenar por prioridad
-                                    .map(([priority, executorsAtPriority], index, array) => (
-                                        <React.Fragment key={priority}>
-                                            <li>
-                                                {index === 0
-                                                    ? `I appoint `
-                                                    : `If ${array[index - 1][1]
-                                                        .map((e) => {
+                                    .map(([priority, executorsAtPriority], index, array) => {
+                                        const lawFirms = ['Lawyers & Lattes', 'Barrett Tax Law']; // Lista de firmas de abogados conocidas
+                                        return (
+                                            <React.Fragment key={priority}>
+                                                <li>
+                                                    {index === 0
+                                                        ? `I appoint `
+                                                        : `If ${array[index - 1][1]
+                                                            .map((e) => {
+                                                                const personInfo = findPersonInfo(
+                                                                    `${e.firstName} ${e.lastName}`,
+                                                                    relatives,
+                                                                    kids,
+                                                                    spouseInfo
+                                                                );
+                                                                return lawFirms.includes(e.firstName) // Verificar si es una firma de abogados
+                                                                    ? `The Managing Lawyer Of ${capitalLetters(e.firstName)}`
+                                                                    : `${capitalLetters(personInfo.fullName)}${formatLocation(
+                                                                        capitalLetters(personInfo.city),
+                                                                        capitalLetters(personInfo.province),
+                                                                        capitalLetters(personInfo.country)
+                                                                    )}`;
+                                                            })
+                                                            .join(" and ")} cannot act or continue to act as Executor(s), then I appoint `}
+                                                    {executorsAtPriority
+                                                        .map((executor, idx) => {
                                                             const personInfo = findPersonInfo(
-                                                                `${e.firstName} ${e.lastName}`,
+                                                                `${executor.firstName} ${executor.lastName}`,
                                                                 relatives,
                                                                 kids,
                                                                 spouseInfo
                                                             );
-                                                            return `${capitalLetters(personInfo.fullName)}${formatLocation(
-                                                                capitalLetters(personInfo.city),
-                                                                capitalLetters(personInfo.province),
-                                                                capitalLetters(personInfo.country)
-                                                            )}`;
+                                                            return `${idx > 0 ? " and " : ""}${lawFirms.includes(executor.firstName) // Verificar si es una firma de abogados
+                                                                ? `The Managing Lawyer Of ${capitalLetters(executor.firstName)}`
+                                                                : `${capitalLetters(personInfo.fullName)}${formatLocation(
+                                                                    capitalLetters(personInfo.city),
+                                                                    capitalLetters(personInfo.province),
+                                                                    capitalLetters(personInfo.country)
+                                                                )}`
+                                                                }`;
                                                         })
-                                                        .join(" and ")} cannot act or continue to act as Executor(s), then I appoint `}
-                                                {executorsAtPriority
-                                                    .map((executor, idx) => {
-                                                        const personInfo = findPersonInfo(
-                                                            `${executor.firstName} ${executor.lastName}`,
-                                                            relatives,
-                                                            kids,
-                                                            spouseInfo
-                                                        );
-                                                        return `${idx > 0 ? " and " : ""}${capitalLetters(
-                                                            personInfo.fullName
-                                                        )}${formatLocation(
-                                                            capitalLetters(personInfo.city),
-                                                            capitalLetters(personInfo.province),
-                                                            capitalLetters(personInfo.country)
-                                                        )}`;
-                                                    })
-                                                    .join("")}
-                                                {index === 0
-                                                    ? " as the sole Executor(s) of this my Will."
-                                                    : " to be the alternate Executor(s)."}
-                                            </li>
-                                        </React.Fragment>
-                                    ))}
+                                                        .join("")}
+                                                    {index === 0
+                                                        ? " as the sole Executor(s) of this my Will."
+                                                        : " to be the alternate Executor(s)."}
+                                                </li>
+                                            </React.Fragment>
+                                        );
+                                    })}
                                 {!executors.length && (
                                     <li>
-                                        I appoint Lawyers and Lattes Professional Corporation or any successor law firm as the sole Executor of this my Will.
+                                        I appoint The Managing Lawyer Of Lawyers and Lattes Professional Corporation or any successor law firm as the sole Executor of this my Will.
                                     </li>
                                 )}
                                 <li>No bond or other security of any kind will be required of any Executor appointed in this my Will.</li>
