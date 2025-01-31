@@ -220,8 +220,7 @@ var WillContent = forwardRef((props, ref) => {
                                         assets of the residue of my estate;
                                     </li>
                                     <li>
-                                        To take all legal a
-                                        ctions to have the probate of my Will completed as quickly and simply as possible,
+                                        To take all legal actions to have the probate of my Will completed as quickly and simply as possible,
                                         and as free as possible from any court supervision, under the laws of the Province of Ontario;
                                     </li>
                                     <li>
