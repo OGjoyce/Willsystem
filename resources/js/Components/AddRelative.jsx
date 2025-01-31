@@ -112,6 +112,7 @@ function AddRelative({ relative, datas, errors, onDataChange, documents }) {
                 }
 
                 localStorage.setItem(key, JSON.stringify(parsedValues));
+                childRelatives = updatedData
                 return updatedData;
             });
 
