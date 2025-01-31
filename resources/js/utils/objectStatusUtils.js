@@ -354,8 +354,59 @@ function updateKidsOnObjectStatus(objectStatus, newKids, currentProfile, backend
     console.log("Kids data synchronized across relevant profiles and documentDOM updated.");
 }
 
-function updateRelativesOnPrimaryObjectStatus(objectStatus, newRelatives, backendId) {
+function updateRelativesOnObjectStatus(objectStatus, newRelatives, currentProfile, backendId) {
+    const isSecondary = currentProfile.includes("*secondaryWill");
+    const baseEmail = isSecondary ? currentProfile.replace("*secondaryWill", "") : currentProfile;
+    const secondaryEmail = `${baseEmail}*secondaryWill`;
+
+    // Identificar los perfiles relevantes
+    const primaryProfile = objectStatus[0]; // Siempre el primer perfil es el primary
+    const primaryEmail = primaryProfile[0]?.personal?.email;
+    const primarySecondaryEmail = `${primaryEmail}*secondaryWill`;
+
+    const spousalEmail = primaryProfile.find(item => item.married)?.married?.email || "";
+    const spousalSecondaryEmail = `${spousalEmail}*secondaryWill`;
+
+    const primaryIndex = objectStatus.findIndex(profile => profile[0]?.personal?.email === primaryEmail);
+    const primarySecondaryIndex = objectStatus.findIndex(profile => profile[0]?.personal?.email === primarySecondaryEmail);
+    const spousalIndex = objectStatus.findIndex(profile => profile[0]?.personal?.email === spousalEmail);
+    const spousalSecondaryIndex = objectStatus.findIndex(profile => profile[0]?.personal?.email === spousalSecondaryEmail);
+
+    function updateRelatives(profileIndex, relativesToAdd) {
+        if (profileIndex === -1 || relativesToAdd.length === 0) return;
+        const profile = objectStatus[profileIndex];
+        let relatives = profile.find(item => item.relatives)?.relatives || [];
+        const updatedRelatives = [...relatives, ...relativesToAdd.filter(newRelative => !relatives.some(relative => relative.firstName === newRelative.firstName && relative.lastName === newRelative.lastName))];
+        const relativesIndex = profile.findIndex(item => item.relatives);
+
+        if (relativesIndex !== -1) {
+            profile[relativesIndex].relatives = updatedRelatives;
+        } else {
+            profile.push({ relatives: updatedRelatives });
+        }
+    }
+
+    // Manejo de sincronización entre primary y secondary
+    if (currentProfile === primaryEmail || currentProfile === primarySecondaryEmail) {
+        updateRelatives(primaryIndex, newRelatives);
+        updateRelatives(primarySecondaryIndex, newRelatives);
+        const spousalRelatives = newRelatives.filter(relative => relative.isIncludedOnSpousalRelatives);
+        updateRelatives(spousalIndex, spousalRelatives);
+        updateRelatives(spousalSecondaryIndex, spousalRelatives);
+    }
+    // Manejo de sincronización entre spousal y secondary
+    else if (currentProfile === spousalEmail || currentProfile === spousalSecondaryEmail) {
+        updateRelatives(spousalIndex, newRelatives);
+        updateRelatives(spousalSecondaryIndex, newRelatives);
+        const primaryRelatives = newRelatives.filter(relative => relative.isIncludedOnSpousalRelatives);
+        updateRelatives(primaryIndex, primaryRelatives);
+        updateRelatives(primarySecondaryIndex, primaryRelatives);
+    }
+
+    updateDataObject(objectStatus, backendId);
+    console.log("Relatives data synchronized across relevant profiles.");
 }
+
 
 
 /**
@@ -388,6 +439,7 @@ export {
     initializeObjectStructure,
     initializeSpousalWill,
     updateKidsOnObjectStatus,
+    updateRelativesOnObjectStatus,
     initializeSecondaryWill,
     extractData
 }
