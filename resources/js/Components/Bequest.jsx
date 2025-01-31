@@ -101,10 +101,20 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
 
     const addRecepient = () => {
         setValidationErrors({});
-        var bequest = bequestText;
+        var bequest = bequestText.trim();
         var selected = isCustomBequest ? 'NA' : selectedRecipient;
         var backup = isCustomBequest ? 'NA' : selectedBackup;
         var shares = isCustomBequest || isSpouseFirst ? 100 : sharesInput;
+
+        // Validación para evitar bequests duplicados
+        const isDuplicateBequest = table_dataBequest.some(item => item.bequest.toLowerCase() === bequest.toLowerCase());
+        if (isDuplicateBequest) {
+            setValidationErrors(prevErrors => ({
+                ...prevErrors,
+                bequestItem: "This bequest has already been added."
+            }));
+            return;
+        }
 
         if (bequest === "" || selected === null || backup === null || shares === "" || shares > 100 || shares <= 0 || (selected !== "Spouse First" && selected === backup)) {
             let newErrors = {};
@@ -129,7 +139,7 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
 
             if (Object.keys(newErrors).length > 0) {
                 setValidationErrors(newErrors);
-                return null;
+                return;
             }
         }
 
@@ -160,7 +170,7 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                     if (pendingShares - shares > 0) {
                         setSharesInput('');
                         setBequestText('');
-                        globalCounter = 0
+                        globalCounter = 0;
                         newErrors.sharedBequest = "Please continue distributing shares for the current bequest";
 
                         if (Object.keys(newErrors).length > 0) {
@@ -225,6 +235,7 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
             }
         }
     };
+
 
     const handleDelete = (itemId) => {
         setBequestToDelete(itemId);
