@@ -13,7 +13,7 @@ export function getPetInfo() {
     return guardianDataStack;
 }
 
-function Pets({ datas, errors }) {
+function Pets({ datas, errors, onAddPersonFromDropdown }) {
     const [selectedOptionGuardian, setSelectedOptionGuardian] = useState('');
     const [selectedOptionBackup, setSelectedOptionBackup] = useState('');
     const [petGuardianData, setPetGuardianData] = useState([]);
@@ -129,6 +129,7 @@ function Pets({ datas, errors }) {
         if (!datas[5]) datas[5] = {};
         if (!datas[5].relatives) datas[5].relatives = [];
         datas[5].relatives[len] = newPerson;
+        onAddPersonFromDropdown([newPerson])
     };
 
     const handleSubmit = () => {
