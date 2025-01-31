@@ -297,7 +297,7 @@ function HumanTable({ id, datas, errors, documents }) {
 
             <div className="d-grid gap-2 mb-3">
                 <Button variant="success" size="lg" onClick={handleShow}>
-                    Add New Relative
+                    Add New Person
                 </Button>
             </div>
 
