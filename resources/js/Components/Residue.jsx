@@ -42,7 +42,7 @@ export function getOptObject() {
     return returnobject;
 }
 
-function Residue({ id, datas, errors }) {
+function Residue({ id, datas, errors, onAddPersonFromDropdown }) {
 
     const marriedStatus = datas[1].marriedq?.selection === "true";
     const sosoStatus = datas[1].marriedq?.selection === "soso";
@@ -312,6 +312,7 @@ function Residue({ id, datas, errors }) {
 
         let len = Object.keys(datas[5].relatives).length;
         datas[5].relatives[len] = newPerson;
+        onAddPersonFromDropdown([newPerson])
     };
 
     // Handle organization checkbox
