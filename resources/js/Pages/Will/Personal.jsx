@@ -30,7 +30,7 @@ import PaymentModal from '@/Components/PaymentModal';
 import ProfileSidebar from '@/Components/ProfileSidebar';
 //Import utility functions
 import { handleProfileData, handleSelectProfile } from '@/utils/profileUtils';
-import { getObjectStatus, initializeObjectStructure, initializeSpousalWill, updateKidsOnObjectStatus, initializeSecondaryWill } from '@/utils/objectStatusUtils';
+import { getObjectStatus, initializeObjectStructure, initializeSpousalWill, updateKidsOnObjectStatus, updateRelativesOnObjectStatus, initializeSecondaryWill } from '@/utils/objectStatusUtils';
 import { packageDocuments, initializePackageDocuments } from '@/utils/packageUtils'
 import { getVisibleSteps, stepHasData, findFirstIncompleteStep } from '@/utils/stepUtils';
 import { assignDocuments, addNewDocumentToPackage } from '@/utils/documentsUtils';
@@ -541,9 +541,7 @@ export default function Personal({ auth }) {
                 const executorsData = [...getExecutors()];
                 let relativesData = [...getRelatives()];
 
-                if (currentDocument == "spousalWill") {
-                    relativesData = [...relativesData, ...objectStatus[1][5]?.relatives]
-                }
+                updateRelativesOnObjectStatus(objectStatus, relativesData, currentProfile, currIdObjDB)
 
 
                 if (checkValidation(validate.executors(executorsData))) {
