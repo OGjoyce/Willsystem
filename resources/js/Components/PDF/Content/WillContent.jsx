@@ -46,8 +46,7 @@ var WillContent = forwardRef((props, ref) => {
 
 
     }
-    console.log("debug", statusObject.residue)
-    console.log("debug", residueInfo)
+
 
     function findPersonInfo(name, relatives, kids, spouseInfo) {
         const names = name.trim();
@@ -248,7 +247,7 @@ var WillContent = forwardRef((props, ref) => {
                                     <li>To open, liquidate or dissolve a corporation;</li>
                                     <li>To conduct post-mortem tax planning;</li>
                                     <li>To employ any lawyer, accountant or other professional; and</li>
-                                    {trusting.length > 0 && (
+                                    {trusting && trusting[0]?.age > 0 && (
                                         <li>
                                             Except as otherwise provided in this my Will, to act as my Trustee by holding in trust the share of any
                                             beneficiary for whom a Testamentary Trust is established pursuant to this Will, and to keep such share
@@ -572,7 +571,7 @@ var WillContent = forwardRef((props, ref) => {
 
                             <ol>
 
-                                {trusting && Object.keys(trusting).length > 1 ? (
+                                {trusting && trusting[0]?.age > 0 ? (
                                     <>
                                         It is my intent to create a testamentary trust (a "Testamentary Trust") for each beneficiary who has not yet
                                         reached the age of {minTrustingAge} at the time of my death (a "Young Beneficiary"). I name my Executor(s) as trustee (the
