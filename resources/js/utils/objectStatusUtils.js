@@ -293,18 +293,56 @@ function updateKidsOnObjectStatus(objectStatus, newKids, currentProfile, backend
         } else {
             profile.push({ kids: updatedKids });
         }
+        updateDocumentDOM(profile, updatedKids);
     }
 
-    // Manejo de sincronización entre primary y secondary
+    function updateDocumentDOM(profile, updatedKids) {
+        const includedKids = updatedKids.filter(kid => kid.isIncludedOnSpousalWill);
+        const childrenHTML = includedKids.map(child => `<li>${child.firstName.trim().toUpperCase()} ${child.lastName.trim().toUpperCase()}</li>`).join("");
+        const documentDOM = profile.find(item => item.documentDOM)?.documentDOM || {};
+        const documentType = "primaryWill";
+        const currentVersionKey = Object.keys(documentDOM[documentType] || {}).sort().pop();
+        const currentContent = documentDOM[documentType]?.[currentVersionKey]?.content || "";
+        if (!currentContent) return;
+        const updatedContent = currentContent.replace(
+            /<p><strong><u>Current Children<\/u><\/strong><\/p><ol>.*?<\/ol>/s,
+            `
+            <p><strong><u>Current Children</u></strong></p>
+            <ol>
+                <li>I have the following living children:</li>
+                <ul>
+                    ${childrenHTML}
+                </ul>
+                <li>The term "child" or "children" as used in this my Will includes the above listed children and any children of mine that are subsequently born or legally adopted.</li>
+            </ol>
+            `
+        );
+        const timestamp = new Date().toISOString();
+        const newVersionKey = `v${parseInt(currentVersionKey.slice(1)) + 1}`;
+        const newVersion = {
+            [newVersionKey]: {
+                content: updatedContent,
+                timestamp: timestamp,
+                status: "pending",
+                changes: { requestedChanges: [] }
+            }
+        };
+        profile[profile.length - 1].documentDOM = {
+            ...documentDOM,
+            [documentType]: {
+                ...documentDOM[documentType],
+                ...newVersion
+            }
+        };
+    }
+
     if (currentProfile === primaryEmail || currentProfile === primarySecondaryEmail) {
         updateKids(primaryIndex, newKids);
         updateKids(primarySecondaryIndex, newKids);
         const spousalKids = newKids.filter(kid => kid.isIncludedOnSpousalWill);
         updateKids(spousalIndex, spousalKids);
         updateKids(spousalSecondaryIndex, spousalKids);
-    }
-    // Manejo de sincronización entre spousal y secondary
-    else if (currentProfile === spousalEmail || currentProfile === spousalSecondaryEmail) {
+    } else if (currentProfile === spousalEmail || currentProfile === spousalSecondaryEmail) {
         updateKids(spousalIndex, newKids);
         updateKids(spousalSecondaryIndex, newKids);
         const primaryKids = newKids.filter(kid => kid.isIncludedOnSpousalWill);
@@ -313,10 +351,8 @@ function updateKidsOnObjectStatus(objectStatus, newKids, currentProfile, backend
     }
 
     updateDataObject(objectStatus, backendId);
-    console.log("Kids data synchronized across relevant profiles.");
+    console.log("Kids data synchronized across relevant profiles and documentDOM updated.");
 }
-
-
 
 function updateRelativesOnPrimaryObjectStatus(objectStatus, newRelatives, backendId) {
 }
