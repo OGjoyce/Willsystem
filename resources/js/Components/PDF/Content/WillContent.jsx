@@ -4,7 +4,7 @@ import './content.css'
 var WillContent = forwardRef((props, ref) => {
     const capitalLetters = (word) => {
         if (word == null) return null
-        return word.toUpperCase();
+        return word
     };
 
 
