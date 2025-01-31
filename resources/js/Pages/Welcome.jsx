@@ -108,7 +108,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                 <Container className="text-center my-5">
                     <Row>
 
-                        <Col md={4}>
+                        <Col md={6}>
                             <Card>
                                 <Card.Body>
                                     <Card.Title>Register</Card.Title>
@@ -123,7 +123,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                 </Card.Body>
                             </Card>
                         </Col>
-                        <Col md={4}>
+                        <Col md={6}>
                             <Card>
                                 <Card.Body>
                                     <Card.Title>Create your will</Card.Title>
@@ -136,21 +136,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                 </Card.Body>
                             </Card>
                         </Col>
-                        <Col md={4}>
-                            <Card>
-                                <Card.Body>
-                                    <Card.Title>Business in a Box</Card.Title>
-                                    <Card.Text>do you want your own business?</Card.Text>
-                                    <Link
-                                        href={route('dashboard')}
-                                    >
-                                        <Button variant="outline-dark"><i className="bi bi-cash-stack"></i>I want my own will business</Button>
 
-
-                                    </Link>
-                                </Card.Body>
-                            </Card>
-                        </Col>
                     </Row>
                 </Container>
 
