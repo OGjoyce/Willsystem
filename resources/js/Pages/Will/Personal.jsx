@@ -203,41 +203,59 @@ export default function Personal({ auth }) {
 
     //Initialize the needed structure for spousalWill, taking data from primaryWill
     useEffect(() => {
-        if (objectStatus.length > 0 && currentDocument === 'spousalWill') {
-            //Gets the kids data in primaryWill
-            const kids = objectStatus[0][4].kids
-            const filteredKids = kids.filter(kid => kid.isIncludedOnSpousalWill)
-            //Initialized structured and data for spousalWill
-            const spousalWillData = initializeSpousalWill(objectStatus)
+        if (objectStatus.length === 0) return;
 
-            //sets the spouse as current profile to continue submiting data in next steps
-            setCurrentProfile(spousalWillData[0].personal.email)
+        // Obtener el email del cónyuge desde el primer objeto del array
+        const spousalEmail = objectStatus[0][2]?.married?.email || null;
+        console.log("email del cónyuge:", spousalEmail);
 
-            //Add the spousalWill data next to the primaryWill Data
-            const newObjectStatus = [...objectStatus, spousalWillData]
+        if (!spousalEmail) return; // Si no hay email, salir del efecto
 
-            // submit dummy data to ensure database update
+        // Verificar si el email del cónyuge ya existe en algún perfil
+        const spouseExists = objectStatus.some(profile =>
+            profile[0]?.personal?.email === spousalEmail
+        );
+
+        if (spouseExists) {
+            console.log("El cónyuge ya tiene un perfil, no se hará el proceso.");
+            return; // Salir sin hacer nada
+        }
+
+        if (currentDocument === 'spousalWill') {
+            console.log("Procesando el spousalWill...");
+
+            // Inicializar los datos del testamento conyugal
+            const spousalWillData = initializeSpousalWill(objectStatus);
+
+            // Obtener los hijos si existen en el objeto principal
+            const kidsq = objectStatus[0].find(obj => obj.kidsq)?.kidsq || [];
+
+            // Configurar al cónyuge como el perfil actual para continuar el proceso
+            setCurrentProfile(spousalWillData[0].personal.email);
+
+            // Agregar los datos del testamento conyugal al objectStatus
+            const newObjectStatus = [...objectStatus, spousalWillData];
+
+            // Datos dummy para asegurar la actualización en la base de datos
             const propertiesAndData = [
                 {
                     name: 'kidsq',
-                    data: [],
+                    data: kidsq,
                 },
             ];
 
-            //Update the objectStatus after updating the database
-            const updatedObjectStatus = handleProfileData(spousalWillData[0].personal.email, propertiesAndData, newObjectStatus);
+            // Actualizar objectStatus después de la actualización de la base de datos
+            const updatedObjectStatus = handleProfileData(
+                spousalWillData[0].personal.email,
+                propertiesAndData,
+                newObjectStatus
+            );
 
-            setObjectStatus(updatedObjectStatus)
+            setObjectStatus(updatedObjectStatus);
             localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus));
 
-            //set the pointer to continue the next steps
-            setPointer(3)
-
-            //Add the kids from primaryWill in the spousalWill "kids" step, data will be shown in the view, user can add or eliminate kids before submit to database
-            //setTimeout is needed as all data from localstorage is deleted when changing profiles
-            setTimeout(() => {
-                localStorage.setItem('formValues', JSON.stringify({ kids: filteredKids }));
-            }, 1000);
+            // Definir el puntero para continuar con los siguientes pasos
+            setPointer(kidsq.selection === "false" ? 3 : 4);
         }
     }, [currentDocument]);
 
