@@ -4,7 +4,8 @@ import './content.css';
 
 const POA1Content = forwardRef((props, ref) => {
     const capitalLetters = (word) => {
-        return word ? word.toUpperCase() : '';
+        if (word == null) return null
+        return word
     };
 
     if (!props || !props.props || !props.props.datas) {
