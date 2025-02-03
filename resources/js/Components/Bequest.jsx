@@ -131,10 +131,10 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
             }
 
             if (shares === "") {
-                newErrors.shares = "Please enter a percentage value for shares";
+                newErrors.shares = "Please enter a value for shares";
             }
             if (shares > 100 || shares <= 0) {
-                newErrors.shares = "Shares must be a percentage between 1 and 100";
+                newErrors.shares = "Shares must be a value between 1 and 100";
             }
 
             if (Object.keys(newErrors).length > 0) {
@@ -495,7 +495,7 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                         <Row className="mt-4">
                             <Col md={6}>
                                 <Form.Group controlId="sharesID">
-                                    <Form.Label>Percentage of Shares (%)</Form.Label>
+                                    <Form.Label>Number of Shares</Form.Label>
                                     <Form.Control
                                         type="number"
                                         placeholder="100"
@@ -511,7 +511,7 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                             </Col>
                             <Col md={6} className="d-flex align-items-center">
                                 <Form.Text className="text-muted">
-                                    The total shares for each bequest, distributed among all recipients, must sum to 100%.
+                                    The bequest item will be divided based on total shares and distributed among all recipients.
                                 </Form.Text>
                             </Col>
                         </Row>
