@@ -107,205 +107,215 @@ ol {
 `;
 
 export function getDocumentDOMInfo() {
-  return updatedObjectStatus[updatedObjectStatus.length - 1]?.documentDOM;
+    return updatedObjectStatus[updatedObjectStatus.length - 1]?.documentDOM;
 }
 
 function getDocumentContent(object_status, documentType, version) {
-  return object_status
-    .find(obj => obj.documentDOM && obj.documentDOM[documentType])
-    ?.documentDOM[documentType][version]?.content || null;
+    return object_status
+        .find(obj => obj.documentDOM && obj.documentDOM[documentType])
+        ?.documentDOM[documentType][version]?.content || null;
 }
 
 const PDFEditor = ({ ContentComponent, documentType, errors, backendId, version, onBack, objectStatus, documentOwner }) => {
-  const [editorContent, setEditorContent] = useState('');
-  const [documentVersions, setDocumentVersions] = useState({});
-  const [validationErrors, setValidationErrors] = useState(errors);
-  const [showToast, setShowToast] = useState(false);
-  const [selectedDOMVersion, setSelectedDOMVersion] = useState(null);
+    const [editorContent, setEditorContent] = useState('');
+    const [documentVersions, setDocumentVersions] = useState({});
+    const [validationErrors, setValidationErrors] = useState(errors);
+    const [showToast, setShowToast] = useState(false);
+    const [selectedDOMVersion, setSelectedDOMVersion] = useState(null);
+    const [isIncludedSecondaryWill, setISIncludedSecondaryWill] = useState(false)
+    const datas = getObjectStatus(objectStatus, documentOwner)
 
-  const datas = getObjectStatus(objectStatus, documentOwner)
-  const updatedObjectStatusRef = useRef([]);
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Underline,
-      Link,
-      TextAlign.configure({
-        types: ['heading', 'paragraph'],
-      }),
-    ],
-    content: editorContent,
-    onUpdate: ({ editor }) => {
-      setEditorContent(editor.getHTML());
-    },
-  });
 
-  useEffect(() => {
-    setValidationErrors(errors);
-  }, [errors]);
 
-  useEffect(() => {
-    setSelectedDOMVersion(getDocumentContent(datas, documentType, version));
-  }, [documentType, version, datas]);
-
-  const saveDocumentDOM = useCallback(() => {
-    setShowToast(true);
-    setValidationErrors({});
-    const timestamp = new Date().toISOString();
-
-    // Crear nueva versión del documento
-    const currentVersions = documentVersions[documentType] || {};
-    const versionNumber = Object.keys(currentVersions).length + 1;
-    const newVersion = {
-      [`v${versionNumber}`]: {
+    const updatedObjectStatusRef = useRef([]);
+    const editor = useEditor({
+        extensions: [
+            StarterKit,
+            Underline,
+            Link,
+            TextAlign.configure({
+                types: ['heading', 'paragraph'],
+            }),
+        ],
         content: editorContent,
-        timestamp: timestamp,
-        status: "pending",
-        changes: {
-          "requestedChanges": []
+        onUpdate: ({ editor }) => {
+            setEditorContent(editor.getHTML());
+        },
+    });
+
+    useEffect(() => {
+        setISIncludedSecondaryWill(objectStatus[0][0]?.packageInfo?.documents?.some(document => document.docType == "secondaryWill"))
+
+    }, [objectStatus])
+
+    useEffect(() => {
+        setValidationErrors(errors);
+    }, [errors]);
+
+    useEffect(() => {
+        setSelectedDOMVersion(getDocumentContent(datas, documentType, version));
+    }, [documentType, version, datas]);
+
+    const saveDocumentDOM = useCallback(() => {
+        setShowToast(true);
+        setValidationErrors({});
+        const timestamp = new Date().toISOString();
+
+        // Crear nueva versión del documento
+        const currentVersions = documentVersions[documentType] || {};
+        const versionNumber = Object.keys(currentVersions).length + 1;
+        const newVersion = {
+            [`v${versionNumber}`]: {
+                content: editorContent,
+                timestamp: timestamp,
+                status: "pending",
+                changes: {
+                    "requestedChanges": []
+                }
+            }
+        };
+
+        // Actualizar las versiones del documento
+        const updatedDocumentVersions = {
+            ...documentVersions,
+            [documentType]: {
+                ...currentVersions,
+                ...newVersion
+            }
+        };
+
+        setDocumentVersions(updatedDocumentVersions);
+
+        // Encontrar el índice del perfil correspondiente a documentOwner
+        const ownerIndex = objectStatus.findIndex(profile =>
+            profile[0]?.personal?.email === documentOwner
+        );
+
+
+        if (ownerIndex !== -1) {
+            // Verificar que el `documentDOM` está al final de la estructura del perfil
+            const lastElementIndex = objectStatus[ownerIndex].length - 1;
+            const currentDocumentDOM = objectStatus[ownerIndex][lastElementIndex]?.documentDOM || {};
+
+            // Fusionar el `documentDOM` actualizado con el existente
+            const updatedDocumentDOM = {
+                ...currentDocumentDOM,
+                [documentType]: updatedDocumentVersions[documentType] // Actualizar solo el documento actual
+            };
+
+            // Actualizar el `documentDOM` en la posición correcta (al final del array)
+            objectStatus[ownerIndex][lastElementIndex].documentDOM = updatedDocumentDOM;
+
+            // Guardar el estado actualizado
+            const updatedObjectStatus = [...objectStatus];
+            updatedObjectStatusRef.current = updatedObjectStatus;
+            updateDataObject(updatedObjectStatus, backendId); // Enviar los datos actualizados al backend
+
+            console.log(`Document ${documentType} saved. Version: v${versionNumber}`);
+        } else {
+            console.error("Profile not found for documentOwner:", documentOwner);
         }
-      }
-    };
 
-    // Actualizar las versiones del documento
-    const updatedDocumentVersions = {
-      ...documentVersions,
-      [documentType]: {
-        ...currentVersions,
-        ...newVersion
-      }
-    };
+    }, [editorContent, documentVersions, documentType, objectStatus, backendId, documentOwner]);
 
-    setDocumentVersions(updatedDocumentVersions);
+    const componentRef = useRef();
 
-    // Encontrar el índice del perfil correspondiente a documentOwner
-    const ownerIndex = objectStatus.findIndex(profile =>
-      profile[0]?.personal?.email === documentOwner
-    );
+    const handlePrint = useReactToPrint({
+        content: () => componentRef.current,
+        onAfterPrint: saveDocumentDOM,
+        documentTitle: documentType,
+        pageStyle: contentcss
+    });
 
-    if (ownerIndex !== -1) {
-      // Verificar que el `documentDOM` está al final de la estructura del perfil
-      const lastElementIndex = objectStatus[ownerIndex].length - 1;
-      const currentDocumentDOM = objectStatus[ownerIndex][lastElementIndex]?.documentDOM || {};
+    const PrintComponent = React.forwardRef((props, ref) => {
+        return (
+            <div ref={ref} dangerouslySetInnerHTML={{ __html: props.content }} />
+        );
+    });
 
-      // Fusionar el `documentDOM` actualizado con el existente
-      const updatedDocumentDOM = {
-        ...currentDocumentDOM,
-        [documentType]: updatedDocumentVersions[documentType] // Actualizar solo el documento actual
-      };
+    useEffect(() => {
+        try {
+            const ContentComponentWithRef = React.forwardRef((props, ref) => (
+                <ContentComponent
+                    ref={ref}
+                    props={{
+                        datas,
+                        documentType,
+                        selectedDOMVersion,
+                        isIncludedSecondaryWill
+                    }}
+                />
+            ));
 
-      // Actualizar el `documentDOM` en la posición correcta (al final del array)
-      objectStatus[ownerIndex][lastElementIndex].documentDOM = updatedDocumentDOM;
+            const documentHtml = ReactDOMServer.renderToString(
+                <ContentComponentWithRef />
+            );
+            setEditorContent(documentHtml);
+            if (editor) {
+                editor.commands.setContent(documentHtml);
+            }
+        } catch (error) {
+            console.error("ERROR while rendering document:", error);
+            setEditorContent("No content to show");
+        }
+    }, [datas, ContentComponent, editor]);
 
-      // Guardar el estado actualizado
-      const updatedObjectStatus = [...objectStatus];
-      updatedObjectStatusRef.current = updatedObjectStatus;
-      updateDataObject(updatedObjectStatus, backendId); // Enviar los datos actualizados al backend
+    useEffect(() => {
+        const latestVersion = datas[datas.length - 1]?.documentDOM;
+        if (latestVersion) {
+            setDocumentVersions(latestVersion);
+        }
+    }, [datas]);
 
-      console.log(`Document ${documentType} saved. Version: v${versionNumber}`);
-    } else {
-      console.error("Profile not found for documentOwner:", documentOwner);
-    }
-
-  }, [editorContent, documentVersions, documentType, objectStatus, backendId, documentOwner]);
-
-  const componentRef = useRef();
-
-  const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
-    onAfterPrint: saveDocumentDOM,
-    documentTitle: documentType,
-    pageStyle: contentcss
-  });
-
-  const PrintComponent = React.forwardRef((props, ref) => {
     return (
-      <div ref={ref} dangerouslySetInnerHTML={{ __html: props.content }} />
+        <Container className="editor">
+            <Row className="toolbar-container">
+                <Col>
+                    <Toolbar editor={editor} />
+                </Col>
+            </Row>
+            <Row>
+                <Col>
+                    <EditorContent editor={editor} className="editor-content" />
+                </Col>
+            </Row>
+            <Row className="button-row justify-content-center mt-3 mb-3">
+                <Col xs={12} sm={6} md={4} lg={3}>
+                    <Button variant="secondary" onClick={onBack} className="btn-block w-100 mb-2">
+                        <i style={{ marginRight: 12 }} className="bi bi-arrow-left"></i>
+                        Back
+                    </Button>
+                </Col>
+                <Col xs={12} sm={6} md={4} lg={3}>
+                    <Button variant="primary" onClick={handlePrint} className="btn-block w-100 mb-2">
+                        <i style={{ marginRight: 12 }} className="bi bi-download"></i>
+                        Download
+                    </Button>
+                </Col>
+                <Col xs={12} sm={6} md={4} lg={3}>
+                    <Button variant="success" onClick={saveDocumentDOM} className="btn-block w-100 mb-2">
+                        <i style={{ marginRight: 12 }} className="bi bi-floppy"></i>
+                        Save
+                    </Button>
+                </Col>
+            </Row>
+            {validationErrors?.documentDOM && (
+                <Row className="justify-content-center">
+                    <Col xs={12} className="text-center">
+                        <p className="mt-2 text-sm text-red-600">{validationErrors?.documentDOM}</p>
+                    </Col>
+                </Row>
+            )}
+            <div style={{ display: 'none' }}>
+                <PrintComponent ref={componentRef} content={editorContent} />
+            </div>
+            <CustomToast
+                show={showToast}
+                onClose={() => setShowToast(false)}
+                message={`Your ${documentType ? documentType : 'Document'} has been saved successfully!`}
+            />
+        </Container>
     );
-  });
-
-  useEffect(() => {
-    try {
-      const ContentComponentWithRef = React.forwardRef((props, ref) => (
-        <ContentComponent
-          ref={ref}
-          props={{
-            datas,
-            documentType,
-            selectedDOMVersion
-          }}
-        />
-      ));
-
-      const documentHtml = ReactDOMServer.renderToString(
-        <ContentComponentWithRef />
-      );
-      setEditorContent(documentHtml);
-      if (editor) {
-        editor.commands.setContent(documentHtml);
-      }
-    } catch (error) {
-      console.error("ERROR while rendering document:", error);
-      setEditorContent("No content to show");
-    }
-  }, [datas, ContentComponent, editor]);
-
-  useEffect(() => {
-    const latestVersion = datas[datas.length - 1]?.documentDOM;
-    if (latestVersion) {
-      setDocumentVersions(latestVersion);
-    }
-  }, [datas]);
-
-  return (
-    <Container className="editor">
-      <Row className="toolbar-container">
-        <Col>
-          <Toolbar editor={editor} />
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-          <EditorContent editor={editor} className="editor-content" />
-        </Col>
-      </Row>
-      <Row className="button-row justify-content-center mt-3 mb-3">
-        <Col xs={12} sm={6} md={4} lg={3}>
-          <Button variant="secondary" onClick={onBack} className="btn-block w-100 mb-2">
-            <i style={{ marginRight: 12 }} className="bi bi-arrow-left"></i>
-            Back
-          </Button>
-        </Col>
-        <Col xs={12} sm={6} md={4} lg={3}>
-          <Button variant="primary" onClick={handlePrint} className="btn-block w-100 mb-2">
-            <i style={{ marginRight: 12 }} className="bi bi-download"></i>
-            Download
-          </Button>
-        </Col>
-        <Col xs={12} sm={6} md={4} lg={3}>
-          <Button variant="success" onClick={saveDocumentDOM} className="btn-block w-100 mb-2">
-            <i style={{ marginRight: 12 }} className="bi bi-floppy"></i>
-            Save
-          </Button>
-        </Col>
-      </Row>
-      {validationErrors?.documentDOM && (
-        <Row className="justify-content-center">
-          <Col xs={12} className="text-center">
-            <p className="mt-2 text-sm text-red-600">{validationErrors?.documentDOM}</p>
-          </Col>
-        </Row>
-      )}
-      <div style={{ display: 'none' }}>
-        <PrintComponent ref={componentRef} content={editorContent} />
-      </div>
-      <CustomToast
-        show={showToast}
-        onClose={() => setShowToast(false)}
-        message={`Your ${documentType ? documentType : 'Document'} has been saved successfully!`}
-      />
-    </Container>
-  );
 };
 
 export default PDFEditor;
