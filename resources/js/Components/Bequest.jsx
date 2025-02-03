@@ -34,6 +34,7 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
     const [isSpouseFirst, setIsSpouseFirst] = useState(false);
     const [isCustomBequest, setIsCustomBequest] = useState(false);
     const [isSharedBequest, setIsSharedBequest] = useState(false);
+    // pendingShares represents the available shares for the current shared bequest item.
     const [pendingShares, setPendingShares] = useState(100);
     const [readOnly, setReadOnly] = useState(false);
     const [validationErrors, setValidationErrors] = useState({});
@@ -43,60 +44,52 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
     const [bequestToDelete, setBequestToDelete] = useState(null);
     const [editingRow, setEditingRow] = useState(null);
     const [currentSharedUuid, setCurrentSharedUuid] = useState(1);
+    // currentSharedBequest holds the text of the current shared bequest item in progress.
+    const [currentSharedBequest, setCurrentSharedBequest] = useState('');
     const [tempData, setTempData] = useState({});
     const [bequestText, setBequestText] = useState('');
     const [sharesInput, setSharesInput] = useState('');
 
+    // Recalculate validation errors for the bequest text.
     useEffect(() => {
         let newErrors = {};
         const bequest = bequestText;
-        if (isCustomBequest) {
-            // placeholder is handled in the Form.Control component
-        } else {
-            // placeholder is handled in the Form.Control component
-        }
         if (bequest === "" && isCustomBequest) {
             newErrors.bequestItem = "Please add a custom bequest in the section above";
         }
-
-        if (Object.keys(newErrors).length > 0) {
-            setValidationErrors(newErrors);
-        } else {
-            setValidationErrors({});
-        }
+        setValidationErrors(Object.keys(newErrors).length > 0 ? newErrors : {});
     }, [isCustomBequest, bequestText]);
 
     useEffect(() => {
         setValidationErrors(errors);
-
         const storedValues = JSON.parse(localStorage.getItem('formValues')) || {};
         if (storedValues.bequests) {
             setTable_dataBequest(storedValues.bequests);
             bequestArrObj = storedValues.bequests;
-            bequestindex = storedValues.bequests.length > 0 ? Math.max(...storedValues.bequests.map(b => b.id)) : 0;
+            bequestindex =
+                storedValues.bequests.length > 0
+                    ? Math.max(...storedValues.bequests.map(b => b.id))
+                    : 0;
         }
     }, [errors]);
 
     useEffect(() => {
-        if (selectedRecipient === "Spouse First") {
-            setIsSpouseFirst(true);
-        } else {
-            setIsSpouseFirst(false);
-        }
+        setIsSpouseFirst(selectedRecipient === "Spouse First");
     }, [selectedRecipient]);
+
+    // Recalculate pendingShares for the current shared bequest item whenever the table data changes.
+    useEffect(() => {
+        if (currentSharedBequest.trim() !== "") {
+            const allocated = table_dataBequest
+                .filter(item => item.shared_uuid === currentSharedUuid)
+                .reduce((acc, item) => acc + Number(item.shares), 0);
+            setPendingShares(100 - allocated);
+        }
+    }, [table_dataBequest, currentSharedUuid, currentSharedBequest]);
 
     const handleTextAreaChange = (event) => {
         setBequestText(event.target.value);
-
-        if (isSharedBequest) {
-            // Reset shared bequest logic
-            setIsSharedBequest(false);
-            setPendingShares(100);
-            setCurrentSharedUuid(prevValue => prevValue + 1);
-            setReadOnly(false);
-            setSharesInput(''); // Reset shares input
-            // Reset any other related state variables if necessary
-        }
+        // The input value is maintained for shared bequests until the user clears or modifies it.
     };
 
     const addRecepient = () => {
@@ -106,133 +99,154 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
         var backup = isCustomBequest ? 'NA' : selectedBackup;
         var shares = isCustomBequest || isSpouseFirst ? 100 : sharesInput;
 
-        // Validación para evitar bequests duplicados
-        const isDuplicateBequest = table_dataBequest.some(item => item.bequest.toLowerCase() === bequest.toLowerCase());
-        if (isDuplicateBequest) {
-            setValidationErrors(prevErrors => ({
-                ...prevErrors,
-                bequestItem: "This bequest has already been added."
-            }));
-            return;
+        // For non-shared bequests (shares >= 100), enforce duplicate validation.
+        if (Number(shares) >= 100) {
+            const isDuplicateBequest = table_dataBequest.some(
+                item => item.bequest.toLowerCase() === bequest.toLowerCase()
+            );
+            if (isDuplicateBequest) {
+                setValidationErrors(prevErrors => ({
+                    ...prevErrors,
+                    bequestItem: "All shares for this bequest have already been fully allocated"
+                }));
+                return;
+            }
         }
 
-        if (bequest === "" || selected === null || backup === null || shares === "" || shares > 100 || shares <= 0 || (selected !== "Spouse First" && selected === backup)) {
+        // Basic validations
+        if (
+            bequest === "" ||
+            selected === null ||
+            backup === null ||
+            shares === "" ||
+            Number(shares) > 100 ||
+            Number(shares) <= 0 ||
+            (selected !== "Spouse First" && selected === backup)
+        ) {
             let newErrors = {};
-
             if (selected === null) {
                 newErrors.beneficiary = "Beneficiary selection is required";
             }
             if (bequest === "") {
                 newErrors.bequestItem = "Please add a bequest in the section above";
             }
-
             if (!isCustomBequest && selected !== null && backup !== null && selected === backup) {
                 newErrors.backupSameAsBeneficiary = "Beneficiary and Backup can't be the same person";
             }
-
             if (shares === "") {
                 newErrors.shares = "Please enter a value for shares";
             }
-            if (shares > 100 || shares <= 0) {
+            if (Number(shares) > 100 || Number(shares) <= 0) {
                 newErrors.shares = "Shares must be a value between 1 and 100";
             }
+            setValidationErrors(newErrors);
+            return;
+        }
 
-            if (Object.keys(newErrors).length > 0) {
+        // Prepare the new bequest object
+        var obj = {
+            "id": table_dataBequest.length + 1,
+            "names": selected,
+            "backup": backup || "NA",
+            "shares": shares,
+            "bequest": bequest,
+            "isCustom": isCustomBequest,
+            "shared_uuid": 0
+        };
+
+        if (!isCustomBequest) {
+            // For shared bequests, perform validations first without resetting the dropdown selections.
+            if (Number(shares) < 100) {
+                let available;
+                if (currentSharedBequest.trim().toLowerCase() === bequest.toLowerCase()) {
+                    const allocated = table_dataBequest
+                        .filter(item => item.shared_uuid === currentSharedUuid)
+                        .reduce((acc, item) => acc + Number(item.shares), 0);
+                    available = 100 - allocated;
+                } else {
+                    available = 100;
+                    const newSharedUuid = currentSharedUuid + 1;
+                    setCurrentSharedUuid(newSharedUuid);
+                    setCurrentSharedBequest(bequest);
+                    obj.shared_uuid = newSharedUuid;
+                    setSharesInput('');
+                }
+                if (currentSharedBequest.trim().toLowerCase() === bequest.toLowerCase() && available === 0) {
+                    setValidationErrors({ shares: "This bequest item has been fully allocated" });
+                    return;
+                }
+                if (Number(shares) > available) {
+                    setValidationErrors({ shares: "Only " + available + " shares are available for current bequest item" });
+                    return;
+                }
+                if (currentSharedBequest.trim().toLowerCase() === bequest.toLowerCase()) {
+                    obj.shared_uuid = currentSharedUuid;
+                }
+                // Update available shares after this addition.
+                const newAvailable = available - Number(shares);
+                setPendingShares(newAvailable);
+                let newErrors = {};
+                if (newAvailable > 0) {
+                    newErrors.shares = "Pending shares for current bequest item: " + newAvailable;
+                } else if (newAvailable === 0) {
+                    newErrors.shares = "This bequest item has been fully allocated";
+                    // Clear the inputs immediately when the bequest is fully allocated
+                    setBequestText('');
+                    setSharesInput('');
+                    // Optionally, reset shared bequest state if you wish to start a new shared bequest
+                    setCurrentSharedBequest('');
+                    setIsSharedBequest(false);
+                }
                 setValidationErrors(newErrors);
-                return;
+                // If a validation error was set above, the function would have returned already.
             }
         }
 
-        if (bequest !== "" && (isCustomBequest || (selected !== "false" && shares !== "" && shares > 0 && shares <= 100 && selected !== backup))) {
-            var obj = {
-                "id": table_dataBequest.length + 1,
-                "names": selected,
-                "backup": backup || "NA",
-                "shares": shares,
-                "bequest": bequest,
-                "isCustom": isCustomBequest,
-                "shared_uuid": 0
-            };
+        // At this point, validations have passed so you can now clear the dropdown selections.
+        if (!isCustomBequest) {
+            setSelectedRecipient(isSpouseFirst ? "Spouse First" : null);
+            setSelectedBackup(null);
+        }
 
-            setBequestText('');
-            if (!isCustomBequest) {
-                if (isSpouseFirst) {
-                    setSelectedRecipient("Spouse First");
-                } else {
-                    setSelectedRecipient(null);
-                }
-                setSelectedBackup(null);
-                let newErrors = {};
-                if (shares < 100) {
-                    obj.shared_uuid = currentSharedUuid;
-                    setIsSharedBequest(true);
-                    setPendingShares(pendingShares - shares);
-                    if (pendingShares - shares > 0) {
-                        setSharesInput('');
-                        setBequestText('');
-                        globalCounter = 0;
-                        newErrors.sharedBequest = "Please continue distributing shares for the current bequest";
-
-                        if (Object.keys(newErrors).length > 0) {
-                            setValidationErrors(newErrors);
-                        }
-                    } else if (pendingShares - shares <= 0) {
-                        setSharesInput('');
-                        setBequestText('');
-                        setValidationErrors({});
-                        setIsSharedBequest(false);
-                        setPendingShares(100);
-                        setCurrentSharedUuid(prevValue => prevValue + 1);
-                    }
-
-                } else {
-                    setValidationErrors({});
-                    setSharesInput('');
-                    setBequestText('');
-                }
-            }
-
-            let shouldAddBequest = false;
-
-            if (isCustomBequest) {
+        let shouldAddBequest = false;
+        if (isCustomBequest) {
+            shouldAddBequest = true;
+            setReadOnly(false);
+        } else if (Number(shares) >= 100) {
+            var globalSemaphore = globalCounter;
+            globalCounter += Number(shares);
+            if (globalCounter > 100) {
+                console.log("The amount of shares should be less than or equal to 100");
+                globalCounter = globalSemaphore;
+            } else if (globalCounter <= 100) {
                 shouldAddBequest = true;
                 setReadOnly(false);
-            } else {
-                var globalSemaphore = globalCounter;
-                globalCounter += Number(shares);
-
-                if (globalCounter > 100) {
-                    console.log("The amount of shares should be less than or equal to 100");
-                    globalCounter = globalSemaphore;
-                } else if (globalCounter <= 100) {
-                    shouldAddBequest = true;
-                    setReadOnly(false); // keep it editable
-                    if (!open) {
-                        setOpen(true);
-                    }
-
-                    if (globalCounter === 100) {
-                        setReadOnly(false);
-                        globalCounter = 0;
-                    }
+                if (!open) {
+                    setOpen(true);
+                }
+                if (globalCounter === 100) {
+                    setReadOnly(false);
+                    globalCounter = 0;
                 }
             }
+        } else {
+            shouldAddBequest = true;
+        }
 
-            if (shouldAddBequest) {
-                const updatedBequests = [...table_dataBequest, obj];
-                setTable_dataBequest(updatedBequests);
-                bequestArrObj = updatedBequests;
-                bequestindex += 1;
-                setToastMessage(isCustomBequest ? 'Custom bequest added successfully' : 'Bequest added successfully');
-                setTimeout(() => {
-                    setToastMessage('');
-                }, 4000);
-                setShowToast(true);
-                // Save to localStorage
-                const storedValues = JSON.parse(localStorage.getItem('formValues')) || {};
-                storedValues.bequests = updatedBequests;
-                localStorage.setItem('formValues', JSON.stringify(storedValues));
-            }
+        if (shouldAddBequest) {
+            const updatedBequests = [...table_dataBequest, obj];
+            setTable_dataBequest(updatedBequests);
+            bequestArrObj = updatedBequests;
+            bequestindex += 1;
+            setToastMessage(isCustomBequest ? 'Custom bequest added successfully' : 'Bequest added successfully');
+            setTimeout(() => {
+                setToastMessage('');
+            }, 4000);
+            setShowToast(true);
+            // Save the updated list to localStorage.
+            const storedValues = JSON.parse(localStorage.getItem('formValues')) || {};
+            storedValues.bequests = updatedBequests;
+            localStorage.setItem('formValues', JSON.stringify(storedValues));
         }
     };
 
@@ -247,22 +261,17 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
         setTimeout(() => {
             setToastMessage('');
         }, 4000);
-
         setShowToast(true);
         if (bequestToDelete !== null) {
             setShowDeleteModal(false);
             const updatedBequests = table_dataBequest.filter(obj => obj.id !== bequestToDelete);
-
             setTable_dataBequest(updatedBequests);
             bequestArrObj = updatedBequests;
             bequestindex -= 1;
-
             const storedValues = JSON.parse(localStorage.getItem('formValues')) || {};
             storedValues.bequests = updatedBequests;
             localStorage.setItem('formValues', JSON.stringify(storedValues));
-
             setBequestToDelete(null);
-
         }
     };
 
@@ -275,11 +284,9 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
         const updatedBequests = [...table_dataBequest];
         setTable_dataBequest(updatedBequests);
         bequestArrObj = updatedBequests;
-
         const storedValues = JSON.parse(localStorage.getItem('formValues')) || {};
         storedValues.bequests = updatedBequests;
         localStorage.setItem('formValues', JSON.stringify(storedValues));
-
         setToastMessage('Bequest updated successfully');
         setTimeout(() => {
             setToastMessage('');
@@ -308,11 +315,7 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
     };
 
     const handleRecepientSelect = (eventKey) => {
-        if (eventKey === 'Spouse First') {
-            setIsSpouseFirst(true);
-        } else {
-            setIsSpouseFirst(false);
-        }
+        setIsSpouseFirst(eventKey === 'Spouse First');
         setSelectedRecipient(eventKey);
     };
 
@@ -323,42 +326,36 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
     const onAddPerson = (newPerson) => {
         const name = `${newPerson.firstName} ${newPerson.lastName}`;
         setIdentifiersNames(prevNames => [...prevNames, name]);
-
-        // Update datas[5].relatives
+        // Update datas[5].relatives.
         const updatedDatas = { ...datas };
         const relatives = updatedDatas[5].relatives || [];
         const len = Object.keys(relatives).length;
-
         if (!datas[5].relatives) {
             datas[5].relatives = [];
         }
         relatives[len] = newPerson;
         updatedDatas[5].relatives = relatives;
-        datas[5].relatives = relatives; // Update datas
-        onAddPersonFromDropdown([newPerson])
+        datas[5].relatives = relatives; // Update datas.
+        onAddPersonFromDropdown([newPerson]);
         setValidationErrors({});
     };
+
     useEffect(() => {
         if (datas) {
-            // Extraemos el objeto `bequests` y lo convertimos en un array
+            // Extract the `bequests` object and convert it to an array.
             const rawBequests = extractData(datas, 'bequests', null, []);
             const bequestsArray = Object.keys(rawBequests)
-                .filter(key => !isNaN(key)) // Filtramos solo las claves numéricas
-                .map(key => rawBequests[key]); // Convertimos los valores en un array
-
-            // Configuramos el estado con el arreglo resultante
+                .filter(key => !isNaN(key))
+                .map(key => rawBequests[key]);
             setTable_dataBequest(bequestsArray);
-
-            // Actualizamos las variables globales
             bequestArrObj = bequestsArray;
-            bequestindex = bequestsArray.length > 0 ? Math.max(...bequestsArray.map(b => b.id)) : 0;
+            bequestindex =
+                bequestsArray.length > 0 ? Math.max(...bequestsArray.map(b => b.id)) : 0;
             if (bequestArrObj.length > 0) {
-                setOpen(true)
+                setOpen(true);
             }
         }
-
     }, [datas]);
-
 
     useEffect(() => {
         if (datas != null && firstRender) {
@@ -367,12 +364,13 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
             const kids = datas[4]?.kids;
             const relatives = datas[5]?.relatives;
             const kidsq = datas[3]?.kidsq?.selection;
-
-            var dataobj = { married, kids, relatives };
-
-            var married_names = married?.firstName || married?.lastName ? married?.firstName + " " + married?.lastName : null;
-
-            if (married_names !== null) { setIsMarried(true); }
+            var married_names =
+                married?.firstName || married?.lastName
+                    ? married?.firstName + " " + married?.lastName
+                    : null;
+            if (married_names !== null) {
+                setIsMarried(true);
+            }
             if (kidsq === "true") {
                 for (let child in kids) {
                     const childName = kids[child]?.firstName + " " + kids[child]?.lastName;
@@ -383,10 +381,10 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                 names.push(married_names);
             }
             for (let key in relatives) {
-                const namesRel = relatives[key]?.firstName + " " + relatives[key]?.lastName;
+                const namesRel =
+                    relatives[key]?.firstName + " " + relatives[key]?.lastName;
                 names.push(namesRel);
             }
-
             setIdentifiersNames(names);
             setFirstRender(false);
         }
@@ -405,6 +403,8 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                                 placeholder={isCustomBequest ? "(e.g., Charitable Donation)" : "(e.g., Gold Chain)"}
                                 value={bequestText}
                                 onChange={handleTextAreaChange}
+                                // Make read-only when the current shared bequest is in progress and not all shares are available.
+                                readOnly={isSharedBequest && pendingShares < 100}
                                 className="border-2 rounded-md focus:ring-2 focus:ring-blue-500"
                             />
                             {validationErrors.bequestItem && (
@@ -558,115 +558,109 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {
-                                            table_dataBequest.length === 0 ? (
-                                                <tr>
-                                                    <td className='text-center' colSpan="7">
-                                                        No information added yet. Press "Add Recipient" to add.
+                                        {table_dataBequest.length === 0 ? (
+                                            <tr>
+                                                <td className='text-center' colSpan="7">
+                                                    No information added yet. Press "Add Recipient" to add.
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            table_dataBequest.map((item, index) => (
+                                                <tr key={index}>
+                                                    <td>{item.id}</td>
+                                                    <td>
+                                                        {editingRow === index ? (
+                                                            <AddPersonDropdown
+                                                                options={identifiers_names}
+                                                                label="Select Beneficiary"
+                                                                selected={item.names}
+                                                                onSelect={(value) => handleDropdownSelect(index, 'names', value)}
+                                                                onAddPerson={onAddPerson}
+                                                                validationErrors={validationErrors}
+                                                                setValidationErrors={setValidationErrors}
+                                                            />
+                                                        ) : (
+                                                            item.names
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        {editingRow === index ? (
+                                                            <AddPersonDropdown
+                                                                options={identifiers_names}
+                                                                label="Select Backup"
+                                                                selected={item.backup}
+                                                                onSelect={(value) => handleDropdownSelect(index, 'backup', value)}
+                                                                onAddPerson={onAddPerson}
+                                                                validationErrors={validationErrors}
+                                                                setValidationErrors={setValidationErrors}
+                                                            />
+                                                        ) : (
+                                                            item.backup
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        {editingRow === index ? (
+                                                            <Form.Control
+                                                                as="textarea"
+                                                                rows={1}
+                                                                value={item.bequest}
+                                                                onChange={(e) => handleDropdownSelect(index, 'bequest', e.target.value)}
+                                                                className="border-2 rounded-md focus:ring-2 focus:ring-blue-500"
+                                                            />
+                                                        ) : (
+                                                            item.bequest
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        {editingRow === index ? (
+                                                            <Form.Control
+                                                                type="number"
+                                                                value={item.shares}
+                                                                onChange={(e) => handleDropdownSelect(index, 'shares', e.target.value)}
+                                                                className="border-2 rounded-md focus:ring-2 focus:ring-blue-500"
+                                                            />
+                                                        ) : (
+                                                            item.shares
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        <div className="d-flex gap-2">
+                                                            {editingRow === index ? (
+                                                                <>
+                                                                    <Button
+                                                                        variant="outline-success"
+                                                                        onClick={() => handleSave(index)}
+                                                                    >
+                                                                        Save
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="outline-secondary"
+                                                                        onClick={handleCancel}
+                                                                    >
+                                                                        Cancel
+                                                                    </Button>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <Button
+                                                                        variant="outline-danger"
+                                                                        onClick={() => handleDelete(item.id)}
+                                                                    >
+                                                                        <i className="bi bi-trash3"></i>  Delete
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="outline-warning"
+                                                                        onClick={() => handleEdit(index)}
+                                                                    >
+                                                                        <i className="bi bi-pencil"></i>  Edit
+                                                                    </Button>
+                                                                </>
+                                                            )}
+                                                        </div>
                                                     </td>
                                                 </tr>
-                                            ) : (
-                                                table_dataBequest.map((item, index) => (
-                                                    <tr key={index}>
-                                                        <td>{item.id}</td>
-                                                        <td>
-                                                            {editingRow === index ? (
-                                                                <AddPersonDropdown
-                                                                    options={identifiers_names}
-                                                                    label="Select Beneficiary"
-                                                                    selected={item.names}
-                                                                    onSelect={(value) => handleDropdownSelect(index, 'names', value)}
-                                                                    onAddPerson={onAddPerson}
-                                                                    validationErrors={validationErrors}
-                                                                    setValidationErrors={setValidationErrors}
-                                                                />
-                                                            ) : (
-                                                                item.names
-                                                            )}
-                                                        </td>
-                                                        <td>
-                                                            {editingRow === index ? (
-                                                                <AddPersonDropdown
-                                                                    options={identifiers_names}
-                                                                    label="Select Backup"
-                                                                    selected={item.backup}
-                                                                    onSelect={(value) => handleDropdownSelect(index, 'backup', value)}
-                                                                    onAddPerson={onAddPerson}
-                                                                    validationErrors={validationErrors}
-                                                                    setValidationErrors={setValidationErrors}
-                                                                />
-                                                            ) : (
-                                                                item.backup
-                                                            )}
-                                                        </td>
-                                                        <td>
-                                                            {editingRow === index ? (
-                                                                <Form.Control
-                                                                    as="textarea"
-                                                                    rows={1}
-                                                                    value={item.bequest}
-                                                                    onChange={(e) => handleDropdownSelect(index, 'bequest', e.target.value)}
-                                                                    className="border-2 rounded-md focus:ring-2 focus:ring-blue-500"
-                                                                />
-                                                            ) : (
-                                                                item.bequest
-                                                            )}
-                                                        </td>
-                                                        <td>
-                                                            {editingRow === index ? (
-                                                                <Form.Control
-                                                                    type="number"
-                                                                    value={item.shares}
-                                                                    onChange={(e) => handleDropdownSelect(index, 'shares', e.target.value)}
-                                                                    className="border-2 rounded-md focus:ring-2 focus:ring-blue-500"
-                                                                />
-                                                            ) : (
-                                                                item.shares
-                                                            )}
-                                                        </td>
-                                                        <td>
-                                                            <div className="d-flex gap-2">
-                                                                {editingRow === index ? (
-                                                                    <>
-                                                                        <Button
-                                                                            variant="outline-success"
-                                                                            size=""
-                                                                            onClick={() => handleSave(index)}
-                                                                        >
-                                                                            Save
-                                                                        </Button>
-                                                                        <Button
-                                                                            variant="outline-secondary"
-                                                                            size="lg"
-                                                                            onClick={handleCancel}
-                                                                        >
-                                                                            Cancel
-                                                                        </Button>
-                                                                    </>
-                                                                ) : (
-                                                                    <>
-                                                                        <Button
-                                                                            variant="outline-danger"
-                                                                            size=""
-                                                                            onClick={() => handleDelete(item.id)}
-                                                                        >
-                                                                            <i class="bi bi-trash3"></i>  Delete
-                                                                        </Button>
-                                                                        <Button
-                                                                            variant="outline-warning"
-                                                                            size=""
-                                                                            onClick={() => handleEdit(index)}
-                                                                        >
-                                                                            <i class="bi bi-pencil"></i>  Edit
-                                                                        </Button>
-                                                                    </>
-                                                                )}
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ))
-                                            )
-                                        }
+                                            ))
+                                        )}
                                     </tbody>
                                 </Table>
                             </div>
