@@ -31,10 +31,8 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
     const [selectedBackup, setSelectedBackup] = useState(null);
     const [identifiers_names, setIdentifiersNames] = useState([]);
     const [isMarried, setIsMarried] = useState(false);
-    const [isSpouseFirst, setIsSpouseFirst] = useState(false);
+    // Notice that we no longer need “isSharedBequest” since we compute the group status on the fly.
     const [isCustomBequest, setIsCustomBequest] = useState(false);
-    const [isSharedBequest, setIsSharedBequest] = useState(false);
-    // pendingShares represents the available shares for the current shared bequest item.
     const [pendingShares, setPendingShares] = useState(100);
     const [readOnly, setReadOnly] = useState(false);
     const [validationErrors, setValidationErrors] = useState({});
@@ -43,22 +41,36 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
     const [toastMessage, setToastMessage] = useState("");
     const [bequestToDelete, setBequestToDelete] = useState(null);
     const [editingRow, setEditingRow] = useState(null);
-    const [currentSharedUuid, setCurrentSharedUuid] = useState(1);
-    // currentSharedBequest holds the text of the current shared bequest item in progress.
-    const [currentSharedBequest, setCurrentSharedBequest] = useState('');
+    // Remove currentSharedUuid and currentSharedBequest; instead, we use a counter for new shared groups:
+    const [nextSharedUuid, setNextSharedUuid] = useState(1);
     const [tempData, setTempData] = useState({});
     const [bequestText, setBequestText] = useState('');
     const [sharesInput, setSharesInput] = useState('');
 
-    // Recalculate validation errors for the bequest text.
+    // When the bequest text or table data changes (for non‑custom items),
+    // compute how many shares have already been allocated for that bequest.
     useEffect(() => {
-        let newErrors = {};
-        const bequest = bequestText;
-        if (bequest === "" && isCustomBequest) {
-            newErrors.bequestItem = "Please add a custom bequest in the section above";
+        if (!isCustomBequest && bequestText.trim() !== "") {
+            const allocated = table_dataBequest
+                .filter(item =>
+                    item.bequest.trim().toLowerCase() === bequestText.trim().toLowerCase() &&
+                    item.shared_uuid !== 0
+                )
+                .reduce((acc, item) => acc + Number(item.shares), 0);
+            setPendingShares(100 - allocated);
+        } else {
+            setPendingShares(100);
         }
-        setValidationErrors(Object.keys(newErrors).length > 0 ? newErrors : {});
-    }, [isCustomBequest, bequestText]);
+    }, [bequestText, table_dataBequest, isCustomBequest]);
+
+    // When bequest text is used for adding a new non-custom (shared) bequest,
+    // keep the text input read‑only if some shares have already been allocated.
+    // (This prevents changing the bequest name once allocations have begun.)
+    // For custom bequests the text should remain editable.
+    // Note: if pendingShares < 100 it means there is already an active group.
+    // (When pendingShares equals 100, no group exists yet.)
+    // You could also compute this from the table data if preferred.
+    const bequestInputReadOnly = !isCustomBequest && pendingShares < 100;
 
     useEffect(() => {
         setValidationErrors(errors);
@@ -74,32 +86,23 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
     }, [errors]);
 
     useEffect(() => {
-        setIsSpouseFirst(selectedRecipient === "Spouse First");
-    }, [selectedRecipient]);
-
-    // Recalculate pendingShares for the current shared bequest item whenever the table data changes.
-    useEffect(() => {
-        if (currentSharedBequest.trim() !== "") {
-            const allocated = table_dataBequest
-                .filter(item => item.shared_uuid === currentSharedUuid)
-                .reduce((acc, item) => acc + Number(item.shares), 0);
-            setPendingShares(100 - allocated);
-        }
-    }, [table_dataBequest, currentSharedUuid, currentSharedBequest]);
+        setIsMarried(!!(datas[2]?.married?.firstName || datas[2]?.married?.lastName));
+    }, [datas]);
 
     const handleTextAreaChange = (event) => {
         setBequestText(event.target.value);
-        // The input value is maintained for shared bequests until the user clears or modifies it.
     };
 
     const addRecepient = () => {
         setValidationErrors({});
-        var bequest = bequestText.trim();
-        var selected = isCustomBequest ? 'NA' : selectedRecipient;
-        var backup = isCustomBequest ? 'NA' : selectedBackup;
-        var shares = isCustomBequest || isSpouseFirst ? 100 : sharesInput;
+        const bequest = bequestText.trim();
+        // For non‑custom bequests, the beneficiary and backup come from dropdown selections.
+        const selected = isCustomBequest ? 'NA' : selectedRecipient;
+        const backup = isCustomBequest ? 'NA' : selectedBackup;
+        // For non‑custom (shared) items, shares come from the input; for custom or spouse-first, use 100.
+        const shares = isCustomBequest || selected === "Spouse First" ? 100 : sharesInput;
 
-        // For non-shared bequests (shares >= 100), enforce duplicate validation.
+        // Duplicate check for bequests that are fully allocated
         if (Number(shares) >= 100) {
             const isDuplicateBequest = table_dataBequest.some(
                 item => item.bequest.toLowerCase() === bequest.toLowerCase()
@@ -144,94 +147,68 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
         }
 
         // Prepare the new bequest object
-        var obj = {
+        const obj = {
             "id": table_dataBequest.length + 1,
             "names": selected,
             "backup": backup || "NA",
             "shares": shares,
             "bequest": bequest,
             "isCustom": isCustomBequest,
+            // For custom bequests, shared_uuid remains 0.
             "shared_uuid": 0
         };
 
+        // For non‑custom (shared) bequests, we want to group allocations by bequest name.
         if (!isCustomBequest) {
-            // For shared bequests, perform validations first without resetting the dropdown selections.
-            if (Number(shares) < 100) {
-                let available;
-                if (currentSharedBequest.trim().toLowerCase() === bequest.toLowerCase()) {
-                    const allocated = table_dataBequest
-                        .filter(item => item.shared_uuid === currentSharedUuid)
-                        .reduce((acc, item) => acc + Number(item.shares), 0);
-                    available = 100 - allocated;
-                } else {
-                    available = 100;
-                    const newSharedUuid = currentSharedUuid + 1;
-                    setCurrentSharedUuid(newSharedUuid);
-                    setCurrentSharedBequest(bequest);
-                    obj.shared_uuid = newSharedUuid;
-                    setSharesInput('');
-                }
-                if (currentSharedBequest.trim().toLowerCase() === bequest.toLowerCase() && available === 0) {
-                    setValidationErrors({ shares: "This bequest item has been fully allocated" });
-                    return;
-                }
-                if (Number(shares) > available) {
-                    setValidationErrors({ shares: "Only " + available + " shares are available for current bequest item" });
-                    return;
-                }
-                if (currentSharedBequest.trim().toLowerCase() === bequest.toLowerCase()) {
-                    obj.shared_uuid = currentSharedUuid;
-                }
-                // Update available shares after this addition.
-                const newAvailable = available - Number(shares);
-                setPendingShares(newAvailable);
-                let newErrors = {};
-                if (newAvailable > 0) {
-                    newErrors.shares = "Pending shares for current bequest item: " + newAvailable;
-                } else if (newAvailable === 0) {
-                    newErrors.shares = "This bequest item has been fully allocated";
-                    // Clear the inputs immediately when the bequest is fully allocated
-                    setBequestText('');
-                    setSharesInput('');
-                    // Optionally, reset shared bequest state if you wish to start a new shared bequest
-                    setCurrentSharedBequest('');
-                    setIsSharedBequest(false);
-                }
-                setValidationErrors(newErrors);
-                // If a validation error was set above, the function would have returned already.
+            const bequestName = bequest;
+            // Look for any existing items in the table that share this bequest name (ignoring case)
+            const existingGroupItems = table_dataBequest.filter(
+                item =>
+                    item.bequest.trim().toLowerCase() === bequestName.toLowerCase() &&
+                    item.shared_uuid !== 0
+            );
+            let groupSharedUuid;
+            let available = 100;
+            if (existingGroupItems.length > 0) {
+                // Use the same shared uuid as the existing group.
+                groupSharedUuid = existingGroupItems[0].shared_uuid;
+                const allocated = existingGroupItems.reduce((acc, item) => acc + Number(item.shares), 0);
+                available = 100 - allocated;
+            } else {
+                // No group exists yet for this bequest name; create a new group.
+                groupSharedUuid = nextSharedUuid;
+                setNextSharedUuid(nextSharedUuid + 1);
             }
+            // Validate that enough shares are available
+            if (available === 0) {
+                setValidationErrors({ shares: "This bequest item has been fully allocated" });
+                return;
+            }
+            if (Number(shares) > available) {
+                setValidationErrors({ shares: "Only " + available + " shares are available for current bequest item" });
+                return;
+            }
+            // Assign the group identifier to this item.
+            obj.shared_uuid = groupSharedUuid;
+            // Update the pending shares for this group (so that if the user wants to add more allocations,
+            // they will see the remaining shares available).
+            const newAvailable = available - Number(shares);
+            setPendingShares(newAvailable);
+            let newErrors = {};
+            if (newAvailable > 0) {
+                newErrors.shares = "Pending shares for current bequest item: " + newAvailable;
+            } else if (newAvailable === 0) {
+                newErrors.shares = "This bequest item has been fully allocated";
+                // Clear the inputs when the group is complete
+                setBequestText('');
+                setSharesInput('');
+            }
+            setValidationErrors(newErrors);
         }
 
-        // At this point, validations have passed so you can now clear the dropdown selections.
-        if (!isCustomBequest) {
-            setSelectedRecipient(isSpouseFirst ? "Spouse First" : null);
-            setSelectedBackup(null);
-        }
-
-        let shouldAddBequest = false;
-        if (isCustomBequest) {
-            shouldAddBequest = true;
-            setReadOnly(false);
-        } else if (Number(shares) >= 100) {
-            var globalSemaphore = globalCounter;
-            globalCounter += Number(shares);
-            if (globalCounter > 100) {
-                console.log("The amount of shares should be less than or equal to 100");
-                globalCounter = globalSemaphore;
-            } else if (globalCounter <= 100) {
-                shouldAddBequest = true;
-                setReadOnly(false);
-                if (!open) {
-                    setOpen(true);
-                }
-                if (globalCounter === 100) {
-                    setReadOnly(false);
-                    globalCounter = 0;
-                }
-            }
-        } else {
-            shouldAddBequest = true;
-        }
+        // For custom bequests, we simply allow the addition.
+        // (In that case the bequest text remains editable.)
+        let shouldAddBequest = true;
 
         if (shouldAddBequest) {
             const updatedBequests = [...table_dataBequest, obj];
@@ -249,7 +226,6 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
             localStorage.setItem('formValues', JSON.stringify(storedValues));
         }
     };
-
 
     const handleDelete = (itemId) => {
         setBequestToDelete(itemId);
@@ -315,7 +291,6 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
     };
 
     const handleRecepientSelect = (eventKey) => {
-        setIsSpouseFirst(eventKey === 'Spouse First');
         setSelectedRecipient(eventKey);
     };
 
@@ -403,8 +378,9 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                                 placeholder={isCustomBequest ? "(e.g., Charitable Donation)" : "(e.g., Gold Chain)"}
                                 value={bequestText}
                                 onChange={handleTextAreaChange}
-                                // Make read-only when the current shared bequest is in progress and not all shares are available.
-                                readOnly={isSharedBequest && pendingShares < 100}
+                                // Use our computed flag so that if a shared group already exists and is incomplete,
+                                // the bequest text remains read-only.
+                                readOnly={bequestInputReadOnly}
                                 className="border-2 rounded-md focus:ring-2 focus:ring-blue-500"
                             />
                             {validationErrors.bequestItem && (
@@ -422,7 +398,7 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                             label="Custom Bequest"
                             checked={isCustomBequest}
                             onChange={(e) => setIsCustomBequest(e.target.checked)}
-                            disabled={isSharedBequest}
+                            disabled={/* disable if working on a shared group */ !isCustomBequest && pendingShares < 100}
                             className="text-lg"
                         />
                     </Col>
@@ -463,14 +439,14 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                             <Col md={6}>
                                 <AddPersonDropdown
                                     options={identifiers_names}
-                                    extraOptions={isMarried && !isSharedBequest ? ['Spouse First'] : []}
+                                    extraOptions={isMarried ? ['Spouse First'] : []}
                                     label="Select Beneficiary"
                                     selected={selectedRecipient}
                                     onSelect={handleRecepientSelect}
                                     onAddPerson={onAddPerson}
                                     validationErrors={validationErrors}
                                     setValidationErrors={setValidationErrors}
-                                    variant={isSpouseFirst ? "outline-success" : "outline-dark"}
+                                    variant={selectedRecipient === "Spouse First" ? "outline-success" : "outline-dark"}
                                 />
                                 {validationErrors.beneficiary && (
                                     <Form.Text className="text-danger">{validationErrors.beneficiary}</Form.Text>
@@ -501,7 +477,7 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                                         placeholder="100"
                                         value={sharesInput}
                                         onChange={(e) => setSharesInput(e.target.value)}
-                                        readOnly={isSpouseFirst}
+                                        readOnly={selectedRecipient === "Spouse First"}
                                         className="border-2 rounded-md focus:ring-2 focus:ring-blue-500"
                                     />
                                     {validationErrors.shares && (
