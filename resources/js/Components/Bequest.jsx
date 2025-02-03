@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     Form,
     Button,
@@ -14,41 +14,42 @@ import CustomToast from './AdditionalComponents/CustomToast';
 import { validate } from './Validations';
 import { extractData } from '@/utils/objectStatusUtils';
 
+// Variable global para mantener el arreglo de bequests (para uso externo)
 let bequestArrObj = [];
-let bequestindex = 0;
-let globalCounter = 0;
 
 export function getBequestArrObj() {
     return bequestArrObj;
 }
 
 function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
-    const [showExecutor, setShowExecutor] = useState(false);
+    // Estados locales
     const [open, setOpen] = useState(false);
     const [firstRender, setFirstRender] = useState(true);
-    const [table_dataBequest, setTable_dataBequest] = useState([]);
+    const [table_dataBequest, setTableDataBequest] = useState([]);
     const [selectedRecipient, setSelectedRecipient] = useState(null);
     const [selectedBackup, setSelectedBackup] = useState(null);
-    const [identifiers_names, setIdentifiersNames] = useState([]);
+    const [identifiersNames, setIdentifiersNames] = useState([]);
     const [isMarried, setIsMarried] = useState(false);
-    // Notice that we no longer need “isSharedBequest” since we compute the group status on the fly.
     const [isCustomBequest, setIsCustomBequest] = useState(false);
     const [pendingShares, setPendingShares] = useState(100);
-    const [readOnly, setReadOnly] = useState(false);
     const [validationErrors, setValidationErrors] = useState({});
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
     const [bequestToDelete, setBequestToDelete] = useState(null);
     const [editingRow, setEditingRow] = useState(null);
-    // Remove currentSharedUuid and currentSharedBequest; instead, we use a counter for new shared groups:
     const [nextSharedUuid, setNextSharedUuid] = useState(1);
     const [tempData, setTempData] = useState({});
     const [bequestText, setBequestText] = useState('');
     const [sharesInput, setSharesInput] = useState('');
 
-    // When the bequest text or table data changes (for non‑custom items),
-    // compute how many shares have already been allocated for that bequest.
+    // useRef para generar IDs únicos sin depender de la longitud del arreglo
+    const bequestIdRef = useRef(0);
+
+    // Flag computado para determinar si el campo de bequest debe ser readOnly
+    const bequestInputReadOnly = !isCustomBequest && pendingShares < 100;
+
+    // Actualiza la cantidad de shares pendientes cuando se modifica el bequest o la tabla
     useEffect(() => {
         if (!isCustomBequest && bequestText.trim() !== "") {
             const allocated = table_dataBequest
@@ -63,49 +64,43 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
         }
     }, [bequestText, table_dataBequest, isCustomBequest]);
 
-    // When bequest text is used for adding a new non-custom (shared) bequest,
-    // keep the text input read‑only if some shares have already been allocated.
-    // (This prevents changing the bequest name once allocations have begun.)
-    // For custom bequests the text should remain editable.
-    // Note: if pendingShares < 100 it means there is already an active group.
-    // (When pendingShares equals 100, no group exists yet.)
-    // You could also compute this from the table data if preferred.
-    const bequestInputReadOnly = !isCustomBequest && pendingShares < 100;
-
+    // Inicializa los datos desde las validaciones y el localStorage
     useEffect(() => {
-        setValidationErrors(errors);
+        setValidationErrors(errors || {});
         const storedValues = JSON.parse(localStorage.getItem('formValues')) || {};
         if (storedValues.bequests) {
-            setTable_dataBequest(storedValues.bequests);
+            setTableDataBequest(storedValues.bequests);
             bequestArrObj = storedValues.bequests;
-            bequestindex =
-                storedValues.bequests.length > 0
-                    ? Math.max(...storedValues.bequests.map(b => b.id))
-                    : 0;
+            // Actualiza el bequestIdRef al máximo id encontrado
+            const maxId = storedValues.bequests.length > 0 ? Math.max(...storedValues.bequests.map(b => b.id)) : 0;
+            bequestIdRef.current = maxId;
         }
     }, [errors]);
 
+    // Actualiza el estado marital en función de los datos recibidos
     useEffect(() => {
         setIsMarried(!!(datas[2]?.married?.firstName || datas[2]?.married?.lastName));
     }, [datas]);
 
+    // Maneja el cambio en el textarea del bequest
     const handleTextAreaChange = (event) => {
         setBequestText(event.target.value);
     };
 
+    // Función para agregar un bequest (ya sea custom o compartido)
     const addRecepient = () => {
         setValidationErrors({});
         const bequest = bequestText.trim();
-        // For non‑custom bequests, the beneficiary and backup come from dropdown selections.
+        // Para bequests no custom se toman los datos de los dropdowns
         const selected = isCustomBequest ? 'NA' : selectedRecipient;
         const backup = isCustomBequest ? 'NA' : selectedBackup;
-        // For non‑custom (shared) items, shares come from the input; for custom or spouse-first, use 100.
+        // Para bequests custom o cuando el beneficiario es "Spouse First" se asigna 100 shares
         const shares = isCustomBequest || selected === "Spouse First" ? 100 : sharesInput;
 
-        // Duplicate check for bequests that are fully allocated
+        // Verificación de duplicados en bequests que ya se han asignado totalmente
         if (Number(shares) >= 100) {
             const isDuplicateBequest = table_dataBequest.some(
-                item => item.bequest.toLowerCase() === bequest.toLowerCase()
+                item => item.bequest.trim().toLowerCase() === bequest.toLowerCase()
             );
             if (isDuplicateBequest) {
                 setValidationErrors(prevErrors => ({
@@ -116,7 +111,7 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
             }
         }
 
-        // Basic validations
+        // Validaciones básicas de campos obligatorios y rangos
         if (
             bequest === "" ||
             selected === null ||
@@ -146,22 +141,21 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
             return;
         }
 
-        // Prepare the new bequest object
-        const obj = {
-            "id": table_dataBequest.length + 1,
-            "names": selected,
-            "backup": backup || "NA",
-            "shares": shares,
-            "bequest": bequest,
-            "isCustom": isCustomBequest,
-            // For custom bequests, shared_uuid remains 0.
-            "shared_uuid": 0
+        // Preparar el nuevo objeto bequest con un ID único
+        bequestIdRef.current += 1;
+        const newBequest = {
+            id: bequestIdRef.current,
+            names: selected,
+            backup: backup || "NA",
+            shares: shares,
+            bequest: bequest,
+            isCustom: isCustomBequest,
+            shared_uuid: 0
         };
 
-        // For non‑custom (shared) bequests, we want to group allocations by bequest name.
+        // Para bequests compartidos se agrupan las asignaciones según el nombre del bequest
         if (!isCustomBequest) {
             const bequestName = bequest;
-            // Look for any existing items in the table that share this bequest name (ignoring case)
             const existingGroupItems = table_dataBequest.filter(
                 item =>
                     item.bequest.trim().toLowerCase() === bequestName.toLowerCase() &&
@@ -170,16 +164,13 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
             let groupSharedUuid;
             let available = 100;
             if (existingGroupItems.length > 0) {
-                // Use the same shared uuid as the existing group.
                 groupSharedUuid = existingGroupItems[0].shared_uuid;
                 const allocated = existingGroupItems.reduce((acc, item) => acc + Number(item.shares), 0);
                 available = 100 - allocated;
             } else {
-                // No group exists yet for this bequest name; create a new group.
                 groupSharedUuid = nextSharedUuid;
-                setNextSharedUuid(nextSharedUuid + 1);
+                setNextSharedUuid(prev => prev + 1);
             }
-            // Validate that enough shares are available
             if (available === 0) {
                 setValidationErrors({ shares: "This bequest item has been fully allocated" });
                 return;
@@ -188,10 +179,7 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                 setValidationErrors({ shares: "Only " + available + " shares are available for current bequest item" });
                 return;
             }
-            // Assign the group identifier to this item.
-            obj.shared_uuid = groupSharedUuid;
-            // Update the pending shares for this group (so that if the user wants to add more allocations,
-            // they will see the remaining shares available).
+            newBequest.shared_uuid = groupSharedUuid;
             const newAvailable = available - Number(shares);
             setPendingShares(newAvailable);
             let newErrors = {};
@@ -199,51 +187,48 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                 newErrors.shares = "Pending shares for current bequest item: " + newAvailable;
             } else if (newAvailable === 0) {
                 newErrors.shares = "This bequest item has been fully allocated";
-                // Clear the inputs when the group is complete
+                // Se limpian los campos de entrada cuando se completa la asignación
                 setBequestText('');
                 setSharesInput('');
             }
             setValidationErrors(newErrors);
         }
 
-        // For custom bequests, we simply allow the addition.
-        // (In that case the bequest text remains editable.)
-        let shouldAddBequest = true;
-
-        if (shouldAddBequest) {
-            const updatedBequests = [...table_dataBequest, obj];
-            setTable_dataBequest(updatedBequests);
-            bequestArrObj = updatedBequests;
-            bequestindex += 1;
-            setToastMessage(isCustomBequest ? 'Custom bequest added successfully' : 'Bequest added successfully');
-            setTimeout(() => {
-                setToastMessage('');
-            }, 4000);
-            setShowToast(true);
-            // Save the updated list to localStorage.
-            const storedValues = JSON.parse(localStorage.getItem('formValues')) || {};
-            storedValues.bequests = updatedBequests;
-            localStorage.setItem('formValues', JSON.stringify(storedValues));
-        }
+        // Se agrega el nuevo bequest al arreglo y se actualiza el estado, la variable global y el localStorage
+        const updatedBequests = [...table_dataBequest, newBequest];
+        setTableDataBequest(updatedBequests);
+        bequestArrObj = updatedBequests;
+        setToastMessage(isCustomBequest ? 'Custom bequest added successfully' : 'Bequest added successfully');
+        setShowToast(true);
+        setTimeout(() => {
+            setToastMessage('');
+            setShowToast(false);
+        }, 4000);
+        const storedValues = JSON.parse(localStorage.getItem('formValues')) || {};
+        storedValues.bequests = updatedBequests;
+        localStorage.setItem('formValues', JSON.stringify(storedValues));
     };
 
+    // Maneja la solicitud de eliminación de un bequest
     const handleDelete = (itemId) => {
         setBequestToDelete(itemId);
         setShowDeleteModal(true);
     };
 
+    // Confirma la eliminación y actualiza el estado y el almacenamiento local
     const confirmDelete = () => {
         setToastMessage('Bequest removed successfully');
+        setShowToast(true);
         setTimeout(() => {
             setToastMessage('');
+            setShowToast(false);
         }, 4000);
-        setShowToast(true);
         if (bequestToDelete !== null) {
             setShowDeleteModal(false);
             const updatedBequests = table_dataBequest.filter(obj => obj.id !== bequestToDelete);
-            setTable_dataBequest(updatedBequests);
+            setTableDataBequest(updatedBequests);
             bequestArrObj = updatedBequests;
-            bequestindex -= 1;
+            // Nota: No se decrementa bequestIdRef para mantener la unicidad de los IDs
             const storedValues = JSON.parse(localStorage.getItem('formValues')) || {};
             storedValues.bequests = updatedBequests;
             localStorage.setItem('formValues', JSON.stringify(storedValues));
@@ -251,40 +236,45 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
         }
     };
 
+    // Inicia la edición de una fila del bequest
     const handleEdit = (index) => {
-        setTempData(table_dataBequest[index]);
+        setTempData({ ...table_dataBequest[index] });
         setEditingRow(index);
     };
 
+    // Guarda los cambios realizados en una fila editada
     const handleSave = (index) => {
         const updatedBequests = [...table_dataBequest];
-        setTable_dataBequest(updatedBequests);
+        setTableDataBequest(updatedBequests);
         bequestArrObj = updatedBequests;
         const storedValues = JSON.parse(localStorage.getItem('formValues')) || {};
         storedValues.bequests = updatedBequests;
         localStorage.setItem('formValues', JSON.stringify(storedValues));
         setToastMessage('Bequest updated successfully');
+        setShowToast(true);
         setTimeout(() => {
             setToastMessage('');
+            setShowToast(false);
         }, 4000);
-        setShowToast(true);
         setEditingRow(null);
         setTempData({});
     };
 
+    // Actualiza los datos en modo edición a partir de un dropdown o un input
     const handleDropdownSelect = (index, key, value) => {
         if (editingRow === index) {
             const updatedBequests = [...table_dataBequest];
             updatedBequests[index] = { ...updatedBequests[index], [key]: value };
-            setTable_dataBequest(updatedBequests);
+            setTableDataBequest(updatedBequests);
         }
     };
 
+    // Cancela la edición y revierte los cambios
     const handleCancel = () => {
         if (editingRow !== null) {
             const updatedBequests = [...table_dataBequest];
             updatedBequests[editingRow] = tempData;
-            setTable_dataBequest(updatedBequests);
+            setTableDataBequest(updatedBequests);
         }
         setEditingRow(null);
         setTempData({});
@@ -298,68 +288,67 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
         setSelectedBackup(eventKey);
     };
 
+    // Agrega una nueva persona (por ejemplo, desde el dropdown)
     const onAddPerson = (newPerson) => {
         const name = `${newPerson.firstName} ${newPerson.lastName}`;
         setIdentifiersNames(prevNames => [...prevNames, name]);
-        // Update datas[5].relatives.
+        // Actualiza de forma segura los datos en datas para relatives
         const updatedDatas = { ...datas };
-        const relatives = updatedDatas[5].relatives || [];
-        const len = Object.keys(relatives).length;
-        if (!datas[5].relatives) {
-            datas[5].relatives = [];
+        if (!updatedDatas[5]) {
+            updatedDatas[5] = { relatives: [] };
         }
-        relatives[len] = newPerson;
+        const relatives = updatedDatas[5].relatives || [];
+        relatives.push(newPerson);
         updatedDatas[5].relatives = relatives;
-        datas[5].relatives = relatives; // Update datas.
+        // Se notifica al componente padre mediante callback
         onAddPersonFromDropdown([newPerson]);
         setValidationErrors({});
     };
 
+    // Carga los bequests desde datas (si existen) y actualiza el estado
     useEffect(() => {
         if (datas) {
-            // Extract the `bequests` object and convert it to an array.
             const rawBequests = extractData(datas, 'bequests', null, []);
             const bequestsArray = Object.keys(rawBequests)
                 .filter(key => !isNaN(key))
                 .map(key => rawBequests[key]);
-            setTable_dataBequest(bequestsArray);
+            setTableDataBequest(bequestsArray);
             bequestArrObj = bequestsArray;
-            bequestindex =
-                bequestsArray.length > 0 ? Math.max(...bequestsArray.map(b => b.id)) : 0;
+            const maxId = bequestsArray.length > 0 ? Math.max(...bequestsArray.map(b => b.id)) : 0;
+            bequestIdRef.current = maxId;
             if (bequestArrObj.length > 0) {
                 setOpen(true);
             }
         }
     }, [datas]);
 
+    // Inicializa la lista de nombres (identifiers) a partir de datas en el primer render
     useEffect(() => {
-        if (datas != null && firstRender) {
+        if (datas && firstRender) {
             let names = [];
             const married = datas[2]?.married;
             const kids = datas[4]?.kids;
-            const relatives = datas[5]?.relatives;
+            const relatives = datas[5]?.relatives || [];
             const kidsq = datas[3]?.kidsq?.selection;
-            var married_names =
-                married?.firstName || married?.lastName
-                    ? married?.firstName + " " + married?.lastName
-                    : null;
-            if (married_names !== null) {
+            const married_names = (married?.firstName || married?.lastName)
+                ? `${married.firstName || ''} ${married.lastName || ''}`.trim()
+                : null;
+            if (married_names) {
                 setIsMarried(true);
             }
-            if (kidsq === "true") {
-                for (let child in kids) {
-                    const childName = kids[child]?.firstName + " " + kids[child]?.lastName;
+            if (kidsq === "true" && kids) {
+                kids.forEach(child => {
+                    const childName = `${child.firstName} ${child.lastName}`;
                     names.push(childName);
-                }
+                });
             }
             if (married_names) {
                 names.push(married_names);
             }
-            for (let key in relatives) {
-                const namesRel =
-                    relatives[key]?.firstName + " " + relatives[key]?.lastName;
-                names.push(namesRel);
-            }
+            relatives.forEach(relative => {
+                const relName = `${relative.firstName} ${relative.lastName}`;
+                names.push(relName);
+            });
             setIdentifiersNames(names);
             setFirstRender(false);
         }
@@ -378,18 +367,19 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                                 placeholder={isCustomBequest ? "(e.g., Charitable Donation)" : "(e.g., Gold Chain)"}
                                 value={bequestText}
                                 onChange={handleTextAreaChange}
-                                // Use our computed flag so that if a shared group already exists and is incomplete,
-                                // the bequest text remains read-only.
                                 readOnly={bequestInputReadOnly}
                                 className="border-2 rounded-md focus:ring-2 focus:ring-blue-500"
                             />
                             {validationErrors.bequestItem && (
-                                <Form.Text className="text-danger">{validationErrors.bequestItem}</Form.Text>
+                                <Form.Text className="text-danger">
+                                    {validationErrors.bequestItem}
+                                </Form.Text>
                             )}
                         </Form.Group>
                     </Col>
                 </Row>
 
+                {/* Checkbox para "Custom Bequest" (actualmente oculto) */}
                 <Row className="mt-3 d-none">
                     <Col>
                         <Form.Check
@@ -398,13 +388,13 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                             label="Custom Bequest"
                             checked={isCustomBequest}
                             onChange={(e) => setIsCustomBequest(e.target.checked)}
-                            disabled={/* disable if working on a shared group */ !isCustomBequest && pendingShares < 100}
+                            disabled={!isCustomBequest && pendingShares < 100}
                             className="text-lg"
                         />
                     </Col>
                 </Row>
 
-                {isCustomBequest && (
+                {isCustomBequest ? (
                     <>
                         <Row className="mt-4">
                             <Col>
@@ -431,14 +421,12 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                             </Col>
                         </Row>
                     </>
-                )}
-
-                {!isCustomBequest && (
+                ) : (
                     <>
                         <Row className="mt-4">
                             <Col md={6}>
                                 <AddPersonDropdown
-                                    options={identifiers_names}
+                                    options={identifiersNames}
                                     extraOptions={isMarried ? ['Spouse First'] : []}
                                     label="Select Beneficiary"
                                     selected={selectedRecipient}
@@ -449,12 +437,14 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                                     variant={selectedRecipient === "Spouse First" ? "outline-success" : "outline-dark"}
                                 />
                                 {validationErrors.beneficiary && (
-                                    <Form.Text className="text-danger">{validationErrors.beneficiary}</Form.Text>
+                                    <Form.Text className="text-danger">
+                                        {validationErrors.beneficiary}
+                                    </Form.Text>
                                 )}
                             </Col>
                             <Col md={6}>
                                 <AddPersonDropdown
-                                    options={identifiers_names}
+                                    options={identifiersNames}
                                     label="Select Bequest Backup"
                                     selected={selectedBackup}
                                     onSelect={handleBackupSelect}
@@ -463,7 +453,9 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                                     setValidationErrors={setValidationErrors}
                                 />
                                 {validationErrors.backupSameAsBeneficiary && (
-                                    <Form.Text className="text-danger">{validationErrors.backupSameAsBeneficiary}</Form.Text>
+                                    <Form.Text className="text-danger">
+                                        {validationErrors.backupSameAsBeneficiary}
+                                    </Form.Text>
                                 )}
                             </Col>
                         </Row>
@@ -481,7 +473,9 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                                         className="border-2 rounded-md focus:ring-2 focus:ring-blue-500"
                                     />
                                     {validationErrors.shares && (
-                                        <Form.Text className="text-danger">{validationErrors.shares}</Form.Text>
+                                        <Form.Text className="text-danger">
+                                            {validationErrors.shares}
+                                        </Form.Text>
                                     )}
                                 </Form.Group>
                             </Col>
@@ -513,7 +507,9 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                 {validationErrors.bequest && (
                     <Row className="mt-3">
                         <Col>
-                            <Form.Text className="text-danger">{validationErrors.bequest}</Form.Text>
+                            <Form.Text className="text-danger">
+                                {validationErrors.bequest}
+                            </Form.Text>
                         </Col>
                     </Row>
                 )}
@@ -542,12 +538,12 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                                             </tr>
                                         ) : (
                                             table_dataBequest.map((item, index) => (
-                                                <tr key={index}>
+                                                <tr key={item.id}>
                                                     <td>{item.id}</td>
                                                     <td>
                                                         {editingRow === index ? (
                                                             <AddPersonDropdown
-                                                                options={identifiers_names}
+                                                                options={identifiersNames}
                                                                 label="Select Beneficiary"
                                                                 selected={item.names}
                                                                 onSelect={(value) => handleDropdownSelect(index, 'names', value)}
@@ -562,7 +558,7 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                                                     <td>
                                                         {editingRow === index ? (
                                                             <AddPersonDropdown
-                                                                options={identifiers_names}
+                                                                options={identifiersNames}
                                                                 label="Select Backup"
                                                                 selected={item.backup}
                                                                 onSelect={(value) => handleDropdownSelect(index, 'backup', value)}
@@ -622,13 +618,13 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                                                                         variant="outline-danger"
                                                                         onClick={() => handleDelete(item.id)}
                                                                     >
-                                                                        <i className="bi bi-trash3"></i>  Delete
+                                                                        <i className="bi bi-trash3"></i> Delete
                                                                     </Button>
                                                                     <Button
                                                                         variant="outline-warning"
                                                                         onClick={() => handleEdit(index)}
                                                                     >
-                                                                        <i className="bi bi-pencil"></i>  Edit
+                                                                        <i className="bi bi-pencil"></i> Edit
                                                                     </Button>
                                                                 </>
                                                             )}
