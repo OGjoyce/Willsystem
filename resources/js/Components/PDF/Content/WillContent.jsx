@@ -10,6 +10,7 @@ var WillContent = forwardRef((props, ref) => {
 
     if (props != undefined) {
 
+
         var datasObj = props.props.datas;
         var documentDOM = props.props.selectedDOMVersion
         var documentType = props.props.documentType
@@ -21,6 +22,10 @@ var WillContent = forwardRef((props, ref) => {
                 statusObject[key] = value;
             });
         });
+
+        var isIncludedSecondaryWill = props.props.isIncludedSecondaryWill
+
+
         var personal = statusObject.personal;
         var isMarried = statusObject.marriedq.selection === "true";
         var isCommonRelationship = statusObject.marriedq.selection === "soso"
@@ -83,9 +88,43 @@ var WillContent = forwardRef((props, ref) => {
                     ? <div dangerouslySetInnerHTML={{ __html: documentDOM }} />
                     : (
                         <div className='document-container'>
-                            <p class="align-center"><strong>{willType} LAST WILL AND TESTAMENT OF {capitalLetters(personal.fullName)} </strong></p>
-                            <p><br /><br />I, {capitalLetters(personal.fullName)}, presently of {capitalLetters(personal.city)} {personal.province ? `, ${capitalLetters(personal.province)}` : ''} declare that this is my Last Will and Testament.<br /><br /></p>
+                            <p class="align-center"><strong>{isIncludedSecondaryWill ? willType : ''} LAST WILL AND TESTAMENT OF {capitalLetters(personal.fullName).toUpperCase()} </strong></p>
+                            {!isIncludedSecondaryWill && <p><br /><br />I, {capitalLetters(personal.fullName)}, presently of {capitalLetters(personal.city)} {personal.province ? `, ${capitalLetters(personal.province)}` : ''} declare that this is my Last Will and Testament.<br /><br /></p>
+                            }
 
+                            {isIncludedSecondaryWill && (documentType == "primaryWill" || documentType == "spousalWill") &&
+                                <p><br /><br />
+                                    I, {capitalLetters(personal.fullName)}, presently of {capitalLetters(personal.city)}
+                                    {personal.province ? `, ${capitalLetters(personal.province)}` : ''}, declare that this is my Primary Last Will and Testament
+                                    for all assets, excluding however, all those shares and loans, advances and other receivables which I may hold at the time
+                                    of my death in private corporations along with any amounts owing to me by the corporation including declared but unpaid
+                                    dividends (my “Private Assets”), all foreign property and all articles and effects of personal, domestic and household use
+                                    or ornaments owned by me at the time of my death, which are specifically excluded from this will, and which are addressed
+                                    in my Secondary Last Will and Testament which bears the same date as this my Primary Last Will and Testament.
+                                    It is my intention that the Secondary Last Will and Testament respecting my Private Assets shall not be subject to probate.
+                                    For greater certainty, nothing in this my Will shall revoke or override the Secondary Last Will and Testament executed on
+                                    ________________, 20___ (the same day as this Primary Last Will and Testament) that disposes of my Private Assets.
+                                    Neither the execution of this will nor the execution of my Secondary Last Will and Testament dealing with my Private
+                                    Assets is intended to revoke the other; they are to operate concurrently.
+                                    <br /><br /></p>
+                            }
+
+                            {isIncludedSecondaryWill && documentType == "secondaryWill" &&
+                                <p><br /><br />
+                                    I, {capitalLetters(personal.fullName)}, presently of {capitalLetters(personal.city)}
+                                    {personal.province ? `, ${capitalLetters(personal.province)}` : ''}, declare that this is my Secondary Last Will and Testament
+                                    for all of those shares and loans, advances and other receivables which I may hold at the time of my death in private
+                                    corporations, along with any amounts owing to me by the corporations including declared but unpaid dividends
+                                    (my “Private Assets”), all foreign property and all articles and effects of personal, domestic and household use or ornaments
+                                    owned by me at the time of my death, which are specifically excluded from my primary will, as such are not subject to probate.
+                                    For greater certainty, nothing in this my Will shall revoke or override the Primary Last Will and Testament executed on
+                                    ________________, 20__ (the same day as this Secondary Last Will and Testament) that disposes of all of my assets,
+                                    other than my Private Assets.
+                                    Neither the execution of this will nor the execution of my Primary Last Will and Testament dealing with all of my assets other
+                                    than my Private Assets is intended to revoke the other; they are to operate concurrently.
+                                    <br /><br /></p>
+
+                            }
                             <p><strong><u>Prior Wills and Codicils</u></strong></p>
                             <ol>
                                 <li>I revoke all prior Wills and Codicils.</li>
