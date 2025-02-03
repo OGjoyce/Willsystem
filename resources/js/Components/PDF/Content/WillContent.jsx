@@ -36,7 +36,7 @@ var WillContent = forwardRef((props, ref) => {
         var executors = statusObject.executors ? Object.values(statusObject.executors) : [];
         var bequests = statusObject.bequests ? Object.values(statusObject.bequests).filter(item => typeof item === 'object') : [];
         var trusting = statusObject.trusting ? Object.values(statusObject.trusting).filter(item => typeof item === 'object') : [];
-        var pets = statusObject.pets ? Object.values(statusObject.pets).filter(item => typeof item === 'object') : [];
+        var pets = !statusObject.pets.isArray ? Object.values(statusObject.pets).filter(item => typeof item === 'object') : [];
         var guardians = statusObject.guardians ? Object.values(statusObject.guardians).filter(item => typeof item === 'object').sort((a, b) => a.position - b.position) : [];
         var minTrustingAge = trusting.length > 0
             ? trusting.map(trust => trust.age).reduce((prevValue, currentValue) => prevValue > currentValue ? currentValue : prevValue)
@@ -850,7 +850,7 @@ var WillContent = forwardRef((props, ref) => {
                             </ol>
 
 
-                            {(Object.values(additionalInfo.checkboxes).includes(true) || (additionalInfo.otherWishes && additionalInfo.otherWishes.length > 0) || additionalInfo.customClauseText) && (
+                            {(additionalInfo.checkboxes && Object.values(additionalInfo.checkboxes).includes(true) || (additionalInfo.otherWishes && additionalInfo.otherWishes.length > 0) || additionalInfo.customClauseText) && (
                                 <>
                                     <p><strong><u>Additional Provisions</u></strong></p>
                                     <ol>
@@ -908,7 +908,7 @@ var WillContent = forwardRef((props, ref) => {
                                 ________________________________________________<br /> Witness #1 (Nicole Barrett)<br /><br /> 665 Millway Ave.
                                 #44<br /> Vaughan, ON<br /> L4K 3T8<br /> <br /><br /><br /> ________________________________________________<br />
                                 Witness #2 (Dale Barrett)<br /><br /> 665 Millway Ave. #44<br /> Vaughan, ON<br /> L4K 3T8
-                            </p><p class="align-center"><strong>LAST WILL AND TESTAMENT OF {capitalLetters(personal.fullName)}  </strong></p><p><br /><br /><br /><br /><br /> <br /><br /><br /><br /><br /><br /> Prepared by: Lawyers and Lattes Professional
+                            </p><p class="align-center"><strong>LAST WILL AND TESTAMENT OF {capitalLetters(personal.fullName).toUpperCase()}  </strong></p><p><br /><br /><br /><br /><br /> <br /><br /><br /><br /><br /><br /> Prepared by: Lawyers and Lattes Professional
                                 Corporation<br /> Toronto, ON<br /> lawyersandlattes.com<br /> docs@lawyersandlattes.com<br />
                                 <br /><br /><br /><br />
                             </p></div >
