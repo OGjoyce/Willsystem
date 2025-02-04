@@ -8,12 +8,18 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
+    public const TYPE_USER  = 1;
+    public const TYPE_ADMIN = 2;
+    public const TYPE_ROOT  = 3;
+    public const TYPE_LAWYER = 4;
+
     use HasFactory, Notifiable;
 
     protected $fillable = [
         'name',
         'email',
         'password',
+        'user_type'
     ];
 
     protected $hidden = [
