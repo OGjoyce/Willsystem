@@ -11,18 +11,66 @@ import {
 import AddPersonDropdown from './AddPersonDropdown';
 import ConfirmationModal from './AdditionalComponents/ConfirmationModal';
 import CustomToast from './AdditionalComponents/CustomToast';
-import { validate } from './Validations';
 import { extractData } from '@/utils/objectStatusUtils';
 
-// Variable global para mantener el arreglo de bequests (para uso externo)
+// Global variable to maintain the array of bequests (for external use)
 let bequestArrObj = [];
 
 export function getBequestArrObj() {
     return bequestArrObj;
 }
 
+/**
+ * Helper function: regroupBequests
+ *
+ * This function takes an array of bequest items and:
+ * 1. Computes a normalized version of the bequest text (trimmed and lower-cased).
+ * 2. Groups items by that text and assigns a group ID (shared_uuid) to each.
+ * 3. Updates the isShared flag: if more than one item share the same bequest text, mark them as shared.
+ * 4. Returns the list sorted by group id (to keep grouped items together) and then by the item’s id.
+ */
+const regroupBequests = (items) => {
+    const groupMap = {}; // key: normalized bequest text, value: group id
+    let nextGroupId = 1;
+
+    // Assign group IDs based on normalized bequest text.
+    items.forEach(item => {
+        const key = item.bequest.trim().toLowerCase();
+        if (key !== "") {
+            if (!groupMap[key]) {
+                groupMap[key] = nextGroupId;
+                nextGroupId++;
+            }
+            item.shared_uuid = groupMap[key];
+        } else {
+            // In case the bequest text is empty
+            item.shared_uuid = 0;
+        }
+    });
+
+    // Update the isShared flag: if more than one item has the same group, mark them as shared.
+    const groupCounts = {};
+    items.forEach(item => {
+        groupCounts[item.shared_uuid] = (groupCounts[item.shared_uuid] || 0) + 1;
+    });
+    items.forEach(item => {
+        item.isShared = groupCounts[item.shared_uuid] > 1;
+    });
+
+    // Sort the items: first by the group ID so that similar items appear together,
+    // then by the unique id (preserving insertion order within the group).
+    const sortedItems = [...items].sort((a, b) => {
+        if (a.shared_uuid !== b.shared_uuid) {
+            return a.shared_uuid - b.shared_uuid;
+        }
+        return a.id - b.id;
+    });
+
+    return sortedItems;
+};
+
 function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
-    // Estados locales
+    // Local state declarations
     const [open, setOpen] = useState(false);
     const [firstRender, setFirstRender] = useState(true);
     const [table_dataBequest, setTableDataBequest] = useState([]);
@@ -30,94 +78,75 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
     const [selectedBackup, setSelectedBackup] = useState(null);
     const [identifiersNames, setIdentifiersNames] = useState([]);
     const [isMarried, setIsMarried] = useState(false);
-    const [isCustomBequest, setIsCustomBequest] = useState(false);
-    const [pendingShares, setPendingShares] = useState(100);
+    // Although we still have a "Shared Bequest" checkbox to affect UI behavior
+    // (like making the textarea read-only), the grouping is now handled automatically.
+    const [isSharedBequest, setIsSharedBequest] = useState(false);
     const [validationErrors, setValidationErrors] = useState({});
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
     const [bequestToDelete, setBequestToDelete] = useState(null);
     const [editingRow, setEditingRow] = useState(null);
-    const [nextSharedUuid, setNextSharedUuid] = useState(1);
+    // Removed nextSharedUuid state variable—group IDs will be computed by regroupBequests.
     const [tempData, setTempData] = useState({});
     const [bequestText, setBequestText] = useState('');
     const [sharesInput, setSharesInput] = useState('');
 
-    // useRef para generar IDs únicos sin depender de la longitud del arreglo
+    // useRef to generate unique IDs independent of the array length
     const bequestIdRef = useRef(0);
 
-    // Flag computado para determinar si el campo de bequest debe ser readOnly
-    const bequestInputReadOnly = !isCustomBequest && pendingShares < 100;
+    // When in Shared Bequest mode the textarea is read-only.
+    const bequestInputReadOnly = isSharedBequest;
 
-    // Actualiza la cantidad de shares pendientes cuando se modifica el bequest o la tabla
-    useEffect(() => {
-        if (!isCustomBequest && bequestText.trim() !== "") {
-            const allocated = table_dataBequest
-                .filter(item =>
-                    item.bequest.trim().toLowerCase() === bequestText.trim().toLowerCase() &&
-                    item.shared_uuid !== 0
-                )
-                .reduce((acc, item) => acc + Number(item.shares), 0);
-            setPendingShares(100 - allocated);
-        } else {
-            setPendingShares(100);
-        }
-    }, [bequestText, table_dataBequest, isCustomBequest]);
-
-    // Inicializa los datos desde las validaciones y el localStorage
+    // Initialize errors and any stored data from localStorage.
     useEffect(() => {
         setValidationErrors(errors || {});
         const storedValues = JSON.parse(localStorage.getItem('formValues')) || {};
         if (storedValues.bequests) {
-            setTableDataBequest(storedValues.bequests);
-            bequestArrObj = storedValues.bequests;
-            // Actualiza el bequestIdRef al máximo id encontrado
-            const maxId = storedValues.bequests.length > 0 ? Math.max(...storedValues.bequests.map(b => b.id)) : 0;
+            // Regroup bequests to ensure consistent shared_uuid assignments.
+            const regrouped = regroupBequests(storedValues.bequests);
+            setTableDataBequest(regrouped);
+            bequestArrObj = regrouped;
+            const maxId = storedValues.bequests.length > 0
+                ? Math.max(...storedValues.bequests.map(b => b.id))
+                : 0;
             bequestIdRef.current = maxId;
         }
     }, [errors]);
 
-    // Actualiza el estado marital en función de los datos recibidos
+    // Update marital status based on datas.
     useEffect(() => {
         setIsMarried(!!(datas[2]?.married?.firstName || datas[2]?.married?.lastName));
     }, [datas]);
 
-    // Maneja el cambio en el textarea del bequest
+    // Handle changes in the bequest textarea.
     const handleTextAreaChange = (event) => {
         setBequestText(event.target.value);
     };
 
-    // Función para agregar un bequest (ya sea custom o compartido)
+    /**
+     * addRecepient
+     *
+     * This function now creates a new bequest item (with a placeholder shared_uuid)
+     * and then calls regroupBequests to automatically assign group IDs. This ensures:
+     * - Every new item gets a shared ID.
+     * - If the bequest text is repeated (or later another duplicate is added),
+     *   all items with the same text share the same shared_uuid.
+     * - The table is re-sorted immediately.
+     */
     const addRecepient = () => {
         setValidationErrors({});
         const bequest = bequestText.trim();
-        // Para bequests no custom se toman los datos de los dropdowns
-        const selected = isCustomBequest ? 'NA' : selectedRecipient;
-        const backup = isCustomBequest ? 'NA' : selectedBackup;
-        // Para bequests custom o cuando el beneficiario es "Spouse First" se asigna 100 shares
-        const shares = isCustomBequest || selected === "Spouse First" ? 100 : sharesInput;
+        const selected = selectedRecipient;
+        const backup = selectedBackup;
+        const shares = sharesInput;
 
-        // Verificación de duplicados en bequests que ya se han asignado totalmente
-        if (Number(shares) >= 100) {
-            const isDuplicateBequest = table_dataBequest.some(
-                item => item.bequest.trim().toLowerCase() === bequest.toLowerCase()
-            );
-            if (isDuplicateBequest) {
-                setValidationErrors(prevErrors => ({
-                    ...prevErrors,
-                    bequestItem: "All shares for this bequest have already been fully allocated"
-                }));
-                return;
-            }
-        }
-
-        // Validaciones básicas de campos obligatorios y rangos
+        // Basic validations for required fields and a positive number for shares.
         if (
             bequest === "" ||
             selected === null ||
             backup === null ||
             shares === "" ||
-            Number(shares) > 100 ||
             Number(shares) <= 0 ||
             (selected !== "Spouse First" && selected === backup)
         ) {
@@ -128,94 +157,74 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
             if (bequest === "") {
                 newErrors.bequestItem = "Please add a bequest in the section above";
             }
-            if (!isCustomBequest && selected !== null && backup !== null && selected === backup) {
+            if (selected !== null && backup !== null && selected === backup) {
                 newErrors.backupSameAsBeneficiary = "Beneficiary and Backup can't be the same person";
             }
             if (shares === "") {
                 newErrors.shares = "Please enter a value for shares";
             }
-            if (Number(shares) > 100 || Number(shares) <= 0) {
-                newErrors.shares = "Shares must be a value between 1 and 100";
+            if (Number(shares) <= 0) {
+                newErrors.shares = "Shares must be a value greater than 0";
             }
             setValidationErrors(newErrors);
             return;
         }
 
-        // Preparar el nuevo objeto bequest con un ID único
+        // Increase the unique ID counter.
         bequestIdRef.current += 1;
+
+        // Create the new bequest item.
+        // Notice that we set shared_uuid to 0 for now.
+        // After adding, we call regroupBequests to (re)assign proper shared_uuid values.
         const newBequest = {
             id: bequestIdRef.current,
             names: selected,
             backup: backup || "NA",
             shares: shares,
             bequest: bequest,
-            isCustom: isCustomBequest,
+            // Use the current checkbox value (which may affect UI) but grouping is recalculated
+            isShared: isSharedBequest,
             shared_uuid: 0
         };
 
-        // Para bequests compartidos se agrupan las asignaciones según el nombre del bequest
-        if (!isCustomBequest) {
-            const bequestName = bequest;
-            const existingGroupItems = table_dataBequest.filter(
-                item =>
-                    item.bequest.trim().toLowerCase() === bequestName.toLowerCase() &&
-                    item.shared_uuid !== 0
-            );
-            let groupSharedUuid;
-            let available = 100;
-            if (existingGroupItems.length > 0) {
-                groupSharedUuid = existingGroupItems[0].shared_uuid;
-                const allocated = existingGroupItems.reduce((acc, item) => acc + Number(item.shares), 0);
-                available = 100 - allocated;
-            } else {
-                groupSharedUuid = nextSharedUuid;
-                setNextSharedUuid(prev => prev + 1);
-            }
-            if (available === 0) {
-                setValidationErrors({ shares: "This bequest item has been fully allocated" });
-                return;
-            }
-            if (Number(shares) > available) {
-                setValidationErrors({ shares: "Only " + available + " shares are available for current bequest item" });
-                return;
-            }
-            newBequest.shared_uuid = groupSharedUuid;
-            const newAvailable = available - Number(shares);
-            setPendingShares(newAvailable);
-            let newErrors = {};
-            if (newAvailable > 0) {
-                newErrors.shares = "Pending shares for current bequest item: " + newAvailable;
-            } else if (newAvailable === 0) {
-                newErrors.shares = "This bequest item has been fully allocated";
-                // Se limpian los campos de entrada cuando se completa la asignación
-                setBequestText('');
-                setSharesInput('');
-            }
-            setValidationErrors(newErrors);
-        }
-
-        // Se agrega el nuevo bequest al arreglo y se actualiza el estado, la variable global y el localStorage
+        // Add the new item and regroup the entire list.
         const updatedBequests = [...table_dataBequest, newBequest];
-        setTableDataBequest(updatedBequests);
-        bequestArrObj = updatedBequests;
-        setToastMessage(isCustomBequest ? 'Custom bequest added successfully' : 'Bequest added successfully');
+        const regroupedBequests = regroupBequests(updatedBequests);
+        setTableDataBequest(regroupedBequests);
+        bequestArrObj = regroupedBequests;
+
+        // Clear the beneficiary and backup selections.
+        setSelectedRecipient(null);
+        setSelectedBackup(null);
+        // In non‑shared mode, also clear the bequest text.
+        if (!isSharedBequest) {
+            setBequestText('');
+        }
+        setSharesInput('');
+
+        setToastMessage(
+            isSharedBequest
+                ? 'Shared bequest added successfully'
+                : 'Bequest added successfully'
+        );
         setShowToast(true);
         setTimeout(() => {
             setToastMessage('');
             setShowToast(false);
         }, 4000);
+
+        // Save the updated list to localStorage.
         const storedValues = JSON.parse(localStorage.getItem('formValues')) || {};
-        storedValues.bequests = updatedBequests;
+        storedValues.bequests = regroupedBequests;
         localStorage.setItem('formValues', JSON.stringify(storedValues));
     };
 
-    // Maneja la solicitud de eliminación de un bequest
+    // Delete handling: after deletion, regroup the bequests.
     const handleDelete = (itemId) => {
         setBequestToDelete(itemId);
         setShowDeleteModal(true);
     };
 
-    // Confirma la eliminación y actualiza el estado y el almacenamiento local
     const confirmDelete = () => {
         setToastMessage('Bequest removed successfully');
         setShowToast(true);
@@ -226,29 +235,32 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
         if (bequestToDelete !== null) {
             setShowDeleteModal(false);
             const updatedBequests = table_dataBequest.filter(obj => obj.id !== bequestToDelete);
-            setTableDataBequest(updatedBequests);
-            bequestArrObj = updatedBequests;
-            // Nota: No se decrementa bequestIdRef para mantener la unicidad de los IDs
+            const regroupedBequests = regroupBequests(updatedBequests);
+            setTableDataBequest(regroupedBequests);
+            bequestArrObj = regroupedBequests;
             const storedValues = JSON.parse(localStorage.getItem('formValues')) || {};
-            storedValues.bequests = updatedBequests;
+            storedValues.bequests = regroupedBequests;
             localStorage.setItem('formValues', JSON.stringify(storedValues));
             setBequestToDelete(null);
         }
     };
 
-    // Inicia la edición de una fila del bequest
+    // Editing logic.
     const handleEdit = (index) => {
         setTempData({ ...table_dataBequest[index] });
         setEditingRow(index);
     };
 
-    // Guarda los cambios realizados en una fila editada
+    /**
+     * When saving an edit, we reassign the group IDs in case the bequest text changed.
+     */
     const handleSave = (index) => {
         const updatedBequests = [...table_dataBequest];
-        setTableDataBequest(updatedBequests);
-        bequestArrObj = updatedBequests;
+        const regroupedBequests = regroupBequests(updatedBequests);
+        setTableDataBequest(regroupedBequests);
+        bequestArrObj = regroupedBequests;
         const storedValues = JSON.parse(localStorage.getItem('formValues')) || {};
-        storedValues.bequests = updatedBequests;
+        storedValues.bequests = regroupedBequests;
         localStorage.setItem('formValues', JSON.stringify(storedValues));
         setToastMessage('Bequest updated successfully');
         setShowToast(true);
@@ -260,7 +272,6 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
         setTempData({});
     };
 
-    // Actualiza los datos en modo edición a partir de un dropdown o un input
     const handleDropdownSelect = (index, key, value) => {
         if (editingRow === index) {
             const updatedBequests = [...table_dataBequest];
@@ -269,7 +280,6 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
         }
     };
 
-    // Cancela la edición y revierte los cambios
     const handleCancel = () => {
         if (editingRow !== null) {
             const updatedBequests = [...table_dataBequest];
@@ -288,11 +298,10 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
         setSelectedBackup(eventKey);
     };
 
-    // Agrega una nueva persona (por ejemplo, desde el dropdown)
+    // Add a new person (e.g., from the dropdown).
     const onAddPerson = (newPerson) => {
         const name = `${newPerson.firstName} ${newPerson.lastName}`;
         setIdentifiersNames(prevNames => [...prevNames, name]);
-        // Actualiza de forma segura los datos en datas para relatives
         const updatedDatas = { ...datas };
         if (!updatedDatas[5]) {
             updatedDatas[5] = { relatives: [] };
@@ -300,21 +309,23 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
         const relatives = updatedDatas[5].relatives || [];
         relatives.push(newPerson);
         updatedDatas[5].relatives = relatives;
-        // Se notifica al componente padre mediante callback
         onAddPersonFromDropdown([newPerson]);
         setValidationErrors({});
     };
 
-    // Carga los bequests desde datas (si existen) y actualiza el estado
+    // Load bequests from datas if they exist.
     useEffect(() => {
         if (datas) {
             const rawBequests = extractData(datas, 'bequests', null, []);
             const bequestsArray = Object.keys(rawBequests)
                 .filter(key => !isNaN(key))
                 .map(key => rawBequests[key]);
-            setTableDataBequest(bequestsArray);
-            bequestArrObj = bequestsArray;
-            const maxId = bequestsArray.length > 0 ? Math.max(...bequestsArray.map(b => b.id)) : 0;
+            const regroupedBequests = regroupBequests(bequestsArray);
+            setTableDataBequest(regroupedBequests);
+            bequestArrObj = regroupedBequests;
+            const maxId = bequestsArray.length > 0
+                ? Math.max(...bequestsArray.map(b => b.id))
+                : 0;
             bequestIdRef.current = maxId;
             if (bequestArrObj.length > 0) {
                 setOpen(true);
@@ -322,7 +333,7 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
         }
     }, [datas]);
 
-    // Inicializa la lista de nombres (identifiers) a partir de datas en el primer render
+    // Initialize the list of names (identifiers) from datas on first render.
     useEffect(() => {
         if (datas && firstRender) {
             let names = [];
@@ -364,7 +375,7 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                             <Form.Control
                                 as="textarea"
                                 rows={3}
-                                placeholder={isCustomBequest ? "(e.g., Charitable Donation)" : "(e.g., Gold Chain)"}
+                                placeholder={isSharedBequest ? "(Shared bequest – selection only)" : "(Enter bequest item)"}
                                 value={bequestText}
                                 onChange={handleTextAreaChange}
                                 readOnly={bequestInputReadOnly}
@@ -379,130 +390,98 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                     </Col>
                 </Row>
 
-                {/* Checkbox para "Custom Bequest" (actualmente oculto) */}
-                <Row className="mt-3 d-none">
+                {/* Checkbox for "Shared Bequest" */}
+                <Row className="mt-2">
                     <Col>
                         <Form.Check
                             type="checkbox"
-                            id="custom-bequest-checkbox"
-                            label="Custom Bequest"
-                            checked={isCustomBequest}
-                            onChange={(e) => setIsCustomBequest(e.target.checked)}
-                            disabled={!isCustomBequest && pendingShares < 100}
+                            id="shared-bequest-checkbox"
+                            label="Shared Bequest"
+                            checked={isSharedBequest}
+                            onChange={(e) => setIsSharedBequest(e.target.checked)}
                             className="text-lg"
                         />
                     </Col>
                 </Row>
 
-                {isCustomBequest ? (
-                    <>
-                        <Row className="mt-4">
-                            <Col>
-                                <Button
-                                    style={{ width: "80%", margin: "5%" }}
-                                    variant="outline-success"
-                                    onClick={addRecepient}
-                                >
-                                    Add Custom Bequest
-                                </Button>
-                            </Col>
-                        </Row>
-                        <Row className="mt-2">
-                            <Col>
-                                <Button
-                                    onClick={() => setOpen(!open)}
-                                    aria-controls="bequest-info"
-                                    aria-expanded={open}
-                                    style={{ width: "80%", margin: "5%" }}
-                                    variant="outline-dark"
-                                >
-                                    {open ? 'Hide Bequest Information' : 'See Bequest Information'}
-                                </Button>
-                            </Col>
-                        </Row>
-                    </>
-                ) : (
-                    <>
-                        <Row className="mt-4">
-                            <Col md={6}>
-                                <AddPersonDropdown
-                                    options={identifiersNames}
-                                    extraOptions={isMarried ? ['Spouse First'] : []}
-                                    label="Select Beneficiary"
-                                    selected={selectedRecipient}
-                                    onSelect={handleRecepientSelect}
-                                    onAddPerson={onAddPerson}
-                                    validationErrors={validationErrors}
-                                    setValidationErrors={setValidationErrors}
-                                    variant={selectedRecipient === "Spouse First" ? "outline-success" : "outline-dark"}
-                                />
-                                {validationErrors.beneficiary && (
-                                    <Form.Text className="text-danger">
-                                        {validationErrors.beneficiary}
-                                    </Form.Text>
-                                )}
-                            </Col>
-                            <Col md={6}>
-                                <AddPersonDropdown
-                                    options={identifiersNames}
-                                    label="Select Bequest Backup"
-                                    selected={selectedBackup}
-                                    onSelect={handleBackupSelect}
-                                    onAddPerson={onAddPerson}
-                                    validationErrors={validationErrors}
-                                    setValidationErrors={setValidationErrors}
-                                />
-                                {validationErrors.backupSameAsBeneficiary && (
-                                    <Form.Text className="text-danger">
-                                        {validationErrors.backupSameAsBeneficiary}
-                                    </Form.Text>
-                                )}
-                            </Col>
-                        </Row>
+                {/* Beneficiary and Backup selection, and shares input */}
+                <Row className="mt-4">
+                    <Col md={6}>
+                        <AddPersonDropdown
+                            options={identifiersNames}
+                            extraOptions={isMarried ? ['Spouse First'] : []}
+                            label="Select Beneficiary"
+                            selected={selectedRecipient}
+                            onSelect={handleRecepientSelect}
+                            onAddPerson={onAddPerson}
+                            validationErrors={validationErrors}
+                            setValidationErrors={setValidationErrors}
+                            variant={selectedRecipient === "Spouse First" ? "outline-success" : "outline-dark"}
+                        />
+                        {validationErrors.beneficiary && (
+                            <Form.Text className="text-danger">
+                                {validationErrors.beneficiary}
+                            </Form.Text>
+                        )}
+                    </Col>
+                    <Col md={6}>
+                        <AddPersonDropdown
+                            options={identifiersNames}
+                            label="Select Bequest Backup"
+                            selected={selectedBackup}
+                            onSelect={handleBackupSelect}
+                            onAddPerson={onAddPerson}
+                            validationErrors={validationErrors}
+                            setValidationErrors={setValidationErrors}
+                        />
+                        {validationErrors.backupSameAsBeneficiary && (
+                            <Form.Text className="text-danger">
+                                {validationErrors.backupSameAsBeneficiary}
+                            </Form.Text>
+                        )}
+                    </Col>
+                </Row>
 
-                        <Row className="mt-4">
-                            <Col md={6}>
-                                <Form.Group controlId="sharesID">
-                                    <Form.Label>Number of Shares</Form.Label>
-                                    <Form.Control
-                                        type="number"
-                                        placeholder="100"
-                                        value={sharesInput}
-                                        onChange={(e) => setSharesInput(e.target.value)}
-                                        readOnly={selectedRecipient === "Spouse First"}
-                                        className="border-2 rounded-md focus:ring-2 focus:ring-blue-500"
-                                    />
-                                    {validationErrors.shares && (
-                                        <Form.Text className="text-danger">
-                                            {validationErrors.shares}
-                                        </Form.Text>
-                                    )}
-                                </Form.Group>
-                            </Col>
-                            <Col md={6} className="d-flex align-items-center">
-                                <Form.Text className="text-muted">
-                                    The bequest item will be divided based on total shares and distributed among all recipients.
+                <Row className="mt-4">
+                    <Col md={6}>
+                        <Form.Group controlId="sharesID">
+                            <Form.Label>Number of Shares</Form.Label>
+                            <Form.Control
+                                type="number"
+                                placeholder="Enter number of shares"
+                                value={sharesInput}
+                                onChange={(e) => setSharesInput(e.target.value)}
+                                className="border-2 rounded-md focus:ring-2 focus:ring-blue-500"
+                            />
+                            {validationErrors.shares && (
+                                <Form.Text className="text-danger">
+                                    {validationErrors.shares}
                                 </Form.Text>
-                            </Col>
-                        </Row>
+                            )}
+                        </Form.Group>
+                    </Col>
+                    <Col md={6} className="d-flex align-items-center">
+                        <Form.Text className="text-muted">
+                            You can assign as many shares as you want.
+                        </Form.Text>
+                    </Col>
+                </Row>
 
-                        <Row className="mt-4">
-                            <Col className="d-flex justify-content-between">
-                                <Button variant="outline-success" onClick={addRecepient}>
-                                    Save
-                                </Button>
-                                <Button
-                                    variant="outline-dark"
-                                    onClick={() => setOpen(!open)}
-                                    aria-controls="bequest-info"
-                                    aria-expanded={open}
-                                >
-                                    {open ? 'Hide Bequest Information' : 'See Bequest Information'}
-                                </Button>
-                            </Col>
-                        </Row>
-                    </>
-                )}
+                <Row className="mt-4">
+                    <Col className="d-flex justify-content-between">
+                        <Button variant="outline-success" onClick={addRecepient}>
+                            Save
+                        </Button>
+                        <Button
+                            variant="outline-dark"
+                            onClick={() => setOpen(!open)}
+                            aria-controls="bequest-info"
+                            aria-expanded={open}
+                        >
+                            {open ? 'Hide Bequest Information' : 'See Bequest Information'}
+                        </Button>
+                    </Col>
+                </Row>
 
                 {validationErrors.bequest && (
                     <Row className="mt-3">
@@ -532,8 +511,8 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                                     <tbody>
                                         {table_dataBequest.length === 0 ? (
                                             <tr>
-                                                <td className='text-center' colSpan="7">
-                                                    No information added yet. Press "Add Recipient" to add.
+                                                <td className="text-center" colSpan="7">
+                                                    No information added yet. Press "Save" to add.
                                                 </td>
                                             </tr>
                                         ) : (
@@ -577,6 +556,7 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                                                                 rows={1}
                                                                 value={item.bequest}
                                                                 onChange={(e) => handleDropdownSelect(index, 'bequest', e.target.value)}
+                                                                readOnly={item.isShared}
                                                                 className="border-2 rounded-md focus:ring-2 focus:ring-blue-500"
                                                             />
                                                         ) : (
@@ -599,31 +579,19 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                                                         <div className="d-flex gap-2">
                                                             {editingRow === index ? (
                                                                 <>
-                                                                    <Button
-                                                                        variant="outline-success"
-                                                                        onClick={() => handleSave(index)}
-                                                                    >
+                                                                    <Button variant="outline-success" onClick={() => handleSave(index)}>
                                                                         Save
                                                                     </Button>
-                                                                    <Button
-                                                                        variant="outline-secondary"
-                                                                        onClick={handleCancel}
-                                                                    >
+                                                                    <Button variant="outline-secondary" onClick={handleCancel}>
                                                                         Cancel
                                                                     </Button>
                                                                 </>
                                                             ) : (
                                                                 <>
-                                                                    <Button
-                                                                        variant="outline-danger"
-                                                                        onClick={() => handleDelete(item.id)}
-                                                                    >
+                                                                    <Button variant="outline-danger" onClick={() => handleDelete(item.id)}>
                                                                         <i className="bi bi-trash3"></i> Delete
                                                                     </Button>
-                                                                    <Button
-                                                                        variant="outline-warning"
-                                                                        onClick={() => handleEdit(index)}
-                                                                    >
+                                                                    <Button variant="outline-warning" onClick={() => handleEdit(index)}>
                                                                         <i className="bi bi-pencil"></i> Edit
                                                                     </Button>
                                                                 </>
