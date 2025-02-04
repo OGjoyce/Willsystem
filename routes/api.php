@@ -8,13 +8,18 @@ use App\Http\Controllers\ContractController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\StripeController;
+use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Crypt;
 use App\Http\Controllers\LawyerController;
 use App\Http\Controllers\BusinessAvailabilityController;
 use Carbon\Carbon;
 
-//Scheduler routes
-// Scheduler routes
+
+Route::get('/users', [UserManagementController::class, 'index']);
+Route::get('/users/{id}', [UserManagementController::class, 'show']);
+Route::post('/users', [UserManagementController::class, 'store']);
+Route::put('/users/{id}', [UserManagementController::class, 'update']);
+Route::delete('/users/{id}', [UserManagementController::class, 'destroy']);
 
 // CRUD de Lawyers
 Route::get('/lawyers', [LawyerController::class, 'index']);
