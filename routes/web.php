@@ -71,6 +71,9 @@ Route::get('/lawyers-management', function () {
     return Inertia::render('Admin/LawyersManagement');
 })->name("lawyers-management");
 
+Route::get('/users-management', function () {
+    return Inertia::render('Admin/UsersManagement');
+})->name("users-management");
 
 Route::get('/documents-approval', [DocumentsApprovalController::class, 'show'])->name('documents-approval');
 
