@@ -314,44 +314,148 @@ var WillContent = forwardRef((props, ref) => {
                             </ol>
                             <br></br>
                             <p class="align-center"><strong>III. DISPOSITION OF ESTATE</strong></p>
-                            {bequests && bequests.length > 0 && <>
-                                <p><strong><u>Bequests</u></strong></p>
-                                <ol>
-
-                                    <>
+                            {bequests && Object.keys(bequests).length > 0 && (
+                                <>
+                                    <p>
+                                        <strong>
+                                            <u>Bequests</u>
+                                        </strong>
+                                    </p>
+                                    <ol>
                                         <li>
-                                            To receive a specific bequest under this Will a beneficiary must survive me for thirty days. Any item that
-                                            fails to pass to a beneficiary will return to my estate to be included in the residue of my estate. All
-                                            property given under this Will is subject to any encumbrances or liens attached to the property. My specific
-                                            bequests are as follows:
+                                            To receive a specific bequest under this Will a beneficiary must survive me for thirty days.
+                                            Any item that fails to pass to a beneficiary will return to my estate to be included in the residue
+                                            of my estate. All property given under this Will is subject to any encumbrances or liens attached
+                                            to the property. My specific bequests are as follows:
                                         </li>
                                         <ul>
-                                            {bequests.map((item, index) => {
-                                                const { city, country } = findPersonInfo(item.names, relatives, kids, spouseInfo);
-                                                return !item.isCustom
-                                                    ? (
-                                                        <li key={index}>
-                                                            I leave {item.shares}% of {item.bequest} to {capitalLetters(item.names)} of {capitalLetters(city)}, {capitalLetters(country)} if they shall survive me, for their own use absolutely.
-                                                        </li>
-                                                    )
-                                                    : null
-                                            })}
+                                            {(() => {
+                                                // Convert the bequests object to an array (ignoring non-numeric keys such as "timestamp")
+                                                const bequestsArray = Object.keys(bequests)
+                                                    .filter((key) => !isNaN(key))
+                                                    .map((key) => bequests[key]);
 
-                                            {bequests.map((item, index) => {
-                                                const { city, country } = findPersonInfo(item.names, relatives, kids, spouseInfo);
-                                                return item.isCustom
-                                                    ? (
-                                                        <li key={index}>
-                                                            {item.bequest}, if they shall survive me, for their own use absolutely.
+                                                // Filter out non-custom bequests for grouping
+                                                const nonCustomBequests = bequestsArray.filter((item) => !item.isCustom);
+
+                                                // Group non-custom bequests by their shared_uuid
+                                                const groupedNonCustom = nonCustomBequests.reduce((groups, item) => {
+                                                    const groupId = item.shared_uuid;
+                                                    if (!groups[groupId]) {
+                                                        groups[groupId] = [];
+                                                    }
+                                                    groups[groupId].push(item);
+                                                    return groups;
+                                                }, {});
+
+                                                // Render each group
+                                                return Object.keys(groupedNonCustom).map((groupId) => {
+                                                    const group = groupedNonCustom[groupId];
+                                                    if (group.length > 1) {
+                                                        // For shared bequests: render one clause with a nested list for each beneficiary
+                                                        return (
+                                                            <li key={groupId}>
+                                                                I leave my {group[0].bequest.trim()} to be divided among the following beneficiaries if they survive me:
+                                                                <ul>
+                                                                    {group.map((item) => {
+                                                                        // Obtain beneficiary location data
+                                                                        const { city, province, country } = findPersonInfo(
+                                                                            item.names,
+                                                                            relatives,
+                                                                            kids,
+                                                                            spouseInfo
+                                                                        );
+                                                                        const beneficiaryLocation =
+                                                                            city && province && country
+                                                                                ? ` of ${capitalLetters(city)}, ${capitalLetters(province)}, ${capitalLetters(country)}`
+                                                                                : "";
+
+                                                                        // Prepare backup clause if a backup exists
+                                                                        let backupText = "";
+                                                                        if (item.backup) {
+                                                                            // Obtain backup location data
+                                                                            const { city: bCity, province: bProvince, country: bCountry } = findPersonInfo(
+                                                                                item.backup,
+                                                                                relatives,
+                                                                                kids,
+                                                                                spouseInfo
+                                                                            );
+                                                                            const backupLocation =
+                                                                                bCity && bProvince && bCountry
+                                                                                    ? ` of ${capitalLetters(bCity)}, ${capitalLetters(bProvince)}, ${capitalLetters(bCountry)}`
+                                                                                    : "";
+                                                                            backupText = ` In the event that ${capitalLetters(item.names)}${beneficiaryLocation} does not survive me, I nominate ${capitalLetters(item.backup)}${backupLocation} as the alternate beneficiary.`;
+                                                                        }
+
+                                                                        return (
+                                                                            <li key={item.id}>
+                                                                                {capitalLetters(item.names)}
+                                                                                {beneficiaryLocation} – {item.shares}%.
+                                                                                {backupText}
+                                                                            </li>
+                                                                        );
+                                                                    })}
+                                                                </ul>
+                                                            </li>
+                                                        );
+                                                    } else {
+                                                        // For a single (unshared) bequest entry
+                                                        const item = group[0];
+                                                        const { city, province, country } = findPersonInfo(
+                                                            item.names,
+                                                            relatives,
+                                                            kids,
+                                                            spouseInfo
+                                                        );
+                                                        const beneficiaryLocation =
+                                                            city && province && country
+                                                                ? ` of ${capitalLetters(city)}, ${capitalLetters(province)}, ${capitalLetters(country)}`
+                                                                : "";
+                                                        let backupText = "";
+                                                        if (item.backup !== "NA") {
+                                                            const { city: bCity, province: bProvince, country: bCountry } = findPersonInfo(
+                                                                item.backup,
+                                                                relatives,
+                                                                kids,
+                                                                spouseInfo
+                                                            );
+                                                            const backupLocation =
+                                                                bCity && bProvince && bCountry
+                                                                    ? ` of ${capitalLetters(bCity)}, ${capitalLetters(bProvince)}, ${capitalLetters(bCountry)}`
+                                                                    : "";
+                                                            backupText = ` In the event that ${capitalLetters(item.names)}${beneficiaryLocation} does not survive me, I nominate ${capitalLetters(item.backup)}${backupLocation} as the alternate beneficiary.`;
+                                                        }
+                                                        return (
+                                                            <li key={item.id}>
+                                                                I leave {item.shares}% of {item.bequest.trim()} to {capitalLetters(item.names)}
+                                                                {beneficiaryLocation} if they shall survive me, for their own use absolutely.
+                                                                {backupText}
+                                                            </li>
+                                                        );
+                                                    }
+                                                });
+                                            })()}
+
+                                            {(() => {
+                                                // Render custom bequests separately (without location or backup clauses)
+                                                const bequestsArray = Object.keys(bequests)
+                                                    .filter((key) => !isNaN(key))
+                                                    .map((key) => bequests[key]);
+                                                return bequestsArray
+                                                    .filter((item) => item.isCustom)
+                                                    .map((item) => (
+                                                        <li key={item.id}>
+                                                            {item.bequest.trim()}, if they shall survive me, for their own use absolutely.
                                                         </li>
-                                                    )
-                                                    : null
-                                            })}
+                                                    ));
+                                            })()}
                                         </ul>
-                                    </>
+                                    </ol>
+                                </>
+                            )}
 
-                                </ol>
-                            </>}
+
+
 
 
                             <p><strong><u>Distribution of Residue</u></strong></p>
