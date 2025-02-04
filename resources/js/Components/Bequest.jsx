@@ -145,7 +145,6 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
         if (
             bequest === "" ||
             selected === null ||
-            backup === null ||
             shares === "" ||
             Number(shares) <= 0 ||
             (selected !== "Spouse First" && selected === backup)
