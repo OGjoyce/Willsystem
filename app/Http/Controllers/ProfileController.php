@@ -89,7 +89,8 @@ class ProfileController extends Controller
             $newUser = User::create([
                 'email' => $email,
                 'name' => $name,
-                'password' => Hash::make($password),  // Guardar la contraseña hasheada en la base de datos
+                'password' => Hash::make($password),  // Guardar la contraseña hasheada en la base de datos,
+                'user_type' => User::TYPE_USER,
             ]);
 
             // Retornar la contraseña sin hashear en la respuesta para que el usuario pueda usarla
