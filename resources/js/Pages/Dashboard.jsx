@@ -245,8 +245,19 @@ export default function Dashboard({ auth }) {
                             </Col>
 
                         </Row>
-                        <Row>
-
+                        <Row xs={1} md={2} lg={4} className="g-4 mt-4">
+                            <Col>
+                                <CustomCard>
+                                    <CardBody>
+                                        <IconWrapper>
+                                            <i class="bi bi-person"></i>
+                                        </IconWrapper>
+                                        <CardTitle>Users Management</CardTitle>
+                                        <CardText>  Manage user accounts and assign roles</CardText>
+                                        <Button onClick={(e) => handleLinkClick(e, route('users-management'), 'users-management')} variant="outline-dark">Go now</Button>
+                                    </CardBody>
+                                </CustomCard>
+                            </Col>
                         </Row>
                     </Container>
                 </div>
