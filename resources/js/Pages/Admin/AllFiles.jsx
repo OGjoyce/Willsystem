@@ -57,7 +57,7 @@ const ActionButton = ({ row, handleShow, saveData }) => (
     </Button>
 );
 
-const AllFiles = () => {
+const AllFiles = ({ auth }) => {
 
     const [searchTerm, setSearchTerm] = useState('');
     const [files, setFiles] = useState([]);
@@ -231,19 +231,25 @@ const AllFiles = () => {
     };
 
     // Filter Packages based on Search and Date
+    // Filter Packages based on User Type and Search
     const filteredPackages = useMemo(() => {
-        return files.filter(pkg => {
+        const filteredByUserType = auth.user.user_type === 1
+            ? files.filter(pkg => pkg.email === auth.user.email) // Mostrar solo los archivos del usuario
+            : files; // Mostrar todos los archivos para otros tipos de usuarios
+
+        return filteredByUserType.filter(pkg => {
             const matchesSearchTerm = searchTerm
                 ? (pkg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                     pkg.email.toLowerCase().includes(searchTerm.toLowerCase()))
                 : true;
+
             const createdAtDate = new Date(pkg.created);
             const matchesFromDate = fromDate ? createdAtDate >= fromDate : true;
             const matchesToDate = toDate ? createdAtDate <= toDate : true;
 
             return matchesSearchTerm && matchesFromDate && matchesToDate;
         });
-    }, [files, searchTerm, fromDate, toDate]);
+    }, [files, searchTerm, fromDate, toDate, auth.user]);
 
     // Debounced Search Input
     const debouncedSearch = useMemo(() => debounce((value) => setSearchTerm(value), 300), []);
