@@ -6,6 +6,7 @@ import styled from 'styled-components';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import CustomToast from '@/Components/AdditionalComponents/CustomToast';
 
+// **Styled Components for Cards**
 const CustomCard = styled(Card)`
   display: flex;
   flex-direction: column;
@@ -52,12 +53,42 @@ const CardTitle = styled(Card.Title)`
 `;
 
 const CardText = styled(Card.Text)`
-text-align: center;
+  text-align: center;
   font-size: 1rem;
   color: #666;
   margin-bottom: 1.5rem;
   flex: 1;
 `;
+
+// **Configuración de permisos por tipo de usuario**
+const PERMISSIONS = {
+    1: ["Create File", "All Files", "Documents Approval"], // Tipo de usuario 1
+    4: ["Create File", "All Files", "Search Files", "Files Review", "View Packages"],
+    2: [ // Otros tipos de usuario
+        "Create File", "All Files", "Search Files", "Files Review",
+        "Documents Approval", "View Packages", "Continue Will",
+        "Statistics", "Lawyers Management"
+    ],
+    3: [ // Otros tipos de usuario
+        "Create File", "All Files", "Search Files", "Files Review",
+        "Documents Approval", "View Packages", "Continue Will",
+        "Statistics", "Lawyers Management", "Users Management"
+    ],
+};
+
+// **Lista de secciones disponibles**
+const SECTIONS = [
+    { name: "Create File", icon: "bi-files", text: "Start creating your documents", route: "personal", action: "new-will" },
+    { name: "All Files", icon: "bi-archive", text: "Access all documents", route: "all-files", action: "all-files" },
+    { name: "Search Files", icon: "bi-search", text: "Find specific documents", route: "view", action: "view" },
+    { name: "Files Review", icon: "bi-inboxes", text: "Review document statuses", route: "files-review", action: "files-review" },
+    { name: "Documents Approval", icon: "bi-filetype-pdf", text: "Approve or request document changes", route: "documents-approval", action: "documents-approval" },
+    { name: "View Packages", icon: "bi-box-seam", text: "Manage document packages", route: "packages", action: "packages" },
+    //  { name: "Continue Will", icon: "bi-file-earmark-text", text: "Resume your will creation", route: "personal", action: "continue-will" },
+    { name: "Statistics", icon: "bi-graph-up", text: "View key metrics and analytics", route: "statitics", action: "statitics" },
+    { name: "Lawyers Management", icon: "bi-bank", text: "Manage lawyers and schedules", route: "lawyers-management", action: "lawyers-management" },
+    { name: "Users Management", icon: "bi-person", text: "Manage user accounts and roles", route: "users-management", action: "users-management" },
+];
 
 export default function Dashboard({ auth }) {
     const [showToast, setShowToast] = useState(false);
@@ -67,6 +98,8 @@ export default function Dashboard({ auth }) {
     const [actionTriggered, setActionTriggered] = useState(false);
 
     const username = auth.user.name;
+    const userType = auth.user.user_type; // Obtener el tipo de usuario
+    const allowedSections = PERMISSIONS[userType] || PERMISSIONS.default; // Definir qué puede ver
 
     useEffect(() => {
         if (actionTriggered && redirectUrl) {
@@ -130,134 +163,22 @@ export default function Dashboard({ auth }) {
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <Container>
                         <Row xs={1} md={2} lg={4} className="g-4">
-
-                            <Col>
-                                <CustomCard>
-                                    <CardBody>
-                                        <IconWrapper>
-                                            <i className="bi bi-files"></i>
-                                        </IconWrapper>
-                                        <CardTitle>Create File</CardTitle>
-                                        <CardText>Select your package and start creating your documents</CardText>
-                                        <Button onClick={(e) => handleLinkClick(e, route('personal'), 'new-will')} variant="outline-dark">Get Started</Button>
-                                    </CardBody>
-                                </CustomCard>
-                            </Col>
-
-                            <Col>
-                                <CustomCard>
-                                    <CardBody>
-                                        <IconWrapper>
-                                            <i className="bi bi-archive"></i>
-                                        </IconWrapper>
-                                        <CardTitle>All Files</CardTitle>
-                                        <CardText>Access all documents for all users.</CardText>
-                                        <Button onClick={(e) => handleLinkClick(e, route('all-files'), 'all-files')} variant="outline-dark">Go Now</Button>
-                                    </CardBody>
-                                </CustomCard>
-                            </Col>
-
-                            <Col>
-                                <CustomCard>
-                                    <CardBody>
-                                        <IconWrapper>
-                                            <i className="bi bi-search"></i>
-                                        </IconWrapper>
-                                        <CardTitle>Search Files</CardTitle>
-                                        <CardText>Quickly locate and access all documents for specific users.</CardText>
-                                        <Button onClick={(e) => handleLinkClick(e, route('view'), 'view')} variant="outline-dark">Search Now</Button>
-                                    </CardBody>
-                                </CustomCard>
-                            </Col>
-                            <Col>
-                                <CustomCard>
-                                    <CardBody>
-                                        <IconWrapper>
-                                            <i className="bi  bi-inboxes"></i>
-                                        </IconWrapper>
-                                        <CardTitle>Files Review</CardTitle>
-                                        <CardText>View the status of all files for all users.</CardText>
-                                        <Button onClick={(e) => handleLinkClick(e, route('files-review'), 'files-review')} variant="outline-dark">Go Now</Button>
-                                    </CardBody>
-                                </CustomCard>
-                            </Col>
-                        </Row>
-                        <Row xs={1} md={2} lg={4} className="g-4 mt-4">
-                            <Col>
-                                <CustomCard>
-                                    <CardBody>
-                                        <IconWrapper>
-                                            <i className="bi  bi-filetype-pdf"></i>
-                                        </IconWrapper>
-                                        <CardTitle>Documents Approval</CardTitle>
-                                        <CardText>Approve or request changes on your documents.</CardText>
-                                        <Button onClick={(e) => handleLinkClick(e, route('documents-approval'), 'documents-approval')} variant="outline-dark">Go Now</Button>
-                                    </CardBody>
-                                </CustomCard>
-                            </Col>
-                            <Col>
-                                <CustomCard>
-                                    <CardBody>
-                                        <IconWrapper>
-                                            <i className="bi bi-box-seam"></i>
-                                        </IconWrapper>
-                                        <CardTitle>View Packages</CardTitle>
-                                        <CardText>Manage the legal document packages.</CardText>
-                                        <Button onClick={(e) => handleLinkClick(e, route('packages'), 'packages')} variant="outline-dark">View Packages</Button>
-                                    </CardBody>
-                                </CustomCard>
-                            </Col>
-                            <Col className='hidden'>
-                                <CustomCard>
-                                    <CardBody>
-                                        <IconWrapper>
-                                            <i className="bi bi-file-earmark-text"></i>
-                                        </IconWrapper>
-                                        <CardTitle>Continue Will</CardTitle>
-                                        <CardText>Resume your will creation process where you left off.</CardText>
-                                        <Button onClick={(e) => handleLinkClick(e, route('personal'), 'continue-will')} variant="outline-dark">Continue</Button>
-                                    </CardBody>
-                                </CustomCard>
-                            </Col>
-                            <Col >
-                                <CustomCard>
-                                    <CardBody>
-                                        <IconWrapper>
-                                            <i class="bi bi-graph-up"></i>
-                                        </IconWrapper>
-                                        <CardTitle>Statistics</CardTitle>
-                                        <CardText>View key metrics and analytics in the dashboard</CardText>
-                                        <Button onClick={(e) => handleLinkClick(e, route('statitics'), 'statitics')} variant="outline-dark">See</Button>
-                                    </CardBody>
-                                </CustomCard>
-                            </Col>
-                            <Col >
-                                <CustomCard>
-                                    <CardBody>
-                                        <IconWrapper>
-                                            <i class="bi bi-bank"></i>
-                                        </IconWrapper>
-                                        <CardTitle>Lawyers Management</CardTitle>
-                                        <CardText>Organize schedules and manage lawyers seamlessly</CardText>
-                                        <Button onClick={(e) => handleLinkClick(e, route('lawyers-management'), 'lawyers-management')} variant="outline-dark">Go now</Button>
-                                    </CardBody>
-                                </CustomCard>
-                            </Col>
-
-                        </Row>
-                        <Row xs={1} md={2} lg={4} className="g-4 mt-4">
-                            <Col>
-                                <CustomCard>
-                                    <CardBody>
-                                        <IconWrapper>
-                                            <i class="bi bi-person"></i>
-                                        </IconWrapper>
-                                        <CardTitle>Users Management</CardTitle>
-                                        <CardText>  Manage user accounts and assign roles</CardText>
-                                        <Button onClick={(e) => handleLinkClick(e, route('users-management'), 'users-management')} variant="outline-dark">Go now</Button>
-                                    </CardBody>
-                                </CustomCard>
-                            </Col>
+                            {SECTIONS.filter(section => allowedSections.includes(section.name)).map((section, index) => (
+                                <Col key={index}>
+                                    <CustomCard>
+                                        <CardBody>
+                                            <IconWrapper>
+                                                <i className={`bi ${section.icon}`}></i>
+                                            </IconWrapper>
+                                            <CardTitle>{section.name}</CardTitle>
+                                            <CardText>{section.text}</CardText>
+                                            <Button onClick={(e) => handleLinkClick(e, route(section.route), section.action)} variant="outline-dark">
+                                                Go Now
+                                            </Button>
+                                        </CardBody>
+                                    </CustomCard>
+                                </Col>
+                            ))}
                         </Row>
                     </Container>
                 </div>
