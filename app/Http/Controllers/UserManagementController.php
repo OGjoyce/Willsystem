@@ -28,7 +28,7 @@ class UserManagementController extends Controller
             $query->where('user_type', $request->get('user_type'));
         }
 
-        $users = $query->paginate(10);
+        $users = $query->get();
 
         return response()->json($users);
     }
