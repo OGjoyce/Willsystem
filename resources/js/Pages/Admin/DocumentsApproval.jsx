@@ -92,7 +92,7 @@ const DocumentsApproval = ({ id, auth }) => {
                                 <Alert variant="warning">No documents found</Alert>
                             ) : (
                                 Object.keys(groupedByOwner).map(owner => (
-                                    owner === auth.user.email && <div key={owner} className="mb-10">
+                                    <div key={owner} className="mb-10">
                                         <h1 className="font-bold text-black pl-2 my-2 border-l-4 border-teal-600">
                                             Documents for: <small className="ms-2 font-semibold text-gray-500">{owner}</small>
                                         </h1>
@@ -182,9 +182,9 @@ const DocumentsApproval = ({ id, auth }) => {
                             )}
                             <Row className="mt-3">
                                 <Col xs={6}>
-                                    <Link href={route('dashboard')}>
+                                    <Link href={route('documents-approval')}>
                                         <Button variant="outline-success" size="lg" className="w-100">
-                                            Go to Dashboard
+                                            Go to Back
                                         </Button>
                                     </Link>
                                 </Col>
