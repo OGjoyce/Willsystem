@@ -15,22 +15,32 @@ const useDocumentApproval = (initialDocId) => {
     const fetchDocuments = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('/api/obj-status/search', { params: { id: initialDocId } });
+            const response = await axios.get('/api/obj-status/search', { params: { id: 2 } });
 
             if (response.data && response.data.length > 0) {
+
                 // Iteramos sobre todos los elementos en response.data[0].information
                 setObjectStatus(response.data[0].information)
 
                 const allParsedDocuments = response.data[0].information.flatMap(information => {
 
                     const parsedObjectStatus = parseObjectStatus(information);
+
                     if (parsedObjectStatus) {
                         return formatDocuments(parsedObjectStatus);
                     }
                     return [];
                 });
+                console.log(response.data[0].information.flatMap(information => {
 
+                    const parsedObjectStatus = parseObjectStatus(information);
+                    if (parsedObjectStatus) {
+                        return formatDocuments(parsedObjectStatus);
+                    }
+                    return [];
+                }))
                 if (allParsedDocuments.length > 0) {
+
                     setDocuments(allParsedDocuments);
                 } else {
                     setError('No documents saved yet');
@@ -63,6 +73,7 @@ const useDocumentApproval = (initialDocId) => {
 
     const formatDocuments = (objectStatus) => {
         const documentDOM = objectStatus.find(item => item.documentDOM)?.documentDOM;
+        console.log('test', objectStatus.filter(item => item.documentDOM))
         if (!documentDOM) return [];
 
         return Object.entries(documentDOM)
@@ -90,7 +101,18 @@ const useDocumentApproval = (initialDocId) => {
                 const { status, changes, content } = versions[lastVersion];
                 const owner = objectStatus.find(item => item.owner)?.owner || '';
                 const packageName = objectStatus.find(item => item.packageInfo)?.packageInfo?.name || '';
-
+                console.log({
+                    id: type,
+                    type,
+                    latestVersion: lastVersion,
+                    status: status.charAt(0).toUpperCase() + status.slice(1),
+                    changeRequest: changes.requestedChanges.join(', '),
+                    content,
+                    createdAt: validCreatedAt,
+                    updatedAt: validUpdatedAt,
+                    owner,
+                    package: packageName
+                })
                 return {
                     id: type,
                     type,
