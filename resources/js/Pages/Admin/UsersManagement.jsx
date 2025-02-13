@@ -38,7 +38,7 @@ const UsersManagement = () => {
                 throw new Error("Failed to fetch users");
             }
             const data = await response.json();
-            setUsers(data.data || []);
+            setUsers(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error("Error fetching users:", error);
         } finally {
