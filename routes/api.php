@@ -12,8 +12,11 @@ use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Crypt;
 use App\Http\Controllers\LawyerController;
 use App\Http\Controllers\BusinessAvailabilityController;
+use App\Http\Controllers\GoogleCalendarController;
 use Carbon\Carbon;
 
+Route::post('/create-meeting', [GoogleCalendarController::class, 'createMeeting']);
+Route::post('/update-meeting', [GoogleCalendarController::class, 'updateMeeting']);
 
 Route::get('/users', [UserManagementController::class, 'index']);
 Route::get('/users/{id}', [UserManagementController::class, 'show']);

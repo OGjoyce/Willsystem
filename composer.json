@@ -11,6 +11,7 @@
         "laravel/framework": "^11.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
+        "spatie/laravel-google-calendar": "^3.8",
         "stripe/stripe-php": "^16.3",
         "tightenco/ziggy": "^2.0"
     },
