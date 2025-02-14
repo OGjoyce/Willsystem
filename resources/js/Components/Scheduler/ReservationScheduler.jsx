@@ -145,57 +145,38 @@ const ReservationScheduler = ({ profilesArray, setShowScheduler }) => {
             return;
         }
 
-        // Función para calcular la hora de finalización correctamente
-        const calculateEndTime = (startTime, duration) => {
-            const [hours, minutes] = startTime.split(":").map(Number);
-            const endTime = new Date();
-            endTime.setHours(hours);
-            endTime.setMinutes(minutes + duration);
-            return `${String(endTime.getHours()).padStart(2, "0")}:${String(endTime.getMinutes()).padStart(2, "0")}:00`;
-        };
-
         try {
-            // Paso 1: Crear la reunión en Google Calendar con Google Meet
-            const meetingResponse = await axios.post("/api/create-meeting", {
-                client_email: selectedProfile.email,
-                lawyer_email: "lawyer@example.com", // Se puede cambiar dinámicamente según el abogado seleccionado
-                title: "Legal Consultation",
-                description: "Contract Review",
-                start_date: `${selectedDay}T${selectedSlot.start_time}:00`,  // Formato correcto
-                end_date: `${selectedDay}T${calculateEndTime(selectedSlot.start_time, selectedDuration)}`,  // Calculado correctamente
-            });
-
-            const meetLink = meetingResponse.data.meet_link;
-            const eventId = meetingResponse.data.event_id;
-
-            // Paso 2: Guardar la reserva en la base de datos con el link correcto
-            await axios.post("/api/reservations", {
-                law_firm_id: 1,
-                date: selectedDay,
-                start_time: selectedSlot.start_time,
-                duration: selectedDuration,
-                client_name: selectedProfile.fullName,
-                client_email: selectedProfile.email,
-                title: "Legal Consultation",
-                description: "Contract Review",
-                link: meetLink,
-            });
-
-            // Paso 3: Confirmar la reunión agregando al abogado
-            await axios.post("/api/update-meeting", {
-                event_id: eventId,
-                lawyer_email: "lawyer@example.com", // Ajustar el correo del abogado real
-            });
-
+            const response = await axios.post(
+                "/api/reservations",
+                {
+                    law_firm_id: 1,
+                    date: selectedDay,
+                    start_time: selectedSlot.start_time,
+                    duration: selectedDuration,
+                    client_name: selectedProfile?.fullName,
+                    client_email: selectedProfile?.email,
+                    title: "Legal Consultation",
+                    description: "Contract Review",
+                    link: `https://meet.example.com/legal-consultation`,
+                },
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
             showToast("Reservation created successfully!", "success");
             setTimeout(() => setShowScheduler(false), 1500);
         } catch (error) {
             console.error("Reservation error:", error);
-            showToast("Failed to create reservation. Please try again.", "error");
+            showToast(
+                error.response?.status === 400
+                    ? "Invalid reservation request. Please check your inputs."
+                    : "Failed to create reservation. Please try again.",
+                "error"
+            );
         }
     };
-
-
 
     const currentMonth = () => {
         const daysInView = weeks[currentWeekIndex] || [];
