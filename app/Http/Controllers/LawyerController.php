@@ -146,7 +146,7 @@ public function createReservation(Request $request)
             'law_firm_id' => 'required|exists:law_firms,id',
             'date' => 'required|date',
             'start_time' => 'required|date_format:H:i',
-            'duration' => 'required|integer|min:15|max:60',
+            'duration' => 'required|integer|min:5|max:60',
             'client_name' => 'required|string',
             'client_email' => 'required|email',
             'title' => 'required|string|max:255',
@@ -210,7 +210,7 @@ private function checkConsecutiveSlots($slots, $reservations, $requestedStartTim
     $currentStartTime = $requestedStartTime;
 
     while ($currentStartTime < $requestedEndTime) {
-        $currentEndTime = $currentStartTime + 900; // Incremento de 15 minutos
+        $currentEndTime = $currentStartTime + 300; // 5 minutos
 
         $isSlotAvailable = $slots->contains(function ($slot) use ($currentStartTime, $currentEndTime, $date) {
             $slotStart = strtotime($date . ' ' . $slot->start_time);
@@ -233,11 +233,12 @@ private function checkConsecutiveSlots($slots, $reservations, $requestedStartTim
             return false;
         }
 
-        $currentStartTime += 900; // Incrementar 15 minutos
+        $currentStartTime += 300; // Incrementar 5 minutos
     }
 
     return true;
 }
+
 
 
 
@@ -305,7 +306,7 @@ public function getAvailableSlots(Request $request)
             $endTime = strtotime($request->date . ' ' . $slot->end_time);
 
             while ($startTime < $endTime) {
-                $slotEndTime = $startTime + 900; // Incremento de 15 minutos
+                $slotEndTime = $startTime + 300; // Incremento de 5 minutos (300 segundos)
                 $isReserved = false;
 
                 foreach ($lawyer->reservations as $reservation) {
@@ -322,14 +323,13 @@ public function getAvailableSlots(Request $request)
                 if (!$isReserved) {
                     $availableSlots[$lawyer->id][] = [
                         'lawyer_id' => $lawyer->id,
-                'lawyer_name' => $lawyer->first_name . ' ' . $lawyer->last_name,
-
+                        'lawyer_name' => $lawyer->first_name . ' ' . $lawyer->last_name,
                         'start_time' => date('H:i', $startTime),
                         'end_time' => date('H:i', $slotEndTime)
                     ];
                 }
 
-                $startTime += 900; // Incrementar en 15 minutos
+                $startTime += 300; // Incrementar en 5 minutos
             }
         }
     }
@@ -343,6 +343,7 @@ public function getAvailableSlots(Request $request)
 
     return response()->json($flattenedSlots);
 }
+
 
 
 
