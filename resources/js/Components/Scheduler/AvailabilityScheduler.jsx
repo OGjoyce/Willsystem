@@ -7,6 +7,7 @@ const AvailabilityScheduler = () => {
     const [availability, setAvailability] = useState([]);
     const [warning, setWarning] = useState("");
 
+
     // Días de la semana
     const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -14,7 +15,7 @@ const AvailabilityScheduler = () => {
         // Fetch the list of lawyers
         const fetchLawyers = async () => {
             try {
-                const response = await axios.get("http://127.0.0.1:8000/api/lawyers");
+                const response = await axios.get("/api/lawyers");
                 setLawyers(response.data);
             } catch (error) {
                 console.error("Error fetching lawyers:", error);
@@ -74,7 +75,7 @@ const AvailabilityScheduler = () => {
 
         try {
             const response = await axios.post(
-                `http://127.0.0.1:8000/api/lawyers/${selectedLawyer}/availability`,
+                `/api/lawyers/${selectedLawyer}/availability`,
                 { availability },
                 {
                     headers: {
