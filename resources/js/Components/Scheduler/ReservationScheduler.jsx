@@ -24,6 +24,10 @@ const ReservationScheduler = ({ profilesArray, setShowScheduler, fixedDuration, 
         }
     }, [profilesArray]);
 
+    useEffect(() => {
+        setSelectedDuration(fixedDuration || 5);
+    }, [fixedDuration]);
+
     const showToast = (message, type = 'info') => {
         setToast({ show: true, message, type });
         setTimeout(() => setToast({ show: false, message: '', type: 'info' }), 3000);
@@ -194,11 +198,11 @@ const ReservationScheduler = ({ profilesArray, setShowScheduler, fixedDuration, 
         <div className="p-4 max-w-lg mx-auto bg-white rounded-lg shadow-md">
             <div className="text-center mb-4">
                 <h3 className="text-lg font-bold">Book a Meeting</h3>
-                <p className="text-gray-500 text-sm">Choose a date, duration, and time slot</p>
+                <p className="text-gray-500 text-sm">Choose a date and time slot</p>
             </div>
 
             <div className="flex justify-center space-x-2 mb-4">
-                {[5, 15, 30, 45, 60].map((duration) => (
+                {!disableDurationSelection && [5, 15, 30, 45, 60].map((duration) => (
                     <button
                         key={duration}
                         className={`px-4 py-2 rounded-md ${selectedDuration === duration
