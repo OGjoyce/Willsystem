@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import CustomToast from '../AdditionalComponents/CustomToast';
 
-const ReservationScheduler = ({ profilesArray, setShowScheduler }) => {
+const ReservationScheduler = ({ profilesArray, setShowScheduler, fixedDuration, disableDurationSelection }) => {
     const [currentWeekIndex, setCurrentWeekIndex] = useState(0);
     const [weeks, setWeeks] = useState([]);
     const [selectedDay, setSelectedDay] = useState(null);
@@ -91,7 +91,7 @@ const ReservationScheduler = ({ profilesArray, setShowScheduler }) => {
     };
 
     const findMaxAvailableDuration = (selectedSlot) => {
-        const slotTimeInMinutes = 15;
+        const slotTimeInMinutes = 5; // Ajustar a 5 minutos
         const maxDuration = 60;
         let accumulatedMinutes = 0;
 
@@ -121,9 +121,9 @@ const ReservationScheduler = ({ profilesArray, setShowScheduler }) => {
 
     const handleSlotSelection = (slot) => {
         const maxDuration = findMaxAvailableDuration(slot);
-        const allowedDurations = [15, 30, 45, 60].filter(duration => duration <= maxDuration);
+        const allowedDurations = [5, 15, 30, 45, 60].filter(duration => duration <= maxDuration);
 
-        setDisabledDurations([15, 30, 45, 60].filter(duration => !allowedDurations.includes(duration)));
+        setDisabledDurations([5, 15, 30, 45, 60].filter(duration => !allowedDurations.includes(duration)));
 
         if (maxDuration < selectedDuration) {
             setWarning(`Duration adjusted to ${maxDuration} min. Choose another time for full availability`);
@@ -198,7 +198,7 @@ const ReservationScheduler = ({ profilesArray, setShowScheduler }) => {
             </div>
 
             <div className="flex justify-center space-x-2 mb-4">
-                {[15, 30, 45, 60].map((duration) => (
+                {[5, 15, 30, 45, 60].map((duration) => (
                     <button
                         key={duration}
                         className={`px-4 py-2 rounded-md ${selectedDuration === duration
