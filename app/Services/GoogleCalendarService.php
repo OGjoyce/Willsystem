@@ -1,84 +1,80 @@
 <?php
+
 namespace App\Services;
 
-use Google_Client;
-use Google_Service_Calendar;
-use Google_Service_Calendar_Event;
-use Google_Service_Calendar_EventAttendee;
-use Google_Service_Calendar_ConferenceData;
-use Google_Service_Calendar_CreateConferenceRequest;
-use Google_Service_Calendar_ConferenceSolutionKey;
-use Illuminate\Support\Facades\Storage;
+use Google\Client;
+use Google\Service\Calendar;
+use Google\Service\Calendar\Event;
+use Google\Service\Calendar\EventAttendee;
+use Google\Service\Calendar\ConferenceData;
+use Google\Service\Calendar\CreateConferenceRequest;
+use Google\Service\Calendar\ConferenceSolutionKey;
 
 class GoogleCalendarService
 {
     protected $client;
+    protected $calendar;
 
     public function __construct()
     {
-        $this->client = new Google_Client();
-        $this->client->setApplicationName('Google Calendar API Laravel');
-        $this->client->setAuthConfig(storage_path('app/credentials.json'));
-        $this->client->setScopes([Google_Service_Calendar::CALENDAR_EVENTS]);
+        // Inicializar Google Client
+        $this->client = new Client();
+        $this->client->setAuthConfig(storage_path('app/google_credentials.json'));
+        $this->client->setScopes(Calendar::CALENDAR_EVENTS);
         $this->client->setAccessType('offline');
 
-        // Intentar cargar un token guardado
-        if (Storage::exists('google-token.json')) {
-            $accessToken = json_decode(Storage::get('google-token.json'), true);
-            $this->client->setAccessToken($accessToken);
-
-            // Si el token ha expirado, lo refrescamos automáticamente
-            if ($this->client->isAccessTokenExpired()) {
-                $this->client->fetchAccessTokenWithRefreshToken($this->client->getRefreshToken());
-                Storage::put('google-token.json', json_encode($this->client->getAccessToken()));
-            }
-        }
+        $this->calendar = new Calendar($this->client);
     }
 
-    public function getAuthUrl()
+    public function createEvent($summary, $description, $startDateTime, $endDateTime, $attendeesEmails)
     {
-        return $this->client->createAuthUrl();
-    }
-
-    public function authenticate($code)
-    {
-        $accessToken = $this->client->fetchAccessTokenWithAuthCode($code);
-        $this->client->setAccessToken($accessToken);
-
-        // Guardamos el token para evitar futuras autenticaciones manuales
-        Storage::put('google-token.json', json_encode($accessToken));
-
-        return $accessToken;
-    }
-
-    public function createEvent($summary, $description, $startDateTime, $endDateTime, $attendees)
-    {
-        $service = new Google_Service_Calendar($this->client);
-
         // Configurar Google Meet
-        $conferenceSolutionKey = new Google_Service_Calendar_ConferenceSolutionKey();
+        $conferenceSolutionKey = new ConferenceSolutionKey();
         $conferenceSolutionKey->setType('hangoutsMeet');
 
-        $conferenceRequest = new Google_Service_Calendar_CreateConferenceRequest();
+        $conferenceRequest = new CreateConferenceRequest();
         $conferenceRequest->setRequestId(uniqid());
         $conferenceRequest->setConferenceSolutionKey($conferenceSolutionKey);
 
-        $conferenceData = new Google_Service_Calendar_ConferenceData();
+        $conferenceData = new ConferenceData();
         $conferenceData->setCreateRequest($conferenceRequest);
 
-        // Crear el evento
-        $event = new Google_Service_Calendar_Event([
+        // Crear evento
+        $event = new Event([
             'summary'     => $summary,
             'description' => $description,
             'start'       => ['dateTime' => $startDateTime, 'timeZone' => 'America/New_York'],
             'end'         => ['dateTime' => $endDateTime, 'timeZone' => 'America/New_York'],
-            'attendees'   => array_map(fn($email) => new Google_Service_Calendar_EventAttendee(['email' => $email]), $attendees),
+            'attendees'   => array_map(fn($email) => new EventAttendee(['email' => $email]), $attendeesEmails),
             'conferenceData' => $conferenceData,
         ]);
 
+        // Insertar en Google Calendar
+        $params = ['conferenceDataVersion' => 1];
         $calendarId = 'primary';
-        $event = $service->events->insert($calendarId, $event, ['conferenceDataVersion' => 1]);
+        $event = $this->calendar->events->insert($calendarId, $event, $params);
 
-        return $event;
+        return [
+            'meet_link' => $event->getHangoutLink(),
+            'event_id'  => $event->getId()
+        ];
+    }
+
+    public function addAttendeeToEvent($eventId, $attendeeEmail)
+    {
+        $calendarId = 'primary';
+
+        // Obtener el evento existente
+        $event = $this->calendar->events->get($calendarId, $eventId);
+
+        // Agregar nuevo asistente
+        $attendees = $event->getAttendees();
+        $attendees[] = new EventAttendee(['email' => $attendeeEmail]);
+        $event->setAttendees($attendees);
+
+        // Actualizar el evento en Google Calendar
+        $updatedEvent = $this->calendar->events->update($calendarId, $eventId, $event);
+
+        return $updatedEvent->getHangoutLink();
     }
 }
