@@ -202,7 +202,11 @@ const DocumentSelector = ({ objectStatus, handleSelectDocument, handleAddNewDocu
                             <div ref={pdfContainerRef} ></div>
                             {showScheduler && (
                                 <div className="mt-4 p-3 border rounded bg-light">
-                                    <ReservationScheduler profilesArray={profiles} setShowScheduler={setShowScheduler} />
+                                    <ReservationScheduler
+                                        profilesArray={profiles}
+                                        setShowScheduler={setShowScheduler}
+                                        fixedDuration={5}
+                                        disableDurationSelection={true} />
                                 </div>
                             )}
 
