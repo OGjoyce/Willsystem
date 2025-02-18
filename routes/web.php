@@ -11,6 +11,21 @@ use App\Http\Controllers\AllFilesController;
 use App\Http\Controllers\FilesReviewController;
 use App\Http\Controllers\PackageStatusController;
 use App\Http\Controllers\DocumentsApprovalController;
+use App\Http\Controllers\GoogleCalendarController;
+use App\Http\Controllers\GoogleAuthController;
+
+
+Route::get('/auth/google', [GoogleAuthController::class, 'redirectToGoogle']);
+Route::get('/auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
+
+// Ruta para crear un evento
+Route::get('/google-calendar/create', [GoogleCalendarController::class, 'createEvent']);
+
+// Ruta para obtener eventos futuros
+Route::get('/google-calendar/events', [GoogleCalendarController::class, 'getEvents']);
+
+// Ruta para eliminar un evento por ID
+Route::delete('/google-calendar/delete/{eventId}', [GoogleCalendarController::class, 'deleteEvent']);
 
 
 

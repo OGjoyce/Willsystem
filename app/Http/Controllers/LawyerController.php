@@ -7,7 +7,9 @@ use App\Models\LawFirm; // Importa el modelo
 use App\Models\Lawyer;
 use App\Models\AvailabilitySlot;
 use App\Models\Reservation;
-
+use Spatie\GoogleCalendar\Event;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class LawyerController extends Controller
 {
@@ -138,7 +140,6 @@ public function setAvailability(Request $request, $lawyerId)
     }
 }
 
-
 public function createReservation(Request $request)
 {
     try {
@@ -151,13 +152,12 @@ public function createReservation(Request $request)
             'client_email' => 'required|email',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'link' => 'nullable|url',
         ]);
 
         $requestedStartTime = strtotime($request->date . ' ' . $request->start_time);
         $requestedEndTime = $requestedStartTime + ($request->duration * 60);
 
-        // Obtener abogados con slots disponibles
+        // Obtener abogados disponibles
         $lawyers = Lawyer::where('law_firm_id', $request->law_firm_id)
             ->with(['availabilitySlots' => function ($query) use ($request) {
                 $query->where('day_of_week', date('l', strtotime($request->date)));
@@ -173,6 +173,7 @@ public function createReservation(Request $request)
             $isAvailable = $this->checkConsecutiveSlots($slots, $lawyer->reservations, $requestedStartTime, $requestedEndTime, $request->date);
 
             if ($isAvailable) {
+                // Crear la reserva en la base de datos
                 $reservation = Reservation::create([
                     'lawyer_id' => $lawyer->id,
                     'lawyer_email' => $lawyer->email,
@@ -183,20 +184,66 @@ public function createReservation(Request $request)
                     'start_date' => date('Y-m-d H:i:s', $requestedStartTime),
                     'end_date' => date('Y-m-d H:i:s', $requestedEndTime),
                     'duration' => $request->duration,
-                    'link' => $request->link,
                     'object_status_id' => 1,
                 ]);
 
+                // Crear el evento en Google Calendar
+                $event = new Event;
+                $event->name = $request->title;
+                $event->description = $request->description;
+                $event->startDateTime = Carbon::createFromTimestamp($requestedStartTime);
+                $event->endDateTime = Carbon::createFromTimestamp($requestedEndTime);
+
+                // Agregar participantes (cliente y abogado)
+                $event->addAttendee([
+                    'email' => $request->client_email,
+                    'name' => $request->client_name,
+                    'responseStatus' => 'needsAction',
+                ]);
+
+                $event->addAttendee([
+                    'email' => $lawyer->email,
+                    'name' => $lawyer->first_name . ' ' . $lawyer->last_name,
+                    'responseStatus' => 'needsAction',
+                ]);
+
+                // Intentar agregar Google Meet
+                try {
+                    $event->addMeetLink();
+                } catch (\Exception $e) {
+                    Log::error("Error añadiendo Google Meet Link: " . $e->getMessage());
+                }
+
+                $savedEvent = $event->save();
+
+                // Agregar logs para depuración
+                Log::info("Evento creado en Google Calendar", [
+                    'event_id' => $savedEvent->id ?? 'N/A',
+                    'meet_link' => $savedEvent->hangoutLink ?? 'N/A'
+                ]);
+
+                // Confirmar si se obtuvo el enlace de Meet
+                $meetLink = $savedEvent->hangoutLink ?? null;
+
+                // Actualizar la reserva con el link del evento si existe
+                if ($meetLink) {
+                    $reservation->update(['link' => $meetLink]);
+                }
+
                 return response()->json([
                     'message' => 'Reservation created successfully',
-                    'reservation' => $reservation
+                    'reservation' => $reservation,
+                    'google_event' => [
+                        'event_id' => $savedEvent->id ?? null,
+                        'meet_link' => $meetLink
+                    ]
                 ], 201);
             }
         }
 
         return response()->json(['message' => 'No lawyers available for the requested time'], 400);
     } catch (\Exception $e) {
-        \Log::error($e);
+        Log::error('Error creating reservation: ' . $e->getMessage());
 
         return response()->json([
             'message' => 'An error occurred',
@@ -204,6 +251,7 @@ public function createReservation(Request $request)
         ], 500);
     }
 }
+
 
 private function checkConsecutiveSlots($slots, $reservations, $requestedStartTime, $requestedEndTime, $date)
 {
