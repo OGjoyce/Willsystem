@@ -223,6 +223,7 @@ const AllFiles = ({ auth }) => {
                 created: creationTimestamp ? new Date(creationTimestamp).toLocaleDateString() : 'N/A',
                 updated: lastModificationTimestamp ? new Date(lastModificationTimestamp).toLocaleDateString() : 'N/A',
                 sendAt: packageInfo.documents_sent_at == "Not sent yet" ? null : packageInfo.documents_sent_at,
+                isSignatureRequired: packageInfo?.is_signature_required,
                 leng: availableDocuments,
                 totalSteps: totalSavedDocuments,
                 percentageCompleted: Math.round(completionPercentage) + '%',
@@ -298,6 +299,7 @@ const AllFiles = ({ auth }) => {
             wrap: true,
             cell: row => <span className="text-sm">{row.name}</span>,
         },
+
         {
             name: 'Created',
             selector: row => row.created,
@@ -318,6 +320,13 @@ const AllFiles = ({ auth }) => {
             sortable: true,
             center: true,
             cell: row => <span className="text-sm">{row.sendAt || "Not sent yet"}</span>,
+        },
+        {
+            name: 'Signature',
+            selector: row => row.isSignatureRequired === 1 ? row.isSignatureRequired : 0,
+            sortable: true,
+            wrap: true,
+            cell: row => <span className="text-sm">{row.isSignatureRequired ? "Yes" : "No"}</span>,
         },
         {
             name: 'Progress',
@@ -382,6 +391,7 @@ const AllFiles = ({ auth }) => {
             pkg.name,
             pkg.created,
             pkg.updated,
+            pkg.isSignatureRequired,
             pkg.percentageCompleted,
         ]);
 
@@ -405,6 +415,7 @@ const AllFiles = ({ auth }) => {
                 pkg.name,
                 pkg.created,
                 pkg.updated,
+                pkg.isSignatureRequired,
                 pkg.percentageCompleted,
             ]),
         ];
@@ -420,7 +431,7 @@ const AllFiles = ({ auth }) => {
 
     return (
         <AuthenticatedLayout
-            user={"Admin"}
+            user={auth.user}
             header={<h2 className="font-semibold text-2xl text-gray-800 leading-tight">All Files</h2>}
         >
             <Head title={"View Files"} />
