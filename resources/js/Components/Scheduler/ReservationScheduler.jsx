@@ -34,18 +34,27 @@ const ReservationScheduler = ({ profilesArray, setShowScheduler, fixedDuration, 
     };
 
     const generateWeeks = () => {
+        // Use a separate 'now' reference for looping.
+        const now = new Date();
+
+        // A separate variable for the "midnight" boundary:
+        const todayMidnight = new Date();
+        todayMidnight.setHours(0, 0, 0, 0);
+
         const weeksArray = [];
         for (let week = 0; week < 4; week++) {
             const days = [];
             for (let day = 0; day < 7; day++) {
-                const date = new Date(today);
-                date.setDate(today.getDate() + week * 7 + day);
+                // Create a fresh date based on 'now'
+                const date = new Date(now);
+                date.setDate(now.getDate() + week * 7 + day);
+
                 days.push({
                     date: date.toISOString().split("T")[0],
                     dayLabel: date.toLocaleDateString("en-US", { weekday: "short" }),
                     dateLabel: date.getDate(),
                     monthLabel: date.toLocaleDateString("en-US", { month: "long" }),
-                    isPast: date < today.setHours(0, 0, 0, 0),
+                    isPast: date < todayMidnight,
                 });
             }
             weeksArray.push(days);
@@ -53,12 +62,14 @@ const ReservationScheduler = ({ profilesArray, setShowScheduler, fixedDuration, 
         setWeeks(weeksArray);
     };
 
+
     useEffect(() => {
         generateWeeks();
     }, []);
 
     const fetchSlots = async (date, isPast) => {
         if (isPast) return;
+        setSelectedDay(null)
         setSelectedDay(date);
         setSelectedSlot(null);
         setWarning("");
@@ -243,6 +254,7 @@ const ReservationScheduler = ({ profilesArray, setShowScheduler, fixedDuration, 
 
             <div className="flex justify-between mb-4">
                 {weeks[currentWeekIndex]?.map((day) => (
+
                     <div
                         key={day.date}
                         className={`text-center cursor-pointer p-2 rounded-md ${day.isPast
