@@ -255,6 +255,7 @@ const ReservationScheduler = ({ profilesArray, setShowScheduler, fixedDuration, 
                     >
                         <div className="text-sm font-bold">{day.dayLabel}</div>
                         <div className="text-lg">{day.dateLabel}</div>
+                        <h1>hola</h1>
                     </div>
                 ))}
             </div>
