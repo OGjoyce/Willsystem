@@ -43,8 +43,8 @@ class GoogleCalendarService
         $event = new Event([
             'summary'     => $summary,
             'description' => $description,
-            'start'       => ['dateTime' => $startDateTime, 'timeZone' => 'America/New_York'],
-            'end'         => ['dateTime' => $endDateTime, 'timeZone' => 'America/New_York'],
+            'start'       => ['dateTime' => $startDateTime, 'timeZone' => 'America/Toronto'],
+            'end'         => ['dateTime' => $endDateTime, 'timeZone' => 'America/Toronto'],
             'attendees'   => array_map(fn($email) => new EventAttendee(['email' => $email]), $attendeesEmails),
             'conferenceData' => $conferenceData,
         ]);
