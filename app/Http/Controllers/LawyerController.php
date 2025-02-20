@@ -191,8 +191,12 @@ public function createReservation(Request $request)
                 $event = new Event;
                 $event->name = $request->title;
                 $event->description = $request->description;
-                $event->startDateTime = Carbon::createFromTimestamp($requestedStartTime)->setTimezone('America/Toronto');
-                $event->endDateTime = Carbon::createFromTimestamp($requestedEndTime)->setTimezone('America/Toronto');
+                $startDateTime = Carbon::createFromFormat('Y-m-d H:i', $request->date . ' ' . $request->start_time, 'America/Toronto')
+                ->toIso8601String();
+                $endDateTime = Carbon::createFromFormat('Y-m-d H:i', $request->date . ' ' . $request->start_time, 'America/Toronto')
+                ->addMinutes($request->duration)
+                ->toIso8601String();
+
 
 
 
