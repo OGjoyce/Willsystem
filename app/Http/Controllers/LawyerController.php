@@ -191,8 +191,10 @@ public function createReservation(Request $request)
                 $event = new Event;
                 $event->name = $request->title;
                 $event->description = $request->description;
-                $event->startDateTime = Carbon::createFromTimestamp($requestedStartTime);
-                $event->endDateTime = Carbon::createFromTimestamp($requestedEndTime);
+                $event->startDateTime = Carbon::createFromTimestamp($requestedStartTime)->setTimezone('America/Toronto');
+                $event->endDateTime = Carbon::createFromTimestamp($requestedEndTime)->setTimezone('America/Toronto');
+
+
 
                 // Agregar participantes (cliente y abogado)
                 $event->addAttendee([
