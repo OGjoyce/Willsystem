@@ -155,16 +155,38 @@ const Packages = () => {
 
     const validateForm = () => {
         const errors = {};
-        if (!currentPackage.name.trim()) errors.name = 'Name cannot be empty';
-        if (!currentPackage.price.trim()) errors.price = 'Price cannot be empty';
-        if (!currentPackage.description.trim()) errors.description = 'Description cannot be empty';
-        if (!currentPackage.campaign.trim()) errors.campaign = 'Campaign cannot be empty';
+
+        // Validate name
+        if (!currentPackage.name.trim()) {
+            errors.name = 'Name cannot be empty';
+        }
+
+        // Validate price: ensure it's not empty and is a valid number
+        if (!currentPackage.price.trim()) {
+            errors.price = 'Price cannot be empty';
+        } else if (isNaN(Number(currentPackage.price))) {
+            errors.price = 'Price must be a valid number';
+        }
+
+        // Validate description
+        if (!currentPackage.description.trim()) {
+            errors.description = 'Description cannot be empty';
+        }
+
+        // Validate campaign
+        if (!currentPackage.campaign.trim()) {
+            errors.campaign = 'Campaign cannot be empty';
+        }
+
+        // Validate expiration_date if provided
         if (currentPackage.expiration_date && isNaN(Date.parse(currentPackage.expiration_date))) {
             errors.expiration_date = 'Expiration date must be a valid date';
         }
+
         setValidationErrors(errors);
         return Object.keys(errors).length === 0;
     };
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
