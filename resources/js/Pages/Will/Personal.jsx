@@ -266,6 +266,7 @@ export default function Personal({ auth }) {
     };
 
     const handleSelectDocument = (docObj) => {
+        if (nextStep(pointer + 1) == false) return
         let owner = docObj.owner || 'unknown';
         const document = docObj.docType;
 
