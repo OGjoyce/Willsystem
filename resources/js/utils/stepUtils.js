@@ -44,7 +44,7 @@ const stepper = [
                 // Ocultar pasos 12 (POA Property) y 13 (POA Health) si es un primaryWill
                 if (index === 12 || index === 13) return false;
             } else if (currentDocument === 'secondaryWill') {
-                if ( index === 7 || index === 10 || index === 11 || index === 12 || index === 13 || index === 14) return false;
+                if (index === 6 || index === 7 || index === 8 || index === 10 || index === 11 || index === 12 || index === 13 || index === 14) return false;
             } else if (currentDocument === 'poaProperty') {
                 // Ocultar todos menos el paso 12 para POA Property
                 if (index === 5 || index === 6 || index === 7 || index === 8 || index === 9 ||
