@@ -77,7 +77,7 @@ const POA1Content = forwardRef((props, ref) => {
                             <p>
                                 I, {capitalLetters(personal.fullName)} of {capitalLetters(personal.city)}
                                 {personal.province ? `, ${capitalLetters(personal.province)}` : ""}, revoke any previous continuing Power of Attorney for
-                                Property made by me and APPOINT {attorneyOne.relation ? `, my ${attorneyOne.relation}` : ""} {capitalLetters(attorneyOne.fullName)}
+                                Property made by me and APPOINT {attorneyOne.relation ? `my ${attorneyOne.relation}` : ""} {capitalLetters(attorneyOne.fullName)}
                                 {attorneyOne.city && ` of ${capitalLetters(attorneyOne.city)}`}
                                 {attorneyOne.province ? `, ${capitalLetters(attorneyOne.province)}` : ""} to be my sole Attorney for
                                 Property (my "Attorney").
