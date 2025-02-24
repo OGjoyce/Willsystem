@@ -408,7 +408,7 @@ function Bequest({ id, datas, errors, onAddPersonFromDropdown }) {
                     <Col md={6}>
                         <AddPersonDropdown
                             options={identifiersNames}
-                            extraOptions={isMarried ? ['Spouse First'] : []}
+                            //extraOptions={isMarried ? ['Spouse First'] : []}
                             label="Select Beneficiary"
                             selected={selectedRecipient}
                             onSelect={handleRecepientSelect}
