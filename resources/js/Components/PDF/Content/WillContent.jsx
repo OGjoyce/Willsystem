@@ -372,7 +372,7 @@ var WillContent = forwardRef((props, ref) => {
 
                                                                         // Prepare backup clause if a backup exists
                                                                         let backupText = "";
-                                                                        if (item.backup) {
+                                                                        if (item.backup !== "NA") {
                                                                             // Obtain backup location data
                                                                             const { city: bCity, province: bProvince, country: bCountry } = findPersonInfo(
                                                                                 item.backup,
