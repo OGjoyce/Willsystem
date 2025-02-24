@@ -2,48 +2,45 @@ import { Modal, ListGroup, Button } from "react-bootstrap";
 import { useEffect, useState } from "react";
 
 export const ProfileSelector = ({ currentDocument, objectStatus, handleCreateNewProfile, selectProfile }) => {
-    const [emails, setEmails] = useState([]);
+    const [profiles, setProfiles] = useState([]);
 
     useEffect(() => {
-        // Filtra los correos electrónicos que no son owners de un documento con el mismo tipo que currentDocument.docType
-        const filteredEmails = objectStatus
+        const filteredProfiles = objectStatus
             .flatMap(profileArray =>
                 profileArray.map(profile => {
                     const email = profile.personal?.email;
-                    if (!email) return null; // Ignora perfiles sin email
+                    const fullName = profile.personal?.fullName;
 
-                    // Comprobación de si es propietario de un documento del tipo actual
+                    if (!email || !fullName) return null; // ignora perfiles incompletos
+
                     const isOwnerOfSameType = objectStatus[0][0]?.packageInfo?.documents.some(doc => {
-                        if (currentDocument == "secondaryWill") {
-                            // Asegurarse de que retorne un valor booleano
-                            return (doc.owner === email || doc.owner.split("*")[0] === email) && doc.docType === currentDocument;
+                        if (currentDocument === "secondaryWill") {
+                            return (
+                                (doc.owner === email || doc.owner.split("*")[0] === email) &&
+                                doc.docType === currentDocument
+                            );
                         } else {
                             return doc.owner === email && doc.docType === currentDocument;
                         }
                     });
 
-                    return !isOwnerOfSameType ? email : null; // Solo devuelve emails que no coincidan
+                    return !isOwnerOfSameType ? { email, fullName } : null;
                 })
             )
-            .filter(Boolean); // Elimina valores nulos o undefined
+            .filter(Boolean);
 
-
-        setEmails(filteredEmails);
+        setProfiles(filteredProfiles);
     }, [currentDocument, objectStatus]);
 
     return (
-        <Modal
-            show={true}
-            onHide={() => { }}
-            backdrop="static"
-            keyboard={false}
-        >
+        <Modal show={true} onHide={() => { }} backdrop="static" keyboard={false}>
             <Modal.Header>
                 <Modal.Title>Select profile</Modal.Title>
             </Modal.Header>
+
             <Modal.Body>
                 <ListGroup variant="flush" className="w-100">
-                    {emails.map((email, idx) => (
+                    {profiles.map(({ email, fullName }, idx) => (
                         <ListGroup.Item
                             key={idx}
                             action
@@ -51,7 +48,7 @@ export const ProfileSelector = ({ currentDocument, objectStatus, handleCreateNew
                             className="text-center"
                         >
                             <i className="bi bi-person-circle me-2"></i>
-                            <strong>{email.includes('*secondaryWill') ? `${email.split(".com*")[0]} (Secondary Will)` : email}</strong>
+                            <strong>{fullName} {email.includes('*secondaryWill') ? '(Secondary Will)' : ''}</strong>
                         </ListGroup.Item>
                     ))}
                 </ListGroup>
