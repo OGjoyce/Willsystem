@@ -47,12 +47,12 @@ const stepper = [
                 if (index === 6 || index === 7 || index === 8 || index === 10 || index === 11 || index === 12 || index === 13 || index === 14) return false;
             } else if (currentDocument === 'poaProperty') {
                 // Ocultar todos menos el paso 12 para POA Property
-                if (index === 5 || index === 6 || index === 7 || index === 8 || index === 9 ||
+                if (index === 3 || index === 4 || index === 5 || index === 6 || index === 7 || index === 8 || index === 9 ||
                     index === 10 || index === 11 || index === 13 || index === 14 || index === 15) {
                     return false;
                 }
             } else if (currentDocument === 'poaHealth') {
-                if (index === 5 || index === 6 || index === 7 || index === 8 || index === 9 ||
+                if (index === 3 || index === 4 ||index === 5 || index === 6 || index === 7 || index === 8 || index === 9 ||
                     index === 10 || index === 11 || index === 12 || index === 14 || index === 15) {
                     return false;
                 }
