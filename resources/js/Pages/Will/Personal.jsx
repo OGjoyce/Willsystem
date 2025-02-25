@@ -436,15 +436,17 @@ export default function Personal({ auth }) {
                 }
                 if (checkValidation(validate.formData(personalData))) {
                     const initializedDocuments = initializePackageDocuments(availableDocuments, selectedPackage?.description);
+                    const { send_via, ...Data } = personalData;
                     const dataObj = {
                         personal: {
-                            ...personalData,
+                            ...Data,
                             timestamp: Date.now(),
                         },
                         owner: personalData.email,
                         packageInfo: {
                             ...selectedPackage,
                             additionalFee: "0",
+                            send_via: send_via,
                             documents_sent_at: "Not sent yet",
                             documents: initializedDocuments,
                         },
