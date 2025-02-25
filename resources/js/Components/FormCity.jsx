@@ -53,7 +53,7 @@ function FormCity({ auth, laravelVersion, phpVersion, errors }) {
     const [selected, setSelected] = useState('')
     const [validationErrors, setValidationErrors] = useState(errors)
     const [phone, setPhone] = useState('');
-    const [selectedOption, setSelectedOption] = useState("");
+    const [selectedOption, setSelectedOption] = useState("BTL");
 
     useEffect(() => {
         setValidationErrors(errors);
