@@ -105,7 +105,7 @@ const POA2Content = forwardRef((props, ref) => {
                         <p><strong>Designation of Attorney</strong></p>
                         <ol start="3">
                             <li>
-                                I designate  {attorneyOne.relation && ` my ${attorneyOne?.relation?.toLowerCase()}`} {capitalLetters(attorneyOne.fullName)}  {attorneyOne.city && attorneyOne.province && `, of ${capitalLetters(attorneyOne.province)}, ${capitalLetters(attorneyOne.city)}, ${capitalLetters(attorneyOne.country)}`} to be my sole Attorney for
+                                I designate  {attorneyOne.relation && ` my ${attorneyOne?.relation?.toLowerCase()}`} {capitalLetters(attorneyOne.fullName)}  {attorneyOne.city && attorneyOne.province && `, of ${capitalLetters(attorneyOne.city)}, ${capitalLetters(attorneyOne.province)}, ${capitalLetters(attorneyOne.country)}`} to be my sole Attorney for
                                 Personal Care (my "Attorney").
                             </li>
                             {attorneyTwo && attorneyTwo.length > 0 && (
