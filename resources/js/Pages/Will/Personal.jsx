@@ -82,7 +82,7 @@ export default function Personal({ auth }) {
     const [pointer, setPointer] = useState(0);
     const [validationErrors, setValidationErrors] = useState({});
     const [showAddFeeInput, setShowAddFeeInput] = useState(false)
-
+    const [isSpousalPackage, setIsSpousalPackage] = useState(false)
 
     //Show the select Package modal when starting a new file
     useEffect(() => {
@@ -96,6 +96,7 @@ export default function Personal({ auth }) {
     useEffect(() => {
         setVisibleSteps(getVisibleSteps(getObjectStatus(objectStatus, currentProfile), currentDocument))
     }, [objectStatus, currentProfile, currentDocument, pointer])
+
 
 
     useEffect(() => {
@@ -195,8 +196,23 @@ export default function Personal({ auth }) {
     useEffect(() => {
         if (pointer == 1 && !getObjectStatus(objectStatus, currentProfile).some(obj => obj.hasOwnProperty('marriedq'))) {
             const updatedObjectStatus = initializeObjectStructure(objectStatus, currentProfile)
-            setObjectStatus(updatedObjectStatus);
-            localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus));
+            if (updatedObjectStatus[0]?.[0]?.packageInfo?.description.includes('spousal')) {
+
+                const newObjectStatus = handleProfileData(currentProfile, [
+                    {
+                        name: 'marriedq',
+                        data: { selection: "true", timestamp: Date.now() },
+                    },
+                ], updatedObjectStatus);
+                setObjectStatus(newObjectStatus);
+                setTimeout(() => {
+                    setPointer(2)
+                }, 100)
+            } else {
+                setObjectStatus(updatedObjectStatus);
+                localStorage.setItem('fullData', JSON.stringify(updatedObjectStatus));
+            }
+
         }
     }, [objectStatus, currentProfile, currentDocument, pointer]);
 
